@@ -11,7 +11,7 @@ Please note this is just a proof of concept, at this stage. Not even the SiestaR
 
 Open questions (to be discussed):
 
-* Implementation of a method that suggests some computational resources (to be placed in `job_engines` dict).
+* Implementation of a method that suggests some computational resources (to be placed in `calc_engines` dict).
   E.g. given a structure, how many nodes to use? This could also probably be outside of the `MyPluginRelaxationInputsGenerator`.
 
 * At the moment to generate the builder we pass everything in the `get_builder`. One could argue that have separate methods
