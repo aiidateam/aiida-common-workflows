@@ -12,14 +12,12 @@ from aiida_siesta.workflows.common import SiestaRelaxationInputsGenerator as Sie
 # This dictionary is the place where the user specifies the code and resources
 # to use in order to run the SiestaRelaxWorkChain. 'relax' and 'final_scf' are two steps
 # that the SiestaRelaxWorkChain might have, and that might require two different codes.
-
 # More generally: we expect the WorkChain to eventually run (one or more) CalcJob(s).
 # These might require specific options, and need to know which code to use.
 # Therefore, the generator should group all possible runs of CalcJobs in groups that share the same code
 # and the same resources. We call them `calc_types`. The same code might be used by multiple calc_types (see
 # e.g. example below) if the resources needed are very different.
 # Multiple calculations might use the same calc_type, e.g. restarts in the same part of the WorkChain.
-
 # The keys of the following calc_engines are the allowed calc_types; the values define the 
 # concrete values for each of these calc_types.
 calc_engines = {
@@ -70,6 +68,14 @@ assert set(SiestaRelGen.get_protocol_info('standard')) == {
         'This is safe for a default calculation.'}
 assert set(SiestaRelGen.get_protocol_info('testing')) == {'description': 'This is a fast protocol to quickly get some results, typically unconverged. This uses a k-mesh with inverse linear density of 0.4 ang^-1 and basis set SZ and pseudos from the "standard" family from PseudoDojo. This is useful for debugging and tutorials.'}
 
+# Another compulsory input, specifying the task. Possible values: 'atoms-only', 'variable-cell'
+# Question: also 'cell-only'? In this case, then change the name of 'variable-cell' to 'full-relax'?
+relaxation_type = 'variable-cell'
+
+# As some codes might support limited functionality (for instance fleur can't relax the cell),
+# it is useful to have a method returning the available `relaxation_type`
+assert set(SiestaRelGen.get_relaxation_types()) == set(['atoms-only', 'variable-cell'])
+
 
 #Other inputs the user need to define:
 structure = StructureData() # The initial structure is a compulsory input
@@ -113,12 +119,12 @@ assert isinstance(process_node.relaxed_structure, StructureData) # The relaxed s
 N = len(process_node.structure.sites) # Number of atoms, used later
 
 ## FORCES
-assert isinstance(process_node.forces, ArrayData) # These are the forces in XXX units
+assert isinstance(process_node.forces, ArrayData) # These are the forces in eV/ang units
 assert process_node.forces.get_array('forces').shape == (N,3) # This is the shape the 'forces' array (inside the node) must have
 
 ## STRESS (optional, not present if relaxing atoms only)
-assert isinstance(process_node.stress, ArrayData) # This is the stress in XXX units
+assert isinstance(process_node.stress, ArrayData) # This is the stress in ev/ang^3 units
 assert process_node.stress.get_array('stress').shape == (3,3)
 
-#Optional: the total energy in XXX units
+#Optional: the total energy in eV units
 assert isinstance(process_node.total_energy, Float)

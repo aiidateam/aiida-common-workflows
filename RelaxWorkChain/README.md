@@ -7,7 +7,9 @@ These inputs are instead suggested by the `get_builder` method of the class `Sie
 
 This file should be the reference for all the plugins developers in order to implement their own `MyPluginRelaxationInputsGenerator`. It sets the standards for the syntax and illustrates the methods we expect in that class.
 
-Please note this is just a proof of concept, at this stage. Not even the SiestaRelaxWorkChain (in the sense presented in this folder) exists.
+The `SiestaRelaxWorkChain` returns some standardized outputs. It is intended to be a WorkChain that wraps the already existing siesta WorkChain that performs the relaxation. Its main task is to return the correct outputs (including standardized units), but, if necessary, it can contain more logic. A WorkChain of this kind is expected from all the plugin developers involved in the project, the standard outputs and units are explained inside the file `submission_siesta.py`.
+
+Please note this is just a proof of concept, at this stage. No SiestaRelaxWorkChain or SiestaRelaxationInputsGenerator exist at the moment. The relaxation of a structure is taken as an example, but the concepts discussed here can be applied to other simple property calculations (for instance the calculation of bands).
 
 Open questions (to be discussed):
 
@@ -37,5 +39,4 @@ Open questions (to be discussed):
   Alternatively, we could add flags to the GUI, or, in other words, to pass more parameters to get_builder.
 
 * We need to clarify which outputs are optional (see current suggestion in the code example). We need to decide if the WorkChain is allowed to return additional "unexpected" nodes.
-  Maybe it is ok, and maybe we should define a link label prefix custom_*, or maybe labeling code acknostic output nodes (possible schema controlled)  with a prefix common_*. Reason: if a workchain returns for instance `number_of_steps`, and in the future we decide to make this part of the standard but with a different syntax/schema, we would have problems - if we call it instead `custom_number_of_steps`, this name will never clash with future extensions of the possible outputs. 
-
+  Maybe it is ok, and maybe we should define a link label prefix `custom_*`, or maybe labeling code acknostic output nodes (possible schema controlled)  with a prefix `common_*`. Reason: if a workchain returns for instance `number_of_steps`, and in the future we decide to make this part of the standard but with a different syntax/schema, we would have problems - if we call it instead `custom_number_of_steps`, this name will never clash with future extensions of the possible outputs.
