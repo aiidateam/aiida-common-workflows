@@ -37,5 +37,5 @@ Open questions (to be discussed):
   Alternatively, we could add flags to the GUI, or, in other words, to pass more parameters to get_builder.
 
 * We need to clarify which outputs are optional (see current suggestion in the code example). We need to decide if the WorkChain is allowed to return additional "unexpected" nodes.
-  Maybe it is ok, and maybe we should define a prefix `custom_*`. Reason: if a workchain returns for instance `number_of_steps`, and in the future we decide to make this part of the standard but with a different syntax/schema, we would have problems - if we call it instead `custom_number_of_steps`, this name will never clash with future extensions of the possible outputs. 
+  Maybe it is ok, and maybe we should define a link label prefix custom_*, or maybe labeling code acknostic output nodes (possible schema controlled)  with a prefix common_*. Reason: if a workchain returns for instance `number_of_steps`, and in the future we decide to make this part of the standard but with a different syntax/schema, we would have problems - if we call it instead `custom_number_of_steps`, this name will never clash with future extensions of the possible outputs. 
 
