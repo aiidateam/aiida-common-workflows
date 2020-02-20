@@ -105,7 +105,7 @@ builder.parameters = Dict(dict=new_params)
 process_node = submit(builder)
 
 # here: in some way we wait for the process to complete execution
-while process_node.is_running():
+while not process_node.is_terminated:
     time.sleep(10)
 
 # Here is the standardised output that the WorkChain should produce:
