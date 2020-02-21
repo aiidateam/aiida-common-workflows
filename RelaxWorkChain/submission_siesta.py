@@ -86,8 +86,8 @@ structure = StructureData() # The initial structure is a compulsory input
 relaxation_type = 'variable-cell'
 
 # And some optional inputs
-threshold_forces = 0.01 # Optional, units are XXX (defined by our specs). Otherwise, set by default by the protocol.
-threshold_stress = 0.1 # Optional, units are XXX (defined by our specs). Otherwise, set by default by the protocol.
+threshold_forces = 0.01 # Optional, units are ev/ang (defined by our specs). Otherwise, set by default by the protocol.
+threshold_stress = 0.1 # Optional, units are ev/ang^3 (defined by our specs). Otherwise, set by default by the protocol.
 
 # We now create an instance of the class
 rel_workflow_gen = SiestaRelGen()
