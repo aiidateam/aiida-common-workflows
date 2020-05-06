@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=unsupported-membership-test,unsubscriptable-object
 """Module with base protocol registry."""
 
 __all__ = ('ProtocolRegistry',)

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+# pylint: disable=arguments-differ
 import pytest
 
 from aiida_common_workflows.common.relax import RelaxInputsGenerator, RelaxType
@@ -20,19 +22,14 @@ def inputs_generator(protocol_registry):
 
     class InputsGenerator(protocol_registry, RelaxInputsGenerator):
 
-        _calc_types = {
-            'relax': {
-                'code_plugin': 'entry.point',
-                'description': 'test'
-            }
-        }
+        _calc_types = {'relax': {'code_plugin': 'entry.point', 'description': 'test'}}
 
         _relax_types = {
             RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
             RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell.'
         }
 
-        def get_builder():
+        def get_builder(self):
             pass
 
     return InputsGenerator()
@@ -40,6 +37,8 @@ def inputs_generator(protocol_registry):
 
 def test_validation(protocol_registry):
     """Test the validation of subclasses of `ProtocolRegistry`."""
+
+    # pylint: disable=abstract-class-instantiated,function-redefined
 
     class InputsGenerator(protocol_registry, RelaxInputsGenerator):
 
@@ -54,7 +53,7 @@ def test_validation(protocol_registry):
         _calc_types = {'relax': {}}
         _relax_types = None
 
-        def get_builder():
+        def get_builder(self):
             pass
 
     with pytest.raises(RuntimeError):
@@ -65,7 +64,7 @@ def test_validation(protocol_registry):
         _calc_types = None
         _relax_types = {RelaxType.ATOMS: 'description'}
 
-        def get_builder():
+        def get_builder(self):
             pass
 
     with pytest.raises(RuntimeError):
@@ -76,7 +75,7 @@ def test_validation(protocol_registry):
         _calc_types = {'relax': {}}
         _relax_types = {'invalid-type': 'description'}
 
-        def get_builder():
+        def get_builder(self):
             pass
 
     with pytest.raises(RuntimeError):

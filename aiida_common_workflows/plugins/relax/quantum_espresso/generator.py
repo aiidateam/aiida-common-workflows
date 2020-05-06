@@ -12,21 +12,9 @@ class QuantumEspressoRelaxInputsGenerator(RelaxInputsGenerator):
     """Input generator for the `QuantumEspressoRelaxWorkChain`."""
 
     _default_protocol = 'efficiency'
-    _protocols = {
-        'efficiency': {
-            'description': ''
-        },
-        'precision': {
-            'description': ''
-        }
-    }
+    _protocols = {'efficiency': {'description': ''}, 'precision': {'description': ''}}
 
-    _calc_types = {
-        'relax': {
-            'code_plugin': 'quantumespresso.pw',
-            'description': 'The code to perform the relaxation.'
-        }
-    }
+    _calc_types = {'relax': {'code_plugin': 'quantumespresso.pw', 'description': 'The code to perform the relaxation.'}}
 
     _relax_types = {
         RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
@@ -34,7 +22,14 @@ class QuantumEspressoRelaxInputsGenerator(RelaxInputsGenerator):
     }
 
     def get_builder(
-        self, structure, calc_engines, protocol, relaxation_type, threshold_forces=None, threshold_stress=None, **kwargs
+        self,
+        structure,
+        calc_engines,
+        protocol,
+        relaxation_type,
+        threshold_forces=None,
+        threshold_stress=None,
+        **kwargs
     ):
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
 
@@ -47,15 +42,16 @@ class QuantumEspressoRelaxInputsGenerator(RelaxInputsGenerator):
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
-        from aiida_quantumespresso_epfl.common.protocol.pw import generate_inputs
+        # pylint: disable=too-many-locals
+        from aiida_quantumespresso_epfl.common.protocol.pw import generate_inputs  # pylint: disable=import-error
 
         code = calc_engines['relax']['code']
-        process_class = QuantumEspressoRelaxWorkChain._process_class
+        process_class = QuantumEspressoRelaxWorkChain._process_class  # pylint: disable=protected-access
         pseudo_family = kwargs.pop('pseudo_family')
 
         builder = QuantumEspressoRelaxWorkChain.get_builder()
         inputs = generate_inputs(process_class, protocol, code, structure, pseudo_family, override={'relax': {}})
-        builder._update(inputs)
+        builder._update(inputs)  # pylint: disable=protected-access
 
         if relaxation_type == RelaxType.ATOMS:
             relaxation_schema = 'relax'

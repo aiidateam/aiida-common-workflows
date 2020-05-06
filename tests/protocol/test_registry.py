@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+# pylint: disable=function-redefined
 import pytest
 
 from aiida_common_workflows.protocol import ProtocolRegistry

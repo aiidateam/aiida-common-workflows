@@ -45,7 +45,14 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
 
     @abstractmethod
     def get_builder(
-        self, structure, calc_engines, protocol, relaxation_type, threshold_forces=None, threshold_stress=None, **kwargs
+        self,
+        structure,
+        calc_engines,
+        protocol,
+        relaxation_type,
+        threshold_forces=None,
+        threshold_stress=None,
+        **kwargs
     ):
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
 

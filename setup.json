@@ -21,6 +21,11 @@
     "extras_require": {
         "tests": [
             "pytest~=5.4"
+        ],
+        "pre-commit": [
+            "pre-commit~=2.2",
+            "prospector~=1.2",
+            "yapf~=0.29"
         ]
     },
     "license": "MIT License",

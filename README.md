@@ -1,6 +1,6 @@
 # aiida-common-workflows
 A repository to collect ideas and first implementations for common workflow interfaces across materials science codes and plugins.
-The aim consists in achieving a common interface for different codes to compute in an automated way common materials properties. 
+The aim consists in achieving a common interface for different codes to compute in an automated way common materials properties.
 
 For a specific task (for instance the relaxation of a structure), we agree on the API of a "builder factory" (named for instance following the pattern `<Code><Task>InputGenerator`), i.e. a python class that is able to return an AiiDA builder containing the required inputs to submit an AiiDA process (typically a WorkChain) computing the property.
 With API we mean the name and signature of the methods that this "builder factory" has and its expected inputs.
