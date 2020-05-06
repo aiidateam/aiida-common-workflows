@@ -66,7 +66,7 @@ def test_is_valid_protocol(protocol_registry):
 
 def test_get_protocol_names(protocol_registry):
     """Test `ProtocolRegistry.get_protocol_names`."""
-    assert protocol_registry.get_protocol_names() == ['efficiency', 'precision']
+    assert sorted(protocol_registry.get_protocol_names()) == sorted(['efficiency', 'precision'])
 
 
 def test_get_default_protocol_name(protocol_registry):

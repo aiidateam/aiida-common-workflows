@@ -11,6 +11,16 @@ __all__ = ('QuantumEspressoRelaxInputsGenerator',)
 class QuantumEspressoRelaxInputsGenerator(RelaxInputsGenerator):
     """Input generator for the `QuantumEspressoRelaxWorkChain`."""
 
+    _default_protocol = 'efficiency'
+    _protocols = {
+        'efficiency': {
+            'description': ''
+        },
+        'precision': {
+            'description': ''
+        }
+    }
+
     _calc_types = {
         'relax': {
             'code_plugin': 'quantumespresso.pw',

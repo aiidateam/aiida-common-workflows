@@ -3,6 +3,8 @@
 from abc import ABCMeta, abstractmethod
 from enum import Enum
 
+from aiida_common_workflows.protocol import ProtocolRegistry
+
 __all__ = ('RelaxType', 'RelaxInputsGenerator')
 
 
@@ -13,7 +15,7 @@ class RelaxType(Enum):
     ATOMS_CELL = 'atoms_cell'
 
 
-class RelaxInputsGenerator(metaclass=ABCMeta):
+class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
     """Input generator for the common structure relaxation workchains.
 
     Subclasses should define the `_calc_types` and `_relax_types` class attributes, as well as the `get_builder` method.
@@ -24,6 +26,11 @@ class RelaxInputsGenerator(metaclass=ABCMeta):
 
     def __init__(self, *args, **kwargs):
         """Construct an instance of the inputs generator, validating the class attributes."""
+        super().__init__(*args, **kwargs)
+
+        def raise_invalid(message):
+            raise RuntimeError('invalid protocol registry `{}`: '.format(self.__class__.__name__) + message)
+
         if self._calc_types is None:
             message = 'invalid inputs generator `{}`: does not define `_calc_types`'.format(self.__class__.__name__)
             raise RuntimeError(message)
@@ -54,7 +61,7 @@ class RelaxInputsGenerator(metaclass=ABCMeta):
 
     def get_calc_types(self):
         """Return the calculation types for this input generator."""
-        return self._calc_types.keys()
+        return list(self._calc_types.keys())
 
     def get_calc_type_schema(self, key):
         """Return the schema of a particular calculation type for this input generator."""
@@ -65,4 +72,4 @@ class RelaxInputsGenerator(metaclass=ABCMeta):
 
     def get_relaxation_types(self):
         """Return the available relaxation types for this input generator."""
-        return self._relax_types.keys()
+        return list(self._relax_types.keys())
