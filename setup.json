@@ -1,0 +1,30 @@
+{
+    "author": "The AiiDA team",
+    "author_email": "developers@aiida.net",
+    "classifiers": [
+        "Development Status :: 4 - Beta",
+        "Framework :: AiiDA",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: POSIX :: Linux",
+        "Operating System :: MacOS :: MacOS X",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8"
+    ],
+    "description": "AiiDA package with utilities and interfaces for common workflows.",
+    "python_requires": ">=3.5",
+    "install_requires": [
+        "aiida-core>=1.2.0,<2.0.0"
+    ],
+    "extras_require": {
+        "tests": [
+            "pytest~=5.4"
+        ]
+    },
+    "license": "MIT License",
+    "name": "aiida-common-workflows",
+    "url": "https://github.com/aiidateam/aiida-common-workflows",
+    "version": "0.1.0"
+}
