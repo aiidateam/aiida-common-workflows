@@ -2,7 +2,7 @@
 """Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for Quantum ESPRESSO."""
 from aiida import orm
 
-from aiida_common_workflows.common.relax import RelaxInputsGenerator, RelaxType
+from ..generator import RelaxInputsGenerator, RelaxType
 from .workchain import QuantumEspressoRelaxWorkChain
 
 __all__ = ('QuantumEspressoRelaxInputsGenerator',)

@@ -3,7 +3,8 @@
 from aiida import orm
 from aiida.engine import calcfunction
 from aiida.plugins import WorkflowFactory
-from aiida_common_workflows.common.relax import CommonRelaxWorkChain
+
+from ..workchain import CommonRelaxWorkChain
 
 __all__ = ('QuantumEspressoRelaxWorkChain',)
 

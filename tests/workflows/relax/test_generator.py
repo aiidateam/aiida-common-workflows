@@ -2,8 +2,8 @@
 # pylint: disable=arguments-differ
 import pytest
 
-from aiida_common_workflows.common.relax import RelaxInputsGenerator, RelaxType
 from aiida_common_workflows.protocol import ProtocolRegistry
+from aiida_common_workflows.workflows.relax import RelaxInputsGenerator, RelaxType
 
 
 @pytest.fixture
