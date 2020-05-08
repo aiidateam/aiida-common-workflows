@@ -1,0 +1,51 @@
+standard:
+  description: 'A standard list of inputs for Siesta. Never tested! Proof of concept at the moment.'
+  parameters:
+     max-scfiterations: 50
+     dm-numberpulay: 4
+     dm-mixingweight: 0.3
+     dm-tolerance: 1.e-3
+     solution-method: 'diagon'
+     electronic-temperature: '25 meV'
+     write-forces: True
+     min_meshcut: 80
+  atomic_heuristics:
+     H: 
+       cutoff: 100
+     Si: 
+       cutoff: 101
+  basis:
+     pao-energy-shift: '100 meV'
+     pao-basis-size: 'DZ'
+  kpoints:
+     distance: 0.3
+     offset: [0., 0., 0.]
+  pseudo_family: 'nc-fr-04_pbe_standard_psml'
+  threshold_forces: 0.04  #in ev/ang
+  threshold_stress: 0.006241509125883258 #in ev/ang**3 = 1 GPa
+
+stringent:
+  description: 'Another test set.'
+  parameters:
+    max-scfiterations: 50
+    dm-numberpulay: 4
+    dm-mixingweight: 0.3
+    dm-tolerance: 1.e-4
+    solution-method: 'diagon'
+    electronic-temperature: '25 meV'
+    write-forces: True
+    min_meshcuf: 100
+  atomic_heuristics:
+    H:
+       cutoff: 101
+    Si:
+       cutoff: 103
+  basis:
+    pao-energy-shift: '100 meV'
+    pao-basis-size: 'DZP'
+  kpoints:
+    distance: 0.2
+    offset: [0., 0., 0.]
+  pseudo_family: 'nc-fr-04_pbe_stringent_psml'
+  threshold_forces: 0.03  #in ev/ang
+  threshold_stress: 0.005  #in ev/ang**3
