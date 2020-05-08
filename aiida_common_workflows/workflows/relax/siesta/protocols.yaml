@@ -10,9 +10,9 @@ standard:
      write-forces: True
      min_meshcut: 80
   atomic_heuristics:
-     H: 
+     H:
        cutoff: 100
-     Si: 
+     Si:
        cutoff: 101
   basis:
      pao-energy-shift: '100 meV'

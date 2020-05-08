@@ -1,5 +1,5 @@
+# -*- coding: utf-8 -*-
 import yaml
-from aiida import orm
 from aiida_common_workflows.workflows.relax.generator import RelaxInputsGenerator, RelaxType
 from aiida_common_workflows.workflows.relax.siesta.workchain import SiestaRelaxWorkChain
 
@@ -10,9 +10,8 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
 
     _default_protocol = 'standard'
 
-    with open("protocol.yaml") as thefile: 
+    with open('protocol.yaml') as thefile:
         _protocols = yaml.full_load(thefile)
-    #_protocols = {'efficiency': {'description': ''}, 'precision': {'description': ''}}
 
     _calc_types = {
         'relaxation': {
@@ -22,18 +21,30 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         }
     }
     _relax_types = {
-        RelaxType.ATOMS:'the latice shape and volume is fixed, only the athomic positions are relaxed',
-        RelaxType.ATOMS_CELL:'the lattice is relaxed together with the atomic coordinates. It allows'
-            'to target hydro-static pressures or arbitrary stress tensors.',
-    #    'constant_volume':'the cell volume is kept constant in a variable-cell relaxation: only'
-    #        'the cell shape and the atomic coordinates are allowed to change.  Note that'
-    #        'it does not make much sense to specify a target stress or pressure in this'
-    #        'case, except for anisotropic (traceless) stresses'
+        RelaxType.ATOMS:
+        'the latice shape and volume is fixed, only the athomic positions are relaxed',
+        RelaxType.ATOMS_CELL:
+        'the lattice is relaxed together with the atomic coordinates. It allows'
+        'to target hydro-static pressures or arbitrary stress tensors.',
+        #    'constant_volume':'the cell volume is kept constant in a variable-cell relaxation: only'
+        #        'the cell shape and the atomic coordinates are allowed to change.  Note that'
+        #        'it does not make much sense to specify a target stress or pressure in this'
+        #        'case, except for anisotropic (traceless) stresses'
     }
 
-    def get_builder(self, structure, calc_engines, protocol, relaxation_type, threshold_forces=None, threshold_stress=None, **kwargs):
+    # pylint: disable=too-many-locals
+    def get_builder(
+        self,
+        structure,
+        calc_engines,
+        protocol,
+        relaxation_type,
+        threshold_forces=None,
+        threshold_stress=None,
+        **kwargs
+    ):
 
-        from aiida.orm import (Str, KpointsData, Dict, StructureData)
+        from aiida.orm import (Str, KpointsData, Dict)
         from aiida.orm import load_code
 
         if self.is_valid_protocol(protocol):
@@ -42,7 +53,6 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
             import warnings
             warnings.warn('no protocol implemented with name {}, using default standard'.format(protocol))
             protocol_dict = self.get_default_protocol_name()
-
 
         #K points
         kpoints_mesh = KpointsData()
@@ -96,7 +106,7 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         builder.kpoints = kpoints_mesh
         builder.pseudo_family = Str(pseudo_fam)
         builder.options = Dict(dict=calc_engines['relaxation']['options'])
-        builder.code = code = load_code(calc_engines['relaxation']['code'])
+        builder.code = load_code(calc_engines['relaxation']['code'])
 
         return builder
 
@@ -112,4 +122,3 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
                 'pseudo_family is not loaded. Please download {} from PseudoDojo and create '
                 'a pseudo_family with the same name'.format(key, famname)
             )
-

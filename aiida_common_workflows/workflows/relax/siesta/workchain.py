@@ -1,11 +1,14 @@
-from aiida.orm import (Float, Str, ArrayData, Dict, StructureData)
+# -*- coding: utf-8 -*-
+from aiida.orm import (Float, ArrayData)
 from aiida.engine import calcfunction
 from aiida_siesta.workflows.base import SiestaBaseWorkChain
 from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChain
 
+
 @calcfunction
 def get_energy(pardict):
     return Float(pardict['E_KS'])
+
 
 @calcfunction
 def get_forces_and_stress(totalarray):
@@ -30,4 +33,3 @@ class SiestaRelaxWorkChain(CommonRelaxWorkChain):
         res_dict = get_forces_and_stress(self.ctx.workchain.outputs.forces_and_stress)
         self.out('forces', res_dict['forces'])
         self.out('stress', res_dict['stress'])
-
