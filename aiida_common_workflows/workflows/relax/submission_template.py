@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-Reference file showcasing how the submission of a SiestaRelaxWorkChain would work, when using
-inputs generated through the method `get_builder of a class
-`SiestaRelaxationInputsGenerator`
+Reference file showcasing how the submission of a `<Code>RelaxWorkChain` would work, when using
+inputs generated through the method `get_builder` of a class `<Code>RelaxInputsGenerator`.
+Moreover this example shows the required outputs of `<Code>RelaxWorkChain`, including the units specifications.
 """
 
 from aiida.orm import StructureData, Dict, Float, ArrayData
 import time
 from aiida.engine import submit
-from aiida_siesta.workflows.common import SiestaRelaxationInputsGenerator as SiestaRelGen
+from aiida_common_workflows.workflows.relax.<code>.generator import <Code>RelaxInputsGenerator as InpGen
+from aiida_common_workflows.workflows.relax.<code>.workchain import <Code>RelaxWorkChain as RelWC
 
-# This dictionary is the place where the user specifies the code and resources
-# to use in order to run the SiestaRelaxWorkChain. 'relax' and 'final_scf' are two steps
-# that the SiestaRelaxWorkChain might have, and that might require two different codes.
+# This dictionary is the place where the user specifies the code and (optionally) resources
+# to use in order to run the RelWC. 'relax' and 'final_scf' are two steps
+# that the RelWC might have, and that might require two different codes.
 # More generally: we expect the WorkChain to eventually run (one or more) CalcJob(s).
 # These might require specific options, and need to know which code to use.
 # Therefore, the generator should group all possible runs of CalcJobs in groups that share the same code
@@ -23,7 +24,7 @@ from aiida_siesta.workflows.common import SiestaRelaxationInputsGenerator as Sie
 # concrete values for each of these calc_types.
 calc_engines = {
     'relax': {
-        'code': 'siesta-4.1@localhost',
+        'code': '<code>@localhost',
         'options': {
             'resources': {
                 'num_machines': 2
@@ -34,7 +35,7 @@ calc_engines = {
         }
     },
     'final_scf': {
-        'code': 'siesta-4.1@localhost',
+        'code': '<code>@localhost',
         'options': {
             'resources': {
                 'num_machines': 2
@@ -46,20 +47,20 @@ calc_engines = {
     }
 }
 
-# The class SiestaRelaxationInputsGenerator is aware of the calc_types
-# of the SiestaRelaxWorkChain, therefore it can get programmatically all valid calc_types
-assert set(SiestaRelGen.get_calc_types()) == set(['relax', 'final_scf'])
+# The class InpGen must be aware of the calc_types
+# of the RelWC, therefore it can get programmatically all valid calc_types
+# through the method get_calc_types()
+assert set(InpGen.get_calc_types()) == set(['relax', 'final_scf'])
 
 # Also, it returns programmatically the schema of each calc_type (including the plugin for the code,
 # that can be used e.g. to show a dropdown list in a GUI of all existing valid codes;
 # and a human-readable decription of what the calc_type does)
-assert SiestaRelGen.get_calc_type_schema('relax') == {
+assert InpGen.get_calc_type_schema('relax') == {
     'code_plugin': 'siesta.siesta',
     'description': 'These are calculations used for the main run of the code, computing the relaxation'
 }
-assert SiestaRelGen.get_calc_type_schema('final_scf') == {
-    'code_plugin':
-    'siesta.siesta',
+assert InpGen.get_calc_type_schema('final_scf') == {
+    'code_plugin': 'siesta.siesta',
     'description':
     'This is the final SCF calculation that is always performed after a successful relaxation. '
     'This typically takes one order of magnitude less CPU time than the relax step'
@@ -69,47 +70,44 @@ assert SiestaRelGen.get_calc_type_schema('final_scf') == {
 protocol = 'testing'
 
 # The list of protocols available are listed by get_protocol_names
-assert set(SiestaRelGen.get_protocol_names()) == set(['standard', 'testing'])
+assert set(InpGen.get_protocol_names()) == set(['standard', 'testing'])
 # There is a default and we can ask for it
-assert set(SiestaRelGen.get_default_protocol_name()) == 'standard'
+assert set(InpGen.get_default_protocol_name()) == 'standard'
 # Also in this case, we can ask for information on each protocol (again useful for GUIs for instance)
-assert set(SiestaRelGen.get_protocol_info('standard')) == {
+assert set(InpGen.get_protocol('standard')) == {
     'description':
     'This is the default protocol. This uses a k-mesh with inverse linear density of '
-    '0.2 ang^-1 and basis set DZ and pseudos from the "stringent" family from PseudoDojo. '
-    'This is safe for a default calculation.'
+    '0.2 ang^-1 and basis set ... and pseudos from .... This is safe for a default calculation.'
 }
-assert set(SiestaRelGen.get_protocol_info('testing')) == {
+assert set(InpGen.get_protocol('testing')) == {
     'description':
-    'This is a fast protocol to quickly get some results, typically unconverged. This uses a k-mesh with inverse linear density of 0.4 ang^-1 and basis set SZ and pseudos from the "standard" family from PseudoDojo. This is useful for debugging and tutorials.'
+    'This is a fast protocol to quickly get some results, typically unconverged. '
+    'This uses a k-mesh with inverse linear density of 0.4 ang^-1 and basis ... '
+    'and pseudos .... This is useful for debugging and tutorials.'
 }
 
-# Another compulsory input, specifying the task. Possible values: 'atoms-only', 'variable-cell'
-# Question: also 'cell-only'? In this case, then change the name of 'variable-cell' to 'full-relax'?
-relaxation_type = 'variable-cell'
+# Another compulsory input, specifying the task. Typical values: 'atoms', 'cell'
+# but every plugin is free to implement its own
+relaxation_type = 'atoms'
 
 # As some codes might support limited functionality (for instance fleur can't relax the cell),
 # it is useful to have a method returning the available `relaxation_type`
-assert set(SiestaRelGen.get_relaxation_types()) == set(['atoms-only', 'variable-cell'])
+assert set(InpGen.get_relaxation_types()) == set(['atoms', 'cell', 'atoms_cell'])
 
 #Other inputs the user need to define:
 structure = StructureData()  # The initial structure is a compulsory input
 ## Anything to properly define the StructureData here
 
-# Another compulsory input, specifying the task. Possible values: 'atoms-only', 'variable-cell'
-# Question: also 'cell-only'? In this case, then change the name of 'variable-cell' to 'full-relax'?
-relaxation_type = 'variable-cell'
-
 # And some optional inputs
-threshold_forces = 0.01  # Optional, units are ev/ang (defined by our specs). Otherwise, set by default by the protocol.
-threshold_stress = 0.1  # Optional, units are ev/ang^3 (defined by our specs). Otherwise, set by default by the protocol.
+threshold_forces = 0.01  # Optional, units are ev/ang (defined by our specs). Otherwise, set by default by protocol.
+threshold_stress = 0.1  # Optional, units are ev/ang^3 (defined by our specs). Otherwise, set by default by protocol.
 
 # We now create an instance of the class
-rel_workflow_gen = SiestaRelGen()
+rel_inp_gen = InpGen()
 
-# This is the main call: we get a builder for a `SiestaRelaxWorkChain`, pre-filled,
+# This is the main call: we get a builder for a `RelWC`, pre-filled,
 # with unstored nodes (unless they are taken from the DB, e.g. pseudos)
-builder = rel_workflow_gen.get_builder(
+builder = rel_inp_gen.get_builder(
     structure=structure,
     calc_engines=calc_engines,
     protocol=protocol,
@@ -117,13 +115,13 @@ builder = rel_workflow_gen.get_builder(
     threshold_forces=threshold_forces,
     threshold_stress=threshold_stress
 )
+#Some extra, code-specific, inputs mught be implemented as required inputs of `get_builder`
 
 # The user now received a builder with suggested inputs, but before submission he/she has complete
 # freedom to change any of them.
 # NOTE: The changes are code-specific and optional.
 # If no change is performed, just submitting the builder should still work and produce sensible results.
-new_params = builder.parameters.get_dict(
-)  # Assuming that these parameters are in the expose_inputs of the WorkChain to run
+new_params = builder.parameters.get_dict()  # Assuming that `parameters` is an input of the RelWC to run
 new_params['max_scf_iterations'] = 200
 builder.parameters = Dict(dict=new_params)
 
@@ -140,9 +138,7 @@ N = len(process_node.structure.sites)  # Number of atoms, used later
 
 ## FORCES
 assert isinstance(process_node.forces, ArrayData)  # These are the forces in eV/ang units
-assert process_node.forces.get_array('forces').shape == (
-    N, 3
-)  # This is the shape the 'forces' array (inside the node) must have
+assert process_node.forces.get_array('forces').shape == (N, 3)  # Shape of the 'forces' array (inside the node)
 
 ## STRESS (optional, not present if relaxing atoms only)
 assert isinstance(process_node.stress, ArrayData)  # This is the stress in ev/ang^3 units
