@@ -24,9 +24,6 @@ repos:
         name: yapf
         entry: yapf
         language: system
-        exclude:
-            (?x)^(
-                aiida_common_workflows/workflows/relax/submission_template.py|
-            )$
+        exclude: *exclude_files
         types: [python]
         args: ['-i']
