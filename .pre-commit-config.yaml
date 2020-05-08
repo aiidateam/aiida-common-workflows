@@ -15,7 +15,7 @@ repos:
         language: system
         exclude: &exclude_files >
             (?x)^(
-                RelaxWorkChain/.*|
+                aiida_common_workflows/workflows/relax/submission_template.py|
             )$
 
 -   repo: local
@@ -24,5 +24,6 @@ repos:
         name: yapf
         entry: yapf
         language: system
+        exclude: *exclude_files
         types: [python]
         args: ['-i']
