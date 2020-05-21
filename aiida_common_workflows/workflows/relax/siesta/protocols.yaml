@@ -1,4 +1,4 @@
-standard:
+standard_delta:
   description: 'A standard list of inputs for Siesta. Never tested! Proof of concept at the moment.'
   parameters:
      max-scfiterations: 50
@@ -8,7 +8,7 @@ standard:
      solution-method: 'diagon'
      electronic-temperature: '25 meV'
      write-forces: True
-     min_meshcut: 80
+     min_meshcut: 100
   atomic_heuristics:
      H:
        cutoff: 100
@@ -18,13 +18,13 @@ standard:
      pao-energy-shift: '100 meV'
      pao-basis-size: 'DZ'
   kpoints:
-     distance: 0.3
+     distance: 0.2
      offset: [0., 0., 0.]
-  pseudo_family: 'nc-fr-04_pbe_standard_psml'
+  pseudo_family: 'nc-sr-04_pbe_standard_psml'
   threshold_forces: 0.04  #in ev/ang
   threshold_stress: 0.006241509125883258 #in ev/ang**3 = 1 GPa
 
-stringent:
+stringent_delta:
   description: 'Another test set.'
   parameters:
     max-scfiterations: 50
@@ -34,18 +34,36 @@ stringent:
     solution-method: 'diagon'
     electronic-temperature: '25 meV'
     write-forces: True
-    min_meshcuf: 100
+    min_meshcuf: 500
   atomic_heuristics:
+    Li:
+       basis: 'non-perturbative'
+    Be:
+       basis: 'non-perturbative'
+    Mg:
+       basis: 'non-perturbative'
+    Na:
+       basis: 'non-perturbative'
+    Ga:
+       basis: 'non-perturbative'
+    Ge:
+       basis: 'non-perturbative'
+    As:
+       basis: 'non-perturbative'
+    Se:
+       basis: 'non-perturbative'
+    In:
+       basis: 'non-perturbative'
     H:
-       cutoff: 101
+       cutoff: 501
     Si:
-       cutoff: 103
+       cutoff: 503
   basis:
     pao-energy-shift: '100 meV'
     pao-basis-size: 'DZP'
   kpoints:
-    distance: 0.2
+    distance: 0.062
     offset: [0., 0., 0.]
-  pseudo_family: 'nc-fr-04_pbe_stringent_psml'
+  pseudo_family: 'nc-sr-04_pbe_stringent_psml'
   threshold_forces: 0.03  #in ev/ang
   threshold_stress: 0.005  #in ev/ang**3
