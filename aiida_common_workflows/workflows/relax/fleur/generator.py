@@ -3,16 +3,17 @@
 from aiida import orm
 
 from ..generator import RelaxInputsGenerator, RelaxType
-from .workchain import FleurRelaxWorkChain
-
+from .workchain import FleurRelaxationWorkChain
+from aiida.orm import Dict
 __all__ = ('FleurRelaxInputsGenerator',)
+
 
 
 class FleurRelaxInputsGenerator(RelaxInputsGenerator):
     """Input generator for the `FleurRelaxWorkChain`."""
 
-    _default_protocol = 'efficiency'
-    _protocols = {'efficiency': {'description': ''}, 'precision': {'description': ''}}
+    _default_protocol = 'standard'
+    _protocols = {'test': {'description': ''}, 'standard': {'description': ''}}
 
     _calc_types = {'relax': {'code_plugin': 'fleur.fleur', 'description': 'The code to perform the relaxation.'}}
 
@@ -28,7 +29,7 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         protocol,
         relaxation_type,
         threshold_forces=None,
-        #threshold_stress=None,
+        threshold_stress=None,
         **kwargs
     ):
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
@@ -40,34 +41,73 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         :param threshold_forces: target threshold for the forces in eV/Å.
         :param threshold_stress: target threshold for the stress in eV/Å^3.
         :param kwargs: any inputs that are specific to the plugin.
-        :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
+        i:return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
         # pylint: disable=too-many-locals
-        from aiida_fleur.tools.common_wf_util import generate_inpgen_inputs  # pylint: disable=import-error
+        #from aiida_fleur.tools.common_wf_util import generate_scf_inputs  # pylint: disable=import-error
 
         fleur_code = calc_engines['relax']['code']
-        inpgen_code = None
-        process_class = FleurRelaxWorkChain._process_class  # pylint: disable=protected-access
+        # TODO: maybe other way to get inpgen?
+        inpgen_code = kwargs.pop('inpgen') #calc_engines['relax']['inpgen']
+        process_class = FleurRelaxationWorkChain._process_class  # pylint: disable=protected-access
 
-        builder = FleurRelaxWorkChain.get_builder()
-        inputs = generate_inputs(process_class, protocol, code, structure, pseudo_family, override={'relax': {}})
-        builder._update(inputs)  # pylint: disable=protected-access
+        builder = FleurRelaxationWorkChain.get_builder()
+
+        # TODO implement this, protocol dependent, we still have option keys as nodes ...
+        #inputs = generate_scf_inputs(process_class, protocol, code, structure, override={'relax': {}})
+
+
 
         if relaxation_type == RelaxType.ATOMS:
-            relaxation_schema = 'relax'
+            relaxation_mode = 'force'
         else:
             raise ValueError('relaxation type `{}` is not supported'.format(relaxation_type.value))
 
-        builder.relaxation_scheme = orm.Str(relaxation_schema)
-
         if threshold_forces is not None:
-            parameters = builder.base.parameters.get_dict()
-            parameters.setdefault('CONTROL', {})['forc_conv_thr'] = threshold_forces
-            builder.base.parameters = orm.Dict(dict=parameters)
+            # Fleur expects atomic units i.e Hartree/bohr
+            conversion_fac =  51.421
+            force_criterion = threshold_forces / 51.421
+        else:
+            force_criterion = 0.001
 
-        #if threshold_stress is not None:
-        #    parameters = builder.base.parameters.get_dict()
-        #    parameters.setdefault('CELL', {})['press_conv_thr'] = threshold_stress
-        #    builder.base.parameters = orm.Dict(dict=parameters)
+        if threshold_stress is not None:
+            pass #TODO
+
+        wf_para = Dict(dict={
+                      'relax_iter': 5,
+                      'film_distance_relaxation': False,
+                      'force_criterion': force_criterion,
+                      'change_mixing_criterion': 0.025,
+                      'atoms_off': []
+                    })
+
+        wf_para_scf = Dict(dict={'fleur_runmax': 2,
+                    'itmax_per_run': 120,
+                    'force_converged': force_criterion, # Check
+                    'force_dict': {'qfix': 2,
+                              'forcealpha': 0.75,
+                              'forcemix': 'straight'},
+                    'use_relax_xml': True,
+                    'serial': False,
+                    'mode': relaxation_mode,
+                   })
+
+        inputs = {'scf': {'wf_parameters': wf_para_scf,
+                          'structure': structure,
+                          #'calc_parameters': parameters,
+                          #'options': options_scf,
+                          'inpgen': inpgen_code,
+                          'fleur': fleur_code
+                         },
+                 'wf_parameters': wf_para
+                 }
+
+
+        if 'calc_parameters' in kwargs.keys():
+            parameters = kwargs.pop('calc_parameters')
+            inputs['scf']['calc_parameters'] = parameters
+
+
+        builder._update(inputs)  # pylint: disable=protected-access
 
         return builder

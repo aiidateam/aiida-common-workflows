@@ -8,8 +8,8 @@ from ..workchain import CommonRelaxWorkChain
 
 __all__ = ('FleurRelaxWorkChain',)
 
-FleurWorkChain = WorkflowFactory('fleur.relax')
-
+FleurRelaxWorkChain = WorkflowFactory('fleur.base_relax')#fleur.relax')
+#FleurRelaxWorkChain = WorkflowFactory('fleur.relax')
 
 @calcfunction
 def get_stress_from_trajectory(trajectory):
@@ -29,23 +29,8 @@ def get_forces_from_trajectory(trajectory):
 
 @calcfunction
 def get_total_energy(parameters):
-    return orm.Float(parameters.get_attribute('energy'))
+    return orm.Float('123')#parameters.get_attribute('energy'))
 
-'''
-    _wf_default = {
-                            'relax_iter': 5,
-                                    'film_distance_relaxation': False,
-                                            'force_criterion': 0.001,
-                                                    'change_mixing_criterion': 0.025,
-                                                            'atoms_off': []  # '49' is reserved
-                                                                }
-
-        @classmethod
-            def define(cls, spec):
-                            super(FleurRelaxWorkChain, cls).define(spec)
-                                    spec.expose_inputs(FleurScfWorkChain, namespace='scf')
-                                            spec.input("wf_parameters", valid_type=Dict, required=False)
-'''
 
 class FleurRelaxationWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for FLEUR."""
@@ -56,5 +41,5 @@ class FleurRelaxationWorkChain(CommonRelaxWorkChain):
         """Convert the outputs of the sub workchain to the common output specification."""
         self.out('relaxed_structure', self.ctx.workchain.outputs.optimized_structure)
         self.out('total_energy', get_total_energy(self.ctx.workchain.outputs.out))
-        self.out('forces', get_forces_from_trajectory(self.ctx.workchain.outputs.output_trajectory))
-        self.out('stress', get_stress_from_trajectory(self.ctx.workchain.outputs.output_trajectory))
+        self.out('forces', orm.ArrayData())#get_forces_from_trajectory(self.ctx.workchain.outputs.output_trajectory))
+        self.out('stress', orm.ArrayData())#get_stress_from_trajectory(self.ctx.workchain.outputs.output_trajectory))
