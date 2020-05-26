@@ -2,15 +2,18 @@
 import yaml
 from aiida_common_workflows.workflows.relax.generator import RelaxInputsGenerator, RelaxType
 from aiida_common_workflows.workflows.relax.siesta.workchain import SiestaRelaxWorkChain
+import os
 
 __all__ = ('SiestaRelaxInputsGenerator',)
 
 
 class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
 
-    _default_protocol = 'standard'
+    _default_protocol = 'standard_delta'
 
-    with open('protocol.yaml') as thefile:
+    filepath = os.path.join(os.path.dirname(__file__), 'protocols_registry.yaml')
+
+    with open(filepath) as thefile:
         _protocols = yaml.full_load(thefile)
 
     _calc_types = {
@@ -47,12 +50,17 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         from aiida.orm import (Str, KpointsData, Dict)
         from aiida.orm import load_code
 
-        if self.is_valid_protocol(protocol):
-            protocol_dict = self.get_protocol(protocol)
-        else:
+        #Checks
+        if protocol not in self.get_protocol_names():
             import warnings
             warnings.warn('no protocol implemented with name {}, using default standard'.format(protocol))
-            protocol_dict = self.get_default_protocol_name()
+            protocol = self.get_default_protocol_name()
+        if relaxation_type not in self.get_relaxation_types():
+            raise ValueError('Wrong relaxation type: no relax_type with name {} implemented'.format(relaxation_type))
+
+        #Initialization
+        protocol_dict = self.get_protocol(protocol)
+        atomic_heuristics = protocol_dict['atomic_heuristics']
 
         #K points
         kpoints_mesh = KpointsData()
@@ -63,24 +71,24 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         #Parameters, including scf and relax options
         #scf
         parameters = protocol_dict['parameters'].copy()
-        meshcutoff = 0
+        #meshcutoff = 0
         min_meshcutoff = parameters['min_meshcut']  # In Rydberg (!)
         del parameters['min_meshcut']
-        atomic_heuristics = protocol_dict['atomic_heuristics']
-        for kind in structure.get_kind_names():
-            try:
-                cutoff = atomic_heuristics[kind]['cutoff']
-                meshcutoff = max(meshcutoff, cutoff)
-            except:
-                pass  # No problem. No heuristics, no info
-        meshcutoff = max(min_meshcutoff, meshcutoff)
-        parameters['meshcutoff'] = str(meshcutoff) + ' Ry'
+        #Part of atom-dependent mesh cut need to be discussed
+        #for kind in structure.get_kind_names():
+        #    if atomic_heuristics[kind]:
+        #        cutoff = atomic_heuristics[kind]['cutoff']
+        #        meshcutoff = max(meshcutoff, cutoff)
+        #meshcutoff = max(min_meshcutoff, meshcutoff)
+        #parameters["meshcutoff"] = str(meshcutoff) + " Ry"
+        parameters['meshcutoff'] = str(min_meshcutoff) + ' Ry'
         #relaxation
         parameters['md-type-of-run'] = 'cg'
         parameters['md-num-cg-steps'] = 100
         if relaxation_type == 'variable_cell':
             parameters['md-variable-cell'] = True
         if relaxation_type == 'constant_volume':
+            parameters['md-variable-cell'] = True
             parameters['md-constant-volume'] = True
         if not threshold_forces:
             threshold_forces = protocol_dict['threshold_forces']
@@ -88,15 +96,21 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
             threshold_stress = protocol_dict['threshold_stress']
         parameters['md-max-force-tol'] = str(threshold_forces) + ' eV/Ang'
         parameters['md-max-stress-tol'] = str(threshold_stress) + ' eV/Ang**3'
-        #Walltime equal to scheduler, prevents calc to be killed by scheduler (it is implemented
-        #in WorkChain as well, but this generator is more general
-        parameters['max-walltime'] = calc_engines['relaxation']['options']['max_wallclock_seconds']
 
         #Basis
         basis = protocol_dict['basis']
+        for kind in structure.get_kind_names():
+            try:
+                cust_basis = atomic_heuristics[kind]['basis']
+                if 'split-norm' in cust_basis:
+                    basis['PaoSplitTailNorm'] = True
+                if 'polarization' in cust_basis:
+                    basis['%block PaoPolarizationScheme'
+                          ] = '\n {} non-perturbative\n%endblock PaoPolarizationScheme'.format(kind)
+            except KeyError:
+                pass
 
         #Pseudo fam
-        self._is_pseudofamily_loaded(protocol)
         pseudo_fam = protocol_dict['pseudo_family']
 
         builder = SiestaRelaxWorkChain.get_builder()
@@ -109,16 +123,3 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         builder.code = load_code(calc_engines['relaxation']['code'])
 
         return builder
-
-    def _is_pseudofamily_loaded(self, key):
-        from aiida.common import exceptions
-        from aiida.orm.groups import Group
-        try:
-            famname = self._protocols[key]['pseudo_family']
-            Group.get(label=famname)
-        except:
-            raise exceptions.NotExistent(
-                'You selected protocol {}, but the corresponding '
-                'pseudo_family is not loaded. Please download {} from PseudoDojo and create '
-                'a pseudo_family with the same name'.format(key, famname)
-            )

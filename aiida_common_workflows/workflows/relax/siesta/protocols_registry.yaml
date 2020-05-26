@@ -1,0 +1,152 @@
+standard_delta:
+  description: 'A standard list of inputs for Siesta. Never tested! Proof of concept at the moment.'
+  parameters:
+     max-scfiterations: 50
+     dm-numberpulay: 4
+     dm-mixingweight: 0.3
+     dm-tolerance: 1.e-3
+     solution-method: 'diagon'
+     electronic-temperature: '25 meV'
+     write-forces: True
+     min_meshcut: 100
+  atomic_heuristics:
+    Li:
+       basis:
+         split-norm: 'tail'
+    Na:
+       basis:
+         split-norm: 'tail'
+    K:
+       basis:
+         split-norm: "tail"
+    Ca:
+       basis:
+         split-norm: "tail"
+    Sc:
+       basis:
+         split-norm: "tail"
+    Rb:
+       basis:
+         split-norm: "tail"
+    Sr:
+       basis:
+         split-norm: "tail"
+    Y:
+       basis:
+         split-norm: "tail"
+    Zr:
+       basis:
+         split-norm: "tail"
+    Nb:
+       basis:
+         split-norm: "tail"
+    Mo:
+       basis:
+         split-norm: "tail"
+    Cs:
+       basis:
+         split-norm: "tail"
+    Ba:
+       basis:
+         split-norm: "tail"
+    Lu:
+       basis:
+         split-norm: "tail"
+  basis:
+     pao-energy-shift: '100 meV'
+     pao-basis-size: 'DZ'
+  kpoints:
+     distance: 0.2
+     offset: [0., 0., 0.]
+  pseudo_family: 'nc-sr-04_pbe_standard_psml'
+  threshold_forces: 0.04  #in ev/ang
+  threshold_stress: 0.006241509125883258 #in ev/ang**3 = 1 GPa
+
+stringent_delta:
+  description: 'Another test set.'
+  parameters:
+    max-scfiterations: 50
+    dm-numberpulay: 4
+    dm-mixingweight: 0.3
+    dm-tolerance: 1.e-4
+    solution-method: 'diagon'
+    electronic-temperature: '25 meV'
+    write-forces: True
+    min_meshcut: 500
+  atomic_heuristics:
+    Li:
+       basis:
+         split-norm: 'tail'
+         polarization: 'non-perturbative'
+    Be:
+       basis:
+         polarization: 'non-perturbative'
+    Na:
+       basis:
+         split-norm: 'tail'
+         polarization: 'non-perturbative'
+    Mg:
+       basis:
+         polarization: 'non-perturbative'
+    K:
+       basis:
+         split-norm: "tail"
+    Ca:
+       basis:
+         split-norm: "tail"
+    Sc:
+       basis:
+         split-norm: "tail"
+    Ga:
+       basis:
+         polarization: 'non-perturbative'
+    Ge:
+       basis:
+         polarization: 'non-perturbative'
+    As:
+       basis:
+         polarization: 'non-perturbative'
+    Se:
+       basis:
+         polarization: 'non-perturbative'
+    Rb:
+       basis:
+         split-norm: "tail"
+    Sr:
+       basis:
+         split-norm: "tail"
+    Y:
+       basis:
+         split-norm: "tail"
+    Zr:
+       basis:
+         split-norm: "tail"
+    Nb:
+       basis:
+         split-norm: "tail"
+    Mo:
+       basis:
+         split-norm: "tail"
+    In:
+       basis:
+         polarization: 'non-perturbative'
+    Cs:
+       basis:
+         split-norm: "tail"
+    Ba:
+       basis:
+         split-norm: "tail"
+    Lu:
+       basis:
+         split-norm: "tail"
+    Si:
+       cutoff: 503
+  basis:
+    pao-energy-shift: '100 meV'
+    pao-basis-size: 'DZP'
+  kpoints:
+    distance: 0.062
+    offset: [0., 0., 0.]
+  pseudo_family: 'nc-sr-04_pbe_stringent_psml'
+  threshold_forces: 0.03  #in ev/ang
+  threshold_stress: 0.005  #in ev/ang**3
