@@ -32,7 +32,7 @@ class CommonRelaxWorkChain(WorkChain, metaclass=ABCMeta):
             help='All cell dimensions and atomic positions are in Ångstrom.')
         spec.output('forces', valid_type=ArrayData,
             help='The final forces on all atoms in eV/Å.')
-        spec.output('stress', valid_type=ArrayData,
+        spec.output('stress', valid_type=ArrayData, required=False,
             help='The final stress tensor in eV/Å^3.')
         spec.output('trajectory', valid_type=TrajectoryData, required=False,
             help='All cell dimensions and atomic positions are in Ångstrom.')
