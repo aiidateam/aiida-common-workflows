@@ -3,6 +3,8 @@ import yaml
 from aiida_common_workflows.workflows.relax.generator import RelaxInputsGenerator, RelaxType
 from aiida_common_workflows.workflows.relax.siesta.workchain import SiestaRelaxWorkChain
 import os
+from aiida.orm.groups import Group
+from aiida.common import exceptions
 
 __all__ = ('SiestaRelaxInputsGenerator',)
 
@@ -11,16 +13,19 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
 
     _default_protocol = 'standard_delta'
 
-    filepath = os.path.join(os.path.dirname(__file__), 'protocols_registry.yaml')
+    _filepath = os.path.join(os.path.dirname(__file__), 'protocols_registry.yaml')
 
-    with open(filepath) as thefile:
-        _protocols = yaml.full_load(thefile)
+    with open(_filepath) as _thefile:
+        _protocols = yaml.full_load(_thefile)
 
     _calc_types = {
         'relaxation': {
-            'code_plugin': 'siesta.siesta',
-            'description': 'These are calculations used for'
-            'the main run of the code, computing the relaxation'
+            'code_plugin':
+            'siesta.siesta',
+            'description':
+            'These are calculations used for the main and '
+            'only run of the code, computing the relaxation, in calc_engines the user must '
+            'define a code and options compatibles with plugin siesta.siesta'
         }
     }
     _relax_types = {
@@ -35,7 +40,48 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         #        'case, except for anisotropic (traceless) stresses'
     }
 
-    # pylint: disable=too-many-locals
+    def __init__(self, *args, **kwargs):
+        """Construct an instance of the inputs generator, validating the class attributes."""
+        super().__init__(*args, **kwargs)
+
+        def raise_invalid(message):
+            raise RuntimeError('invalid protocol registry `{}`: '.format(self.__class__.__name__) + message)
+
+        for k, v in self._protocols.items():
+            if not isinstance(self._protocols[k], dict):
+                raise_invalid('protocol `{}` is not a dictionary'.format(k))
+
+            if 'description' not in v:
+                raise_invalid('protocol `{}` does not define the mandatory key `description`'.format(k))
+
+            if 'parameters' not in v:
+                raise_invalid('protocol `{}` does not define the mandatory key `parameters`'.format(k))
+            if 'mesh-cutoff' in v['parameters']:
+                try:
+                    float(v['parameters']['mesh-cutoff'].split()[0])
+                    str(v['parameters']['mesh-cutoff'].split()[1])
+                except (ValueError, IndexError):
+                    raise_invalid(
+                        'Wrong format of `mesh-cutoff` in `parameters` of protocol '
+                        '`{}`. Value and units are required'.format(k)
+                    )
+
+            if 'basis' not in v:
+                raise_invalid('protocol `{}` does not define the mandatory key `basis`'.format(k))
+
+            if 'pseudo_family' not in v:
+                raise_invalid('protocol `{}` does not define the mandatory key `pseudo_family`'.format(k))
+            else:
+                famname = self._protocols[k]['pseudo_family']
+                try:
+                    Group.get(label=famname)
+                except exceptions.NotExistent:
+                    raise_invalid(
+                        'protocol `{}` requires `pseudo_family` with name {} '
+                        'but no family with this name is loaded in the database'.format(k, famname)
+                    )
+
+    #pylint: disable=too-many-locals
     def get_builder(
         self,
         structure,
@@ -47,7 +93,7 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         **kwargs
     ):
 
-        from aiida.orm import (Str, KpointsData, Dict)
+        from aiida.orm import Dict
         from aiida.orm import load_code
 
         #Checks
@@ -57,69 +103,154 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
             protocol = self.get_default_protocol_name()
         if relaxation_type not in self.get_relaxation_types():
             raise ValueError('Wrong relaxation type: no relax_type with name {} implemented'.format(relaxation_type))
-
-        #Initialization
-        protocol_dict = self.get_protocol(protocol)
-        atomic_heuristics = protocol_dict['atomic_heuristics']
+        if 'relaxation' not in calc_engines:
+            raise ValueError('The `calc_engines` dictionaly must contain "relaxation" as outermost key')
 
         #K points
-        kpoints_mesh = KpointsData()
-        kpoints_mesh.set_cell_from_structure(structure)
-        kp_dict = protocol_dict['kpoints']
-        kpoints_mesh.set_kpoints_mesh_from_density(distance=kp_dict['distance'], offset=kp_dict['offset'])
+        kpoints_mesh = self._get_kpoints(protocol, structure)
 
         #Parameters, including scf and relax options
-        #scf
-        parameters = protocol_dict['parameters'].copy()
-        #meshcutoff = 0
-        min_meshcutoff = parameters['min_meshcut']  # In Rydberg (!)
-        del parameters['min_meshcut']
-        #Part of atom-dependent mesh cut need to be discussed
-        #for kind in structure.get_kind_names():
-        #    if atomic_heuristics[kind]:
-        #        cutoff = atomic_heuristics[kind]['cutoff']
-        #        meshcutoff = max(meshcutoff, cutoff)
-        #meshcutoff = max(min_meshcutoff, meshcutoff)
-        #parameters["meshcutoff"] = str(meshcutoff) + " Ry"
-        parameters['meshcutoff'] = str(min_meshcutoff) + ' Ry'
-        #relaxation
+        parameters = self._get_param(protocol, structure)
         parameters['md-type-of-run'] = 'cg'
         parameters['md-num-cg-steps'] = 100
-        if relaxation_type == 'variable_cell':
+        if relaxation_type == RelaxType.ATOMS_CELL:
             parameters['md-variable-cell'] = True
-        if relaxation_type == 'constant_volume':
-            parameters['md-variable-cell'] = True
-            parameters['md-constant-volume'] = True
-        if not threshold_forces:
-            threshold_forces = protocol_dict['threshold_forces']
-        if not threshold_stress:
-            threshold_stress = protocol_dict['threshold_stress']
-        parameters['md-max-force-tol'] = str(threshold_forces) + ' eV/Ang'
-        parameters['md-max-stress-tol'] = str(threshold_stress) + ' eV/Ang**3'
+        #if relaxation_type == 'constant_volume':
+        #    parameters['md-variable-cell'] = True
+        #    parameters['md-constant-volume'] = True
+        if threshold_forces:
+            parameters['md-max-force-tol'] = str(threshold_forces) + ' eV/Ang'
+        if threshold_stress:
+            parameters['md-max-stress-tol'] = str(threshold_stress) + ' eV/Ang**3'
 
         #Basis
-        basis = protocol_dict['basis']
-        for kind in structure.get_kind_names():
-            try:
-                cust_basis = atomic_heuristics[kind]['basis']
-                if 'split-norm' in cust_basis:
-                    basis['PaoSplitTailNorm'] = True
-                if 'polarization' in cust_basis:
-                    basis['%block PaoPolarizationScheme'
-                          ] = '\n {} non-perturbative\n%endblock PaoPolarizationScheme'.format(kind)
-            except KeyError:
-                pass
+        basis = self._get_basis(protocol, structure)
 
         #Pseudo fam
-        pseudo_fam = protocol_dict['pseudo_family']
+        pseudo_family = self._get_pseudo_fam(protocol)
 
         builder = SiestaRelaxWorkChain.get_builder()
         builder.structure = structure
         builder.basis = Dict(dict=basis)
         builder.parameters = Dict(dict=parameters)
-        builder.kpoints = kpoints_mesh
-        builder.pseudo_family = Str(pseudo_fam)
+        if kpoints_mesh:
+            builder.kpoints = kpoints_mesh
+        builder.pseudo_family = pseudo_family
         builder.options = Dict(dict=calc_engines['relaxation']['options'])
         builder.code = load_code(calc_engines['relaxation']['code'])
 
         return builder
+
+    def _get_param(self, key, structure):
+        """
+        Method to construct the `parameters` input. Heuristics are applied, a dictionary
+        with the parameters is returned.
+        """
+        parameters = self._protocols[key]['parameters'].copy()
+
+        if 'atomic_heuristics' in self._protocols[key]:  #pylint: disable=too-many-nested-blocks
+            atomic_heuristics = self._protocols[key]['atomic_heuristics']
+
+            if 'mesh-cutoff' in parameters:
+                meshcut_glob = parameters['mesh-cutoff'].split()[0]
+                meshcut_units = parameters['mesh-cutoff'].split()[1]
+            else:
+                meshcut_glob = None
+
+            #Run through heuristics
+            for kind in structure.kinds:
+                need_to_apply = False
+                try:
+                    cust_param = atomic_heuristics[kind.symbol]['parameters']
+                    need_to_apply = True
+                except KeyError:
+                    pass
+                if need_to_apply:
+                    if 'mesh-cutoff' in cust_param:
+                        try:
+                            cust_meshcut = float(cust_param['mesh-cutoff'].split()[0])
+                        except (ValueError, IndexError):
+                            raise RuntimeError(
+                                'Wrong `mesh-cutoff` value for heuristc '
+                                '{0} of protocol {1}'.format(kind.symbol, key)
+                            )
+                        if meshcut_glob:
+                            if cust_meshcut > float(meshcut_glob):
+                                meshcut_glob = cust_meshcut
+                        else:
+                            meshcut_glob = cust_meshcut
+                            try:
+                                meshcut_units = cust_param['mesh-cutoff'].split()[1]
+                            except (ValueError, IndexError):
+                                raise RuntimeError(
+                                    'Wrong `mesh-cutoff` units for heuristc '
+                                    '{0} of protocol {1}'.format(kind.symbol, key)
+                                )
+
+            if meshcut_glob:
+                parameters['mesh-cutoff'] = '{0} {1}'.format(meshcut_glob, meshcut_units)
+
+        return parameters
+
+    def _get_basis(self, key, structure):
+        """
+        Method to construct the `basis` input.
+        Heuristics are applied, a dictionary with the basis is returned.
+        """
+        basis = self._protocols[key]['basis'].copy()
+
+        if 'atomic_heuristics' in self._protocols[key]:  #pylint: disable=too-many-nested-blocks
+            atomic_heuristics = self._protocols[key]['atomic_heuristics']
+
+            pol_dict = {}
+            size_dict = {}
+
+            #Run through all the heuristics
+            for kind in structure.kinds:
+                need_to_apply = False
+                try:
+                    cust_basis = atomic_heuristics[kind.symbol]['basis']
+                    need_to_apply = True
+                except KeyError:
+                    pass
+                if need_to_apply:
+                    if 'split-tail-norm' in cust_basis:
+                        basis['pao-split-tail-norm'] = True
+                    if 'polarization' in cust_basis:
+                        pol_dict[kind.name] = cust_basis['polarization']
+                    if 'size' in cust_basis:
+                        size_dict[kind.name] = cust_basis['size']
+
+            if pol_dict:
+                card = '\n'
+                for k, v in pol_dict.items():
+                    card = card + '  {0}  {1} \n'.format(k, v)
+                card = card + '%endblock paopolarizationscheme'
+                basis['%block pao-polarization-scheme'] = card
+            if size_dict:
+                card = '\n'
+                for k, v in size_dict.items():
+                    card = card + '  {0}  {1} \n'.format(k, v)
+                card = card + '%endblock paobasessizes'
+                basis['%block pao-bases-sizes'] = card
+
+        return basis
+
+    def _get_kpoints(self, key, structure):
+        from aiida.orm import KpointsData
+        if 'kpoints' in self._protocols[key]:
+            kpoints_mesh = KpointsData()
+            kpoints_mesh.set_cell_from_structure(structure)
+            kp_dict = self._protocols[key]['kpoints']
+            if 'offset' in kp_dict:
+                kpoints_mesh.set_kpoints_mesh_from_density(distance=kp_dict['distance'], offset=kp_dict['offset'])
+            else:
+                kpoints_mesh.set_kpoints_mesh_from_density(distance=kp_dict['distance'])
+        else:
+            kpoints_mesh = None
+
+        return kpoints_mesh
+
+    def _get_pseudo_fam(self, key):
+        from aiida.orm import Str
+        return Str(self._protocols[key]['pseudo_family'])
