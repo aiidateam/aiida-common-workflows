@@ -16,6 +16,7 @@ repos:
         exclude: &exclude_files >
             (?x)^(
                 aiida_common_workflows/workflows/relax/submission_template.py|
+                aiida_common_workflows/workflows/relax/examples/eos_silicon.py|
             )$
 
 -   repo: local
