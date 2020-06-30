@@ -12,7 +12,6 @@ from aiida.common import exceptions
 from aiida_sssp.groups import SsspFamily
 
 from ..generator import RelaxInputsGenerator, RelaxType
-from .workchain import QuantumEspressoRelaxWorkChain
 
 __all__ = ('QuantumEspressoRelaxInputsGenerator',)
 
@@ -36,7 +35,7 @@ class QuantumEspressoRelaxInputsGenerator(RelaxInputsGenerator):
 
     def _initialize_protocols(self):
         """Initialize the protocols class attribute by parsing them from the configuration file."""
-        with open(pathlib.Path(__file__).parent / 'protocol.yml') as handle:
+        with open(str(pathlib.Path(__file__).parent / 'protocol.yml')) as handle:
             self._protocols = yaml.safe_load(handle)
 
     def get_builder(
@@ -63,8 +62,8 @@ class QuantumEspressoRelaxInputsGenerator(RelaxInputsGenerator):
         code = calc_engines['relax']['code']
         override = {'base': {'pw': {'metadata': {'options': calc_engines['relax']['options']}}}}
 
-        builder = QuantumEspressoRelaxWorkChain.get_builder()
-        inputs = generate_inputs(QuantumEspressoRelaxWorkChain._process_class, protocol, code, structure, override)  # pylint: disable=protected-access
+        builder = self._process.get_builder()
+        inputs = generate_inputs(self._process_class, protocol, code, structure, override)  # pylint: disable=protected-access
         builder._update(inputs)  # pylint: disable=protected-access
 
         if relaxation_type == RelaxType.ATOMS:

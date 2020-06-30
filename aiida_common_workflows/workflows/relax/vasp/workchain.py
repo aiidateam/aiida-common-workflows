@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for VASP."""
+from aiida import orm
 from aiida.engine import calcfunction
-from aiida.plugins import WorkflowFactory, DataFactory
+from aiida.plugins import WorkflowFactory
 
 from ..workchain import CommonRelaxWorkChain
+from .generator import VaspRelaxInputsGenerator
 
-__all__ = ('CommonVASPRelaxWorkChain',)
-
-VASPRelaxWorkChain = WorkflowFactory('vasp.relax')  # pylint: disable=invalid-name
+__all__ = ('VaspRelaxWorkChain',)
 
 
 @calcfunction
 def get_stress(stress):
     """Return the final stress array."""
-    stress_data = DataFactory('array')()
+    stress_data = orm.ArrayData()
     stress_data.set_array(name='stress', array=stress.get_array('final'))
     return stress_data
 
@@ -21,7 +21,7 @@ def get_stress(stress):
 @calcfunction
 def get_forces(forces):
     """Return the final forces array.."""
-    forces_data = DataFactory('array')()
+    forces_data = orm.ArrayData()
     forces_data.set_array(name='forces', array=forces.get_array('final'))
     return forces_data
 
@@ -30,14 +30,15 @@ def get_forces(forces):
 def get_total_energy(misc):
     """Return the total energy from misc."""
     misc_dict = misc.get_dict()
-    total_energy = DataFactory('float')(misc_dict['total_energies']['energy_no_entropy'])
+    total_energy = orm.Float(misc_dict['total_energies']['energy_no_entropy'])
     return total_energy
 
 
-class CommonVASPRelaxWorkChain(CommonRelaxWorkChain):
+class VaspRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for VASP."""
 
-    _process_class = VASPRelaxWorkChain
+    _process_class = WorkflowFactory('vasp.relax')
+    _generator_class = VaspRelaxInputsGenerator
 
     def convert_outputs(self):
         """Convert the outputs of the sub workchain to the common output specification."""

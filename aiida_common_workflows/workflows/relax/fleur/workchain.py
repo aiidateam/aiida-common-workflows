@@ -1,17 +1,13 @@
 # -*- coding: utf-8 -*-
-"""
-Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain`
-for FLEUR (www.flapw.de).
-"""
+"""Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for FLEUR (www.flapw.de)."""
 from aiida import orm
 from aiida.engine import calcfunction
 from aiida.plugins import WorkflowFactory
 
 from ..workchain import CommonRelaxWorkChain
+from .generator import FleurRelaxInputsGenerator
 
-__all__ = ('FleurCRelaxWorkChain',)
-
-AiidaFleurRelaxWorkChain = WorkflowFactory('fleur.base_relax')
+__all__ = ('FleurRelaxWorkChain',)
 
 
 @calcfunction
@@ -31,13 +27,11 @@ def get_total_energy(parameters):
     return orm.Float(parameters.get_attribute('energy'))
 
 
-class FleurCRelaxWorkChain(CommonRelaxWorkChain):
-    """
-    Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain`
-    for FLEUR.
-    """
+class FleurRelaxWorkChain(CommonRelaxWorkChain):
+    """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for FLEUR."""
 
-    _process_class = AiidaFleurRelaxWorkChain
+    _process_class = WorkflowFactory('fleur.base_relax')
+    _generator_class = FleurRelaxInputsGenerator
 
     def convert_outputs(self):
         """Convert the outputs of the sub workchain to the common output specification."""
