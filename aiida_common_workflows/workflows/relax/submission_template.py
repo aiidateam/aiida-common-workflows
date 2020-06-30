@@ -22,6 +22,8 @@ from aiida_common_workflows.workflows.relax.<code>.workchain import <Code>RelaxW
 # Multiple calculations might use the same calc_type, e.g. restarts in the same part of the WorkChain.
 # The keys of the following calc_engines are the allowed calc_types; the values define the
 # concrete values for each of these calc_types.
+#The schema of calc_engines is code dependent, therefore there is a method to explore it,
+#see next call
 calc_engines = {
     'relax': {
         'code': '<code>@localhost',
@@ -67,23 +69,17 @@ assert InpGen.get_calc_type_schema('final_scf') == {
 }
 
 #The user can choose a protocol (a string describing the level of accuracy if you want)
-protocol = 'testing'
+protocol = 'moderate'
 
 # The list of protocols available are listed by get_protocol_names
-assert set(InpGen.get_protocol_names()) == set(['standard', 'testing'])
+assert set(InpGen.get_protocol_names()) == set(['fast', 'moderate', 'precise'])
 # There is a default and we can ask for it
 assert set(InpGen.get_default_protocol_name()) == 'standard'
 # Also in this case, we can ask for information on each protocol (again useful for GUIs for instance)
-assert set(InpGen.get_protocol('standard')) == {
+assert set(InpGen.get_protocol('moderate')) == {
     'description':
     'This is the default protocol. This uses a k-mesh with inverse linear density of '
     '0.2 ang^-1 and basis set ... and pseudos from .... This is safe for a default calculation.'
-}
-assert set(InpGen.get_protocol('testing')) == {
-    'description':
-    'This is a fast protocol to quickly get some results, typically unconverged. '
-    'This uses a k-mesh with inverse linear density of 0.4 ang^-1 and basis ... '
-    'and pseudos .... This is useful for debugging and tutorials.'
 }
 
 # Another compulsory input, specifying the task. Typical values: 'atoms', 'cell'
