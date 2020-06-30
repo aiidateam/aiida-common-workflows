@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os.path as op
 from aiida import orm
 from aiida.engine import run
@@ -34,7 +35,7 @@ from aiida_common_workflows.workflows.relax.generator import RelaxType
 #Don't touch the rest
 
 relaxation_type = RelaxType.ATOMS
-protocol = "moderate"
+protocol = 'moderate'
 
 def rescale(structure, scale):
     """
@@ -61,7 +62,7 @@ def structure_init():
     """
     import pymatgen as mg
 
-    structure_file = op.realpath(op.join(op.dirname(__file__), "data/Si.cif"))
+    structure_file = op.realpath(op.join(op.dirname(__file__), 'data/Si.cif'))
 
     in_structure = mg.Structure.from_file(structure_file, primitive=False)
 
