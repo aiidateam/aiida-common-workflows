@@ -8,8 +8,8 @@ from ..workchain import CommonRelaxWorkChain
 
 __all__ = ('FleurRelaxWorkChain',)
 
-FleurRelaxWorkChain = WorkflowFactory('fleur.base_relax')#fleur.relax')
-#FleurRelaxWorkChain = WorkflowFactory('fleur.relax')
+AiidaFleurRelaxWorkChain = WorkflowFactory('fleur.base_relax')#fleur.relax')
+#AiidaFleurRelaxWorkChain = WorkflowFactory('fleur.relax')
 
 @calcfunction
 def get_stress_from_trajectory(trajectory):
@@ -29,17 +29,18 @@ def get_forces_from_trajectory(trajectory):
 
 @calcfunction
 def get_total_energy(parameters):
+
     return orm.Float('123')#parameters.get_attribute('energy'))
 
 
-class FleurRelaxationWorkChain(CommonRelaxWorkChain):
+class FleurRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for FLEUR."""
 
-    _process_class = FleurRelaxWorkChain
+    _process_class = AiidaFleurRelaxWorkChain
 
     def convert_outputs(self):
         """Convert the outputs of the sub workchain to the common output specification."""
         self.out('relaxed_structure', self.ctx.workchain.outputs.optimized_structure)
         self.out('total_energy', get_total_energy(self.ctx.workchain.outputs.out))
-        self.out('forces', orm.ArrayData())#get_forces_from_trajectory(self.ctx.workchain.outputs.output_trajectory))
-        self.out('stress', orm.ArrayData())#get_stress_from_trajectory(self.ctx.workchain.outputs.output_trajectory))
+        self.out('forces', get_forces_from_trajectory(self.ctx.workchain.outputs.out))#put_trajectory))
+        self.out('stress', get_stress_from_trajectory(self.ctx.workchain.outputs.out))#put_trajectory
