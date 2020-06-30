@@ -31,4 +31,4 @@ This `submission_templete.py` file also show the methods of the inputs generator
 
 The outputs of the submitted workchain, are standardized among different codes. The expecte outputs are also listed in `submission_templete.py`.
 
-For developers, there is a page `Relaxation of a structure` explaining all the details of the implementation.
+For developers, there is a page "Relaxation of a structure" explaining all the details of the implementation in the wiki of this repository.
