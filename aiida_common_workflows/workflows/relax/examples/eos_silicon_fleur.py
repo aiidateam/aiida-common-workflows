@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Relax run on Si example for Fleur
+"""
 import os.path as op
 from aiida import orm
 from aiida.engine import run_get_node
@@ -11,12 +14,12 @@ from aiida_common_workflows.workflows.relax.fleur.generator import FleurRelaxInp
 InpGen = InpGenFleur()
 calc_engines = {
     'relax': {
-        'code': 'fleur_serial@local_iff', #fleur_serial@local_iff
-        'inputgen' : 'inpgen@local_iff',
+        'code': 'fleur-0.30-fleur_MPI@localhost',
+        'inputgen': 'fleur-0.30-inpgen@localhost',
         'options': {
             'resources': {
                 'num_machines': 1,
-                "num_mpiprocs_per_machine": 1
+                'num_mpiprocs_per_machine': 1
             },
             'max_walltime': 86400,
         }
@@ -27,6 +30,7 @@ calc_engines = {
 
 relaxation_type = RelaxType.ATOMS
 protocol = 'moderate'
+
 
 def rescale(structure, scale):
     """
@@ -45,6 +49,7 @@ def rescale(structure, scale):
     print(structure.sites)
     return new_structure
 
+
 def structure_init():
     """
     Workfunction to create structure of a given element taking it from a reference
@@ -54,7 +59,7 @@ def structure_init():
     """
     import pymatgen as mg
 
-    structure_file = op.realpath(op.join(op.dirname(__file__), 'data/Si_51688.cif'))#Si.cif'))
+    structure_file = op.realpath(op.join(op.dirname(__file__), 'data/Si_51688.cif'))  #Si.cif'))
 
     in_structure = mg.Structure.from_file(structure_file, primitive=False)
 
@@ -64,9 +69,10 @@ def structure_init():
 
     return structure
 
+
 structure = structure_init()
 
-for scale in [0.94,0.96,0.98,1,1.02,1.04,1.06]:
+for scale in [0.94, 0.96, 0.98, 1, 1.02, 1.04, 1.06]:
     scaled = rescale(structure, scale)
     builder = InpGen.get_builder(scaled, calc_engines, protocol, relaxation_type, threshold_forces=0.001)
     future = run_get_node(builder)
