@@ -15,7 +15,7 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
     _default_protocol = 'moderate'
     _protocols = {'fast': {'description': 'return in a quick way a result that may not be reliable'},
                   'moderate': {'description': 'reliable result (could be published), but no emphasis on convergence'},
-                  'precise': {'high level of accuracy'}}
+                  'precise': {'description': 'high level of accuracy'}}
 
     _calc_types = {'relax': {'code_plugin': 'fleur.fleur', 'description': 'The code to perform the relaxation.'}}
 
