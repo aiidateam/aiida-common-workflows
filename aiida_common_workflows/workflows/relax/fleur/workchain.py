@@ -6,7 +6,7 @@ from aiida.plugins import WorkflowFactory
 
 from ..workchain import CommonRelaxWorkChain
 
-__all__ = ('FleurRelaxWorkChain',)
+__all__ = ('FleurCRelaxWorkChain',)
 
 AiidaFleurRelaxWorkChain = WorkflowFactory('fleur.base_relax')#fleur.relax')
 #AiidaFleurRelaxWorkChain = WorkflowFactory('fleur.relax')
@@ -23,17 +23,18 @@ def get_stress_from_trajectory(trajectory):
 def get_forces_from_trajectory(trajectory):
     forces = orm.ArrayData()
     # currently the fleur relax workchain does not output trajectory data, but it will be adapted to do so
-    #forces.set_array(name='forces', array=trajectory.get_array('forces')[-1])
+    # larges forces are found in workchain output nodes
+    # forces.set_array(name='forces', array=trajectory.get_array('forces')[-1])
     return forces
 
 
 @calcfunction
 def get_total_energy(parameters):
 
-    return orm.Float('123')#parameters.get_attribute('energy'))
+    return orm.Float(parameters.get_attribute('energy'))
 
 
-class FleurRelaxWorkChain(CommonRelaxWorkChain):
+class FleurCRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for FLEUR."""
 
     _process_class = AiidaFleurRelaxWorkChain
@@ -43,4 +44,4 @@ class FleurRelaxWorkChain(CommonRelaxWorkChain):
         self.out('relaxed_structure', self.ctx.workchain.outputs.optimized_structure)
         self.out('total_energy', get_total_energy(self.ctx.workchain.outputs.out))
         self.out('forces', get_forces_from_trajectory(self.ctx.workchain.outputs.out))#put_trajectory))
-        self.out('stress', get_stress_from_trajectory(self.ctx.workchain.outputs.out))#put_trajectory
+        #self.out('stress', get_stress_from_trajectory(self.ctx.workchain.outputs.out))#put_trajectory

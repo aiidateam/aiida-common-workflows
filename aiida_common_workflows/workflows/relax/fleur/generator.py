@@ -3,23 +3,25 @@
 from aiida import orm
 
 from ..generator import RelaxInputsGenerator, RelaxType
-from .workchain import FleurRelaxationWorkChain
-from aiida.orm import Dict
+from .workchain import FleurCRelaxWorkChain as FleurRelaxationWorkChain
+from aiida.orm import Dict, Code
 __all__ = ('FleurRelaxInputsGenerator',)
 
 
 
 class FleurRelaxInputsGenerator(RelaxInputsGenerator):
-    """Input generator for the `FleurRelaxWorkChain`."""
+    """Input generator for the `FleurCRelaxWorkChain`."""
 
-    _default_protocol = 'standard'
-    _protocols = {'test': {'description': ''}, 'standard': {'description': ''}}
+    _default_protocol = 'moderate'
+    _protocols = {'fast': {'description': 'return in a quick way a result that may not be reliable'},
+                  'moderate': {'description': 'reliable result (could be published), but no emphasis on convergence'},
+                  'precise': {'high level of accuracy'}}
 
     _calc_types = {'relax': {'code_plugin': 'fleur.fleur', 'description': 'The code to perform the relaxation.'}}
 
     _relax_types = {
         RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
-        #RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell.' # currently not supported
+        #RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell.' # currently not supported by Fleur
     }
 
     def get_builder(
@@ -46,17 +48,14 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         # pylint: disable=too-many-locals
         #from aiida_fleur.tools.common_wf_util import generate_scf_inputs  # pylint: disable=import-error
 
-        fleur_code = calc_engines['relax']['code']
-        # TODO: maybe other way to get inpgen?
-        inpgen_code = kwargs.pop('inpgen') #calc_engines['relax']['inpgen']
+        fleur_code = Code.get_from_string(calc_engines['relax']['code'])
+        inpgen_code = Code.get_from_string(calc_engines['relax']['inputgen'])
         process_class = FleurRelaxationWorkChain._process_class  # pylint: disable=protected-access
 
         builder = FleurRelaxationWorkChain.get_builder()
 
         # TODO implement this, protocol dependent, we still have option keys as nodes ...
         #inputs = generate_scf_inputs(process_class, protocol, code, structure, override={'relax': {}})
-
-
 
         if relaxation_type == RelaxType.ATOMS:
             relaxation_mode = 'force'
@@ -71,14 +70,15 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
             force_criterion = 0.001
 
         if threshold_stress is not None:
-            pass #TODO
+            pass # Stress is not supported
 
         wf_para = Dict(dict={
                       'relax_iter': 5,
-                      'film_distance_relaxation': False,
+                      'film_distance_relaxation': False, # Check input structure...
                       'force_criterion': force_criterion,
                       'change_mixing_criterion': 0.025,
-                      'atoms_off': []
+                      'atoms_off': [],
+                      'run_final_scf': True # we always run a final scf after the relaxation
                     })
 
         wf_para_scf = Dict(dict={'fleur_runmax': 2,
@@ -96,6 +96,7 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
                           'structure': structure,
                           #'calc_parameters': parameters,
                           #'options': options_scf,
+                          # options do not matter on QM, in general they do...
                           'inpgen': inpgen_code,
                           'fleur': fleur_code
                          },
