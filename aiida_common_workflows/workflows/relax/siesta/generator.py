@@ -11,7 +11,7 @@ __all__ = ('SiestaRelaxInputsGenerator',)
 
 class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
 
-    _default_protocol = 'standard_delta'
+    _default_protocol = 'moderate'
 
     _filepath = os.path.join(os.path.dirname(__file__), 'protocols_registry.yaml')
 
@@ -48,11 +48,6 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
             raise RuntimeError('invalid protocol registry `{}`: '.format(self.__class__.__name__) + message)
 
         for k, v in self._protocols.items():
-            if not isinstance(self._protocols[k], dict):
-                raise_invalid('protocol `{}` is not a dictionary'.format(k))
-
-            if 'description' not in v:
-                raise_invalid('protocol `{}` does not define the mandatory key `description`'.format(k))
 
             if 'parameters' not in v:
                 raise_invalid('protocol `{}` does not define the mandatory key `parameters`'.format(k))
@@ -99,7 +94,7 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         #Checks
         if protocol not in self.get_protocol_names():
             import warnings
-            warnings.warn('no protocol implemented with name {}, using default standard'.format(protocol))
+            warnings.warn('no protocol implemented with name {}, using default moderate'.format(protocol))
             protocol = self.get_default_protocol_name()
         if relaxation_type not in self.get_relaxation_types():
             raise ValueError('Wrong relaxation type: no relax_type with name {} implemented'.format(relaxation_type))

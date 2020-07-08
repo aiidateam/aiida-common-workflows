@@ -1,4 +1,4 @@
-standard_delta:
+moderate:
   description: 'A standard list of inputs for Siesta. Never tested! Proof of concept at the moment.'
   parameters:
     xc-functional: "GGA"
@@ -11,157 +11,52 @@ standard_delta:
     electronic-temperature: '25 meV'
     write-forces: True
     mesh-cutoff: '100 Ry'
-    md-max-force-tol: '0.04 eV/ang'
-    md-max-stress-tol: '1 GPa'
   basis:
     pao-energy-shift: '100 meV'
     pao-basis-size: 'DZ'
-  pseudo_family: 'nc-sr-04_pbe_standard_psml'
+  pseudo_family: 'test_si'
   kpoints:
     distance: 0.1
     offset: [0., 0., 0.]
-  atomic_heuristics:
-    C:
-      basis:
-        size: 'SZ' #Basis size block
-    H:
-      parameters:
-        mesh-cutoff: '200 Ry' #Applies globally if bigger that global mesh-cutoff
-      basis:
-        size: 'DZDP' #Basis size block
-    He:
-      parameters:
-        mesh-cutoff: '200 Ry' #Applies globally
-      basis:
-        size: 'DZDP' #Basis size block
-    Li:
-      basis:
-        split-tail-norm: True
-    Na:
-      basis:
-        split-tail-norm: True
-    K:
-      basis:
-        split-tail-norm: True
-    Ca:
-      basis:
-        split-tail-norm: True
-    Sc:
-      basis:
-        split-tail-norm: True
-    Rb:
-      basis:
-        split-tail-norm: True
-    Sr:
-      basis:
-        split-tail-norm: True
-    Y:
-      basis:
-        split-tail-norm: True
-    Zr:
-      basis:
-        split-tail-norm: True
-    Nb:
-      basis:
-        split-tail-norm: True
-    Mo:
-      basis:
-        split-tail-norm: True
-    Cs:
-      basis:
-        split-tail-norm: True
-    Ba:
-      basis:
-        split-tail-norm: True
-    Lu:
-      basis:
-        split-tail-norm: True
 
-stringent_delta:
-  description: 'Another test set.'
+precise:
+  description: 'Siesta parameters tested on crystal elements up to Au (exluding noble gasses and lanthanides). No support Spin-Orbit'
   parameters:
     xc-functional: "GGA"
     xc-authors: "PBE"
     max-scf-iterations: 100
     scf-mixer-history: 5
     scf-mixer-weight: 0.1
-    scf-dm-tolerance: 1.e-3
+    scf-dm-tolerance: 1.e-4
     solution-method: 'diagon'
     electronic-temperature: '25 meV'
     write-forces: True
     mesh-cutoff: '500 Ry'
-    md-max-force-tol: '0.01 eV/ang'
-    md-max-stress-tol: '0.5 GPa'
   basis:
-    pao-energy-shift: '100 meV'
+    pao-energy-shift: '50 meV'
     pao-basis-size: 'DZP'
-  pseudo_family: 'nc-sr-04_pbe_stringent_psml'
+  pseudo_family: 'test_si'
   kpoints:
     distance: 0.062
     offset: [0., 0., 0.]
-  atomic_heuristics:
-    Li:
-      basis:
-        split-tail-norm: 'tail'
-        polarization: 'non-perturbative'
-    Be:
-      basis:
-        polarization: 'non-perturbative'
-    Na:
-      basis:
-        split-tail-norm: 'tail'
-        polarization: 'non-perturbative'
-    Mg:
-      basis:
-        polarization: 'non-perturbative'
-    K:
-      basis:
-        split-tail-norm: True
-    Ca:
-      basis:
-        split-tail-norm: True
-    Sc:
-      basis:
-        split-tail-norm: True
-    Ga:
-      basis:
-        polarization: 'non-perturbative'
-    Ge:
-      basis:
-        polarization: 'non-perturbative'
-    As:
-      basis:
-        polarization: 'non-perturbative'
-    Se:
-      basis:
-        polarization: 'non-perturbative'
-    Rb:
-      basis:
-        split-tail-norm: True
-    Sr:
-      basis:
-        split-tail-norm: True
-    Y:
-      basis:
-        split-tail-norm: True
-    Zr:
-      basis:
-        split-tail-norm: True
-    Nb:
-      basis:
-        split-tail-norm: True
-    Mo:
-      basis:
-        split-tail-norm: True
-    In:
-      basis:
-        polarization: 'non-perturbative'
-    Cs:
-      basis:
-        split-tail-norm: True
-    Ba:
-      basis:
-        split-tail-norm: True
-    Lu:
-      basis:
-        split-tail-norm: True
+
+fast:
+  description: 'A list of inputs for Siesta for quick exploratory calculations. Never tested! No spin orbit.'
+  parameters:
+    xc-functional: "GGA"
+    xc-authors: "PBE"
+    max-scf-iterations: 50
+    scf-mixer-history: 5
+    scf-mixer-weight: 0.1
+    scf-dm-tolerance: 1.e-3
+    solution-method: 'diagon'
+    electronic-temperature: '25 meV'
+    write-forces: True
+    mesh-cutoff: '50 Ry'
+  basis:
+    pao-energy-shift: '200 meV'
+    pao-basis-size: 'SZ'
+  pseudo_family: 'test_si'
+  kpoints:
+    distance: 0.2
+    offset: [0., 0., 0.]
