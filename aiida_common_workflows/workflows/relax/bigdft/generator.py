@@ -10,13 +10,39 @@ __all__ = ('BigDFTRelaxInputsGenerator',)
 BigDFTRelaxWorkChain = WorkflowFactory('bigdft.relax')
 BigDFTParameters = DataFactory('bigdft')
 
+
 class BigDFTRelaxInputsGenerator(RelaxInputsGenerator):
     """Input generator for the `BigDFTRelaxWorkChain`."""
 
-    _default_protocol = 'efficiency'
-    _protocols = {'efficiency': {'description': '', 'inputdict': {}}, 'precision': {'description': '', 'inputdict': {}}}
+    _default_protocol = 'moderate'
+    _protocols = {
+        'fast': {
+            'description': 'This profile should be chosen if speed\
+ is more important than accuracy.',
+            'inputdict_cubic': {'dft': {'hgrids': 0.45}},
+            'inputdic_linear': {'import': 'linear_fast'}
+        },
+        'moderate': {
+            'description': 'This profile should be chosen if accurate forces \
+are required, but there is no need for extremely \
+accurate energies.',
+            'inputdict_cubic': {},
+            'inputdict_linear': {'import': 'linear'}
+        },
+        'precise': {
+            'description': 'This profile should be chosen if highly accurate\
+                            energy differences are required.',
+            'inputdict_cubic': {'dft': {'hgrids': 0.15}},
+            'inputdict_linear': {'import': 'linear_accurate'}
+        }
+    }
 
-    _calc_types = {'relax': {'code_plugin': 'bigdft.bigdft', 'description': 'The code to perform the relaxation.'}}
+    _calc_types = {
+        'relax': {
+            'code_plugin': 'bigdft.bigdft',
+            'description': 'The code to perform the relaxation.'
+        }
+    }
 
     _relax_types = {
         RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
@@ -59,7 +85,17 @@ class BigDFTRelaxInputsGenerator(RelaxInputsGenerator):
 
         builder = BigDFTRelaxWorkChain.get_builder()
         builder.structure = structure
-        builder.parameters = BigDFTParameters(dict=self.get_protocol(protocol)['inputdict'])
+
+        #TODO. Implement in the bigdft plugin
+        #inputdict = BigDFTParameters.get_input_dict(protocol, structure, 'relax')
+        # for now apply simple stupid heuristic : atoms < 200 -> cubic, else -> linear.
+        if(len(structure.sites) <= 200):
+            inputdict = self.get_protocol(protocol)['inputdict_cubic']
+        else:
+            inputdict = self.get_protocol(protocol)['inputdict_linear']
+
+
+        builder.parameters = BigDFTParameters(dict=inputdict)
         #builder.pseudos = Str(pseudo_fam)
         #builder.options = Dict(dict=calc_engines["relaxation"]["options"])
         builder.code = load_code(calc_engines['relax']['code'])
