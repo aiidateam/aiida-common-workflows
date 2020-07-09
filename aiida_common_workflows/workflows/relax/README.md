@@ -6,8 +6,7 @@ This task is the relaxation of a structure.
 The file `submission_templete.py` is a file that a hypothetical user should launch in order to complete the task of running the relaxation of a structure.
 The submission structure is code agnostic, demonstrating the first proof-of-concept of a common workflow interface.
 
-The submission requires the call of the method `get_builder` of the <Code>RelaxInputsGenerator. This methods accepts in inputs:
-
+The submission requires the call of the method `get_builder` of the `<Code>RelaxInputsGenerator`. This methods accepts in inputs:
 * `structure`. The structure to be relaxed, an AiiDA `StructureData`
 
 * `calc_engines`. A python dictionary containing the code and computational resources to use for completing the task. Some implementations might require more then one step (eventually code) to complete the relaxation.
@@ -18,7 +17,7 @@ The submission requires the call of the method `get_builder` of the <Code>RelaxI
   * “moderate” = reliable result (could be published), but no emphasis on convergence
   * “precise” = an high level of accuracy
 
-Documeneted ...
+  Documenetation of specifications of each protocol for each code is ...
 
 * `relaxation_type`. RelaxType, HERE NOT SURE WHAT WE WANT. At the moment we accept only attributes of RelaxType.
 
@@ -32,4 +31,4 @@ This `submission_templete.py` file also show the methods of the inputs generator
 
 The outputs of the submitted workchain, are standardized among different codes. The expecte outputs are also listed in `submission_templete.py`.
 
-For developers, there is a page `Relaxation of a structure` explaining all the details of the implementation.
+For developers, there is a page "Relaxation of a structure" explaining all the details of the implementation in the wiki of this repository.

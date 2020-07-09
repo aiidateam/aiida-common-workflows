@@ -16,7 +16,7 @@ from aiida_common_workflows.workflows.relax.generator import RelaxType
 #            'resources': {
 #                'num_machines': 2
 #            },
-#            'max_walltime': 86400,
+#            'max_wallclock_seconds': 86400,
 #        }
 #    },
 #    'maybe another step?': {
@@ -25,7 +25,7 @@ from aiida_common_workflows.workflows.relax.generator import RelaxType
 #            'resources': {
 #                'num_machines': 2
 #            },
-#            'max_walltime': 3600,
+#            'max_wallclock_seconds': 3600,
 #            'queue': 'debug',
 #            'account': 'ABC'
 #        }
@@ -66,9 +66,11 @@ def structure_init():
 
     in_structure = mg.Structure.from_file(structure_file, primitive=False)
 
-    newreduced = in_structure.copy()
-    newreduced.scale_lattice(float(20.4530) * in_structure.num_sites)
-    structure = orm.StructureData(pymatgen_structure=newreduced)
+    structure = orm.StructureData(pymatgen_structure=in_structure)
+#    ref_vol_per_atom = 20.4530 #from DFT reproducibility paper
+#    newreduced = in_structure.copy()
+#    newreduced.scale_lattice(ref_vol_per_atom * in_structure.num_sites)
+#    structure = orm.StructureData(pymatgen_structure=newreduced)
 
     return structure
 
@@ -78,4 +80,4 @@ for scale in [0.94,0.96,0.98,1,1.02,1.04,1.06]:
     scaled = rescale(structure, scale)
     builder = InpGen.get_builder(scaled, calc_engines, protocol, relaxation_type, threshold_forces=0.001)
     future = run(builder)
-    print('Launching {0} at volume rescaled of {1}'.format(future.pk, scale))
+    print(future['relaxed_structure'].get_cell_volume(), future['total_energy'].value)
