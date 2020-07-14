@@ -16,7 +16,8 @@
     "description": "AiiDA package with utilities and interfaces for common workflows.",
     "python_requires": ">=3.5",
     "install_requires": [
-        "aiida-core>=1.2.0,<2.0.0"
+        "aiida-core>=1.2.0,<2.0.0",
+	"aiida-siesta"
     ],
     "extras_require": {
         "tests": [

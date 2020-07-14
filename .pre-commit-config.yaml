@@ -17,6 +17,7 @@ repos:
             (?x)^(
                 aiida_common_workflows/workflows/relax/submission_template.py|
                 aiida_common_workflows/workflows/relax/examples/eos_silicon.py|
+                aiida_common_workflows/workflows/relax/examples/eos_silicon_siesta.py|
             )$
 
 -   repo: local
