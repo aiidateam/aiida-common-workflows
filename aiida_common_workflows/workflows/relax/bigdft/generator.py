@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for BigDFT."""
 from aiida import orm
-
-from ..generator import RelaxInputsGenerator, RelaxType
 from aiida.plugins import WorkflowFactory, DataFactory
+from ..generator import RelaxInputsGenerator, RelaxType
 
 __all__ = ('BigDFTRelaxInputsGenerator',)
 
@@ -92,10 +91,10 @@ accurate energies.',
         builder = BigDFTRelaxWorkChain.get_builder()
         builder.structure = structure
 
-        #TODO. Implement in the bigdft plugin
+        #Will be implemented in the bigdft plugin
         #inputdict = BigDFTParameters.get_input_dict(protocol, structure, 'relax')
         # for now apply simple stupid heuristic : atoms < 200 -> cubic, else -> linear.
-        if (len(structure.sites) <= 200):
+        if len(structure.sites) <= 200:
             inputdict = self.get_protocol(protocol)['inputdict_cubic']
         else:
             inputdict = self.get_protocol(protocol)['inputdict_linear']
