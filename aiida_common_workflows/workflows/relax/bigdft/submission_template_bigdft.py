@@ -7,7 +7,6 @@ Moreover this example shows the required outputs of `<Code>RelaxWorkChain`, incl
 
 from aiida.orm import StructureData, Float, ArrayData, Int
 from aiida.engine import run
-from aiida.plugins import WorkflowFactory
 from aiida_common_workflows.workflows.relax.bigdft.generator import BigDFTRelaxInputsGenerator
 from aiida_common_workflows.workflows.relax.generator import RelaxType
 
