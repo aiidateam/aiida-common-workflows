@@ -82,8 +82,6 @@ accurate energies.',
         from aiida.orm import Dict
         from aiida.orm import load_code
 
-        #parameters = protocol_dict["parameters"].copy()
-
         #Pseudo fam
         #pseudo_fam = kwargs.pop('pseudo_family')
         if relaxation_type == RelaxType.ATOMS:
