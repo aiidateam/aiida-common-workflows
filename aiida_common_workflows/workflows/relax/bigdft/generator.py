@@ -19,30 +19,39 @@ class BigDFTRelaxInputsGenerator(RelaxInputsGenerator):
         'fast': {
             'description': 'This profile should be chosen if speed\
  is more important than accuracy.',
-            'inputdict_cubic': {'dft': {'hgrids': 0.45}},
-            'inputdic_linear': {'import': 'linear_fast'}
+            'inputdict_cubic': {
+                'dft': {
+                    'hgrids': 0.45
+                }
+            },
+            'inputdic_linear': {
+                'import': 'linear_fast'
+            }
         },
         'moderate': {
             'description': 'This profile should be chosen if accurate forces \
 are required, but there is no need for extremely \
 accurate energies.',
             'inputdict_cubic': {},
-            'inputdict_linear': {'import': 'linear'}
+            'inputdict_linear': {
+                'import': 'linear'
+            }
         },
         'precise': {
             'description': 'This profile should be chosen if highly accurate\
                             energy differences are required.',
-            'inputdict_cubic': {'dft': {'hgrids': 0.15}},
-            'inputdict_linear': {'import': 'linear_accurate'}
+            'inputdict_cubic': {
+                'dft': {
+                    'hgrids': 0.15
+                }
+            },
+            'inputdict_linear': {
+                'import': 'linear_accurate'
+            }
         }
     }
 
-    _calc_types = {
-        'relax': {
-            'code_plugin': 'bigdft.bigdft',
-            'description': 'The code to perform the relaxation.'
-        }
-    }
+    _calc_types = {'relax': {'code_plugin': 'bigdft.bigdft', 'description': 'The code to perform the relaxation.'}}
 
     _relax_types = {
         RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
@@ -70,8 +79,7 @@ accurate energies.',
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
         # pylint: disable=too-many-locals
-        from aiida_bigdft.workflows.relax import BigDFTRelaxWorkChain
-        from aiida.orm import (Str, Dict)
+        from aiida.orm import Dict
         from aiida.orm import load_code
 
         #parameters = protocol_dict["parameters"].copy()
@@ -89,24 +97,20 @@ accurate energies.',
         #TODO. Implement in the bigdft plugin
         #inputdict = BigDFTParameters.get_input_dict(protocol, structure, 'relax')
         # for now apply simple stupid heuristic : atoms < 200 -> cubic, else -> linear.
-        if(len(structure.sites) <= 200):
+        if (len(structure.sites) <= 200):
             inputdict = self.get_protocol(protocol)['inputdict_cubic']
         else:
             inputdict = self.get_protocol(protocol)['inputdict_linear']
 
-
         builder.parameters = BigDFTParameters(dict=inputdict)
         #builder.pseudos = Str(pseudo_fam)
         #builder.options = Dict(dict=calc_engines["relaxation"]["options"])
-        builder.code = load_code(calc_engines['relax']['code'])
-        run_opts={
-            'options': calc_engines['relax']['options']
-        }
-        builder.run_opts=Dict(dict=run_opts)
-
+        builder.code = load_code(calc_engines[relaxation_schema]['code'])
+        run_opts = {'options': calc_engines[relaxation_schema]['options']}
+        builder.run_opts = Dict(dict=run_opts)
 
         if threshold_forces is not None:
-            builder.relax.threshold_forces=orm.Float(threshold_forces)
+            builder.relax.threshold_forces = orm.Float(threshold_forces)
 
         # if threshold_stress is not None:
         #     parameters = builder.base.parameters.get_dict()

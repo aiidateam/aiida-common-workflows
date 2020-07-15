@@ -5,13 +5,13 @@ inputs generated through the method `get_builder` of a class `<Code>RelaxInputsG
 Moreover this example shows the required outputs of `<Code>RelaxWorkChain`, including the units specifications.
 """
 
-from aiida.orm import StructureData, Dict, Float, ArrayData
-import time
+from aiida.orm import StructureData, Float, ArrayData, Int
 from aiida.engine import run
+from aiida.plugins import WorkflowFactory
 from aiida_common_workflows.workflows.relax.bigdft.generator import BigDFTRelaxInputsGenerator
-from aiida_bigdft.workflows.relax import BigDFTRelaxWorkChain as RelWC
+from aiida_common_workflows.workflows.relax.generator import RelaxType
 
-InpGen=BigDFTRelaxInputsGenerator()
+InpGen = BigDFTRelaxInputsGenerator()
 
 # This dictionary is the place where the user specifies the code and (optionally) resources
 # to use in order to run the RelWC. 'relax' and 'final_scf' are two steps
@@ -72,7 +72,7 @@ assert InpGen.get_calc_type_schema('relax') == {
 protocol = 'efficiency'
 
 # The list of protocols available are listed by get_protocol_names
-assert set(InpGen.get_protocol_names()) == set(['efficiency','precision'])
+assert set(InpGen.get_protocol_names()) == set(['efficiency', 'precision'])
 # There is a default and we can ask for it
 assert InpGen.get_default_protocol_name() == 'efficiency'
 # Also in this case, we can ask for information on each protocol (again useful for GUIs for instance)
@@ -90,7 +90,6 @@ assert InpGen.get_default_protocol_name() == 'efficiency'
 
 # Another compulsory input, specifying the task. Typical values: 'atoms', 'cell'
 # but every plugin is free to implement its own
-from aiida_common_workflows.workflows.relax.generator import RelaxType
 
 relaxation_type = RelaxType.ATOMS
 
@@ -99,16 +98,29 @@ relaxation_type = RelaxType.ATOMS
 assert InpGen.get_relaxation_types() == list([RelaxType.ATOMS])
 
 #Other inputs the user need to define:
-alat = 4. # angstrom
-cell = [[alat, 0., 0.,],
-[0., alat, 0.,],
-[0., 0., alat,],
-   ]
+alat = 4.  # angstrom
+cell = [
+    [
+        alat,
+        0.,
+        0.,
+    ],
+    [
+        0.,
+        alat,
+        0.,
+    ],
+    [
+        0.,
+        0.,
+        alat,
+    ],
+]
 structure = StructureData(cell=cell)  # The initial structure is a compulsory input
-structure.append_atom(position=(alat/2.,alat/2.,alat/2.),symbols='Ti')
-structure.append_atom(position=(alat/2.,alat/2.,0.),symbols='O')
-structure.append_atom(position=(alat/2.,0.,alat/2.),symbols='O')
-structure.append_atom(position=(0.,alat/2.,alat/2.),symbols='O')
+structure.append_atom(position=(alat / 2., alat / 2., alat / 2.), symbols='Ti')
+structure.append_atom(position=(alat / 2., alat / 2., 0.), symbols='O')
+structure.append_atom(position=(alat / 2., 0., alat / 2.), symbols='O')
+structure.append_atom(position=(0., alat / 2., alat / 2.), symbols='O')
 ## Anything to properly define the StructureData here
 
 # And some optional inputs
@@ -129,7 +141,7 @@ builder = rel_inp_gen.get_builder(
     threshold_stress=threshold_stress
 )
 
-builder.relax.steps=Int(3)
+builder.relax.steps = Int(3)
 #Some extra, code-specific, inputs mught be implemented as required inputs of `get_builder`
 
 # The user now received a builder with suggested inputs, but before submission he/she has complete
@@ -145,7 +157,7 @@ process_node = run(builder)
 
 # here: in some way we wait for the process to complete execution
 # while not process_node.is_terminated:
-    # time.sleep(10)
+# time.sleep(10)
 
 # Here is the standardised output that the WorkChain should produce:
 assert isinstance(process_node['relaxed_structure'], StructureData)  # The relaxed structure
