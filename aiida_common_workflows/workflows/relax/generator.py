@@ -9,6 +9,7 @@ __all__ = ('RelaxType', 'RelaxInputsGenerator')
 
 
 class RelaxType(Enum):
+    """Enumeration of known relax types."""
 
     ATOMS = 'atoms'
     CELL = 'cell'
@@ -28,17 +29,17 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
         """Construct an instance of the inputs generator, validating the class attributes."""
         super().__init__(*args, **kwargs)
 
+        def raise_invalid(message):
+            raise RuntimeError('invalid inputs generator `{}`: {}'.format(self.__class__.__name__, message))
+
         if self._calc_types is None:
-            message = 'invalid inputs generator `{}`: does not define `_calc_types`'.format(self.__class__.__name__)
-            raise RuntimeError(message)
+            raise_invalid('does not define `_calc_types`')
 
         if self._relax_types is None:
-            message = 'invalid inputs generator `{}`: does not define `_relax_types`'.format(self.__class__.__name__)
-            raise RuntimeError(message)
+            raise_invalid('does not define `_relax_types`')
 
         if any([not isinstance(relax_type, RelaxType) for relax_type in self._relax_types]):
-            message = 'invalid inputs generator `{}`: `_relax_types`'.format(self.__class__.__name__)
-            raise RuntimeError(message)
+            raise_invalid('`_relax_types` are not all instances of RelaxType')
 
     @abstractmethod
     def get_builder(

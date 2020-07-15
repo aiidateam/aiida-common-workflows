@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=function-redefined
+# pylint: disable=function-redefined,redefined-outer-name
+"""Tests for the :mod:`aiida_common_workflows.protocol.registry` module."""
 import pytest
 
 from aiida_common_workflows.protocol import ProtocolRegistry
 
 
 @pytest.fixture
-def protocol_registry():
+def protocol_registry() -> ProtocolRegistry:
+    """Return an instance of a protocol registry implementation."""
 
     class SubProtocolRegistry(ProtocolRegistry):
+        """Valid protocol registry implementation."""
 
         _protocols = {'efficiency': {'description': 'description'}, 'precision': {'description': 'description'}}
         _default_protocol = 'efficiency'
@@ -20,6 +23,7 @@ def test_validation():
     """Test the validation of subclasses of `ProtocolRegistry`."""
 
     class SubProtocolRegistry(ProtocolRegistry):
+        """Invalid protocol registry implementation."""
 
         _protocols = None
         _default_protocol = None
@@ -28,6 +32,7 @@ def test_validation():
         SubProtocolRegistry()
 
     class SubProtocolRegistry(ProtocolRegistry):
+        """Invalid protocol registry implementation."""
 
         _protocols = {'efficiency': {}, 'precision': 'wrong_type'}
         _default_protocol = None
@@ -36,6 +41,7 @@ def test_validation():
         SubProtocolRegistry()
 
     class SubProtocolRegistry(ProtocolRegistry):
+        """Invalid protocol registry implementation."""
 
         _protocols = {'efficiency': {'description': 'description'}, 'precision': {}}
         _default_protocol = None
@@ -44,6 +50,7 @@ def test_validation():
         SubProtocolRegistry()
 
     class SubProtocolRegistry(ProtocolRegistry):
+        """Invalid protocol registry implementation."""
 
         _protocols = {'efficiency': {'description': 'description'}, 'precision': {'description': 'description'}}
         _default_protocol = None
@@ -52,6 +59,7 @@ def test_validation():
         SubProtocolRegistry()
 
     class SubProtocolRegistry(ProtocolRegistry):
+        """Invalid protocol registry implementation."""
 
         _protocols = {'efficiency': {'description': 'description'}, 'precision': {'description': 'description'}}
         _default_protocol = 'non-existant'
