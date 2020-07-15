@@ -28,9 +28,6 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
         """Construct an instance of the inputs generator, validating the class attributes."""
         super().__init__(*args, **kwargs)
 
-        def raise_invalid(message):
-            raise RuntimeError('invalid protocol registry `{}`: '.format(self.__class__.__name__) + message)
-
         if self._calc_types is None:
             message = 'invalid inputs generator `{}`: does not define `_calc_types`'.format(self.__class__.__name__)
             raise RuntimeError(message)
