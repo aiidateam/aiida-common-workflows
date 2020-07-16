@@ -11,8 +11,7 @@ from ..workchain import CommonRelaxWorkChain
 
 __all__ = ('FleurCRelaxWorkChain',)
 
-AiidaFleurRelaxWorkChain = WorkflowFactory('fleur.base_relax')  #fleur.relax')
-#AiidaFleurRelaxWorkChain = WorkflowFactory('fleur.relax')
+AiidaFleurRelaxWorkChain = WorkflowFactory('fleur.base_relax')
 
 
 @calcfunction
@@ -21,7 +20,7 @@ def get_forces_from_trajectory(trajectory):  # pylint: disable=unused-argument
     forces = orm.ArrayData()
     # currently the fleur relax workchain does not output trajectory data,
     # but it will be adapted to do so
-    # larges forces are found in workchain output nodes
+    # largest forces are found in workchain output nodes
     # forces.set_array(name='forces', array=trajectory.get_array('forces')[-1])
     return forces
 
@@ -45,4 +44,3 @@ class FleurCRelaxWorkChain(CommonRelaxWorkChain):
         self.out('relaxed_structure', self.ctx.workchain.outputs.optimized_structure)
         self.out('total_energy', get_total_energy(self.ctx.workchain.outputs.out))
         self.out('forces', get_forces_from_trajectory(self.ctx.workchain.outputs.out))
-        #put_trajectory))

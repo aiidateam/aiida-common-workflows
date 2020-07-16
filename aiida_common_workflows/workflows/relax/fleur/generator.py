@@ -32,7 +32,7 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.'
         # RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell.'
         # currently not supported by Fleur
-        }
+    }
 
     def get_builder(
         self,
@@ -65,8 +65,9 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
 
         builder = FleurRelaxationWorkChain.get_builder()
 
-        # TODO implement this, protocol dependent, we still have option keys as nodes ...
-        #inputs = generate_scf_inputs(process_class, protocol, code, structure)
+        # implement this, protocol dependent, we still have option keys as nodes ...
+        # has to go over calc parameters, kmax, lmax, kpoint density
+        # inputs = generate_scf_inputs(process_class, protocol, code, structure)
 
         if relaxation_type == RelaxType.ATOMS:
             relaxation_mode = 'force'
@@ -83,10 +84,15 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         if threshold_stress is not None:
             pass  # Stress is not supported
 
+        if structure.pbc == (True, True, False):
+            film_relax = True
+        else:
+            film_relax = False
+
         wf_para = Dict(
             dict={
                 'relax_iter': 5,
-                'film_distance_relaxation': False,  # Check input structure...
+                'film_distance_relaxation': film_relax,
                 'force_criterion': force_criterion,
                 'change_mixing_criterion': 0.025,
                 'atoms_off': [],
@@ -98,7 +104,7 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
             dict={
                 'fleur_runmax': 2,
                 'itmax_per_run': 120,
-                'force_converged': force_criterion,  # Check
+                'force_converged': force_criterion,
                 'force_dict': {
                     'qfix': 2,
                     'forcealpha': 0.75,
@@ -114,8 +120,8 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
             'scf': {
                 'wf_parameters': wf_para_scf,
                 'structure': structure,
-                #'calc_parameters': parameters,
-                #'options': options_scf,
+                # 'calc_parameters': parameters, # protocol depended
+                # 'options': options_scf,
                 # options do not matter on QM, in general they do...
                 'inpgen': inpgen_code,
                 'fleur': fleur_code
