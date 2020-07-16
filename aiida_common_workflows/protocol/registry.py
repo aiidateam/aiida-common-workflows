@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=unsupported-membership-test,unsubscriptable-object
 """Module with base protocol registry."""
+import typing
 
 __all__ = ('ProtocolRegistry',)
 
 
 class ProtocolRegistry:
+    """Container for work chain input generation protocols."""
 
     _protocols = None
     _default_protocol = None
@@ -33,16 +35,20 @@ class ProtocolRegistry:
         if self._default_protocol not in self._protocols:
             raise_invalid('default protocol `{}` is not a defined protocol'.format(self._default_protocol))
 
-    def is_valid_protocol(self, name):
+    def is_valid_protocol(self, name: str) -> bool:
+        """Return whether the given protocol exists."""
         return name in self._protocols
 
-    def get_protocol_names(self):
+    def get_protocol_names(self) -> typing.List[str]:
+        """Return the list of protocol names."""
         return list(self._protocols.keys())
 
-    def get_default_protocol_name(self):
+    def get_default_protocol_name(self) -> str:
+        """Return the default protocol name."""
         return self._default_protocol
 
-    def get_protocol(self, name):
+    def get_protocol(self, name: str) -> typing.Dict:
+        """Return the protocol corresponding to the given name."""
         try:
             return self._protocols[name]
         except KeyError:

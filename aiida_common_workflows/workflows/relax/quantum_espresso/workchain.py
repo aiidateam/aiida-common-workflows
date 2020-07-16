@@ -13,6 +13,7 @@ PwRelaxWorkChain = WorkflowFactory('quantumespresso.pw.relax')
 
 @calcfunction
 def get_stress_from_trajectory(trajectory):
+    """Return the stress array from the given trajectory data."""
     stress = orm.ArrayData()
     stress.set_array(name='stress', array=trajectory.get_array('stress')[-1])
     return stress
@@ -20,6 +21,7 @@ def get_stress_from_trajectory(trajectory):
 
 @calcfunction
 def get_forces_from_trajectory(trajectory):
+    """Return the forces array from the given trajectory data."""
     forces = orm.ArrayData()
     forces.set_array(name='forces', array=trajectory.get_array('forces')[-1])
     return forces
@@ -27,6 +29,7 @@ def get_forces_from_trajectory(trajectory):
 
 @calcfunction
 def get_total_energy(parameters):
+    """Return the total energy from the given parameters node."""
     return orm.Float(parameters.get_attribute('energy'))
 
 
