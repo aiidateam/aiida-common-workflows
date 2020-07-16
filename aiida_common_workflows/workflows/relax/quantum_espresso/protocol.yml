@@ -1,0 +1,89 @@
+moderate:
+    name: 'moderate'
+    description: 'Protocol to relax a structure with normal precision at moderate computational cost.'
+    pseudo_family: 'SSSP/1.1/PBE/efficiency'
+    relax:
+        base:
+            max_iterations: 5
+            kpoints_distance: 0.2
+            kpoints_force_parity: false
+            pw:
+                etot_conv_thr_per_atom: 1.e-5
+                conv_thr_per_atom: 1.0e-9
+                parameters:
+                    CONTROL:
+                        forc_conv_thr: 1.e-4
+                        tprnfor: true
+                        tstress: true
+                    SYSTEM:
+                        nosym: false
+                        occupations: smearing
+                        smearing: cold
+                        degauss: 0.01
+                    ELECTRONS:
+                        electron_maxstep: 80
+                        mixing_beta: 0.4
+        final_scf: false
+        max_meta_convergence_iterations: 5
+        meta_convergence: false
+        volume_convergence: 0.01
+
+precise:
+    name: 'precise'
+    description: 'Protocol to relax a structure with high precision at higher computational cost.'
+    pseudo_family: 'SSSP/1.1/PBE/precision'
+    relax:
+        base:
+            max_iterations: 5
+            kpoints_distance: 0.15
+            kpoints_force_parity: false
+            pw:
+                etot_conv_thr_per_atom: 0.5.e-5
+                conv_thr_per_atom: 0.2e-9
+                parameters:
+                    CONTROL:
+                        forc_conv_thr: 0.5.e-4
+                        tprnfor: true
+                        tstress: true
+                    SYSTEM:
+                        nosym: false
+                        occupations: smearing
+                        smearing: cold
+                        degauss: 0.01
+                    ELECTRONS:
+                        electron_maxstep: 80
+                        mixing_beta: 0.4
+        final_scf: false
+        max_meta_convergence_iterations: 5
+        meta_convergence: false
+        volume_convergence: 0.01
+
+fast:
+    name: 'fast'
+    description: 'Protocol to relax a structure with low precision at minimal computational cost for testing purposes.'
+    pseudo_family: 'SSSP/1.1/PBE/efficiency'
+    relax:
+        base:
+            max_iterations: 5
+            kpoints_distance: 1.0
+            kpoints_force_parity: false
+            pw:
+                etot_conv_thr_per_atom: 2.e-5
+                conv_thr_per_atom: 2.0e-9
+                parameters:
+                    CONTROL:
+                        forc_conv_thr: 2.e-4
+                        tprnfor: true
+                        tstress: true
+                    SYSTEM:
+                        nosym: false
+                        occupations: smearing
+                        smearing: cold
+                        degauss: 0.01
+                    ELECTRONS:
+                        electron_maxstep: 80
+                        mixing_beta: 0.4
+        final_scf: false
+        max_meta_convergence_iterations: 5
+        meta_convergence: false
+        volume_convergence: 0.01
