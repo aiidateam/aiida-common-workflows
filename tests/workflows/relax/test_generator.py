@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=arguments-differ
+# pylint: disable=abstract-method,arguments-differ,redefined-outer-name
+"""Tests for the :mod:`aiida_common_workflows.workflows.relax.generator` module."""
 import pytest
 
 from aiida_common_workflows.protocol import ProtocolRegistry
@@ -7,9 +8,11 @@ from aiida_common_workflows.workflows.relax import RelaxInputsGenerator, RelaxTy
 
 
 @pytest.fixture
-def protocol_registry():
+def protocol_registry() -> ProtocolRegistry:
+    """Return an instance of a protocol registry implementation."""
 
     class SubProtocolRegistry(ProtocolRegistry):
+        """Valid protocol registry implementation."""
 
         _protocols = {'efficiency': {'description': 'description'}, 'precision': {'description': 'description'}}
         _default_protocol = 'efficiency'
@@ -18,9 +21,11 @@ def protocol_registry():
 
 
 @pytest.fixture
-def inputs_generator(protocol_registry):
+def inputs_generator(protocol_registry) -> RelaxInputsGenerator:
+    """Return an instance of a relax inputs generator implementation."""
 
     class InputsGenerator(protocol_registry, RelaxInputsGenerator):
+        """Valid inputs generator implementation."""
 
         _calc_types = {'relax': {'code_plugin': 'entry.point', 'description': 'test'}}
 
@@ -41,6 +46,7 @@ def test_validation(protocol_registry):
     # pylint: disable=abstract-class-instantiated,function-redefined
 
     class InputsGenerator(protocol_registry, RelaxInputsGenerator):
+        """Invalid inputs generator implementation."""
 
         _calc_types = None
         _relax_types = None
@@ -49,6 +55,7 @@ def test_validation(protocol_registry):
         InputsGenerator()
 
     class InputsGenerator(protocol_registry, RelaxInputsGenerator):
+        """Invalid inputs generator implementation."""
 
         _calc_types = {'relax': {}}
         _relax_types = None
@@ -60,6 +67,7 @@ def test_validation(protocol_registry):
         InputsGenerator()
 
     class InputsGenerator(protocol_registry, RelaxInputsGenerator):
+        """Invalid inputs generator implementation."""
 
         _calc_types = None
         _relax_types = {RelaxType.ATOMS: 'description'}
@@ -71,6 +79,7 @@ def test_validation(protocol_registry):
         InputsGenerator()
 
     class InputsGenerator(protocol_registry, RelaxInputsGenerator):
+        """Invalid inputs generator implementation."""
 
         _calc_types = {'relax': {}}
         _relax_types = {'invalid-type': 'description'}
