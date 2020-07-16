@@ -1,0 +1,2 @@
+
+recursive-include aiida_common_workflows/workflows/relax/examples/data *
