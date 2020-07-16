@@ -1,0 +1,44 @@
+precise:
+  name: 'precise'
+  description: 'Protocol to relax a structure with high precision at higher computational cost.'
+  potential_family: 'PBE'
+  potential_mapping: 'DEFAULT_PBE'
+  kpoint_distance: 0.15
+  relax:
+    algo: 'cg'
+    threshold_forces: 0.0001
+  parameters:
+    prec: 'Accurate'
+    ismear: 0
+    sigma: 0.05
+    algo: 'F'
+
+moderate:
+  name: 'moderate'
+  description: 'Protocol to relax a structure with normal precision at moderate computational cost.'
+  potential_family: 'PBE5.4'
+  potential_mapping: 'DEFAULT_PBE'
+  kpoint_distance: 0.2
+  relax:
+    algo: 'cg'
+    threshold_forces: 0.01
+  parameters:
+    prec: 'Normal'
+    ismear: 0
+    sigma: 0.1
+    algo: 'F'
+
+fast:
+  name: 'fast'
+  description: 'Protocol to relax a structure with low precision at minimal computational cost for testing purposes.'
+  potential_family: 'PBE'
+  potential_mapping: 'DEFAULT_PBE'
+  kpoint_distance: 1.0
+  relax:
+    algo: 'cg'
+    threshold_forces: 0.1
+  parameters:
+    prec: 'Single'
+    ismear: 0
+    sigma: 0.2
+    algo: 'V'
