@@ -61,7 +61,6 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
 
         fleur_code = Code.get_from_string(calc_engines['relax']['code'])
         inpgen_code = Code.get_from_string(calc_engines['relax']['inputgen'])
-        process_class = FleurRelaxationWorkChain._process_class  # pylint: disable=protected-access
 
         builder = FleurRelaxationWorkChain.get_builder()
 
@@ -84,10 +83,7 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         if threshold_stress is not None:
             pass  # Stress is not supported
 
-        if structure.pbc == (True, True, False):
-            film_relax = True
-        else:
-            film_relax = False
+        film_relax = structure.pbc[-1]
 
         wf_para = Dict(
             dict={
