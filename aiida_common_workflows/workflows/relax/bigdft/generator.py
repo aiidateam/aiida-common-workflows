@@ -66,23 +66,10 @@ accurate energies.',
         threshold_stress=None,
         **kwargs
     ):
-        """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
 
-        :param structure: the structure to be relaxed
-        :param calc_engines: ...
-        :param protocol: the protocol to use when determining the workchain inputs
-        :param relaxation_type: the type of relaxation to perform, instance of `RelaxType`
-        :param threshold_forces: target threshold for the forces in eV/Å.
-        :param threshold_stress: target threshold for the stress in eV/Å^3.
-        :param kwargs: any inputs that are specific to the plugin.
-        :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
-        """
-        # pylint: disable=too-many-locals
         from aiida.orm import Dict
         from aiida.orm import load_code
 
-        #Pseudo fam
-        #pseudo_fam = kwargs.pop('pseudo_family')
         if relaxation_type == RelaxType.ATOMS:
             relaxation_schema = 'relax'
         else:
@@ -100,18 +87,11 @@ accurate energies.',
             inputdict = self.get_protocol(protocol)['inputdict_linear']
 
         builder.parameters = BigDFTParameters(dict=inputdict)
-        #builder.pseudos = Str(pseudo_fam)
-        #builder.options = Dict(dict=calc_engines["relaxation"]["options"])
         builder.code = load_code(calc_engines[relaxation_schema]['code'])
         run_opts = {'options': calc_engines[relaxation_schema]['options']}
         builder.run_opts = Dict(dict=run_opts)
 
         if threshold_forces is not None:
             builder.relax.threshold_forces = orm.Float(threshold_forces)
-
-        # if threshold_stress is not None:
-        #     parameters = builder.base.parameters.get_dict()
-        #     parameters.setdefault('CELL', {})['press_conv_thr'] = threshold_stress
-        #     builder.base.parameters = orm.Dict(dict=parameters)
 
         return builder
