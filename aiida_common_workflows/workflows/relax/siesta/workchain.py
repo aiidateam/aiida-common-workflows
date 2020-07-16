@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+"""
+WorkChain that runs SiestaBaseWorkChain of aiida_siesta package and
+returns the agreed outputs.
+"""
 from aiida.orm import (Float, ArrayData)
 from aiida.engine import calcfunction
 from aiida_siesta.workflows.base import SiestaBaseWorkChain
@@ -7,11 +11,13 @@ from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChai
 
 @calcfunction
 def get_energy(pardict):
+    """Extract the energy from the `output_parameters` dictionary"""
     return Float(pardict['E_KS'])
 
 
 @calcfunction
 def get_forces_and_stress(totalarray):
+    """Separates the forces and stress in two different arrays"""
     forces = ArrayData()
     forces.set_array(name='forces', array=totalarray.get_array('forces'))
     stress = ArrayData()
@@ -27,6 +33,7 @@ class SiestaRelaxWorkChain(CommonRelaxWorkChain):
     _process_class = SiestaBaseWorkChain
 
     def convert_outputs(self):
+        """Convert outputs to the agreed standards"""
         self.report('Relaxation task concluded sucessfully, converting outputs')
         self.out('relaxed_structure', self.ctx.workchain.outputs.output_structure)
         self.out('total_energy', get_energy(self.ctx.workchain.outputs.output_parameters))

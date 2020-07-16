@@ -1,15 +1,19 @@
 # -*- coding: utf-8 -*-
+"""
+Inputs generator for the SiestaRelaxWorkChain
+"""
+import os
 import yaml
+from aiida.common import exceptions
+from aiida.orm.groups import Group
 from aiida_common_workflows.workflows.relax.generator import RelaxInputsGenerator, RelaxType
 from aiida_common_workflows.workflows.relax.siesta.workchain import SiestaRelaxWorkChain
-import os
-from aiida.orm.groups import Group
-from aiida.common import exceptions
 
 __all__ = ('SiestaRelaxInputsGenerator',)
 
 
 class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
+    """Generator of inputs for the SiestaRelaxWorkChain"""
 
     _default_protocol = 'moderate'
 
@@ -47,7 +51,7 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         def raise_invalid(message):
             raise RuntimeError('invalid protocol registry `{}`: '.format(self.__class__.__name__) + message)
 
-        for k, v in self._protocols.items():
+        for k, v in self._protocols.items():  #pylint: disable=invalid-name
 
             if 'parameters' not in v:
                 raise_invalid('protocol `{}` does not define the mandatory key `parameters`'.format(k))
@@ -136,7 +140,7 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
 
         return builder
 
-    def _get_param(self, key, structure):
+    def _get_param(self, key, structure):  #pylint: disable=too-many-branches
         """
         Method to construct the `parameters` input. Heuristics are applied, a dictionary
         with the parameters is returned.
@@ -218,13 +222,13 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
 
             if pol_dict:
                 card = '\n'
-                for k, v in pol_dict.items():
+                for k, v in pol_dict.items():  #pylint: disable=invalid-name
                     card = card + '  {0}  {1} \n'.format(k, v)
                 card = card + '%endblock paopolarizationscheme'
                 basis['%block pao-polarization-scheme'] = card
             if size_dict:
                 card = '\n'
-                for k, v in size_dict.items():
+                for k, v in size_dict.items():  #pylint: disable=invalid-name
                     card = card + '  {0}  {1} \n'.format(k, v)
                 card = card + '%endblock paobasessizes'
                 basis['%block pao-bases-sizes'] = card
