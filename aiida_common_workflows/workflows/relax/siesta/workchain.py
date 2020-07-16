@@ -5,8 +5,10 @@ returns the agreed outputs.
 """
 from aiida.orm import (Float, ArrayData)
 from aiida.engine import calcfunction
-from aiida_siesta.workflows.base import SiestaBaseWorkChain
+from aiida.plugins import WorkflowFactory
 from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChain
+
+SiestaBaseWorkChain = WorkflowFactory('siesta.base')  #pylint: disable=invalid-name
 
 
 @calcfunction

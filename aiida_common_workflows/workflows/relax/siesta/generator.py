@@ -5,7 +5,7 @@ Inputs generator for the SiestaRelaxWorkChain
 import os
 import yaml
 from aiida.common import exceptions
-from aiida.orm.groups import Group
+from aiida.orm import Group
 from aiida_common_workflows.workflows.relax.generator import RelaxInputsGenerator, RelaxType
 from aiida_common_workflows.workflows.relax.siesta.workchain import SiestaRelaxWorkChain
 
@@ -16,11 +16,6 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
     """Generator of inputs for the SiestaRelaxWorkChain"""
 
     _default_protocol = 'moderate'
-
-    _filepath = os.path.join(os.path.dirname(__file__), 'protocols_registry.yaml')
-
-    with open(_filepath) as _thefile:
-        _protocols = yaml.full_load(_thefile)
 
     _calc_types = {
         'relaxation': {
@@ -46,6 +41,9 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
 
     def __init__(self, *args, **kwargs):
         """Construct an instance of the inputs generator, validating the class attributes."""
+
+        self._initialize_protocols()
+
         super().__init__(*args, **kwargs)
 
         def raise_invalid(message):
@@ -80,7 +78,13 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
                         'but no family with this name is loaded in the database'.format(k, famname)
                     )
 
-    #pylint: disable=too-many-locals
+    def _initialize_protocols(self):
+        """Initialize the protocols class attribute by parsing them from the configuration file."""
+        _filepath = os.path.join(os.path.dirname(__file__), 'protocols_registry.yaml')
+
+        with open(_filepath) as _thefile:
+            self._protocols = yaml.full_load(_thefile)
+
     def get_builder(
         self,
         structure,
@@ -90,7 +94,7 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         threshold_forces=None,
         threshold_stress=None,
         **kwargs
-    ):
+    ):  #pylint: disable=too-many-locals
 
         from aiida.orm import Dict
         from aiida.orm import load_code
