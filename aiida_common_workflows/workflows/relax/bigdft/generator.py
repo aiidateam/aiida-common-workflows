@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for BigDFT."""
 from aiida import orm
-from aiida.plugins import WorkflowFactory, DataFactory
+from aiida.plugins import DataFactory
 from ..generator import RelaxInputsGenerator, RelaxType
+from .workchain import BigDFTCommonRelaxWorkChain
 
 __all__ = ('BigDFTRelaxInputsGenerator',)
 
-BigDFTRelaxWorkChain = WorkflowFactory('bigdft.relax')
 BigDFTParameters = DataFactory('bigdft')
 
 
@@ -75,7 +75,7 @@ accurate energies.',
         else:
             raise ValueError('relaxation type `{}` is not supported'.format(relaxation_type.value))
 
-        builder = BigDFTRelaxWorkChain.get_builder()
+        builder = BigDFTCommonRelaxWorkChain.get_builder()
         builder.structure = structure
 
         #Will be implemented in the bigdft plugin
