@@ -1,83 +1,70 @@
+#!/usr/bin/env runaiida
 # -*- coding: utf-8 -*-
-import os.path as op
+"""Launch script for the common relax work chain demonstrator using <Code>."""
 from aiida import orm
 from aiida.engine import run
+from aiida.plugins import DataFactory
+
 from aiida_common_workflows.workflows.relax.generator import RelaxType
+from aiida_common_workflows.workflows.relax.<code> import <Code>RelaxInputsGenerator
 
-#Next three lines must be modified.
+StructureData = DataFactory('structure')
 
-#from aiida_common_workflows.workflows.relax. #... import MyInpGen
-#InpGen = #MyInpGen
-#calc_engines = #my cal eng schema
-#{
+GENERATOR = <Code>RelaxInputsGenerator
+CALC_ENGINES = {} #Insert here the computational resources using the schema <code> supports
+#Example {
 #    'relax': {
-#        'code': '<code>@localhost',
+#        'code': 'qe-6.5-pw@localhost',
 #        'options': {
 #            'resources': {
-#                'num_machines': 2
+#                'num_machines': 1
 #            },
 #            'max_wallclock_seconds': 86400,
-#        }
-#    },
-#    'maybe another step?': {
-#        'code': '<code>@localhost',
-#        'options': {
-#            'resources': {
-#                'num_machines': 2
-#            },
-#            'max_wallclock_seconds': 3600,
-#            'queue': 'debug',
-#            'account': 'ABC'
 #        }
 #    }
 #}
 
-#Don't touch the rest
+#Do not touch rest of the code
 
-relaxation_type = RelaxType.ATOMS
-protocol = 'moderate'
+def rescale(structure: StructureData, scale: orm.Float) -> StructureData:
+    """Rescale a structure by a scaling factor using ASE.
 
-def rescale(structure, scale):
+    :param structure: structure to rescale.
+    :param scale: the scale factor.
+    :return: rescaled structure.
     """
-    Calcfunction to rescale a structure by a scaling factor.
-    Uses ase.
-    :param structure: An AiiDA structure to rescale
-    :param scale: The scale factor
-    :return: The rescaled structure
+    ase = structure.get_ase().copy()
+    ase.set_cell(ase.get_cell() * float(scale), scale_atoms=True)
+    return StructureData(ase=ase)
+
+
+def structure_init() -> StructureData:
+    """Return a silicon structure constructed from the `data/Si.cif` file.
+
+    :return: silicon crystal structure.
     """
+    import os
+    import pymatgen
 
-    the_ase = structure.get_ase()
-    new_ase = the_ase.copy()
-    new_ase.set_cell(the_ase.get_cell() * float(scale), scale_atoms=True)
-    new_structure = orm.StructureData(ase=new_ase)
+    filepath = os.path.realpath(os.path.join(os.path.dirname(__file__), 'data/Si.cif'))
+    structure = pymatgen.Structure.from_file(filepath, primitive=False)
 
-    return new_structure
+    return StructureData(pymatgen_structure=structure)
 
-def structure_init():
-    """
-    Workfunction to create structure of a given element taking it from a reference
-    list of scructures and a reference volume.
-    :param element: The element to create the structure with.
-    :return: The structure and the kpoint mesh (from file, releted to the structure!).
-    """
-    import pymatgen as mg
 
-    structure_file = op.realpath(op.join(op.dirname(__file__), 'data/Si.cif'))
+def launch():
+    """Launch the relax work chain for a basic silicon crystal structure at a range of scaling factors."""
+    relaxation_type = RelaxType.ATOMS
+    protocol = 'moderate'
 
-    in_structure = mg.Structure.from_file(structure_file, primitive=False)
+    structure = structure_init()
 
-    structure = orm.StructureData(pymatgen_structure=in_structure)
-#    ref_vol_per_atom = 20.4530 #from DFT reproducibility paper
-#    newreduced = in_structure.copy()
-#    newreduced.scale_lattice(ref_vol_per_atom * in_structure.num_sites)
-#    structure = orm.StructureData(pymatgen_structure=newreduced)
+    for scale in [0.94, 0.96, 0.98, 1, 1.02, 1.04, 1.06]:
+        scaled = rescale(structure, scale)
+        builder = GENERATOR().get_builder(scaled, CALC_ENGINES, protocol, relaxation_type, threshold_forces=0.001)
+        results = run(builder)
+        print(results['relaxed_structure'].get_cell_volume(), results['total_energy'].value)
 
-    return structure
 
-structure = structure_init()
-
-for scale in [0.94,0.96,0.98,1,1.02,1.04,1.06]:
-    scaled = rescale(structure, scale)
-    builder = InpGen.get_builder(scaled, calc_engines, protocol, relaxation_type, threshold_forces=0.001)
-    future = run(builder)
-    print(future['relaxed_structure'].get_cell_volume(), future['total_energy'].value)
+if __name__ == '__main__':
+    launch()
