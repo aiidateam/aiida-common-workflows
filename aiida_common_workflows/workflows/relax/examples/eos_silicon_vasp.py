@@ -6,13 +6,13 @@ from aiida.engine import run
 from aiida.plugins import DataFactory
 
 from aiida_common_workflows.workflows.relax.generator import RelaxType
-from aiida_common_workflows.workflows.relax.vasp import VASPRelaxInputsGenerator
+from aiida_common_workflows.workflows.relax.vasp import VaspRelaxInputsGenerator
 
 load_profile()
 
 StructureData = DataFactory('structure')  # pylint: disable=invalid-name
 
-GENERATOR = VASPRelaxInputsGenerator
+GENERATOR = VaspRelaxInputsGenerator
 CALC_ENGINES = {
     'relax': {
         'code': 'vasp@mycluster',

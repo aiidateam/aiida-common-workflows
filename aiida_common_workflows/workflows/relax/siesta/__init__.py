@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=undefined-variable
-"""Module with the implementations of the common structure relaxation workchainm for Siesta."""
+"""Module with the implementations of the common structure relaxation workchain for Siesta."""
 from .generator import *
 from .workchain import *
 

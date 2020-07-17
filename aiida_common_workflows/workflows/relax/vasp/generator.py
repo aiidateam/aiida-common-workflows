@@ -8,12 +8,11 @@ from aiida.orm import Code
 from aiida.common.extendeddicts import AttributeDict
 
 from ..generator import RelaxInputsGenerator, RelaxType
-from .workchain import CommonVASPRelaxWorkChain
 
-__all__ = ('VASPRelaxInputsGenerator',)
+__all__ = ('VaspRelaxInputsGenerator',)
 
 
-class VASPRelaxInputsGenerator(RelaxInputsGenerator):
+class VaspRelaxInputsGenerator(RelaxInputsGenerator):
     """Input generator for the `VASPRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
@@ -32,12 +31,12 @@ class VASPRelaxInputsGenerator(RelaxInputsGenerator):
 
     def _initialize_protocols(self):
         """Initialize the protocols class attribute by parsing them from the protocols configuration file."""
-        with open(pathlib.Path(__file__).parent / 'protocols.yml') as handle:
+        with open(str(pathlib.Path(__file__).parent / 'protocols.yml')) as handle:
             self._protocols = yaml.safe_load(handle)
 
     def _initialize_potential_mapping(self):
         """Initialize the potential mapping from the potential_mapping configuration file."""
-        with open(pathlib.Path(__file__).parent / 'potential_mapping.yml') as handle:
+        with open(str(pathlib.Path(__file__).parent / 'potential_mapping.yml')) as handle:
             self._potential_mapping = yaml.safe_load(handle)
 
     def get_builder(
@@ -69,7 +68,7 @@ class VASPRelaxInputsGenerator(RelaxInputsGenerator):
         protocol = self.get_protocol(protocol)
 
         # Set the builder
-        builder = CommonVASPRelaxWorkChain.get_builder()
+        builder = self._process_class.get_builder()
 
         # Set code
         builder.code = Code.get_from_string(calc_engines['relax']['code'])

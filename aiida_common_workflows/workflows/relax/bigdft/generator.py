@@ -3,21 +3,19 @@
 from aiida import orm
 from aiida.plugins import DataFactory
 from ..generator import RelaxInputsGenerator, RelaxType
-from .workchain import BigDFTCommonRelaxWorkChain
 
-__all__ = ('BigDFTRelaxInputsGenerator',)
+__all__ = ('BigDftRelaxInputsGenerator',)
 
 BigDFTParameters = DataFactory('bigdft')
 
 
-class BigDFTRelaxInputsGenerator(RelaxInputsGenerator):
+class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
     """Input generator for the `BigDFTRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
     _protocols = {
         'fast': {
-            'description': 'This profile should be chosen if speed\
- is more important than accuracy.',
+            'description': 'This profile should be chosen if speed is more important than accuracy.',
             'inputdict_cubic': {
                 'dft': {
                     'hgrids': 0.45
@@ -28,17 +26,15 @@ class BigDFTRelaxInputsGenerator(RelaxInputsGenerator):
             }
         },
         'moderate': {
-            'description': 'This profile should be chosen if accurate forces \
-are required, but there is no need for extremely \
-accurate energies.',
+            'description': 'This profile should be chosen if accurate forces are required, but there is no need for '
+            'extremely accurate energies.',
             'inputdict_cubic': {},
             'inputdict_linear': {
                 'import': 'linear'
             }
         },
         'precise': {
-            'description': 'This profile should be chosen if highly accurate\
-                            energy differences are required.',
+            'description': 'This profile should be chosen if highly accurate energy differences are required.',
             'inputdict_cubic': {
                 'dft': {
                     'hgrids': 0.15
@@ -75,11 +71,11 @@ accurate energies.',
         else:
             raise ValueError('relaxation type `{}` is not supported'.format(relaxation_type.value))
 
-        builder = BigDFTCommonRelaxWorkChain.get_builder()
+        builder = self._process_class.get_builder()
         builder.structure = structure
 
-        #Will be implemented in the bigdft plugin
-        #inputdict = BigDFTParameters.get_input_dict(protocol, structure, 'relax')
+        # Will be implemented in the bigdft plugin
+        # inputdict = BigDFTParameters.get_input_dict(protocol, structure, 'relax')
         # for now apply simple stupid heuristic : atoms < 200 -> cubic, else -> linear.
         if len(structure.sites) <= 200:
             inputdict = self.get_protocol(protocol)['inputdict_cubic']

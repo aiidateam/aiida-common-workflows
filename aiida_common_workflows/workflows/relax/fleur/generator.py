@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
-Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator`
-for FLEUR.
-"""
+"""Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for FLEUR."""
 from aiida.orm import Dict, Code
 from ..generator import RelaxInputsGenerator, RelaxType
-from .workchain import FleurCRelaxWorkChain as FleurRelaxationWorkChain
 
 __all__ = ('FleurRelaxInputsGenerator',)
 
@@ -57,12 +53,10 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
         # pylint: disable=too-many-locals
-        #from aiida_fleur.tools.common_wf_util import generate_scf_inputs
-
         fleur_code = Code.get_from_string(calc_engines['relax']['code'])
         inpgen_code = Code.get_from_string(calc_engines['relax']['inputgen'])
 
-        builder = FleurRelaxationWorkChain.get_builder()
+        builder = self._process_class.get_builder()
 
         # implement this, protocol dependent, we still have option keys as nodes ...
         # has to go over calc parameters, kmax, lmax, kpoint density
