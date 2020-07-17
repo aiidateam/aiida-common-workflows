@@ -8,6 +8,8 @@ from aiida.engine import calcfunction
 from aiida.plugins import WorkflowFactory
 from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChain
 
+__all__ = ('SiestaRelaxWorkChain',)
+
 SiestaBaseWorkChain = WorkflowFactory('siesta.base')  #pylint: disable=invalid-name
 
 
