@@ -1,30 +1,27 @@
 #!/usr/bin/env runaiida
 # -*- coding: utf-8 -*-
-"""Launch script for the common relax work chain demonstrator using <Code>."""
+"""Launch script for the common relax work chain demonstrator using Siesta."""
 from aiida import orm
 from aiida.engine import run
 from aiida.plugins import DataFactory
 
 from aiida_common_workflows.workflows.relax.generator import RelaxType
-from aiida_common_workflows.workflows.relax.<code> import <Code>RelaxInputsGenerator
+from aiida_common_workflows.workflows.relax.siesta import SiestaRelaxInputsGenerator
 
 StructureData = DataFactory('structure')
 
-GENERATOR = <Code>RelaxInputsGenerator
-CALC_ENGINES = {} #Insert here the computational resources using the schema <code> supports
-#Example {
-#    'relax': {
-#        'code': 'qe-6.5-pw@localhost',
-#        'options': {
-#            'resources': {
-#                'num_machines': 1
-#            },
-#            'max_wallclock_seconds': 86400,
-#        }
-#    }
-#}
-
-#Do not touch rest of the code
+GENERATOR = SiestaRelaxInputsGenerator
+CALC_ENGINES = {
+    'relaxation': {
+        'code': 'siesta-v4.1-rc1-siesta-bis@localhost',
+        'options': {
+            'resources': {
+                'num_machines': 1
+            },
+            'max_wallclock_seconds': 86400,
+        }
+    },
+}
 
 def rescale(structure: StructureData, scale: orm.Float) -> StructureData:
     """Rescale a structure by a scaling factor using ASE.

@@ -1,2 +1,2 @@
-
+recursive-include aiida_common_workflows/workflows/relax/siesta *.yaml
 recursive-include aiida_common_workflows/workflows/relax/examples/data *

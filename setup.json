@@ -19,7 +19,8 @@
         "aiida-core[atomic_tools]~=1.2",
         "aiida-quantumespresso~=3.0",
         "aiida-fleur~=1.1",
-        "aiida-sssp~=0.1.0"
+        "aiida-sssp~=0.1.0",
+        "aiida-siesta"
     ],
     "extras_require": {
         "tests": [

@@ -1,0 +1,62 @@
+moderate:
+  description: 'A standard list of inputs for Siesta. Never tested! No Spin-Orbit support.'
+  parameters:
+    xc-functional: "GGA"
+    xc-authors: "PBE"
+    max-scf-iterations: 50
+    scf-mixer-history: 5
+    scf-mixer-weight: 0.1
+    scf-dm-tolerance: 1.e-3
+    solution-method: 'diagon'
+    electronic-temperature: '25 meV'
+    write-forces: True
+    mesh-cutoff: '100 Ry'
+  basis:
+    pao-energy-shift: '100 meV'
+    pao-basis-size: 'DZ'
+  pseudo_family: 'nc-sr-04_pbe_standard-psf'
+  kpoints:
+    distance: 0.1
+    offset: [0., 0., 0.]
+
+precise:
+  description: 'A more stringent set of siesta parameters. Never tested.'
+  parameters:
+    xc-functional: "GGA"
+    xc-authors: "PBE"
+    max-scf-iterations: 100
+    scf-mixer-history: 5
+    scf-mixer-weight: 0.1
+    scf-dm-tolerance: 1.e-4
+    solution-method: 'diagon'
+    electronic-temperature: '25 meV'
+    write-forces: True
+    mesh-cutoff: '500 Ry'
+  basis:
+    pao-energy-shift: '50 meV'
+    pao-basis-size: 'DZP'
+  pseudo_family: 'nc-fr-04_pbe_standard-psf'
+  kpoints:
+    distance: 0.062
+    offset: [0., 0., 0.]
+
+fast:
+  description: 'A list of inputs for Siesta for quick exploratory calculations. Never tested! No Spin-Orbit.'
+  parameters:
+    xc-functional: "GGA"
+    xc-authors: "PBE"
+    max-scf-iterations: 50
+    scf-mixer-history: 5
+    scf-mixer-weight: 0.1
+    scf-dm-tolerance: 1.e-3
+    solution-method: 'diagon'
+    electronic-temperature: '25 meV'
+    write-forces: True
+    mesh-cutoff: '50 Ry'
+  basis:
+    pao-energy-shift: '200 meV'
+    pao-basis-size: 'SZ'
+  pseudo_family: 'nc-sr-04_pbe_standard-psf'
+  kpoints:
+    distance: 0.2
+    offset: [0., 0., 0.]
