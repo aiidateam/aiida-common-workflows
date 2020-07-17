@@ -27,7 +27,7 @@ class CommonRelaxWorkChain(WorkChain, metaclass=ABCMeta):
 
         :return: inputs generator
         """
-        return cls._generator_class(process_class=cls._process_class)  # pylint: disable=not-callable
+        return cls._generator_class(process_class=cls)  # pylint: disable=not-callable
 
     @classmethod
     def define(cls, spec):

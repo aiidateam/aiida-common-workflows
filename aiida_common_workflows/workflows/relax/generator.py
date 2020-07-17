@@ -48,6 +48,11 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
         if any([not isinstance(relax_type, RelaxType) for relax_type in self._relax_types]):
             raise_invalid('`_relax_types` are not all an instance of `RelaxType`')
 
+    @property
+    def process_class(self):
+        """Return the process class for which this instance is supposed to build the inputs."""
+        return self._process_class
+
     @abstractmethod
     def get_builder(
         self,

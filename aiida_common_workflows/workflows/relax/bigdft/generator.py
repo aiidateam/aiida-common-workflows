@@ -71,7 +71,7 @@ class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
         else:
             raise ValueError('relaxation type `{}` is not supported'.format(relaxation_type.value))
 
-        builder = self._process_class.get_builder()
+        builder = self.process_class.get_builder()
         builder.structure = structure
 
         # Will be implemented in the bigdft plugin

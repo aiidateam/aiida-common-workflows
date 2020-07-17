@@ -1,21 +1,17 @@
 #!/usr/bin/env runaiida
 # -*- coding: utf-8 -*-
-"""Launch script for the common relax work chain demonstrator using Quantum ESPRESSO."""
-from aiida import orm, load_profile
+"""Launch script for the common relax work chain demonstrator using VASP."""
 from aiida.engine import run
-from aiida.plugins import DataFactory
+from aiida.plugins import WorkflowFactory
 
 from aiida_common_workflows.workflows.relax.generator import RelaxType
-from aiida_common_workflows.workflows.relax.vasp import VaspRelaxInputsGenerator
+from aiida_common_workflows.workflows.relax.examples.common import rescale, structure_init
 
-load_profile()
+RelaxWorkChain = WorkflowFactory('common_workflows.relax.vasp')
 
-StructureData = DataFactory('structure')  # pylint: disable=invalid-name
-
-GENERATOR = VaspRelaxInputsGenerator
 CALC_ENGINES = {
     'relax': {
-        'code': 'vasp@mycluster',
+        'code': 'vasp@localhost',
         'options': {
             'resources': {
                 'num_machines': 1
@@ -24,32 +20,6 @@ CALC_ENGINES = {
         }
     }
 }
-
-
-def rescale(structure: StructureData, scale: orm.Float) -> StructureData:
-    """Rescale a structure by a scaling factor using ASE.
-
-    :param structure: structure to rescale.
-    :param scale: the scale factor.
-    :return: rescaled structure.
-    """
-    ase = structure.get_ase().copy()
-    ase.set_cell(ase.get_cell() * float(scale), scale_atoms=True)
-    return StructureData(ase=ase)
-
-
-def structure_init() -> StructureData:
-    """Return a silicon structure constructed from the `data/Si.cif` file.
-
-    :return: silicon crystal structure.
-    """
-    import os
-    import pymatgen
-
-    filepath = os.path.realpath(os.path.join(os.path.dirname(__file__), 'data/Si.cif'))
-    structure = pymatgen.Structure.from_file(filepath, primitive=False)
-
-    return StructureData(pymatgen_structure=structure)
 
 
 def launch():
@@ -61,7 +31,8 @@ def launch():
 
     for scale in [0.94, 0.96, 0.98, 1, 1.02, 1.04, 1.06]:
         scaled = rescale(structure, scale)
-        builder = GENERATOR().get_builder(scaled, CALC_ENGINES, protocol, relaxation_type, threshold_forces=0.01)
+        generator = RelaxWorkChain.get_inputs_generator()
+        builder = generator.get_builder(scaled, CALC_ENGINES, protocol, relaxation_type, threshold_forces=0.01)
         results = run(builder)
         print(results['relaxed_structure'].get_cell_volume(), results['total_energy'].value)
 
