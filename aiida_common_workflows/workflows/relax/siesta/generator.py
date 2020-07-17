@@ -65,15 +65,6 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
 
             if 'pseudo_family' not in v:
                 raise_invalid('protocol `{}` does not define the mandatory key `pseudo_family`'.format(k))
-            else:
-                famname = self._protocols[k]['pseudo_family']
-                try:
-                    Group.get(label=famname)
-                except exceptions.NotExistent:
-                    raise_invalid(
-                        'protocol `{}` requires `pseudo_family` with name {} '
-                        'but no family with this name is loaded in the database'.format(k, famname)
-                    )
 
     def _initialize_protocols(self):
         """Initialize the protocols class attribute by parsing them from the configuration file."""
@@ -105,6 +96,15 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
             raise ValueError('Wrong relaxation type: no relax_type with name {} implemented'.format(relaxation_type))
         if 'relaxation' not in calc_engines:
             raise ValueError('The `calc_engines` dictionaly must contain "relaxation" as outermost key')
+
+        pseudo_family = self._protocols[protocol]['pseudo_family']
+        try:
+            Group.objects.get(label=pseudo_family)
+        except exceptions.NotExistent:
+            raise ValueError(
+                'protocol `{}` requires `pseudo_family` with name {} '
+                'but no family with this name is loaded in the database'.format(protocol, pseudo_family)
+            )
 
         # K points
         kpoints_mesh = self._get_kpoints(protocol, structure)
