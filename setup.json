@@ -16,8 +16,11 @@
     "description": "AiiDA package with utilities and interfaces for common workflows.",
     "python_requires": ">=3.5",
     "install_requires": [
-        "aiida-core~=1.2",
-	"aiida-siesta"
+        "aiida-core[atomic_tools]~=1.2",
+        "aiida-quantumespresso~=3.0",
+        "aiida-fleur~=1.1",
+        "aiida-sssp~=0.1.0",
+        "aiida-siesta"
     ],
     "extras_require": {
         "tests": [
