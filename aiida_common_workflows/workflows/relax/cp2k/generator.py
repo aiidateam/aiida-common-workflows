@@ -18,6 +18,7 @@ StructureData = plugins.DataFactory('structure')
 
 EV_A3_TO_GPA = 160.21766208
 
+
 def dict_merge(dct, merge_dct):
     """ Taken from https://gist.github.com/angstwad/bf22d1822c38a92ec0a9
     Recursive dict merge. Inspired by :meth:``dict.update()``, instead of
@@ -49,6 +50,7 @@ def get_kinds_section(structure: StructureData):
             'MAGNETIZATION': atom_data['initial_magnetization'][atom],
         })
     return {'FORCE_EVAL': {'SUBSYS': {'KIND': kinds}}}
+
 
 class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
     """Input generator for the `Cp2kRelaxWorkChain`."""
@@ -104,28 +106,31 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
         parameters = self.get_protocol(protocol)
 
         ## Removing description.
-        description = parameters.pop('description')
+        _ = parameters.pop('description')
 
         kinds_section = get_kinds_section(builder.cp2k.structure)
         dict_merge(parameters, kinds_section)
 
         ## Relaxation type.
         if relaxation_type == RelaxType.ATOMS:
-            run_type = "GEO_OPT"
+            run_type = 'GEO_OPT'
         elif relaxation_type == RelaxType.ATOMS_CELL:
-            run_type = "CELL_OPT"
+            run_type = 'CELL_OPT'
         else:
             raise ValueError('relaxation type `{}` is not supported'.format(relaxation_type.value))
-        parameters['GLOBAL'] = {"RUN_TYPE": run_type}
+        parameters['GLOBAL'] = {'RUN_TYPE': run_type}
 
         ## Redefining forces threshold.
         if threshold_forces is not None:
-            parameters['MOTION'][run_type]['MAX_FORCE'] = "[eV/angstrom] {}".format(threshold_forces)
+            parameters['MOTION'][run_type]['MAX_FORCE'] = '[eV/angstrom] {}'.format(threshold_forces)
 
         ## Redefining stress threshold.
         if threshold_stress is not None:
-            parameters['MOTION']['CELL_OPT']['PRESSURE_TOLERANCE'] = "[GPa] {}".format(threshold_stress*EV_A3_TO_GPA)
+            parameters['MOTION']['CELL_OPT']['PRESSURE_TOLERANCE'] = '[GPa] {}'.format(threshold_stress * EV_A3_TO_GPA)
         builder.cp2k.parameters = orm.Dict(dict=parameters)
+
+        # Additional files to be retrieved.
+        builder.cp2k.settings = orm.Dict(dict={'additional_retrieve_list': ['aiida-frc-1.xyz', 'aiida-1.stress']})
 
         # CP2K code.
         builder.cp2k.code = orm.load_code(calc_engines['relax']['code'])

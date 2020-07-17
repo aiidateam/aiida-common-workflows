@@ -28,7 +28,7 @@ moderate: # main settings exploiting OT
         EPS_SCF:       1.0E-6
         MAX_ITER_LUMO: 10000
         OUTER_SCF:
-          MAX_SCF:   30              
+          MAX_SCF:   30
           EPS_SCF:   1.0E-6
         OT:
           PRECONDITIONER: FULL_ALL
@@ -94,11 +94,8 @@ moderate: # main settings exploiting OT
       MAX_FORCE: "[bohr^-1*hartree] 0.00045"  #default: [bohr^-1*hartree] 0.00045
       RMS_FORCE: "[bohr^-1*hartree] 0.00030"  #default: [bohr^-1*hartree] 0.00030
       LBFGS:
-        TRUST_RADIUS: "[angstrom] 0.5"          
+        TRUST_RADIUS: "[angstrom] 0.5"
 
-precise:
-  description: 'Protocol to relax a structure with high precision at higher computational cost.'
-  MOTION:
     PRINT:
       TRAJECTORY:
         FORMAT: DCD_ALIGNED_CELL
@@ -113,16 +110,21 @@ precise:
           GEO_OPT: 1
           MD: 1
       RESTART_HISTORY:
-        _: OFF
+        _: 'OFF'
       CELL:
-        _: OFF
+        _: 'OFF'
       VELOCITIES:
-        _: OFF
+        _: 'OFF'
       FORCES:
-        _: ON
+        _: 'ON'
       STRESS:
-        _: OFF
+        _: 'ON'
 
+
+
+
+precise:
+  description: 'Protocol to relax a structure with high precision at higher computational cost.'
   GLOBAL:
     PRINT_LEVEL: MEDIUM              #default: MEDIUM. Important to have the correct parsing
   FORCE_EVAL:
@@ -208,16 +210,16 @@ precise:
           GEO_OPT: 1
           MD: 1
       RESTART_HISTORY:
-        _: OFF
+        _: 'OFF'
       CELL:
-        _: OFF
+        _: 'OFF'
       VELOCITIES:
-        _: OFF
+        _: 'OFF'
       FORCES:
-        _: ON
+        _: 'ON'
       STRESS:
-        _: OFF
-  MOTION:
+        _: 'ON'
+
     GEO_OPT:
       TYPE: MINIMIZATION                     #default: MINIMIZATION
       OPTIMIZER: BFGS                        #default: BFGS
@@ -242,7 +244,7 @@ precise:
       MAX_FORCE: "[bohr^-1*hartree] 0.00045"  #default: [bohr^-1*hartree] 0.00045
       RMS_FORCE: "[bohr^-1*hartree] 0.00030"  #default: [bohr^-1*hartree] 0.00030
       LBFGS:
-        TRUST_RADIUS: "[angstrom] 0.5"          
+        TRUST_RADIUS: "[angstrom] 0.5"
 
 fast: # TODO: replace with XTB.
   description: 'Protocol to relax a structure with low precision at minimal computational cost for testing purposes.'
@@ -274,7 +276,7 @@ fast: # TODO: replace with XTB.
         EPS_SCF:       1.0E-6
         MAX_ITER_LUMO: 10000
         OUTER_SCF:
-          MAX_SCF:   30              
+          MAX_SCF:   30
           EPS_SCF:   1.0E-6
         OT:
           PRECONDITIONER: FULL_ALL
@@ -330,16 +332,16 @@ fast: # TODO: replace with XTB.
           GEO_OPT: 1
           MD: 1
       RESTART_HISTORY:
-        _: OFF
+        _: 'OFF'
       CELL:
-        _: OFF
+        _: 'OFF'
       VELOCITIES:
-        _: OFF
+        _: 'OFF'
       FORCES:
-        _: ON
+        _: 'ON'
       STRESS:
-        _: OFF
-  MOTION:
+        _: 'ON'
+
     GEO_OPT:
       TYPE: MINIMIZATION                     #default: MINIMIZATION
       OPTIMIZER: BFGS                        #default: BFGS
@@ -364,4 +366,4 @@ fast: # TODO: replace with XTB.
       MAX_FORCE: "[bohr^-1*hartree] 0.00045"  #default: [bohr^-1*hartree] 0.00045
       RMS_FORCE: "[bohr^-1*hartree] 0.00030"  #default: [bohr^-1*hartree] 0.00030
       LBFGS:
-        TRUST_RADIUS: "[angstrom] 0.5"          
+        TRUST_RADIUS: "[angstrom] 0.5"
