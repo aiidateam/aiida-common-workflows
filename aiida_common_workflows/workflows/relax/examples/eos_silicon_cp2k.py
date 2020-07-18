@@ -53,7 +53,7 @@ def structure_init() -> StructureData:
 def launch():
     """Launch the relax work chain for a basic silicon crystal structure at a range of scaling factors."""
     relaxation_type = RelaxType.ATOMS
-    protocol = 'moderate'
+    protocol = 'fast'
 
     structure = structure_init()
 
