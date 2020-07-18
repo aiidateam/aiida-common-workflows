@@ -3,19 +3,14 @@
 """Tests for the :mod:`aiida_common_workflows.workflows.relax.workchain` module."""
 import pytest
 
-from aiida.plugins import entry_point, WorkflowFactory
+from aiida.plugins import WorkflowFactory
 
-from aiida_common_workflows.workflows.relax import RelaxInputsGenerator, CommonRelaxWorkChain
-
-
-def get_entry_point_names():
-    """Return the registered entry point names for the ``CommonRelaxWorkChain``."""
-    group = 'aiida.workflows'
-    entry_point_prefix = 'common_workflows.relax'
-    return [name for name in entry_point.get_entry_point_names(group) if name.startswith(entry_point_prefix)]
+from aiida_common_workflows.plugins import get_workflow_entry_point_names
+from aiida_common_workflows.workflows.relax import RelaxInputsGenerator
+from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChain
 
 
-@pytest.fixture(scope='function', params=get_entry_point_names())
+@pytest.fixture(scope='function', params=get_workflow_entry_point_names('relax'))
 def workchain(request) -> CommonRelaxWorkChain:
     """Fixture that parametrizes over all the registered implementations of the ``CommonRelaxWorkChain``."""
     return WorkflowFactory(request.param)
