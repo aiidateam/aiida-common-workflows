@@ -47,7 +47,7 @@ class QuantumEspressoRelaxInputsGenerator(RelaxInputsGenerator):
         threshold_forces: float = None,
         threshold_stress: float = None,
         **kwargs
-    ) -> engine.ProcessBuilder:  # pylint: disable=too-many-locals
+    ) -> engine.ProcessBuilder:
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
 
         :param structure: the structure to be relaxed
@@ -58,12 +58,15 @@ class QuantumEspressoRelaxInputsGenerator(RelaxInputsGenerator):
         :param threshold_stress: target threshold for the stress in eV/Å^3.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
+        # pylint: disable=too-many-locals
+        from qe_tools.constants import bohr_to_ang, ry_to_ev
+
         protocol = self.get_protocol(protocol)
         code = calc_engines['relax']['code']
         override = {'base': {'pw': {'metadata': {'options': calc_engines['relax']['options']}}}}
 
-        builder = self._process.get_builder()
-        inputs = generate_inputs(self._process_class, protocol, code, structure, override)  # pylint: disable=protected-access
+        builder = self.process_class.get_builder()
+        inputs = generate_inputs(self.process_class._process_class, protocol, code, structure, override)  # pylint: disable=protected-access
         builder._update(inputs)  # pylint: disable=protected-access
 
         if relaxation_type == RelaxType.ATOMS:
@@ -77,12 +80,12 @@ class QuantumEspressoRelaxInputsGenerator(RelaxInputsGenerator):
 
         if threshold_forces is not None:
             parameters = builder.base.pw['parameters'].get_dict()
-            parameters.setdefault('CONTROL', {})['forc_conv_thr'] = threshold_forces
+            parameters.setdefault('CONTROL', {})['forc_conv_thr'] = threshold_forces * bohr_to_ang / ry_to_ev
             builder.base.pw['parameters'] = orm.Dict(dict=parameters)
 
         if threshold_stress is not None:
             parameters = builder.base.pw['parameters'].get_dict()
-            parameters.setdefault('CELL', {})['press_conv_thr'] = threshold_stress
+            parameters.setdefault('CELL', {})['press_conv_thr'] = threshold_stress * bohr_to_ang**3 / ry_to_ev
             builder.base.pw['parameters'] = orm.Dict(dict=parameters)
 
         return builder

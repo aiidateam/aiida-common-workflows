@@ -129,7 +129,7 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         # Pseudo fam
         pseudo_family = self._get_pseudo_fam(protocol)
 
-        builder = self._process_class.get_builder()
+        builder = self.process_class.get_builder()
         builder.structure = structure
         builder.basis = Dict(dict=basis)
         builder.parameters = Dict(dict=parameters)

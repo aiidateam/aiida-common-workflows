@@ -68,7 +68,7 @@ class VaspRelaxInputsGenerator(RelaxInputsGenerator):
         protocol = self.get_protocol(protocol)
 
         # Set the builder
-        builder = self._process_class.get_builder()
+        builder = self.process_class.get_builder()
 
         # Set code
         builder.code = Code.get_from_string(calc_engines['relax']['code'])

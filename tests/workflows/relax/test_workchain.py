@@ -28,4 +28,6 @@ def test_workchain_class(workchain):
 
 def test_get_inputs_generator(workchain):
     """Test that each registered common relax workchain defines the associated inputs generator."""
-    assert isinstance(workchain.get_inputs_generator(), RelaxInputsGenerator)
+    generator = workchain.get_inputs_generator()
+    assert isinstance(generator, RelaxInputsGenerator)
+    assert issubclass(generator.process_class, CommonRelaxWorkChain)

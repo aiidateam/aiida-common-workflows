@@ -56,7 +56,7 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         fleur_code = Code.get_from_string(calc_engines['relax']['code'])
         inpgen_code = Code.get_from_string(calc_engines['relax']['inputgen'])
 
-        builder = self._process_class.get_builder()
+        builder = self.process_class.get_builder()
 
         # implement this, protocol dependent, we still have option keys as nodes ...
         # has to go over calc parameters, kmax, lmax, kpoint density
