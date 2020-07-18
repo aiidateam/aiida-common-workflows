@@ -1,0 +1,140 @@
+# -*- coding: utf-8 -*-
+"""Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for CP2K."""
+import collections
+import pathlib
+from typing import Any, Dict
+import yaml
+
+from aiida import engine
+from aiida import orm
+from aiida import plugins
+
+from ..generator import RelaxInputsGenerator, RelaxType
+
+__all__ = ('Cp2kRelaxInputsGenerator',)
+
+StructureData = plugins.DataFactory('structure')
+
+EV_A3_TO_GPA = 160.21766208
+
+
+def dict_merge(dct, merge_dct):
+    """ Taken from https://gist.github.com/angstwad/bf22d1822c38a92ec0a9
+    Recursive dict merge. Inspired by :meth:``dict.update()``, instead of
+    updating only top-level keys, dict_merge recurses down into dicts nested
+    to an arbitrary depth, updating keys. The ``merge_dct`` is merged into
+    ``dct``.
+    :param dct: dict onto which the merge is executed
+    :param merge_dct: dct merged into dct
+    :return: None
+    """
+    for k in merge_dct.keys():
+        if (k in dct and isinstance(dct[k], dict) and isinstance(merge_dct[k], collections.Mapping)):
+            dict_merge(dct[k], merge_dct[k])
+        else:
+            dct[k] = merge_dct[k]
+
+
+def get_kinds_section(structure: StructureData):
+    """ Write the &KIND sections given the structure and the settings_dict"""
+    kinds = []
+    with open(pathlib.Path(__file__).parent / 'atomic_kinds.yml') as handle:
+        atom_data = yaml.safe_load(handle)
+    all_atoms = set(structure.get_ase().get_chemical_symbols())
+    for atom in all_atoms:
+        kinds.append({
+            '_': atom,
+            'BASIS_SET': atom_data['basis_set'][atom],
+            'POTENTIAL': atom_data['pseudopotential'][atom],
+            'MAGNETIZATION': atom_data['initial_magnetization'][atom],
+        })
+    return {'FORCE_EVAL': {'SUBSYS': {'KIND': kinds}}}
+
+
+class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
+    """Input generator for the `Cp2kRelaxWorkChain`."""
+
+    _default_protocol = 'moderate'
+    _calc_types = {'relax': {'code_plugin': 'cp2k', 'description': 'The code to perform the relaxation.'}}
+    _relax_types = {
+        RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
+        RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell.'
+    }
+
+    def __init__(self, *args, **kwargs):
+        """Construct an instance of the inputs generator, validating the class attributes."""
+        self._initialize_protocols()
+        super().__init__(*args, **kwargs)
+
+    def _initialize_protocols(self):
+        """Initialize the protocols class attribute by parsing them from the configuration file."""
+        with open(pathlib.Path(__file__).parent / 'protocol.yml') as handle:
+            self._protocols = yaml.safe_load(handle)
+
+    def get_builder(
+        self,
+        structure: StructureData,
+        calc_engines: Dict[str, Any],
+        protocol,
+        relaxation_type: RelaxType,
+        threshold_forces: float = None,
+        threshold_stress: float = None,
+        **kwargs
+    ) -> engine.ProcessBuilder:  # pylint: disable=too-many-locals
+        """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
+
+        :param structure: the structure to be relaxed
+        :param calc_engines: ...
+        :param protocol: the protocol to use when determining the workchain inputs
+        :param relaxation_type: the type of relaxation to perform, instance of `RelaxType`
+        :param threshold_forces: target threshold for the forces in eV/Å.
+        :param threshold_stress: target threshold for the stress in eV/Å^3.
+        :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
+        """
+
+        # The builder.
+        builder = self.process_class.get_builder()
+
+        # Switch on the resubmit_unconverged_geometry which is disabled by default.
+        builder.handler_overrides = orm.Dict(dict={'resubmit_unconverged_geometry': True})
+
+        # Input structure.
+        builder.cp2k.structure = structure
+
+        # Input parameters.
+        parameters = self.get_protocol(protocol)
+
+        ## Removing description.
+        _ = parameters.pop('description')
+
+        kinds_section = get_kinds_section(builder.cp2k.structure)
+        dict_merge(parameters, kinds_section)
+
+        ## Relaxation type.
+        if relaxation_type == RelaxType.ATOMS:
+            run_type = 'GEO_OPT'
+        elif relaxation_type == RelaxType.ATOMS_CELL:
+            run_type = 'CELL_OPT'
+        else:
+            raise ValueError('relaxation type `{}` is not supported'.format(relaxation_type.value))
+        parameters['GLOBAL'] = {'RUN_TYPE': run_type}
+
+        ## Redefining forces threshold.
+        if threshold_forces is not None:
+            parameters['MOTION'][run_type]['MAX_FORCE'] = '[eV/angstrom] {}'.format(threshold_forces)
+
+        ## Redefining stress threshold.
+        if threshold_stress is not None:
+            parameters['MOTION']['CELL_OPT']['PRESSURE_TOLERANCE'] = '[GPa] {}'.format(threshold_stress * EV_A3_TO_GPA)
+        builder.cp2k.parameters = orm.Dict(dict=parameters)
+
+        # Additional files to be retrieved.
+        builder.cp2k.settings = orm.Dict(dict={'additional_retrieve_list': ['aiida-frc-1.xyz', 'aiida-1.stress']})
+
+        # CP2K code.
+        builder.cp2k.code = orm.load_code(calc_engines['relax']['code'])
+
+        # Run options.
+        builder.cp2k.metadata.options = calc_engines['relax']['options']
+
+        return builder

@@ -17,6 +17,7 @@
     "install_requires": [
         "aiida-core[atomic_tools]~=1.2",
         "aiida-bigdft",
+        "aiida-cp2k~=1.1",
         "aiida-fleur~=1.1",
         "aiida-quantumespresso~=3.0",
         "aiida-siesta",
@@ -36,6 +37,7 @@
     "entry_points": {
         "aiida.workflows": [
             "common_workflows.relax.bigdft = aiida_common_workflows.workflows.relax.bigdft.workchain:BigDftRelaxWorkChain",
+            "common_workflows.relax.cp2k = aiida_common_workflows.workflows.relax.cp2k.workchain:Cp2kRelaxWorkChain",
             "common_workflows.relax.fleur = aiida_common_workflows.workflows.relax.fleur.workchain:FleurRelaxWorkChain",
             "common_workflows.relax.quantum_espresso = aiida_common_workflows.workflows.relax.quantum_espresso.workchain:QuantumEspressoRelaxWorkChain",
             "common_workflows.relax.siesta = aiida_common_workflows.workflows.relax.siesta.workchain:SiestaRelaxWorkChain",
