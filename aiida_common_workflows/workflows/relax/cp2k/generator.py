@@ -10,7 +10,6 @@ from aiida import orm
 from aiida import plugins
 
 from ..generator import RelaxInputsGenerator, RelaxType
-from .workchain import Cp2kRelaxWorkChain
 
 __all__ = ('Cp2kRelaxInputsGenerator',)
 
@@ -94,7 +93,7 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
         """
 
         # The builder.
-        builder = Cp2kRelaxWorkChain.get_builder()
+        builder = self.process_class.get_builder()
 
         # Switch on the resubmit_unconverged_geometry which is disabled by default.
         builder.handler_overrides = orm.Dict(dict={'resubmit_unconverged_geometry': True})

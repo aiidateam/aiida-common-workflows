@@ -120,9 +120,6 @@ moderate: # main settings exploiting OT
       STRESS:
         _: 'ON'
 
-
-
-
 precise:
   description: 'Protocol to relax a structure with high precision at higher computational cost.'
   GLOBAL:
@@ -246,7 +243,7 @@ precise:
       LBFGS:
         TRUST_RADIUS: "[angstrom] 0.5"
 
-fast:
+fast:  # WARNING: this protocal wasn't tested properly.
   description: 'Protocol to relax a structure with low precision at minimal computational cost for testing purposes.'
   GLOBAL:
     PRINT_LEVEL: MEDIUM
@@ -258,8 +255,8 @@ fast:
         METHOD: xTB
         EPS_DEFAULT:   1.0E-10
         EPS_PGF_ORB:   1.0E-20
-        xTB:
-          DO_EWALD: "T"
+        XTB:
+          DO_EWALD: ".TRUE."
       SCF:
         MAX_SCF:       50
         EPS_SCF:       1.0E-6
