@@ -1,9 +1,23 @@
 # -*- coding: utf-8 -*-
-"""Pytest fixtures for unit tests."""
+"""Configuration and fixtures for unit test suite."""
 import click
 import pytest
 
 pytest_plugins = ['aiida.manage.tests.pytest_fixtures']  # pylint: disable=invalid-name
+
+
+@pytest.fixture
+@pytest.mark.usefixtures('aiida_profile')
+def with_database():
+    """Alias for the `aiida_profile` fixture from `aiida-core`."""
+    yield
+
+
+@pytest.fixture
+@pytest.mark.usefixtures('clear_database_before_test')
+def clear_database():
+    """Alias for the `clear_database_before_test` fixture from `aiida-core`."""
+    yield
 
 
 @pytest.fixture

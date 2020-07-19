@@ -6,7 +6,7 @@ from aiida.plugins import entry_point
 
 PACKAGE_PREFIX = 'common_workflows'
 
-__all__ = ('get_workflow_entry_point_names', 'load_workflow_entry_point')
+__all__ = ('get_workflow_entry_point_names', 'get_entry_point_name_from_class', 'load_workflow_entry_point')
 
 
 def get_workflow_entry_point_names(workflow: str, leaf: bool = False) -> typing.List[str]:
@@ -23,6 +23,12 @@ def get_workflow_entry_point_names(workflow: str, leaf: bool = False) -> typing.
         return [name for name in entry_points_names if name.startswith(prefix)]
 
     return [name[len(prefix):] for name in entry_points_names if name.startswith(prefix)]
+
+
+def get_entry_point_name_from_class(cls) -> str:
+    """Return the full entry point string for the given class."""
+    from aiida.plugins.entry_point import get_entry_point_from_class
+    return get_entry_point_from_class(cls.__module__, cls.__name__)[1]
 
 
 def load_workflow_entry_point(workflow: str, plugin_name: str):
