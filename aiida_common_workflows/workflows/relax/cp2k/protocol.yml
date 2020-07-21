@@ -6,6 +6,10 @@ moderate: # main settings exploiting OT
     METHOD:         QUICKSTEP
     STRESS_TENSOR:  ANALYTICAL
     DFT:
+      KPOINTS:
+        SCHEME: "MONKHORST-PACK 3 3 3"
+        SYMMETRY: "OFF"
+        WAVEFUNCTIONS: "COMPLEX"
       BASIS_SET_FILE_NAME:
         - BASIS_MOLOPT
         - BASIS_MOLOPT_UCL
@@ -30,9 +34,8 @@ moderate: # main settings exploiting OT
         OUTER_SCF:
           MAX_SCF:   30
           EPS_SCF:   1.0E-6
-        OT:
-          PRECONDITIONER: FULL_ALL
-          MINIMIZER:      DIIS
+        DIAGONALIZATION:
+          EPS_ADAPT: 0.01
 
         MIXING:
           METHOD: DIRECT_P_MIXING
@@ -128,6 +131,10 @@ precise:
     METHOD:         QUICKSTEP
     STRESS_TENSOR:  ANALYTICAL
     DFT:
+      KPOINTS:
+        SCHEME: "MONKHORST-PACK 3 3 3"
+        SYMMETRY: "OFF"
+        WAVEFUNCTIONS: "COMPLEX"
       BASIS_SET_FILE_NAME:
         - BASIS_MOLOPT
         - BASIS_MOLOPT_UCL
@@ -152,10 +159,8 @@ precise:
         OUTER_SCF:
           MAX_SCF:   10              # ROBUST: more than the Standard protocol
           EPS_SCF:   1.0E-6          # ROBUST: equal (or smaller for expert use) than SCF/EPS_SCF
-        OT:
-          PRECONDITIONER: FULL_KINETIC # ROBUST: usually working better for difficult cases
-          MINIMIZER:      CG           # ROBUST: more robust than DIIS
-          LINESEARCH:     3PNT         # ROBUST: more robust than default (2PNT)
+        DIAGONALIZATION:
+          EPS_ADAPT: 0.01
 
         MIXING:
           METHOD: DIRECT_P_MIXING
@@ -267,11 +272,10 @@ fast:  # WARNING: this protocal wasn't tested properly.
         OT:
           PRECONDITIONER: FULL_S_INVERSE
           MINIMIZER:      DIIS
+
       POISSON:
         EWALD:
           ALPHA: 1.0
-      KPOINTS:
-        SCHEME: "NONE"
   MOTION:
     PRINT:
       TRAJECTORY:
