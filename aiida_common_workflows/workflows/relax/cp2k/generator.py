@@ -51,6 +51,32 @@ def get_kinds_section(structure: StructureData):
     return {'FORCE_EVAL': {'SUBSYS': {'KIND': kinds}}}
 
 
+def get_file_section():
+    """Provide necessary parameter files such as pseudopotientials, basis sets, etc."""
+    with open(pathlib.Path(__file__).parent / 'BASIS_MOLOPT', 'rb') as handle:
+        basis = orm.SinglefileData(file=handle)
+
+    with open(pathlib.Path(__file__).parent / 'BASIS_MOLOPT_UCL', 'rb') as handle:
+        basis_ucl = orm.SinglefileData(file=handle)
+
+    with open(pathlib.Path(__file__).parent / 'GTH_POTENTIALS', 'rb') as handle:
+        potential = orm.SinglefileData(file=handle)
+
+    with open(pathlib.Path(__file__).parent / 'dftd3.dat', 'rb') as handle:
+        dftd3_params = orm.SinglefileData(file=handle)
+
+    with open(pathlib.Path(__file__).parent / 'xTB_parameters', 'rb') as handle:
+        xtb_params = orm.SinglefileData(file=handle)
+
+    return {
+        'basis': basis,
+        'basis_ucl': basis_ucl,
+        'potential': potential,
+        'dftd3_params': dftd3_params,
+        'xtb_dat': xtb_params,
+    }
+
+
 class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
     """Input generator for the `Cp2kRelaxWorkChain`."""
 
@@ -97,6 +123,8 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
 
         # Switch on the resubmit_unconverged_geometry which is disabled by default.
         builder.handler_overrides = orm.Dict(dict={'resubmit_unconverged_geometry': True})
+
+        builder.cp2k.file = get_file_section()
 
         # Input structure.
         builder.cp2k.structure = structure

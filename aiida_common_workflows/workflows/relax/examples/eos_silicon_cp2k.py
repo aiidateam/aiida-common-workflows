@@ -11,10 +11,11 @@ RelaxWorkChain = WorkflowFactory('common_workflows.relax.cp2k')
 
 CALC_ENGINES = {
     'relax': {
-        'code': 'cp2k@localhost',
+        'code': 'cp2k-7.1@localhost',
         'options': {
             'resources': {
-                'num_machines': 1
+                'num_machines': 1,
+                'num_mpiprocs_per_machine': 1,
             },
             'max_wallclock_seconds': 86400,
         }
@@ -25,7 +26,7 @@ CALC_ENGINES = {
 def launch():
     """Launch the relax work chain for a basic silicon crystal structure at a range of scaling factors."""
     relaxation_type = RelaxType.ATOMS
-    protocol = 'precise'
+    protocol = 'moderate'
 
     structure = structure_init()
 
