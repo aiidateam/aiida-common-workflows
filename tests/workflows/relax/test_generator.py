@@ -4,7 +4,8 @@
 import pytest
 
 from aiida_common_workflows.protocol import ProtocolRegistry
-from aiida_common_workflows.workflows.relax import RelaxInputsGenerator, RelaxType, CommonRelaxWorkChain
+from aiida_common_workflows.workflows.relax import RelaxInputsGenerator, RelaxType
+from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChain
 
 
 @pytest.fixture

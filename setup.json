@@ -35,6 +35,9 @@
         ]
     },
     "entry_points": {
+        "console_scripts": [
+            "aiida-common-workflows = aiida_common_workflows.cli:cmd_root"
+        ],
         "aiida.workflows": [
             "common_workflows.relax.bigdft = aiida_common_workflows.workflows.relax.bigdft.workchain:BigDftRelaxWorkChain",
             "common_workflows.relax.cp2k = aiida_common_workflows.workflows.relax.cp2k.workchain:Cp2kRelaxWorkChain",
