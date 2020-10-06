@@ -62,6 +62,7 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
         relaxation_type,
         threshold_forces=None,
         threshold_stress=None,
+        previous_workchain=None,
         **kwargs
     ):
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
@@ -72,6 +73,7 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
         :param relaxation_type: the type of relaxation to perform, instance of `RelaxType`
         :param threshold_forces: target threshold for the forces in eV/Å.
         :param threshold_stress: target threshold for the stress in eV/Å^3.
+        :param previous_workchain: a <Code>RelaxWorkChain node.
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """

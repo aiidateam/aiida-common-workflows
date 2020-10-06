@@ -81,6 +81,7 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         relaxation_type,
         threshold_forces=None,
         threshold_stress=None,
+        previous_workchain=None,
         **kwargs
     ):  # pylint: disable=too-many-locals
 
@@ -96,6 +97,13 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
             raise ValueError('Wrong relaxation type: no relax_type with name {} implemented'.format(relaxation_type))
         if 'relaxation' not in calc_engines:
             raise ValueError('The `calc_engines` dictionaly must contain "relaxation" as outermost key')
+        if previous_workchain:
+            try:
+                prev_wc_class = previous_workchain.process_class
+                if not prev_wc_class == self.process_class:
+                    raise ValueError('The "previous_workchain" must be a node of SiestaRelaxWorkChain')
+            except AttributeError:
+                raise ValueError('The "previous_workchain" must be a node of SiestaRelaxWorkChain')
 
         pseudo_family = self._protocols[protocol]['pseudo_family']
         try:
@@ -107,7 +115,7 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
             )
 
         # K points
-        kpoints_mesh = self._get_kpoints(protocol, structure)
+        kpoints_mesh = self._get_kpoints(protocol, structure, previous_workchain)
 
         # Parameters, including scf and relax options
         parameters = self._get_param(protocol, structure)
@@ -236,8 +244,15 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
 
         return basis
 
-    def _get_kpoints(self, key, structure):
+    def _get_kpoints(self, key, structure, previous_workchain):
         from aiida.orm import KpointsData
+        if previous_workchain:
+            kpoints_mesh = KpointsData()
+            kpoints_mesh.set_cell_from_structure(structure)
+            previous_wc_kp = previous_workchain.inputs.kpoints
+            kpoints_mesh.set_kpoints_mesh(previous_wc_kp.get_attribute("mesh"), previous_wc_kp.get_attribute("offset"))
+            return kpoints_mesh
+
         if 'kpoints' in self._protocols[key]:
             kpoints_mesh = KpointsData()
             kpoints_mesh.set_cell_from_structure(structure)
@@ -246,10 +261,9 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
                 kpoints_mesh.set_kpoints_mesh_from_density(distance=kp_dict['distance'], offset=kp_dict['offset'])
             else:
                 kpoints_mesh.set_kpoints_mesh_from_density(distance=kp_dict['distance'])
-        else:
-            kpoints_mesh = None
-
-        return kpoints_mesh
+            return kpoints_mesh
+        
+        return None
 
     def _get_pseudo_fam(self, key):
         from aiida.orm import Str
