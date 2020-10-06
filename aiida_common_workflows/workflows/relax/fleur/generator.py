@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for FLEUR."""
+
+import pathlib
+import yaml
 from aiida.orm import Dict, Code
 from ..generator import RelaxInputsGenerator, RelaxType
 
@@ -39,6 +42,16 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         # currently not supported by Fleur
     }
 
+    def __init__(self, *args, **kwargs):
+        """Construct an instance of the inputs generator, validating the class attributes."""
+        self._initialize_protocols()
+        super().__init__(*args, **kwargs)
+
+    def _initialize_protocols(self):
+        """Initialize the protocols class attribute by parsing them from the configuration file."""
+        with open(str(pathlib.Path(__file__).parent / 'protocol.yml')) as handle:
+            self._protocols = yaml.safe_load(handle)
+
     def get_builder(
         self,
         structure,
@@ -61,10 +74,18 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
-        # pylint: disable=too-many-locals
-        inpgen_code = Code.get_from_string(calc_engines['inpgen']['code'])
-        fleur_code = Code.get_from_string(calc_engines['relax']['code'])
 
+        from aiida.orm import load_code
+
+        # pylint: disable=too-many-locals
+        inpgen_code = calc_engines['inpgen']['code']
+        fleur_code = calc_engines['relax']['code']
+        if not isinstance(inpgen_code, Code):
+            inpgen_code = load_code(inpgen_code)
+        if not isinstance(fleur_code, Code):
+            fleur_code = load_code(fleur_code)
+
+        protocol = self.get_protocol(protocol)
         builder = self.process_class.get_builder()
 
         # implement this, protocol dependent, we still have option keys as nodes ...
