@@ -250,7 +250,7 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
             kpoints_mesh = KpointsData()
             kpoints_mesh.set_cell_from_structure(structure)
             previous_wc_kp = previous_workchain.inputs.kpoints
-            kpoints_mesh.set_kpoints_mesh(previous_wc_kp.get_attribute("mesh"), previous_wc_kp.get_attribute("offset"))
+            kpoints_mesh.set_kpoints_mesh(previous_wc_kp.get_attribute('mesh'), previous_wc_kp.get_attribute('offset'))
             return kpoints_mesh
 
         if 'kpoints' in self._protocols[key]:
@@ -262,7 +262,7 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
             else:
                 kpoints_mesh.set_kpoints_mesh_from_density(distance=kp_dict['distance'])
             return kpoints_mesh
-        
+
         return None
 
     def _get_pseudo_fam(self, key):
