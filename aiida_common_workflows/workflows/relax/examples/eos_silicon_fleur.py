@@ -10,9 +10,18 @@ from aiida_common_workflows.workflows.relax.examples.common import rescale, stru
 RelaxWorkChain = WorkflowFactory('common_workflows.relax.fleur')
 
 CALC_ENGINES = {
+    'inpgen': {
+        'code': 'fleur-0.30-inpgen@localhost',
+        'options': {
+            'resources': {
+                'num_machines': 1,
+                'num_mpiprocs_per_machine': 1
+            },
+            'max_walltime': 86400,
+        }
+    },
     'relax': {
         'code': 'fleur-0.30-fleur_MPI@localhost',
-        'inputgen': 'fleur-0.30-inpgen@localhost',
         'options': {
             'resources': {
                 'num_machines': 1,

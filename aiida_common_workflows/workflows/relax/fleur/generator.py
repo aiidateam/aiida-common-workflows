@@ -22,7 +22,16 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         }
     }
 
-    _calc_types = {'relax': {'code_plugin': 'fleur.fleur', 'description': 'The code to perform the relaxation.'}}
+    _calc_types = {
+        'relax': {
+            'code_plugin': 'fleur.fleur',
+            'description': 'The code to perform the relaxation.'
+        },
+        'inpgen': {
+            'code_plugin': 'fleur.inpgen',
+            'description': 'The code to generate the input files for FLEUR.'
+        }
+    }
 
     _relax_types = {
         RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.'
@@ -53,8 +62,8 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
         # pylint: disable=too-many-locals
+        inpgen_code = Code.get_from_string(calc_engines['inpgen']['code'])
         fleur_code = Code.get_from_string(calc_engines['relax']['code'])
-        inpgen_code = Code.get_from_string(calc_engines['relax']['inputgen'])
 
         builder = self.process_class.get_builder()
 
