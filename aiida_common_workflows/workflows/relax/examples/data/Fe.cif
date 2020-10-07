@@ -117,4 +117,3 @@ _atom_site_fract_z
 _atom_site_U_iso_or_equiv
 Fe001  Fe  0.00000000  0.00000000  0.00000000  0.05000000
 #End data_Wien2k_Data
-
