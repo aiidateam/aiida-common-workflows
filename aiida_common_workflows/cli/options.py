@@ -112,3 +112,21 @@ DAEMON = options.OverridableOption(
     default=False,
     help='Submit the process to the daemon instead of running it locally.'
 )
+
+WALLCLOCK_SECONDS = options.OverridableOption(
+    '-w',
+    '--wallclock-seconds',
+    cls=options.MultipleValueOption,
+    metavar='VALUES',
+    required=False,
+    help='Define the wallclock seconds to request for each engine step.'
+)
+
+NUMBER_MACHINES = options.OverridableOption(
+    '-m',
+    '--number-machines',
+    cls=options.MultipleValueOption,
+    metavar='VALUES',
+    required=False,
+    help='Define the number of machines to request for each engine step.'
+)
