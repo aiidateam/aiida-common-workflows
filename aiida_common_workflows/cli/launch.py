@@ -24,9 +24,14 @@ def cmd_launch():
 @options.RELAXATION_TYPE()
 @options.THRESHOLD_FORCES()
 @options.THRESHOLD_STRESS()
+@options.NUMBER_MACHINES()
+@options.WALLCLOCK_SECONDS()
 @options.DAEMON()
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
-def cmd_relax(plugin, structure, protocol, relaxation_type, threshold_forces, threshold_stress, daemon, show_engines):
+def cmd_relax(
+    plugin, structure, protocol, relaxation_type, threshold_forces, threshold_stress, number_machines,
+    wallclock_seconds, daemon, show_engines
+):
     """Relax a crystal structure using the common relax workflow for one of the existing plugin implementations.
 
     The command will automatically try to find and load the codes that are required by the plugin workflow. If no code
@@ -38,6 +43,26 @@ def cmd_relax(plugin, structure, protocol, relaxation_type, threshold_forces, th
 
     process_class = load_workflow_entry_point('relax', plugin)
     generator = process_class.get_inputs_generator()
+
+    number_engines = len(generator.get_calc_types())
+
+    if number_machines is None:
+        number_machines = [1] * number_engines
+
+    if len(number_machines) != number_engines:
+        raise click.BadParameter(
+            f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
+            param_hint='--number-machines'
+        )
+
+    if wallclock_seconds is None:
+        wallclock_seconds = [1 * 3600] * number_engines
+
+    if len(wallclock_seconds) != number_engines:
+        raise click.BadParameter(
+            f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
+            param_hint='--wallclock-seconds'
+        )
 
     if not generator.is_valid_protocol(protocol):
         protocols = generator.get_protocol_names()
@@ -56,14 +81,14 @@ def cmd_relax(plugin, structure, protocol, relaxation_type, threshold_forces, th
 
     engines = {}
 
-    for engine in generator.get_calc_types():
+    for index, engine in enumerate(generator.get_calc_types()):
         schema = generator.get_calc_type_schema(engine)
         engines[engine] = {
             'options': {
                 'resources': {
-                    'num_machines': 1
+                    'num_machines': number_machines[index]
                 },
-                'max_wallclock_seconds': 86400,
+                'max_wallclock_seconds': wallclock_seconds[index],
             }
         }
         code_plugin = schema['code_plugin']
@@ -74,7 +99,7 @@ def cmd_relax(plugin, structure, protocol, relaxation_type, threshold_forces, th
         if code is None:
             raise click.UsageError(f'could not find a configured code for the plugin `{code_plugin}`.')
 
-        engines[engine]['code'] = code[0].label
+        engines[engine]['code'] = code[0].full_label
 
     builder = generator.get_builder(structure, engines, protocol, relaxation_type, threshold_forces, threshold_stress)
     utils.launch_process(builder, daemon)
