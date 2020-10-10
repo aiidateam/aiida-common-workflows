@@ -77,6 +77,13 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
+        if previous_workchain:
+            try:
+                prev_wc_class = previous_workchain.process_class
+                if not prev_wc_class == self.process_class:
+                    raise ValueError('The "previous_workchain" must be a node of {}'.format(self.process_class))
+            except AttributeError:
+                raise ValueError('The "previous_workchain" must be a node of {}'.format(self.process_class))
 
     def get_calc_types(self):
         """Return the calculation types for this input generator."""

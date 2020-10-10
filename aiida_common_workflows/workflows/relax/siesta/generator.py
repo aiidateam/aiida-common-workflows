@@ -85,6 +85,17 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         **kwargs
     ):  # pylint: disable=too-many-locals
 
+        super().get_builder(
+            structure,
+            calc_engines,
+            protocol,
+            relaxation_type,
+            threshold_forces,
+            threshold_stress,
+            previous_workchain,
+            **kwargs
+        )
+
         from aiida.orm import Dict
         from aiida.orm import load_code
 
@@ -97,13 +108,6 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
             raise ValueError('Wrong relaxation type: no relax_type with name {} implemented'.format(relaxation_type))
         if 'relaxation' not in calc_engines:
             raise ValueError('The `calc_engines` dictionaly must contain "relaxation" as outermost key')
-        if previous_workchain:
-            try:
-                prev_wc_class = previous_workchain.process_class
-                if not prev_wc_class == self.process_class:
-                    raise ValueError('The "previous_workchain" must be a node of SiestaRelaxWorkChain')
-            except AttributeError:
-                raise ValueError('The "previous_workchain" must be a node of SiestaRelaxWorkChain')
 
         pseudo_family = self._protocols[protocol]['pseudo_family']
         try:
