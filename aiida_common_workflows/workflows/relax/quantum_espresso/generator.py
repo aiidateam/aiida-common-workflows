@@ -59,7 +59,7 @@ class QuantumEspressoRelaxInputsGenerator(RelaxInputsGenerator):
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
         # pylint: disable=too-many-locals
-        from qe_tools.constants import bohr_to_ang, ry_to_ev
+        from qe_tools import CONSTANTS
 
         protocol = self.get_protocol(protocol)
         code = calc_engines['relax']['code']
@@ -79,13 +79,15 @@ class QuantumEspressoRelaxInputsGenerator(RelaxInputsGenerator):
         builder.relaxation_scheme = orm.Str(relaxation_schema)
 
         if threshold_forces is not None:
+            threshold = threshold_forces * CONSTANTS.bohr_to_ang / CONSTANTS.ry_to_ev
             parameters = builder.base.pw['parameters'].get_dict()
-            parameters.setdefault('CONTROL', {})['forc_conv_thr'] = threshold_forces * bohr_to_ang / ry_to_ev
+            parameters.setdefault('CONTROL', {})['forc_conv_thr'] = threshold
             builder.base.pw['parameters'] = orm.Dict(dict=parameters)
 
         if threshold_stress is not None:
+            threshold = threshold_stress * CONSTANTS.bohr_to_ang**3 / CONSTANTS.ry_to_ev
             parameters = builder.base.pw['parameters'].get_dict()
-            parameters.setdefault('CELL', {})['press_conv_thr'] = threshold_stress * bohr_to_ang**3 / ry_to_ev
+            parameters.setdefault('CELL', {})['press_conv_thr'] = threshold
             builder.base.pw['parameters'] = orm.Dict(dict=parameters)
 
         return builder
