@@ -46,6 +46,7 @@ class QuantumEspressoRelaxInputsGenerator(RelaxInputsGenerator):
         relaxation_type: RelaxType,
         threshold_forces: float = None,
         threshold_stress: float = None,
+        previous_workchain=None,
         **kwargs
     ) -> engine.ProcessBuilder:
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
@@ -59,6 +60,12 @@ class QuantumEspressoRelaxInputsGenerator(RelaxInputsGenerator):
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
         # pylint: disable=too-many-locals
+
+        super().get_builder(
+            structure, calc_engines, protocol, relaxation_type, threshold_forces, threshold_stress, previous_workchain,
+            **kwargs
+        )
+
         from qe_tools import CONSTANTS
 
         protocol = self.get_protocol(protocol)

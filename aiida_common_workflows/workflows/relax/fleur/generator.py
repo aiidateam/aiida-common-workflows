@@ -38,6 +38,7 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         relaxation_type,
         threshold_forces=None,
         threshold_stress=None,
+        previous_workchain=None,
         **kwargs
     ):
         """Return a process builder for the corresponding workchain class with
@@ -53,6 +54,12 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
         # pylint: disable=too-many-locals
+
+        super().get_builder(
+            structure, calc_engines, protocol, relaxation_type, threshold_forces, threshold_stress, previous_workchain,
+            **kwargs
+        )
+
         fleur_code = Code.get_from_string(calc_engines['relax']['code'])
         inpgen_code = Code.get_from_string(calc_engines['relax']['inputgen'])
 

@@ -62,6 +62,7 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
         relaxation_type,
         threshold_forces=None,
         threshold_stress=None,
+        previous_workchain=None,
         **kwargs
     ):
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
@@ -72,9 +73,17 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
         :param relaxation_type: the type of relaxation to perform, instance of `RelaxType`
         :param threshold_forces: target threshold for the forces in eV/Å.
         :param threshold_stress: target threshold for the stress in eV/Å^3.
+        :param previous_workchain: a <Code>RelaxWorkChain node.
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
+        if previous_workchain:
+            try:
+                prev_wc_class = previous_workchain.process_class
+                if not prev_wc_class == self.process_class:
+                    raise ValueError('The "previous_workchain" must be a node of {}'.format(self.process_class))
+            except AttributeError:
+                raise ValueError('The "previous_workchain" must be a node of {}'.format(self.process_class))
 
     def get_calc_types(self):
         """Return the calculation types for this input generator."""
