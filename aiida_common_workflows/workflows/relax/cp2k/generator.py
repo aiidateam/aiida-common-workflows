@@ -105,6 +105,7 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
         relaxation_type: RelaxType,
         threshold_forces: float = None,
         threshold_stress: float = None,
+        previous_workchain=None,
         **kwargs
     ) -> engine.ProcessBuilder:  # pylint: disable=too-many-locals
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
@@ -117,6 +118,11 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
         :param threshold_stress: target threshold for the stress in eV/Å^3.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
+
+        super().get_builder(
+            structure, calc_engines, protocol, relaxation_type, threshold_forces, threshold_stress, previous_workchain,
+            **kwargs
+        )
 
         # The builder.
         builder = self.process_class.get_builder()

@@ -86,13 +86,7 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
     ):  # pylint: disable=too-many-locals
 
         super().get_builder(
-            structure,
-            calc_engines,
-            protocol,
-            relaxation_type,
-            threshold_forces,
-            threshold_stress,
-            previous_workchain,
+            structure, calc_engines, protocol, relaxation_type, threshold_forces, threshold_stress, previous_workchain,
             **kwargs
         )
 
