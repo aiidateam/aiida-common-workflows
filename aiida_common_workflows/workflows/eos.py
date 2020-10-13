@@ -46,21 +46,6 @@ def validate_scale_increment(value, _):
         return 'scale increment needs to be between 0 and 1.'
 
 
-def validate_generator_inputs(value, _):
-    """Validate the `generator_inputs` input."""
-    values = value.get_dict()
-
-    for key in ['calc_engines', 'protocol', 'relaxation_type']:
-        if key not in values:
-            return f'invalid `generator_inputs`: the required key `{key}` is not specified'
-
-    try:
-        relaxation_type = values['relaxation_type']
-        RelaxType(relaxation_type)
-    except ValueError:
-        return f'invalid `generator_inputs`: `{relaxation_type}` is not a valid RelaxType'
-
-
 @calcfunction
 def scale_structure(structure: orm.StructureData, scale_factor: orm.Float) -> orm.StructureData:
     """Scale the structure with the given scaling factor."""
@@ -84,9 +69,17 @@ class EquationOfStateWorkChain(WorkChain):
         spec.input('scale_increment', valid_type=orm.Float, default=lambda: orm.Float(0.02),
             validator=validate_scale_increment,
             help='The relative difference between consecutive scaling factors.')
-        spec.input('generator_inputs', valid_type=orm.Dict, validator=validate_generator_inputs,
-            help='The inputs that will be passed to the inputs generator of the specified `sub_process`. It should '
-            'include all the inputs, excluding the `structure` and `previous_workchain`.')
+        spec.input_namespace('generator_inputs',
+            help='The inputs that will be passed to the inputs generator of the specified `sub_process`.')
+        spec.input('generator_inputs.calc_engines', valid_type=dict, non_db=True)
+        spec.input('generator_inputs.protocol', valid_type=str, non_db=True,
+            help='The protocol to use when determining the workchain inputs.')
+        spec.input('generator_inputs.relaxation_type', valid_type=RelaxType, non_db=True,
+            help='The type of relaxation to perform.')
+        spec.input('generator_inputs.threshold_forces', valid_type=float, required=False, non_db=True,
+            help='Target threshold for the forces in eV/Å.')
+        spec.input('generator_inputs.threshold_stress', valid_type=float, required=False, non_db=True,
+            help='Target threshold for the stress in eV/Å^3.')
         spec.input_namespace('sub_process', dynamic=True, populate_defaults=False)
         spec.input('sub_process_class', non_db=True, validator=validate_sub_process_class)
         spec.inputs.validator = validate_inputs
@@ -115,16 +108,11 @@ class EquationOfStateWorkChain(WorkChain):
         """Return the builder for the relax workchain."""
         structure = scale_structure(self.inputs.structure, scale_factor)
         process_class = WorkflowFactory(self.inputs.sub_process_class)
-        generator_inputs = self.inputs.generator_inputs.get_dict()
 
         builder = process_class.get_inputs_generator().get_builder(
             structure,
-            calc_engines=generator_inputs['calc_engines'],
-            protocol=generator_inputs['protocol'],
-            relaxation_type=RelaxType(generator_inputs['relaxation_type']),
-            threshold_forces=generator_inputs.get('threshold_forces', None),
-            threshold_stress=generator_inputs.get('threshold_stress', None),
-            previous_workchain=previous_workchain
+            previous_workchain=previous_workchain,
+            **self.inputs.generator_inputs
         )
         builder._update(**self.inputs.get('sub_process', {}))  # pylint: disable=protected-access
 
