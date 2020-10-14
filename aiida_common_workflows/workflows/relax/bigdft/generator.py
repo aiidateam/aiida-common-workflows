@@ -60,8 +60,14 @@ class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
         relaxation_type,
         threshold_forces=None,
         threshold_stress=None,
+        previous_workchain=None,
         **kwargs
     ):
+
+        super().get_builder(
+            structure, calc_engines, protocol, relaxation_type, threshold_forces, threshold_stress, previous_workchain,
+            **kwargs
+        )
 
         from aiida.orm import Dict
         from aiida.orm import load_code

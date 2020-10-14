@@ -47,6 +47,7 @@ class VaspRelaxInputsGenerator(RelaxInputsGenerator):
         relaxation_type,
         threshold_forces=None,
         threshold_stress=None,
+        previous_workchain=None,
         **kwargs
     ):
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
@@ -61,6 +62,11 @@ class VaspRelaxInputsGenerator(RelaxInputsGenerator):
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
         # pylint: disable=too-many-locals
+
+        super().get_builder(
+            structure, calc_engines, protocol, relaxation_type, threshold_forces, threshold_stress, previous_workchain,
+            **kwargs
+        )
 
         # Get the protocol that we want to use
         if protocol is None:
