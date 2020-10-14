@@ -127,7 +127,7 @@ def cmd_eos(
     display the required calculation engines for the selected plugin workflow.
     """
     # pylint: disable=too-many-locals
-    from aiida.orm import QueryBuilder, Code, Dict
+    from aiida.orm import QueryBuilder, Code
     from aiida_common_workflows.plugins import get_entry_point_name_from_class
     from aiida_common_workflows.workflows.eos import EquationOfStateWorkChain
     from aiida_common_workflows.workflows.relax import RelaxType
@@ -192,18 +192,22 @@ def cmd_eos(
 
         engines[engine]['code'] = code[0].full_label
 
-    generator_inputs = {
-        'calc_engines': engines,
-        'protocol': protocol,
-        'relaxation_type': RelaxType.ATOMS.value,
-        'threshold_forces': threshold_forces,
-        'threshold_stress': threshold_stress
-    }
     inputs = {
         'structure': structure,
-        'generator_inputs': Dict(dict=generator_inputs),
+        'generator_inputs': {
+            'calc_engines': engines,
+            'protocol': protocol,
+            'relaxation_type': RelaxType.ATOMS,
+        },
         'sub_process_class': get_entry_point_name_from_class(process_class).name,
     }
+
+    if threshold_forces is not None:
+        inputs['generator_inputs']['threshold_forces'] = threshold_forces
+
+    if threshold_stress is not None:
+        inputs['generator_inputs']['threshold_stress'] = threshold_stress
+
     utils.launch_process(EquationOfStateWorkChain, daemon, **inputs)
 
 
