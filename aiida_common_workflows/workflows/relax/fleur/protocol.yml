@@ -3,65 +3,46 @@ moderate:
     description: 'Protocol to relax a structure with normal precision at moderate computational cost.'
     relax:
         relax_iter: 5
-        film_distance_relaxation: false
-        force_criterion: 0.01
         change_mixing_criterion: 0.025
-        atoms_off: []
         run_final_scf: true
-            scf:
-                fleur_runmax: 2
-                itmax_per_run: 120
-                force_converged: force_criterion
-                force_dict:
-                    qfix: 2
-                    forcealpha: 0.75
-                    forcemix: straight
-                use_relax_xml: true
-                serial: false
-                mode: relaxation_mode
-
+    scf:
+        density_converged: 0.00002
+        fleur_runmax: 2
+        itmax_per_run: 120
+        force_dict:
+            qfix: 2
+            forcealpha: 0.75
+            forcemix: 'straight'
 
 precise:
     name: 'precise'
     description: 'Protocol to relax a structure with high precision at higher computational cost.'
     relax:
-        relax_iter: 5
-        film_distance_relaxation: false
-        force_criterion: 0.01
+        relax_iter: 10
         change_mixing_criterion: 0.025
-        atoms_off: []
         run_final_scf: true
-            scf:
-                fleur_runmax: 2
-                itmax_per_run: 120
-                force_converged: force_criterion
-                force_dict:
-                    qfix: 2
-                    forcealpha: 0.75
-                    forcemix: straight
-                use_relax_xml: true
-                serial: false
-                mode: relaxation_mode
+    scf:
+        density_converged: 0.000002
+        fleur_runmax: 3
+        itmax_per_run: 120
+        force_dict:
+            qfix: 2
+            forcealpha: 0.50
+            forcemix: 'straight'
 
 fast:
     name: 'fast'
     description: 'Protocol to relax a structure with low precision at minimal computational cost for testing purposes.'
     relax:
-        relax_iter: 5
-        film_distance_relaxation: false
-        force_criterion: 0.01
+        relax_iter: 3
         change_mixing_criterion: 0.025
-        atoms_off: []
         run_final_scf: true
-            scf:
-                fleur_runmax: 2
-                itmax_per_run: 120
-                force_converged: force_criterion
-                force_dict:
-                    qfix: 2
-                    forcealpha: 0.75
-                    forcemix: straight
-                use_relax_xml: true
-                serial: false
-                mode: relaxation_mode
-
+    scf:
+        fleur_runmax: 2
+        itmax_per_run: 120
+        force_converged: 0.001
+        density_converged: 0.0002
+        force_dict:
+            qfix: 2
+            forcealpha: 1.0
+            forcemix: 'straight'

@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for FLEUR."""
-
+import collections
 import pathlib
+from typing import Any, Dict
 import yaml
-from aiida.orm import Dict, Code
+from aiida import orm
+from aiida.orm import Code, load_node
 from ..generator import RelaxInputsGenerator, RelaxType
 
 __all__ = ('FleurRelaxInputsGenerator',)
 
 
 class FleurRelaxInputsGenerator(RelaxInputsGenerator):
-    """Generator of intputs for the `FleurCRelaxWorkChain`."""
+    """Generator of intputs for the `FleurRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
     _protocols = {
@@ -92,7 +94,14 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         if not isinstance(fleur_code, Code):
             fleur_code = load_code(fleur_code)
 
-        protocol = self.get_protocol(protocol)
+        # Checks if protocol exists
+        if protocol not in self.get_protocol_names():
+            import warnings
+            warnings.warn('no protocol implemented with name {}, using default moderate'.format(protocol))
+            protocol = self.get_default_protocol_name()
+        else:
+            protocol = self.get_protocol(protocol)
+
         builder = self.process_class.get_builder()
 
         # implement this, protocol dependent, we still have option keys as nodes ...
@@ -116,32 +125,33 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
 
         film_relax = structure.pbc[-1]
 
-        wf_para = Dict(
-            dict={
-                'relax_iter': 5,
-                'film_distance_relaxation': film_relax,
-                'force_criterion': force_criterion,
-                'change_mixing_criterion': 0.025,
-                'atoms_off': [],
-                'run_final_scf': True  # we always run a final scf after the relaxation
-            }
-        )
+        default_wf_para = {
+            'relax_iter': 5,
+            'film_distance_relaxation': film_relax,
+            'force_criterion': force_criterion,
+            'change_mixing_criterion': 0.025,
+            'atoms_off': [],
+            'run_final_scf': True  # we always run a final scf after the relaxation
+        }
+        wf_para_dict = recursive_merge(default_wf_para, protocol.get('relax', {}))
+        wf_para = orm.Dict(dict=wf_para_dict)
 
-        wf_para_scf = Dict(
-            dict={
-                'fleur_runmax': 2,
-                'itmax_per_run': 120,
-                'force_converged': force_criterion,
-                'force_dict': {
-                    'qfix': 2,
-                    'forcealpha': 0.75,
-                    'forcemix': 'straight'
-                },
-                'use_relax_xml': True,
-                'serial': False,
-                'mode': relaxation_mode,
-            }
-        )
+        default_scf = {
+            'fleur_runmax': 2,
+            'itmax_per_run': 120,
+            'force_converged': force_criterion,
+            'force_dict': {
+                'qfix': 2,
+                'forcealpha': 0.75,
+                'forcemix': 'straight'
+            },
+            'use_relax_xml': True,
+            'serial': False,
+            'mode': relaxation_mode,
+        }
+
+        wf_para_scf_dict = recursive_merge(default_scf, protocol.get('scf', {}))
+        wf_para_scf = orm.Dict(dict=wf_para_scf_dict)
 
         inputs = {
             'scf': {
@@ -156,6 +166,11 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
             'wf_parameters': wf_para
         }
 
+        if previous_workchain is not None:
+            parameters = get_parameters(previous_workchain)
+            inputs['scf']['calc_parameters'] = parameters
+
+        # User specification overrides previous workchain!
         if 'calc_parameters' in kwargs.keys():
             parameters = kwargs.pop('calc_parameters')
             inputs['scf']['calc_parameters'] = parameters
@@ -163,3 +178,55 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         builder._update(inputs)  # pylint: disable=protected-access
 
         return builder
+
+
+def get_parameters(previous_workchain):
+    """
+    Extracts the FLAPW parameter for inpgen from a given previous workchain
+    It finds the last Fleur Calcjob or Inpgen calc and extracts the
+    parameters from its fleurinpdata node
+    :param previous_workchain: Some workchain which contains at least one
+                               Fleur CalcJob or Inpgen CalcJob.
+    :return: Dict node of parameters ready to use, or None
+    """
+    from aiida.plugins import WorkflowFactory
+    from aiida.common.exceptions import NotExistent
+    from aiida_fleur.tools.common_fleur_wf import find_last_submitted_workchain
+
+    fleur_scf_wc = WorkflowFactory('fleur.scf')
+    # Find Fleurinp
+    try:
+        last_base_relax = find_last_submitted_workchain(previous_workchain)
+        last_relax = find_last_submitted_workchain(load_node(last_base_relax))
+        last_scf = find_last_submitted_workchain(load_node(last_relax))
+    except NotExistent:
+        # something went wrong in the previous workchain run
+        #.. we just continue without previous parameters but defaults.
+        return None
+    if last_scf.process_class is fleur_scf_wc:
+        fleurinp = last_scf.outputs.fleurinp
+    else:
+        return None
+    # Be aware that this parameter node is incomplete. LOs and econfig is
+    # currently missing for example.
+    parameters = fleurinp.get_parameterdata_ncf()  # This is not a calcfunction!
+    return parameters
+
+
+# Same code as in Quantum_espresso generator.py could be moved somewhere else and imported
+def recursive_merge(left: Dict[str, Any], right: Dict[str, Any]) -> Dict[str, Any]:
+    """Recursively merge two dictionaries into a single dictionary.
+
+    :param left: first dictionary.
+    :param right: second dictionary.
+    :return: the recursively merged dictionary.
+    """
+    for key, value in left.items():
+        if key in right:
+            if isinstance(value, collections.Mapping) and isinstance(right[key], collections.Mapping):
+                right[key] = recursive_merge(value, right[key])
+
+    merged = left.copy()
+    merged.update(right)
+
+    return merged
