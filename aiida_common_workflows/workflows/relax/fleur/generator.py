@@ -123,7 +123,7 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         if threshold_stress is not None:
             pass  # Stress is not supported
 
-        film_relax = structure.pbc[-1]
+        film_relax = not structure.pbc[-1]
 
         default_wf_para = {
             'relax_iter': 5,
@@ -199,6 +199,7 @@ def get_parameters(previous_workchain):
         last_base_relax = find_last_submitted_workchain(previous_workchain)
         last_relax = find_last_submitted_workchain(load_node(last_base_relax))
         last_scf = find_last_submitted_workchain(load_node(last_relax))
+        last_scf = load_node(last_scf)
     except NotExistent:
         # something went wrong in the previous workchain run
         #.. we just continue without previous parameters but defaults.
