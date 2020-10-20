@@ -1,0 +1,81 @@
+moderate:
+    name: 'moderate'
+    description: 'Protocol to relax a structure with normal precision at moderate computational cost.'
+    relax:
+        relax_options:
+            max_meta_iterations: 5
+
+        base:
+            kpoints_spacing: 0.04
+            pseudos_family: 'C19'
+            max_iterations: 2
+            calc:
+                parameters:
+                    task: geometryoptimisation
+                    xc_functional: pbe
+                    calculate_stress: true
+                    symmetry_generate: true
+                    snap_to_symmetry: true
+                    basis_precision: fine
+                    write_otfg: false
+                    opt_strategy: speed
+                    write_bib: false
+                    max_scf_cycles: 100
+                    geom_force_tol: 0.05
+                    geom_energy_tol: 2.0e-5
+                    geom_stress_tol: 0.1
+
+        
+precise:
+    name: 'precise'
+    description: 'Protocol to relax a structure with high precision at higher computational cost.'
+    relax:
+        relax_options:
+            max_meta_iterations: 5
+
+        base:
+            kpoints_spacing: 0.03
+            pseudos_family: 'C19'
+            max_iterations: 2
+            calc:
+                parameters:
+                    task: geometryoptimisation
+                    xc_functional: pbe
+                    symmetry_generate: true
+                    snap_to_symmetry: true
+                    calculate_stress: true
+                    basis_precision: precise
+                    write_otfg: false
+                    opt_strategy: speed
+                    write_bib: false
+                    max_scf_cycles: 100
+                    geom_force_tol: 0.03
+                    geom_energy_tol: 1.0e-5
+                    geom_stress_tol: 0.05
+ 
+fast:
+    name: 'fast'
+    description: 'Protocol to relax a structure with low precision at minimal computational cost for testing purposes.'
+    relax:
+        relax_options:
+            max_meta_iterations: 5
+
+        base:
+            kpoints_spacing: 0.07
+            pseudos_family: 'QC5'
+            max_iterations: 2
+            calc:
+                parameters:
+                    task: geometryoptimisation
+                    xc_functional: pbe
+                    symmetry_generate: true
+                    snap_to_symmetry: true
+                    calculate_stress: true
+                    basis_precision: medium
+                    write_otfg: false
+                    opt_strategy: speed
+                    write_bib: false
+                    max_scf_cycles: 100
+                    geom_force_tol: 0.05
+                    geom_energy_tol: 2.0e-5
+                    geom_stress_tol: 0.1
