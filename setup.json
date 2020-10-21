@@ -19,7 +19,7 @@
         "aiida-bigdft",
         "aiida-cp2k~=1.1",
         "aiida-fleur~=1.1",
-        "aiida-quantumespresso~=3.0",
+        "aiida-quantumespresso~=3.2",
         "aiida-siesta",
         "aiida-sssp~=0.1.0",
         "aiida-vasp"
