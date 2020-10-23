@@ -12,7 +12,7 @@ __all__ = ('FleurRelaxInputsGenerator',)
 
 
 class FleurRelaxInputsGenerator(RelaxInputsGenerator):
-    """Generator of intputs for the `FleurRelaxWorkChain`."""
+    """Generator of inputs for the `FleurRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
     _protocols = {
