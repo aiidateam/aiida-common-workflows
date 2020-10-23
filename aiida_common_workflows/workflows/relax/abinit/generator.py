@@ -6,12 +6,12 @@ from typing import Any, Dict
 import yaml
 
 from aiida import engine
-from aiida import orm
+from aiida import orm 
 from aiida import plugins
 from aiida.common import exceptions
-from aiida_sssp.groups import SsspFamily
 
 from ..generator import RelaxInputsGenerator, RelaxType
+from qe_tools import CONSTANTS
 
 __all__ = ('AbinitRelaxInputsGenerator',)
 
@@ -72,7 +72,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         builder.abinit.structure = structure
 
         # Input parameters.
-        parameters = self.get_protocol(protocol)
+        parameters = self.get_protocol(protocol)['base']['parameters']
         
         if relaxation_type == RelaxType.ATOMS:
             optcell = 0
@@ -89,15 +89,15 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
 
         if threshold_forces is not None:
             # Here threshold_forces is provided in eV/Å
-            threshold = threshold_forces * CONSTANTS.bohr_to_ang / CONSTANTS.ha_to_ev
+            threshold = threshold_forces * CONSTANTS.bohr_to_ang / (CONSTANTS.ry_to_ev * 2.0)
             # The tolmxf parameter in Abinit should be provided in Ha/Bohr
             # The tolmxf sets a maximal absolute force tolerance below which BFGS structural 
             # relaxation iterations will stop. 
             parameters['tolmxf'] = threshold 
 
         if (threshold_stress is not None and threshold_forces is not None):
-            thr_stress = threshold_stress * CONSTANTS.bohr_to_ang**3 / CONSTANTS.ha_to_ev
-            thr_force = threshold_forces * CONSTANTS.bohr_to_ang / CONSTANTS.ha_to_ev
+            thr_stress = threshold_stress * CONSTANTS.bohr_to_ang**3 / (CONSTANTS.ry_to_ev * 2.0)
+            thr_force = threshold_forces * CONSTANTS.bohr_to_ang / (CONSTANTS.ry_to_ev * 2.0)
             thr_fact = thr_force / thr_stress
             parameters['tolmxf'] = thr_force
             parameters['strfact'] = thr_fact
@@ -105,8 +105,15 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         # Additional files to be retrieved.
         builder.abinit.settings = orm.Dict(dict={'additional_retrieve_list': ['aiidao_HIST.nc']})
 
+
+        #merged = recursive_merge(protocol, override)  
+        builder.abinit.parameters = orm.Dict(dict=parameters)
+
         # Abinit code.
-        builder.abinit.code = orm.load_code(calc_engines['relax']['code'])
+        #builder.abinit.code = orm.load_code(calc_engines['relax']['code'])
+        CODE = 'abinit-9.2.1-ab@localhost'
+        code = orm.Code.get_from_string(CODE)
+        builder.abinit.code = code 
 
         # Run options.
         builder.abinit.metadata.options = calc_engines['relax']['options']

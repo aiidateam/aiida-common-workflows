@@ -45,7 +45,8 @@
             "common_workflows.relax.fleur = aiida_common_workflows.workflows.relax.fleur.workchain:FleurRelaxWorkChain",
             "common_workflows.relax.quantum_espresso = aiida_common_workflows.workflows.relax.quantum_espresso.workchain:QuantumEspressoRelaxWorkChain",
             "common_workflows.relax.siesta = aiida_common_workflows.workflows.relax.siesta.workchain:SiestaRelaxWorkChain",
-            "common_workflows.relax.vasp = aiida_common_workflows.workflows.relax.vasp.workchain:VaspRelaxWorkChain"
+            "common_workflows.relax.vasp = aiida_common_workflows.workflows.relax.vasp.workchain:VaspRelaxWorkChain",
+            "common_workflows.relax.abinit = aiida_common_workflows.workflows.relax.abinit.workchain:AbinitRelaxWorkChain"
         ]
     },
     "license": "MIT License",

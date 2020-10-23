@@ -3,6 +3,7 @@
 from aiida import orm
 from aiida.engine import calcfunction
 from aiida.plugins import WorkflowFactory
+from aiida_abinit.workchains.base import AbinitBaseWorkChain
 
 from ..workchain import CommonRelaxWorkChain
 from .generator import AbinitRelaxInputsGenerator
@@ -34,7 +35,8 @@ def get_total_energy(parameters):
 class AbinitRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for Abinit."""
 
-    _process_class = WorkflowFactory('abinit.base')
+#    _process_class = WorkflowFactory('abinit.base')
+    _process_class = AbinitBaseWorkChain
     _generator_class = AbinitRelaxInputsGenerator
 
     def convert_outputs(self):
