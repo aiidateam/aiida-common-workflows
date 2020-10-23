@@ -22,7 +22,8 @@
         "aiida-quantumespresso~=3.2",
         "aiida-siesta",
         "aiida-sssp~=0.1.0",
-        "aiida-vasp"
+        "aiida-vasp",
+        "aiida-abinit"
     ],
     "extras_require": {
         "tests": [
