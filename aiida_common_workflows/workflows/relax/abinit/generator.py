@@ -85,6 +85,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
 
         parameters['optcell'] = optcell
         parameters['ionmov'] = ionmov
+        parameters['ecutsm'] = 0.5
 
         if threshold_forces is not None:
             # Here threshold_forces is provided in eV/Å
@@ -104,7 +105,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         # Additional files to be retrieved.
         builder.abinit.settings = orm.Dict(dict={'additional_retrieve_list': ['aiidao_HIST.nc']})
 
-        # CP2K code.
+        # Abinit code.
         builder.abinit.code = orm.load_code(calc_engines['relax']['code'])
 
         # Run options.
@@ -113,20 +114,20 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         return builder
 
 
-def recursive_merge(left: Dict[str, Any], right: Dict[str, Any]) -> Dict[str, Any]:
-    """Recursively merge two dictionaries into a single dictionary.
-
-    :param left: first dictionary.
-    :param right: second dictionary.
-    :return: the recursively merged dictionary.
-    """
-    for key, value in left.items():
-        if key in right:
-            if isinstance(value, collections.Mapping) and isinstance(right[key], collections.Mapping):
-                right[key] = recursive_merge(value, right[key])
-
-    merged = left.copy()
-    merged.update(right)
-
-    return merged
+#def recursive_merge(left: Dict[str, Any], right: Dict[str, Any]) -> Dict[str, Any]:
+#    """Recursively merge two dictionaries into a single dictionary.
+#
+#    :param left: first dictionary.
+#    :param right: second dictionary.
+#    :return: the recursively merged dictionary.
+#    """
+#    for key, value in left.items():
+#        if key in right:
+#            if isinstance(value, collections.Mapping) and isinstance(right[key], collections.Mapping):
+#                right[key] = recursive_merge(value, right[key])
+#
+#    merged = left.copy()
+#    merged.update(right)
+#
+#    return merged
 
