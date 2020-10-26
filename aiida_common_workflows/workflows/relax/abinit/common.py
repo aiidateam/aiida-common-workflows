@@ -23,7 +23,8 @@ def structure_init() -> StructureData:
     import os
     import pymatgen
 
-    filepath = os.path.realpath(os.path.join(os.path.dirname(__file__), '../../../common/data/Si.cif'))
+    #filepath = os.path.realpath(os.path.join(os.path.dirname(__file__), '../../../common/data/Si.cif'))
+    filepath = os.path.realpath(os.path.join(os.path.dirname(__file__), '../../../common/data/Al.cif'))
     structure = pymatgen.Structure.from_file(filepath, primitive=False)
 
     return StructureData(pymatgen_structure=structure)

@@ -188,12 +188,14 @@ def generate_inputs_base(
     """
     protocol['abinit'] = generate_inputs_calculation(protocol['abinit'], code, structure, override.get('abinit', {}))
     merged = recursive_merge(protocol, override or {})
+    merged['pseudo_family'] = orm.Str(merged['pseudo_family'])
 
-    dictionary = {
-        'abinit': merged['abinit'],
-    }
+    #Dictionary = {
+    #    'abinit': merged['abinit'],
+    #}
 
-    return dictionary
+    #return dictionary
+    return merged
 
 
 def generate_inputs_calculation(
