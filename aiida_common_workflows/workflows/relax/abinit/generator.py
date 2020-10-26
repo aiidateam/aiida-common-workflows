@@ -12,6 +12,7 @@ from aiida.common import exceptions
 
 from aiida_common_workflows.workflows.relax.generator import RelaxInputsGenerator, RelaxType
 from qe_tools import CONSTANTS
+from pymatgen.core import units
 
 __all__ = ('AbinitRelaxInputsGenerator',)
 
@@ -86,20 +87,22 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         builder.base.abinit['parameters']['optcell'] = optcell
         builder.base.abinit['parameters']['ionmov'] = ionmov
 
-        if threshold_forces is not None:
-            threshold_f = threshold_forces * CONSTANTS.bohr_to_ang / (CONSTANTS.ry_to_ev * 2.0)  # eV/Å
+        if threshold_forces is not None:  
+            # The Abinit threshold_forces is in Ha/Bohr
+            threshold_f = threshold_forces * units.Ha_to_ev / units.bohr_to_ang # eV/Å
             builder.base.abinit['parameters']['tolmxf'] = threshold_f
             if threshold_stress is not None:
-                threshold_s = threshold_stress * CONSTANTS.bohr_to_ang**3 / (CONSTANTS.ry_to_ev * 2.0)
+                threshold_s = threshold_stress * units.Ha_to_eV / units.bohr_to_ang**3 
                 strfact = threshold_f / threshold_s
                 builder.base.abinit['parameters']['strfact'] = strfact
         else:
-            threshold_f = 5.0-5  # ABINIT default value
+            threshold_f = 5.0e-5  # ABINIT default value
             if threshold_stress is not None:
-                threshold_s = threshold_stress * CONSTANTS.bohr_to_ang**3 / (CONSTANTS.ry_to_ev * 2.0)
+                threshold_s = threshold_stress * units.Ha_to_eV / units.bohr_to_ang**3 
                 strfact = threshold_f / threshold_s
-                # TODO: will strfact be used if tolmxf is not explicitly set?
                 builder.base.abinit['parameters']['strfact'] = strfact
+                #TODO: Warn the user that we are using the tolxmf Abinit default value. 
+                builder.base.abinit['parameters']['tolmxf'] = threshold_f
 
         return builder
 
