@@ -1,48 +1,59 @@
 moderate:
-    name: 'moderate'
-    description: 'Protocol to relax a structure with normal precision at moderate computational cost.'
+    name: "moderate"
+    description: "Protocol to relax a structure with normal precision at moderate computational cost."
     base:
-        parameters:
-            ecut : 20.0
-            kptopt : 1
-            ngkpt : '4 4 4'
-            nshiftk : 4
-            shiftk : "0.5 0.5 0.5 \n 0.5 0.0 0.0 \n 0.0 0.5 0.0 \n 0.0 0.0 0.5"
-            nstep : 100
-            toldfe : 1.0e-12
-            diemac : 12.0
-            pp_dirpath : "\"$ABI_PSPDIR\""
-            pseudos : "\"PseudosTM_pwteter/14si.pspnc\""    
+        abinit:
+            parameters:
+                ecut: 20.0
+                ecutsm: 0.5
+                kptopt: 1
+                ngkpt: "4 4 4"
+                nshiftk: 4
+                shiftk: "0.5 0.5 0.5 \n 0.5 0.0 0.0 \n 0.0 0.5 0.0 \n 0.0 0.0 0.5"
+                nstep: 100
+                toldfe: 1.0e-12
+                diemac: 12.0
+                pp_dirpath: '"$ABI_PSPDIR"'
+                pseudos: '"PseudosTM_pwteter/14si.pspnc"'
+            settings:
+                additional_retrieve_list: ["aiidao_HIST.nc"]
 
 precise:
-    name: 'precise'
-    description: 'Protocol to relax a structure with high precision at higher computational cost.'
+    name: "precise"
+    description: "Protocol to relax a structure with high precision at higher computational cost."
     base:
-        parameters:
-            ecut : 40.0
-            kptopt : 1
-            ngkpt : '8 8 8'
-            nshiftk : 4
-            shiftk : "0.5 0.5 0.5 \n 0.5 0.0 0.0 \n 0.0 0.5 0.0 \n 0.0 0.0 0.5"
-            nstep : 100
-            toldfe : 1.0e-12
-            diemac : 12.0
-            pp_dirpath : "\"$ABI_PSPDIR\""
-            pseudos : "\"PseudosTM_pwteter/14si.pspnc\""    
+        abinit:
+            parameters:
+                ecut: 40.0
+                ecutsm: 0.5
+                kptopt: 1
+                ngkpt: "8 8 8"
+                nshiftk: 4
+                shiftk: "0.5 0.5 0.5 \n 0.5 0.0 0.0 \n 0.0 0.5 0.0 \n 0.0 0.0 0.5"
+                nstep: 100
+                toldfe: 1.0e-12
+                diemac: 12.0
+                pp_dirpath: '"$ABI_PSPDIR"'
+                pseudos: '"PseudosTM_pwteter/14si.pspnc"'
+            settings:
+                additional_retrieve_list: ["aiidao_HIST.nc"]
 
 fast:
-    name: 'fast'
-    description: 'Protocol to relax a structure with low precision at minimal computational cost for testing purposes.'
+    name: "fast"
+    description: "Protocol to relax a structure with low precision at minimal computational cost for testing purposes."
     base:
-        parameters:
-            ecut : 10.0
-            kptopt : 1
-            ngkpt : '2 2 2'
-            nshiftk : 4
-            shiftk : "0.5 0.5 0.5 \n 0.5 0.0 0.0 \n 0.0 0.5 0.0 \n 0.0 0.0 0.5"
-            nstep : 100
-            toldfe : 1.0e-12
-            diemac : 12.0
-            pp_dirpath : "\"$ABI_PSPDIR\""
-            pseudos : "\"PseudosTM_pwteter/14si.pspnc\""    
-    
+        abinit:
+            parameters:
+                ecut: 10.0
+                ecutsm: 0.5
+                kptopt: 1
+                ngkpt: "2 2 2"
+                nshiftk: 4
+                shiftk: "0.5 0.5 0.5 \n 0.5 0.0 0.0 \n 0.0 0.5 0.0 \n 0.0 0.0 0.5"
+                nstep: 100
+                toldfe: 1.0e-12
+                diemac: 12.0
+                pp_dirpath: '"$ABI_PSPDIR"'
+                pseudos: '"PseudosTM_pwteter/14si.pspnc"'
+            settings:
+                additional_retrieve_list: ["aiidao_HIST.nc"]

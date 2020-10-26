@@ -10,12 +10,13 @@ from aiida import orm
 from aiida import plugins
 from aiida.common import exceptions
 
-from ..generator import RelaxInputsGenerator, RelaxType
+from aiida_common_workflows.workflows.relax.generator import RelaxInputsGenerator, RelaxType
 from qe_tools import CONSTANTS
 
 __all__ = ('AbinitRelaxInputsGenerator',)
 
 StructureData = plugins.DataFactory('structure')
+
 
 class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
     """Input generator for the `AbinitRelaxWorkChain`."""
@@ -65,15 +66,14 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             **kwargs
         )
 
-        # The builder.
-        builder = self.process_class.get_builder()        
+        protocol = self.get_protocol(protocol)
+        code = calc_engines['relax']['code']
+        override = {}
 
-        # Input structure.
-        builder.abinit.structure = structure
+        builder = self.process_class.get_builder()
+        inputs = generate_inputs(self.process_class._process_class, protocol, code, structure, override)  # pylint: disable=protected-access
+        builder._update(inputs)  # pylint: disable=protected-access
 
-        # Input parameters.
-        parameters = self.get_protocol(protocol)['base']['parameters']
-        
         if relaxation_type == RelaxType.ATOMS:
             optcell = 0
             ionmov = 22
@@ -83,58 +83,136 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         else:
             raise ValueError('relaxation type `{}` is not supported'.format(relaxation_type.value))
 
-        parameters['optcell'] = optcell
-        parameters['ionmov'] = ionmov
-        parameters['ecutsm'] = 0.5
+        builder.base.abinit['parameters']['optcell'] = optcell
+        builder.base.abinit['parameters']['ionmov'] = ionmov
 
         if threshold_forces is not None:
-            # Here threshold_forces is provided in eV/Å
-            threshold = threshold_forces * CONSTANTS.bohr_to_ang / (CONSTANTS.ry_to_ev * 2.0)
-            # The tolmxf parameter in Abinit should be provided in Ha/Bohr
-            # The tolmxf sets a maximal absolute force tolerance below which BFGS structural 
-            # relaxation iterations will stop. 
-            parameters['tolmxf'] = threshold 
-
-        if (threshold_stress is not None and threshold_forces is not None):
-            thr_stress = threshold_stress * CONSTANTS.bohr_to_ang**3 / (CONSTANTS.ry_to_ev * 2.0)
-            thr_force = threshold_forces * CONSTANTS.bohr_to_ang / (CONSTANTS.ry_to_ev * 2.0)
-            thr_fact = thr_force / thr_stress
-            parameters['tolmxf'] = thr_force
-            parameters['strfact'] = thr_fact
-
-        # Additional files to be retrieved.
-        builder.abinit.settings = orm.Dict(dict={'additional_retrieve_list': ['aiidao_HIST.nc']})
-
-
-        #merged = recursive_merge(protocol, override)  
-        builder.abinit.parameters = orm.Dict(dict=parameters)
-
-        # Abinit code.
-        #builder.abinit.code = orm.load_code(calc_engines['relax']['code'])
-        CODE = 'abinit-9.2.1-ab@localhost'
-        code = orm.Code.get_from_string(CODE)
-        builder.abinit.code = code 
-
-        # Run options.
-        builder.abinit.metadata.options = calc_engines['relax']['options']
+            threshold_f = threshold_forces * CONSTANTS.bohr_to_ang / (CONSTANTS.ry_to_ev * 2.0)  # eV/Å
+            builder.base.abinit['parameters']['tolmxf'] = threshold_f
+            if threshold_stress is not None:
+                threshold_s = threshold_stress * CONSTANTS.bohr_to_ang**3 / (CONSTANTS.ry_to_ev * 2.0)
+                strfact = threshold_f / threshold_s
+                builder.base.abinit['parameters']['strfact'] = strfact
+        else:
+            threshold_f = 5.0-5  # ABINIT default value
+            if threshold_stress is not None:
+                threshold_s = threshold_stress * CONSTANTS.bohr_to_ang**3 / (CONSTANTS.ry_to_ev * 2.0)
+                strfact = threshold_f / threshold_s
+                # TODO: will strfact be used if tolmxf is not explicitly set?
+                builder.base.abinit['parameters']['strfact'] = strfact
 
         return builder
 
 
-#def recursive_merge(left: Dict[str, Any], right: Dict[str, Any]) -> Dict[str, Any]:
-#    """Recursively merge two dictionaries into a single dictionary.
-#
-#    :param left: first dictionary.
-#    :param right: second dictionary.
-#    :return: the recursively merged dictionary.
-#    """
-#    for key, value in left.items():
-#        if key in right:
-#            if isinstance(value, collections.Mapping) and isinstance(right[key], collections.Mapping):
-#                right[key] = recursive_merge(value, right[key])
-#
-#    merged = left.copy()
-#    merged.update(right)
-#
-#    return merged
+def generate_inputs(
+    process_class: engine.Process,
+    protocol: Dict,
+    code: orm.Code,
+    structure: StructureData,
+    override: Dict[str, Any] = None
+) -> Dict[str, Any]:
+    """Generate the input parameters for the given workchain type for a given code and structure.
 
+    The override argument can be used to pass a dictionary with values for specific inputs that should override the
+    defaults. This dictionary should have the same nested structure as the final input dictionary would have for the
+    workchain submission.
+
+    :param process_class: process class, either calculation or workchain, i.e. ``AbinitCalculation`` or ``AbinitBaseWorkChain``
+    :param protocol: the protocol based on which to choose input parameters
+    :param code: the code or code name to use
+    :param structure: the structure
+    :param override: a dictionary to override specific inputs
+    :return: input dictionary
+    """
+    # pylint: disable=too-many-arguments,unused-argument
+    from aiida.common.lang import type_check
+
+    AbinitCalculation = plugins.CalculationFactory('abinit')  # pylint: disable=invalid-name
+    AbinitBaseWorkChain = plugins.CalculationFactory('abinit.base')  # pylint: disable=invalid-name
+
+    type_check(structure, orm.StructureData)
+
+    if not isinstance(code, orm.Code):
+        try:
+            code = orm.load_code(code)
+        except (exceptions.MultipleObjectsError, exceptions.NotExistent) as exception:
+            raise ValueError('could not load the code {}: {}'.format(code, exception))
+
+    if process_class == AbinitCalculation:
+        protocol = protocol['abinit']
+        dictionary = generate_inputs_calculation(protocol, code, structure, override)
+    elif process_class == AbinitBaseWorkChain:
+        protocol = protocol['base']
+        dictionary = generate_inputs_base(protocol, code, structure, override)
+    else:
+        raise NotImplementedError('process class {} is not supported'.format(process_class))
+
+    return dictionary
+
+
+def recursive_merge(left: Dict[str, Any], right: Dict[str, Any]) -> Dict[str, Any]:
+    """Recursively merge two dictionaries into a single dictionary.
+
+    :param left: first dictionary.
+    :param right: second dictionary.
+    :return: the recursively merged dictionary.
+    """
+    for key, value in left.items():
+        if key in right:
+            if isinstance(value, collections.Mapping) and isinstance(right[key], collections.Mapping):
+                right[key] = recursive_merge(value, right[key])
+
+    merged = left.copy()
+    merged.update(right)
+
+    return merged
+
+
+def generate_inputs_base(
+    protocol: Dict,
+    code: orm.Code,
+    structure: StructureData,
+    override: Dict[str, Any] = None
+) -> Dict[str, Any]:
+    """Generate the inputs for the `AbinitBaseWorkChain` for a given code, structure and pseudo potential family.
+
+    :param protocol: the dictionary with protocol inputs.
+    :param code: the code to use.
+    :param structure: the input structure.
+    :param override: a dictionary to override specific inputs.
+    :return: the fully defined input dictionary.
+    """
+    protocol['abinit'] = generate_inputs_calculation(protocol['abinit'], code, structure, override.get('abinit', {}))
+    merged = recursive_merge(protocol, override or {})
+
+    dictionary = {
+        'abinit': merged['abinit'],
+    }
+
+    return dictionary
+
+
+def generate_inputs_calculation(
+    protocol: Dict,
+    code: orm.Code,
+    structure: StructureData,
+    override: Dict[str, Any] = None
+) -> Dict[str, Any]:
+    """Generate the inputs for the `AbinitCalculation` for a given code, structure and pseudo potential family.
+
+    :param protocol: the dictionary with protocol inputs.
+    :param code: the code to use.
+    :param structure: the input structure.
+    :param override: a dictionary to override specific inputs.
+    :return: the fully defined input dictionary.
+    """
+    merged = recursive_merge(protocol, override or {})
+
+    dictionary = {
+        'code': code,
+        'structure': structure,
+        'parameters': orm.Dict(dict=merged['parameters']),
+        'metadata': merged.get('metadata', {})
+    }
+
+    return dictionary
