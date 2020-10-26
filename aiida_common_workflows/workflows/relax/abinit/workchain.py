@@ -3,7 +3,7 @@
 from aiida import orm
 from aiida.engine import calcfunction
 from aiida.plugins import WorkflowFactory
-from aiida_abinit.workchains.base import AbinitBaseWorkChain
+from aiida_abinit.workflows.base import AbinitBaseWorkChain
 
 from ..workchain import CommonRelaxWorkChain
 from .generator import AbinitRelaxInputsGenerator

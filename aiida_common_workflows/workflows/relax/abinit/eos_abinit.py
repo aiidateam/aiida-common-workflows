@@ -16,10 +16,12 @@ CALC_ENGINES = {
     'relax': {
         'code': 'abinit-9.2.1-ab@localhost',
         'options': {
-            'resources': {
-                'num_machines': 1
-            },
+            'withmpi': True,
             'max_wallclock_seconds': 86400,
+            'resources': {
+                'num_machines': 1,
+                'num_mpiprocs_per_machine': 2
+            }
         }
     }
 }
@@ -35,6 +37,7 @@ def launch():
     for scale in [0.94, 0.96, 0.98, 1, 1.02, 1.04, 1.06]:
         scaled = rescale(structure, scale)
         generator = RelaxWorkChain.get_inputs_generator()
+        #import pdb; pdb.set_trace()
         builder = generator.get_builder(scaled, CALC_ENGINES, protocol, relaxation_type, threshold_forces=0.001)
         results = run(builder)
         print(results['relaxed_structure'].get_cell_volume(), results['total_energy'].value)

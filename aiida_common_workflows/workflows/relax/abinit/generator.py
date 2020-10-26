@@ -11,7 +11,6 @@ from aiida import plugins
 from aiida.common import exceptions
 
 from aiida_common_workflows.workflows.relax.generator import RelaxInputsGenerator, RelaxType
-from qe_tools import CONSTANTS
 from pymatgen.core import units
 
 __all__ = ('AbinitRelaxInputsGenerator',)
@@ -69,7 +68,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
 
         protocol = self.get_protocol(protocol)
         code = calc_engines['relax']['code']
-        override = {}
+        override = {'abinit': {'metadata': {'options': calc_engines['relax']['options']}}}
 
         builder = self.process_class.get_builder()
         inputs = generate_inputs(self.process_class._process_class, protocol, code, structure, override)  # pylint: disable=protected-access
@@ -84,25 +83,25 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         else:
             raise ValueError('relaxation type `{}` is not supported'.format(relaxation_type.value))
 
-        builder.base.abinit['parameters']['optcell'] = optcell
-        builder.base.abinit['parameters']['ionmov'] = ionmov
+        builder.abinit['parameters']['optcell'] = optcell
+        builder.abinit['parameters']['ionmov'] = ionmov
 
         if threshold_forces is not None:  
             # The Abinit threshold_forces is in Ha/Bohr
-            threshold_f = threshold_forces * units.Ha_to_ev / units.bohr_to_ang # eV/Å
-            builder.base.abinit['parameters']['tolmxf'] = threshold_f
+            threshold_f = threshold_forces * units.Ha_to_eV / units.bohr_to_ang # eV/Å
+            builder.abinit['parameters']['tolmxf'] = threshold_f
             if threshold_stress is not None:
                 threshold_s = threshold_stress * units.Ha_to_eV / units.bohr_to_ang**3 
                 strfact = threshold_f / threshold_s
-                builder.base.abinit['parameters']['strfact'] = strfact
+                builder.abinit['parameters']['strfact'] = strfact
         else:
             threshold_f = 5.0e-5  # ABINIT default value
             if threshold_stress is not None:
                 threshold_s = threshold_stress * units.Ha_to_eV / units.bohr_to_ang**3 
                 strfact = threshold_f / threshold_s
-                builder.base.abinit['parameters']['strfact'] = strfact
+                builder.abinit['parameters']['strfact'] = strfact
                 #TODO: Warn the user that we are using the tolxmf Abinit default value. 
-                builder.base.abinit['parameters']['tolmxf'] = threshold_f
+                builder.abinit['parameters']['tolmxf'] = threshold_f
 
         return builder
 
@@ -131,7 +130,7 @@ def generate_inputs(
     from aiida.common.lang import type_check
 
     AbinitCalculation = plugins.CalculationFactory('abinit')  # pylint: disable=invalid-name
-    AbinitBaseWorkChain = plugins.CalculationFactory('abinit.base')  # pylint: disable=invalid-name
+    AbinitBaseWorkChain = plugins.WorkflowFactory('abinit.base')  # pylint: disable=invalid-name
 
     type_check(structure, orm.StructureData)
 
@@ -149,6 +148,8 @@ def generate_inputs(
         dictionary = generate_inputs_base(protocol, code, structure, override)
     else:
         raise NotImplementedError('process class {} is not supported'.format(process_class))
+
+    #import pdb; pdb.set_trace()
 
     return dictionary
 
