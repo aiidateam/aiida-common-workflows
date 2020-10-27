@@ -13,10 +13,8 @@ load_profile()
 CODE = 'abinit-9.2.1-ab@localhost'
 # CODE = 'abinit_9.2.1'
 STRUCTURE = 'Al'  # Si, Al, GeTe, Fe
-MAGNETISM = 'no' # Possibilities are 'no', 'ferro' or 'anti'
-INITIAL_MAG = 0.0 # Should be a float and is the initial magnetisation. For Fe should be 4.0
-SOC = 'no' # Possibilities are 'yes' or 'no'
-METAL = 'yes' # If the material is a metal, we need to change the occupation type
+KWARGS = {'magnetism': None, 'initial_magnetization': None, 'is_metallic': True, 'tsmear': 0.1, 'do_soc': False}
+
 
 def launch():
     """Launch the relax work chain for a basic silicon crystal structure at a range of scaling factors."""
@@ -34,10 +32,6 @@ def launch():
             'relaxation_type': RelaxType.ATOMS,
             'threshold_forces': 0.001,
             'calc_engines': {
-                'magnetism' : MAGNETISM, 
-                'initial_mag' : INITIAL_MAG, 
-                'SOC' : SOC, 
-                'metal' : METAL,
                 'relax': {
                     'code': CODE,
                     'options': {
@@ -49,7 +43,8 @@ def launch():
                         }
                     }
                 }
-            }
+            },
+            **KWARGS
         }
     }
 

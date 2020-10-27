@@ -57,7 +57,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         :param threshold_stress: target threshold for the stress in eV/Å^3.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
-        # pylint: disable=too-many-locals
+        # pylint: disable=too-many-locals,too-many-branches,too-many-statements
 
         super().get_builder(
             structure, calc_engines, protocol, relaxation_type, threshold_forces, threshold_stress, previous_workchain,
@@ -67,20 +67,58 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         protocol = self.get_protocol(protocol)
         code = calc_engines['relax']['code']
         override = {'abinit': {'metadata': {'options': calc_engines['relax']['options']}}}
-        # the type of magnetisation to be used
-        magnetism = calc_engines['magnetism']
-        # value for the initial magnetisation along the z axis.
-        initial_mag = float(calc_engines['initial_mag'])
-        # whether or not to use spin-orbit coupling
-        soc = calc_engines['SOC']
-        # whether or not the material is a metal
-        metal = calc_engines['metal']
+
+        if kwargs:
+            # param magnetism: Optional[str]
+            # param initial_magnetization: Optional[Union[float, List[float]]]
+            # param is_metallic: bool
+            # param tsmear: Optiona[float]
+            # param do_soc: bool
+            kwarg_override = {}
+
+            magnetism = kwargs.get('magnetism', None)
+            initial_magnetization = kwargs.get('initial_magnetization', None)
+            is_metallic = kwargs.get('is_metallic', False)
+            tsmear = kwargs.get('tsmear', 0.01)  # Ha
+            do_soc = kwargs.get('do_soc', False)
+
+            if magnetism is not None:
+                if magnetism == 'ferro':
+                    if isinstance(initial_magnetization, (float, int)):
+                        spinat = [0.0, 0.0, float(initial_magnetization)]
+                    kwarg_override.update({
+                        'abinit': {
+                            'parameters': {
+                                'nsppol': 2,
+                                'spinat': f'{spinat[0]:f} {spinat[1]:f} {spinat[2]:f}'
+                            }
+                        }
+                    })
+                elif magnetism == 'antiferro':
+                    spinat = [0.0, 0.0, float(initial_magnetization)]
+                    kwarg_override.update({
+                        'abinit': {
+                            'parameters': {
+                                'nsppol': 1,
+                                'nspden': 2,
+                                'spinat': f'{spinat[0]:f} {spinat[1]:f} {spinat[2]:f}'
+                            }
+                        }
+                    })
+                elif magnetism == 'ferri':
+                    raise ValueError('Abinit does not yet support non-collinear magnetism')
+
+            if is_metallic:
+                kwarg_override.update({'abinit': {'parameters': {'occopt': 3, 'fband': 4, 'tsmear': tsmear}}})
+
+            if do_soc:
+                kwarg_override.update({'abinit': {'parameters': {'nspinor': 2}}})
+
+            override = recursive_merge(left=kwarg_override, right=override)
 
         builder = self.process_class.get_builder()
         inputs = generate_inputs(self.process_class._process_class, protocol, code, structure, override)  # pylint: disable=protected-access
         builder._update(inputs)  # pylint: disable=protected-access
-        #print('inputs ',inputs)
-        #print('nbnd ',inputs['abinit']['parameters']['nbnd'])
 
         if relaxation_type == RelaxType.ATOMS:
             optcell = 0
@@ -93,23 +131,6 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
 
         builder.abinit['parameters']['optcell'] = optcell
         builder.abinit['parameters']['ionmov'] = ionmov
-
-        # Add the information linked with magnetism and SOC 
-        if magnetism == 'ferro':
-            builder.abinit['parameters']['nsppol'] = 2
-            builder.abinit['parameters']['spinat'] = '0.0  0.0  '+str(initial_mag)
-        if magnetism == 'anti':
-            builder.abinit['parameters']['nsppol'] = 1
-            builder.abinit['parameters']['nspden'] = 2
-            builder.abinit['parameters']['spinat'] = '0.0  0.0  ' + str(initial_mag) + '\n     0.0  0.0  '+ str( - initial_mag)
-        if metal == 'yes':
-            # Fermi-Dirac smearing occupation with value defined by tsmear 
-            builder.abinit['parameters']['occopt'] = 3
-            builder.abinit['parameters']['tsmear'] = 0.01 # Ha
-            # In the case of metals, one typically need a bit more bands. 
-            #builder.abinit['parameters']['nbnd'] =  inputs['abinit']['parameters']['nbnd'] + 2
-        if soc == 'yes':
-            builder.abinit['parameters']['nspinor'] = 2
 
         if threshold_forces is not None:
             # The Abinit threshold_forces is in Ha/Bohr
@@ -148,8 +169,8 @@ def generate_inputs(
         i.e. ``AbinitCalculation`` or ``AbinitBaseWorkChain``
     :param protocol: the protocol based on which to choose input parameters
     :param code: the code or code name to use
-    :param magnetism: the type of magnetisation to be used 
-    :param initial_mag: value for the initial magnetisation along the z axis.  
+    :param magnetism: the type of magnetisation to be used
+    :param initial_mag: value for the initial magnetisation along the z axis.
     :param soc: whether or not to use spin-orbit coupling
     :param structure: the structure
     :param override: a dictionary to override specific inputs
@@ -213,9 +234,12 @@ def generate_inputs_base(protocol: Dict,
     """
     protocol['abinit'] = generate_inputs_calculation(protocol['abinit'], code, structure, override.get('abinit', {}))
     merged = recursive_merge(protocol, override or {})
-    merged['pseudo_family'] = orm.Str(merged['pseudo_family'])
 
-    return merged
+    merged['abinit']['parameters'] = orm.Dict(dict=merged['abinit']['parameters'])
+
+    dictionary = {'abinit': merged['abinit'], 'pseudo_family': orm.Str(merged['pseudo_family'])}
+
+    return dictionary
 
 
 def generate_inputs_calculation(
