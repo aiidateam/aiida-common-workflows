@@ -90,17 +90,40 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
 
             if magnetism is not None:
                 if magnetism == 'ferro':
-                    kwarg_override.update({'abinit': {'parameters': {'nsppol': 2, 'spinat': spinat}}})
+                    kwarg_override = recursive_merge(
+                        kwarg_override, {'abinit': {
+                            'parameters': {
+                                'nsppol': 2,
+                                'spinat': spinat
+                            }
+                        }}
+                    )
                 elif magnetism == 'antiferro':
-                    kwarg_override.update({'abinit': {'parameters': {'nsppol': 1, 'nspden': 2, 'spinat': spinat}}})
+                    kwarg_override = recursive_merge(
+                        kwarg_override, {'abinit': {
+                            'parameters': {
+                                'nsppol': 1,
+                                'nspden': 2,
+                                'spinat': spinat
+                            }
+                        }}
+                    )
                 elif magnetism == 'ferri':
                     raise ValueError('Abinit does not yet support non-collinear magnetism')
 
             if is_metallic:
-                kwarg_override.update({'abinit': {'parameters': {'occopt': 3, 'fband': 1.5, 'tsmear': tsmear}}})
+                kwarg_override = recursive_merge(
+                    kwarg_override, {'abinit': {
+                        'parameters': {
+                            'occopt': 3,
+                            'fband': 1.5,
+                            'tsmear': tsmear
+                        }
+                    }}
+                )
 
             if do_soc:
-                kwarg_override.update({'abinit': {'parameters': {'nspinor': 2}}})
+                kwarg_override = recursive_merge(kwarg_override, {'abinit': {'parameters': {'nspinor': 2}}})
 
             override = recursive_merge(left=kwarg_override, right=override)
 
