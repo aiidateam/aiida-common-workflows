@@ -10,10 +10,10 @@ from aiida_common_workflows.workflows.relax.generator import RelaxType
 
 load_profile()
 
-CODE = 'abinit-9.2.1-ab@localhost'
-# CODE = 'abinit_9.2.1'
+# CODE = 'abinit-9.2.1-ab@localhost'
+CODE = 'abinit_9.2.1'
 STRUCTURE = 'Al'  # Si, Al, GeTe, Fe
-KWARGS = {'magnetism': None, 'initial_magnetization': None, 'is_metallic': True, 'tsmear': 0.1, 'do_soc': False}
+KWARGS = {'magnetism': None, 'initial_magnetization': None, 'is_metallic': True, 'tsmear': 0.01, 'do_soc': False}
 
 
 def launch():

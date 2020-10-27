@@ -70,46 +70,34 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
 
         if kwargs:
             # param magnetism: Optional[str]
-            # param initial_magnetization: Optional[Union[float, List[float]]]
+            # param initial_magnetization: Optional[List[float]]
             # param is_metallic: bool
             # param tsmear: Optiona[float]
             # param do_soc: bool
             kwarg_override = {}
 
-            magnetism = kwargs.get('magnetism', None)
-            initial_magnetization = kwargs.get('initial_magnetization', None)
-            is_metallic = kwargs.get('is_metallic', False)
-            tsmear = kwargs.get('tsmear', 0.01)  # Ha
-            do_soc = kwargs.get('do_soc', False)
+            magnetism = kwargs.pop('magnetism', None)
+            initial_magnetization = kwargs.pop('initial_magnetization', None)
+            is_metallic = kwargs.pop('is_metallic', False)
+            tsmear = kwargs.pop('tsmear', 0.01)  # Ha
+            do_soc = kwargs.pop('do_soc', False)
+
+            if initial_magnetization is not None:
+                spinat_lines = []
+                for row in initial_magnetization:
+                    spinat_lines.append(' '.join([f'{spin:f}' for spin in row]))
+                spinat = '\n'.join(spinat_lines)
 
             if magnetism is not None:
                 if magnetism == 'ferro':
-                    if isinstance(initial_magnetization, (float, int)):
-                        spinat = [0.0, 0.0, float(initial_magnetization)]
-                    kwarg_override.update({
-                        'abinit': {
-                            'parameters': {
-                                'nsppol': 2,
-                                'spinat': f'{spinat[0]:f} {spinat[1]:f} {spinat[2]:f}'
-                            }
-                        }
-                    })
+                    kwarg_override.update({'abinit': {'parameters': {'nsppol': 2, 'spinat': spinat}}})
                 elif magnetism == 'antiferro':
-                    spinat = [0.0, 0.0, float(initial_magnetization)]
-                    kwarg_override.update({
-                        'abinit': {
-                            'parameters': {
-                                'nsppol': 1,
-                                'nspden': 2,
-                                'spinat': f'{spinat[0]:f} {spinat[1]:f} {spinat[2]:f}'
-                            }
-                        }
-                    })
+                    kwarg_override.update({'abinit': {'parameters': {'nsppol': 1, 'nspden': 2, 'spinat': spinat}}})
                 elif magnetism == 'ferri':
                     raise ValueError('Abinit does not yet support non-collinear magnetism')
 
             if is_metallic:
-                kwarg_override.update({'abinit': {'parameters': {'occopt': 3, 'fband': 4, 'tsmear': tsmear}}})
+                kwarg_override.update({'abinit': {'parameters': {'occopt': 3, 'fband': 1.5, 'tsmear': tsmear}}})
 
             if do_soc:
                 kwarg_override.update({'abinit': {'parameters': {'nspinor': 2}}})
