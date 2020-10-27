@@ -108,15 +108,13 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
                             }
                         }}
                     )
-                elif magnetism == 'ferri':
-                    raise ValueError('Abinit does not yet support non-collinear magnetism')
 
             if is_metallic:
                 kwarg_override = recursive_merge(
                     kwarg_override, {'abinit': {
                         'parameters': {
                             'occopt': 3,
-                            'fband': 1.5,
+                            'fband': 2,
                             'tsmear': tsmear
                         }
                     }}

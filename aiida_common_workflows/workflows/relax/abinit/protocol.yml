@@ -12,7 +12,8 @@ moderate:
                 shiftk: "0.5 0.5 0.5 \n 0.5 0.0 0.0 \n 0.0 0.5 0.0 \n 0.0 0.0 0.5"
                 nstep: 200
                 toldfe: 1.0e-12
-                chkprim: 0 # To allow for non-primitive unit cells 
+                chkprim: 0 # To allow for non-primitive unit cells
+                autoparal: 1
             settings:
                 additional_retrieve_list: ["aiidao_HIST.nc"]
         pseudo_family: 'nc-sr-04_pbe_standard_psp8'
@@ -23,15 +24,16 @@ precise:
     base:
         abinit:
             parameters:
-                ecut: 60.0
+                ecut: 50.0
                 ecutsm: 0.5
                 kptopt: 1
-                ngkpt: "12 12 12"
+                ngkpt: "8 8 8"
                 nshiftk: 4
                 shiftk: "0.5 0.5 0.5 \n 0.5 0.0 0.0 \n 0.0 0.5 0.0 \n 0.0 0.0 0.5"
                 nstep: 300
                 toldfe: 1.0e-12
-                chkprim: 0 # To allow for non-primitive unit cells 
+                chkprim: 0 # To allow for non-primitive unit cells
+                autoparal: 1
             settings:
                 additional_retrieve_list: ["aiidao_HIST.nc"]
         pseudo_family: 'nc-fr-04_pbe_stringent_psp8'
@@ -50,7 +52,8 @@ fast:
                 shiftk: "0.5 0.5 0.5 \n 0.5 0.0 0.0 \n 0.0 0.5 0.0 \n 0.0 0.0 0.5"
                 nstep: 100
                 toldfe: 1.0e-12
-                chkprim: 0 # To allow for non-primitive unit cells 
+                chkprim: 0 # To allow for non-primitive unit cells
+                autoparal: 1
             settings:
                 additional_retrieve_list: ["aiidao_HIST.nc"]
         pseudo_family: 'nc-sr-04_pbe_standard_psp8'
