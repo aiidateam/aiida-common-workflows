@@ -2,7 +2,6 @@
 """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for Abinit."""
 from aiida import orm
 from aiida.engine import calcfunction
-from aiida.plugins import WorkflowFactory
 from aiida_abinit.workflows.base import AbinitBaseWorkChain
 
 from ..workchain import CommonRelaxWorkChain
@@ -26,6 +25,7 @@ def get_forces_from_trajectory(trajectory):
     forces.set_array(name='forces', array=trajectory.get_array('forces')[-1])
     return forces
 
+
 @calcfunction
 def get_total_energy(parameters):
     """Return the total energy from the given parameters node."""
@@ -35,7 +35,6 @@ def get_total_energy(parameters):
 class AbinitRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for Abinit."""
 
-#    _process_class = WorkflowFactory('abinit.base')
     _process_class = AbinitBaseWorkChain
     _generator_class = AbinitRelaxInputsGenerator
 
