@@ -107,7 +107,8 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             builder.abinit['parameters']['occopt'] = 3
             builder.abinit['parameters']['tsmear'] = 0.01 # Ha
             # In the case of metals, one typically need a bit more bands. 
-            #builder.abinit['parameters']['nbnd'] =  inputs['abinit']['parameters']['nbnd'] + 2
+            # This adds one band (times the number of atoms)
+            builder.abinit['parameters']['fband'] =  1
         if soc == 'yes':
             builder.abinit['parameters']['nspinor'] = 2
 
