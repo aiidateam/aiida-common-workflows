@@ -3,15 +3,13 @@
 import collections
 import pathlib
 from typing import Any, Dict
+
 import yaml
-
-from aiida import engine
-from aiida import orm 
-from aiida import plugins
-from aiida.common import exceptions
-
-from aiida_common_workflows.workflows.relax.generator import RelaxInputsGenerator, RelaxType
 from pymatgen.core import units
+
+from aiida import engine, orm, plugins
+from aiida.common import exceptions
+from aiida_common_workflows.workflows.relax.generator import (RelaxInputsGenerator, RelaxType)
 
 __all__ = ('AbinitRelaxInputsGenerator',)
 
@@ -86,21 +84,21 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         builder.abinit['parameters']['optcell'] = optcell
         builder.abinit['parameters']['ionmov'] = ionmov
 
-        if threshold_forces is not None:  
+        if threshold_forces is not None:
             # The Abinit threshold_forces is in Ha/Bohr
-            threshold_f = threshold_forces * units.Ha_to_eV / units.bohr_to_ang # eV/Å
+            threshold_f = threshold_forces * units.Ha_to_eV / units.bohr_to_ang  # eV/Å
             builder.abinit['parameters']['tolmxf'] = threshold_f
             if threshold_stress is not None:
-                threshold_s = threshold_stress * units.Ha_to_eV / units.bohr_to_ang**3 
+                threshold_s = threshold_stress * units.Ha_to_eV / units.bohr_to_ang**3  # eV/Å^3
                 strfact = threshold_f / threshold_s
                 builder.abinit['parameters']['strfact'] = strfact
         else:
             threshold_f = 5.0e-5  # ABINIT default value
             if threshold_stress is not None:
-                threshold_s = threshold_stress * units.Ha_to_eV / units.bohr_to_ang**3 
+                threshold_s = threshold_stress * units.Ha_to_eV / units.bohr_to_ang**3
                 strfact = threshold_f / threshold_s
                 builder.abinit['parameters']['strfact'] = strfact
-                #TODO: Warn the user that we are using the tolxmf Abinit default value. 
+                # How can we warn the user that we are using the tolxmf Abinit default value?
                 builder.abinit['parameters']['tolmxf'] = threshold_f
 
         return builder
@@ -119,7 +117,8 @@ def generate_inputs(
     defaults. This dictionary should have the same nested structure as the final input dictionary would have for the
     workchain submission.
 
-    :param process_class: process class, either calculation or workchain, i.e. ``AbinitCalculation`` or ``AbinitBaseWorkChain``
+    :param process_class: process class, either calculation or workchain,
+        i.e. ``AbinitCalculation`` or ``AbinitBaseWorkChain``
     :param protocol: the protocol based on which to choose input parameters
     :param code: the code or code name to use
     :param structure: the structure
@@ -149,8 +148,6 @@ def generate_inputs(
     else:
         raise NotImplementedError('process class {} is not supported'.format(process_class))
 
-    #import pdb; pdb.set_trace()
-
     return dictionary
 
 
@@ -172,12 +169,10 @@ def recursive_merge(left: Dict[str, Any], right: Dict[str, Any]) -> Dict[str, An
     return merged
 
 
-def generate_inputs_base(
-    protocol: Dict,
-    code: orm.Code,
-    structure: StructureData,
-    override: Dict[str, Any] = None
-) -> Dict[str, Any]:
+def generate_inputs_base(protocol: Dict,
+                         code: orm.Code,
+                         structure: StructureData,
+                         override: Dict[str, Any] = None) -> Dict[str, Any]:
     """Generate the inputs for the `AbinitBaseWorkChain` for a given code, structure and pseudo potential family.
 
     :param protocol: the dictionary with protocol inputs.
@@ -190,19 +185,11 @@ def generate_inputs_base(
     merged = recursive_merge(protocol, override or {})
     merged['pseudo_family'] = orm.Str(merged['pseudo_family'])
 
-    #Dictionary = {
-    #    'abinit': merged['abinit'],
-    #}
-
-    #return dictionary
     return merged
 
 
 def generate_inputs_calculation(
-    protocol: Dict,
-    code: orm.Code,
-    structure: StructureData,
-    override: Dict[str, Any] = None
+    protocol: Dict, code: orm.Code, structure: StructureData, override: Dict[str, Any] = None
 ) -> Dict[str, Any]:
     """Generate the inputs for the `AbinitCalculation` for a given code, structure and pseudo potential family.
 
