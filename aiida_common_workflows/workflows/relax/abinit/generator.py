@@ -67,10 +67,20 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         protocol = self.get_protocol(protocol)
         code = calc_engines['relax']['code']
         override = {'abinit': {'metadata': {'options': calc_engines['relax']['options']}}}
+        # the type of magnetisation to be used
+        magnetism = calc_engines['magnetism']
+        # value for the initial magnetisation along the z axis.
+        initial_mag = float(calc_engines['initial_mag'])
+        # whether or not to use spin-orbit coupling
+        soc = calc_engines['SOC']
+        # whether or not the material is a metal
+        metal = calc_engines['metal']
 
         builder = self.process_class.get_builder()
         inputs = generate_inputs(self.process_class._process_class, protocol, code, structure, override)  # pylint: disable=protected-access
         builder._update(inputs)  # pylint: disable=protected-access
+        #print('inputs ',inputs)
+        #print('nbnd ',inputs['abinit']['parameters']['nbnd'])
 
         if relaxation_type == RelaxType.ATOMS:
             optcell = 0
@@ -83,6 +93,23 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
 
         builder.abinit['parameters']['optcell'] = optcell
         builder.abinit['parameters']['ionmov'] = ionmov
+
+        # Add the information linked with magnetism and SOC 
+        if magnetism == 'ferro':
+            builder.abinit['parameters']['nsppol'] = 2
+            builder.abinit['parameters']['spinat'] = '0.0  0.0  '+str(initial_mag)
+        if magnetism == 'anti':
+            builder.abinit['parameters']['nsppol'] = 1
+            builder.abinit['parameters']['nspden'] = 2
+            builder.abinit['parameters']['spinat'] = '0.0  0.0  ' + str(initial_mag) + '\n     0.0  0.0  '+ str( - initial_mag)
+        if metal == 'yes':
+            # Fermi-Dirac smearing occupation with value defined by tsmear 
+            builder.abinit['parameters']['occopt'] = 3
+            builder.abinit['parameters']['tsmear'] = 0.01 # Ha
+            # In the case of metals, one typically need a bit more bands. 
+            #builder.abinit['parameters']['nbnd'] =  inputs['abinit']['parameters']['nbnd'] + 2
+        if soc == 'yes':
+            builder.abinit['parameters']['nspinor'] = 2
 
         if threshold_forces is not None:
             # The Abinit threshold_forces is in Ha/Bohr
@@ -121,6 +148,9 @@ def generate_inputs(
         i.e. ``AbinitCalculation`` or ``AbinitBaseWorkChain``
     :param protocol: the protocol based on which to choose input parameters
     :param code: the code or code name to use
+    :param magnetism: the type of magnetisation to be used 
+    :param initial_mag: value for the initial magnetisation along the z axis.  
+    :param soc: whether or not to use spin-orbit coupling
     :param structure: the structure
     :param override: a dictionary to override specific inputs
     :return: input dictionary
