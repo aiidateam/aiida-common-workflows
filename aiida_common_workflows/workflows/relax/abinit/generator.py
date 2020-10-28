@@ -66,7 +66,15 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
 
         protocol = self.get_protocol(protocol)
         code = calc_engines['relax']['code']
-        override = {'abinit': {'metadata': {'options': calc_engines['relax']['options']}}}
+        pseudo_family = orm.Group.objects.get(label=protocol.pop('pseudo_family'))
+        override = {
+            'abinit': {
+                'metadata': {
+                    'options': calc_engines['relax']['options']
+                },
+                'pseudos': pseudo_family.get_pseudos(structure=structure)
+            }
+        }
 
         if kwargs:
             # param magnetism: Optional[str]
@@ -244,9 +252,10 @@ def generate_inputs_base(protocol: Dict,
     protocol['abinit'] = generate_inputs_calculation(protocol['abinit'], code, structure, override.get('abinit', {}))
     merged = recursive_merge(protocol, override or {})
 
-    merged['abinit']['parameters'] = orm.Dict(dict=merged['abinit']['parameters'])
+    if isinstance(merged['abinit']['parameters'], dict):
+        merged['abinit']['parameters'] = orm.Dict(dict=merged['abinit']['parameters'])
 
-    dictionary = {'abinit': merged['abinit'], 'pseudo_family': orm.Str(merged['pseudo_family'])}
+    dictionary = {'abinit': merged['abinit'], 'kpoints_distance': orm.Float(merged['kpoints_distance'])}
 
     return dictionary
 
@@ -267,6 +276,7 @@ def generate_inputs_calculation(
     dictionary = {
         'code': code,
         'structure': structure,
+        'pseudos': merged['pseudos'],
         'parameters': orm.Dict(dict=merged['parameters']),
         'metadata': merged.get('metadata', {})
     }

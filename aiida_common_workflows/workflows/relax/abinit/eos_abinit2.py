@@ -10,13 +10,21 @@ from aiida_common_workflows.workflows.relax.generator import RelaxType
 
 load_profile()
 
-CODE = 'abinit-9.2.1-ab@localhost'
-#CODE = 'abinit_9.2.1'
-STRUCTURE = 'Fe'  # Si, Al, GeTe, Fe
+# CODE = 'abinit-9.2.1-ab@localhost'
+CODE = 'abinit_9.2.1'
+STRUCTURE = 'Si'  # Si, Al, GeTe, Fe
+# For Si
+KWARGS = {'magnetism': None, 'initial_magnetization': None, 'is_metallic': False, 'do_soc': False}
 # For Al
-#KWARGS = {'magnetism': None, 'initial_magnetization': None, 'is_metallic': True, 'tsmear': 0.01, 'do_soc': False}
+# KWARGS = {'magnetism': None, 'initial_magnetization': None, 'is_metallic': True, 'tsmear': 0.01, 'do_soc': False}
 # Fe Ferro
-KWARGS = {'magnetism': 'ferro', 'initial_magnetization': [[0.0, 0.0, 4.0], [0.0, 0.0, 4.0]], 'is_metallic': True, 'tsmear': 0.01, 'do_soc': False}
+# KWARGS = {'magnetism': 'ferro', 'initial_magnetization': [[0.0, 0.0, 4.0], [0.0, 0.0, 4.0]],
+#           'is_metallic': True, 'tsmear': 0.01, 'do_soc': False}
+# Fe Antiferro
+# # KWARGS = {'magnetism': 'antiferro', 'initial_magnetization': [[0.0, 0.0, 4.0], [0.0, 0.0, -4.0]],
+#             'is_metallic': True, 'tsmear': 0.01, 'do_soc': False}
+# For GeTe
+# KWARGS = {'magnetism': None, 'initial_magnetization': None, 'is_metallic': False, 'do_soc': True}
 
 
 def launch():
@@ -31,7 +39,7 @@ def launch():
         'structure': structure,
         'sub_process_class': 'common_workflows.relax.abinit',
         'generator_inputs': {
-            'protocol': 'moderate',
+            'protocol': 'precise',
             'relaxation_type': RelaxType.ATOMS,
             'threshold_forces': 0.001,
             'calc_engines': {
