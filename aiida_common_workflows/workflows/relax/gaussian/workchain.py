@@ -12,19 +12,24 @@ __all__ = ('GaussianRelaxWorkChain',)
 
 GaussianBaseWorkChain = WorkflowFactory('gaussian.base')
 
+EV_TO_EH = 0.03674930814
+ANG_TO_BOHR = 1.88972687
+
 
 @calcfunction
 def get_total_energy(parameters):
-    """Return the total energy from the output parameters node."""
+    """Return the total energy [eV] from the output parameters node."""
     return orm.Float(parameters['scfenergies'][-1])  # already eV
 
 
 @calcfunction
 def get_forces(parameters):
-    """Return the forces array from the output parameters node."""
-    forces = orm.ArrayData()
-    forces.set_array(name='forces', array=np.array(parameters['grads'][-1]))
-    return forces
+    """Return the forces array [eV/ang] from the output parameters node."""
+    # cclib parser keeps forces in au
+    forces_au = np.array(parameters['grads'][-1])
+    forces_arr = orm.ArrayData()
+    forces_arr.set_array(name='forces', array=forces_au * ANG_TO_BOHR / EV_TO_EH)
+    return forces_arr
 
 
 class GaussianRelaxWorkChain(CommonRelaxWorkChain):
