@@ -4,6 +4,8 @@
 from aiida import orm
 from aiida import plugins
 
+from aiida.orm import load_code
+
 from ..generator import RelaxInputsGenerator, RelaxType
 
 __all__ = ('GaussianRelaxInputsGenerator',)
@@ -78,24 +80,30 @@ class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
         link0_parameters = {'%chk': 'aiida.chk'}
 
         options = calc_engines['relax']['options']
-
-        # If memory is not set, Gaussian uses a default of 800 MB
-        # If memory is set, there should be extra ~1.5 GB reserved compared to what is specified to gaussian
-        if 'max_memory_kb' in options:
-            mem_mb = options['max_memory_kb'] // 1024
-            if mem_mb > 1600:
-                link0_parameters['%mem'] = '%dMB' % (mem_mb - 1500)
-
         res = options['resources']
+
+        if 'max_memory_kb' not in options:
+            # If memory is not set, set a default of 2 GB
+            link0_parameters['%mem'] = '2048MB'
+        else:
+            # If memory is set, specify 80% of it to gaussian
+            link0_parameters['%mem'] = '%dMB' % ((0.8 * options['max_memory_kb']) // 1024)
+
+        # Determine the number of processors that should be specified to Gaussian
         n_proc = None
         if 'tot_num_mpiprocs' in res:
             n_proc = res['tot_num_mpiprocs']
-        elif 'num_machines' in res and 'num_mpiprocs_per_machine' in res:
-            n_proc = res['num_machines'] * res['num_mpiprocs_per_machine']
+        elif 'num_machines' in res:
+            if 'num_mpiprocs_per_machine' in res:
+                n_proc = res['num_machines'] * res['num_mpiprocs_per_machine']
+            else:
+                code = load_code(calc_engines['relax']['code'])
+                def_mppm = code.computer.get_default_mpiprocs_per_machine()
+                if def_mppm is not None:
+                    n_proc = res['num_machines'] * def_mppm
 
         if n_proc is not None:
             link0_parameters['%nprocshared'] = '%d' % n_proc
-
         # -----------------------------------------------------------------
 
         sel_protocol = self.get_protocol(protocol)
