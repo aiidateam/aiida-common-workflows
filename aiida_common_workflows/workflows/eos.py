@@ -69,7 +69,7 @@ class EquationOfStateWorkChain(WorkChain):
         spec.input('scale_increment', valid_type=orm.Float, default=lambda: orm.Float(0.02),
             validator=validate_scale_increment,
             help='The relative difference between consecutive scaling factors.')
-        spec.input_namespace('generator_inputs',
+        spec.input_namespace('generator_inputs', dynamic=True,
             help='The inputs that will be passed to the inputs generator of the specified `sub_process`.')
         spec.input('generator_inputs.calc_engines', valid_type=dict, non_db=True)
         spec.input('generator_inputs.protocol', valid_type=str, non_db=True,
@@ -136,7 +136,7 @@ class EquationOfStateWorkChain(WorkChain):
     def inspect_eos(self):
         """Inspect all children workflows to make sure they finished successfully."""
         if any([not child.is_finished_ok for child in self.ctx.children]):
-            return self.exit_codes.ERROR_SUB_PROCESS_FAILED.format(cls=self.inputs.sub_process_class)
+            return self.exit_codes.ERROR_SUB_PROCESS_FAILED.format(cls=self.inputs.sub_process_class)  # pylint: disable=no-member
 
         for index, child in enumerate(self.ctx.children):
             volume = child.outputs.relaxed_structure.get_cell_volume()

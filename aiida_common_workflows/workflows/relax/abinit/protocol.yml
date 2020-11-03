@@ -1,0 +1,67 @@
+moderate:
+    name: "moderate"
+    description: "Protocol to relax a structure with normal precision at moderate computational cost."
+    pseudo_family: 'nc-sr-04_pbe_standard_psp8'
+    base:
+        kpoints_distance: 0.40
+        abinit:
+            parameters:
+                ecut: 30.0
+                ecutsm: 0.5
+                nshiftk: 4
+                shiftk: [
+                    [0.5, 0.5, 0.5],
+                    [0.5, 0.0, 0.0],
+                    [0.0, 0.5, 0.0],
+                    [0.0, 0.0, 0.5]
+                ]
+                nstep: 200
+                toldfe: 1.0e-12
+                chkprim: 0  # To allow for non-primitive unit cells
+                autoparal: 1
+
+
+precise:
+    name: "precise"
+    description: "Protocol to relax a structure with high precision at higher computational cost."
+    pseudo_family: 'nc-fr-04_pbe_stringent_psp8'
+    base:
+        kpoints_distance: 0.30
+        abinit:
+            parameters:
+                ecut: 50.0
+                ecutsm: 0.5
+                nshiftk: 4
+                shiftk: [
+                    [0.5, 0.5, 0.5],
+                    [0.5, 0.0, 0.0],
+                    [0.0, 0.5, 0.0],
+                    [0.0, 0.0, 0.5]
+                ]
+                nstep: 300
+                toldfe: 1.0e-12
+                chkprim: 0  # To allow for non-primitive unit cells
+                autoparal: 1
+
+
+fast:
+    name: "fast"
+    description: "Protocol to relax a structure with low precision at minimal computational cost for testing purposes."
+    pseudo_family: 'nc-sr-04_pbe_standard_psp8'
+    base:
+        kpoints_distance: 2.0
+        abinit:
+            parameters:
+                ecut: 20.0
+                ecutsm: 0.5
+                nshiftk: 4
+                shiftk: [
+                    [0.5, 0.5, 0.5],
+                    [0.5, 0.0, 0.0],
+                    [0.0, 0.5, 0.0],
+                    [0.0, 0.0, 0.5]
+                ]
+                nstep: 100
+                toldfe: 1.0e-12
+                chkprim: 0  # To allow for non-primitive unit cells
+                autoparal: 1
