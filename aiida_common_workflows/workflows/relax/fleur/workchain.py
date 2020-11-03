@@ -36,5 +36,5 @@ class FleurRelaxWorkChain(CommonRelaxWorkChain):
     def convert_outputs(self):
         """Convert the outputs of the sub workchain to the common output specification."""
         self.out('relaxed_structure', self.ctx.workchain.outputs.optimized_structure)
-        self.out('total_energy', get_total_energy(self.ctx.workchain.outputs.out))
-        self.out('forces', get_forces_from_trajectory(self.ctx.workchain.outputs.out))
+        self.out('total_energy', get_total_energy(self.ctx.workchain.outputs.output_relax_wc_para))
+        self.out('forces', get_forces_from_trajectory(self.ctx.workchain.outputs.output_relax_wc_para))
