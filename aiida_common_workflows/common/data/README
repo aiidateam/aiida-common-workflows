@@ -1,0 +1,19 @@
+The elemental crystal cif files have been obtained from the
+DeltaProject (https://molmod.ugent.be/deltacodesdft)
+The cifs for Al and Fe belongs to the "primCIFs" set,
+they contain all the symmetries specifications of the
+crystal and the space group. They are the convinient choice for
+codes that understand symmetries, however they are not the
+one that have been used for the delta test reported in the
+paper "Reproducibility in density functional theory calculations of solids"
+(https://science.sciencemag.org/content/351/6280/aad3000).
+The structures used for the paper are conventional cells, that
+guarantee minimal number of atoms in the cell also for
+codes that do not understand symmetries. They are collected
+in the folder "CIFs" of the DeltaProject.
+We took from there the cif for Si.
+
+The GeTe cif has been obtained from the AFLOW project
+(http://www.aflowlib.org/) and it is the relaxed structure
+obtained with DFT starting from the experimental cell
+of ICSD with reference 659806.

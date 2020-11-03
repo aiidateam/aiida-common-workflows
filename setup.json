@@ -22,11 +22,13 @@
         "aiida-quantumespresso~=3.2",
         "aiida-siesta",
         "aiida-sssp~=0.1.0",
-        "aiida-vasp"
+        "aiida-vasp",
+        "aiida-gaussian"
     ],
     "extras_require": {
         "tests": [
-            "pytest~=5.4"
+	      "pytest~=5.4",
+	      "pgtest~=1.3,>=1.3.1"
         ],
         "pre-commit": [
             "pre-commit~=2.2",
@@ -42,6 +44,7 @@
             "common_workflows.relax.bigdft = aiida_common_workflows.workflows.relax.bigdft.workchain:BigDftRelaxWorkChain",
             "common_workflows.relax.cp2k = aiida_common_workflows.workflows.relax.cp2k.workchain:Cp2kRelaxWorkChain",
             "common_workflows.relax.fleur = aiida_common_workflows.workflows.relax.fleur.workchain:FleurRelaxWorkChain",
+            "common_workflows.relax.gaussian = aiida_common_workflows.workflows.relax.gaussian.workchain:GaussianRelaxWorkChain",
             "common_workflows.relax.quantum_espresso = aiida_common_workflows.workflows.relax.quantum_espresso.workchain:QuantumEspressoRelaxWorkChain",
             "common_workflows.relax.siesta = aiida_common_workflows.workflows.relax.siesta.workchain:SiestaRelaxWorkChain",
             "common_workflows.relax.vasp = aiida_common_workflows.workflows.relax.vasp.workchain:VaspRelaxWorkChain"
