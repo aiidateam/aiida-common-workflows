@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for Quantum ESPRESSO."""
 import collections
+import copy
 import pathlib
 from typing import Any, Dict
 from math import pi
@@ -98,6 +99,23 @@ class CastepRelaxInputGenerator(RelaxInputsGenerator):
 
         builder = self.process_class.get_builder()
         inputs = generate_inputs(self.process_class._process_class, protocol, code, structure, override)  # pylint: disable=protected-access
+
+        # Finally, apply the logic for previous workchain
+        if previous_workchain:
+            previous_energy = previous_workchain.outputs.total_energy
+            query = orm.QueryBuilder()
+            query.append(orm.Node, filters={'id': previous_energy.pk}, tag='eng')
+            query.append(orm.CalcFunctionNode, filters={'id': previous_energy.pk}, with_outgoing='eng', tag='calcf')
+            query.append(orm.Dict, edge_filters={'label': 'output_parameters'}, with_outgoing='calcf', tag='output_parameters')
+            query.append(orm.CalcJobNode, with_outgoing='output_parameters')
+            previous_calcjob = query.one()  # The previous calcjob that computed the energy
+
+            # keep the previous kpoints mesh in the new workchain
+            previous_kpoints = copy.deepcopy(previous_calcjob.inputs.kpoints)
+            previous_kpoints.set_cell(structure.cell)
+            inputs['calc']['kpoints'] = previous_kpoints
+            inputs['base'].pop('kpoints_spacing', None)
+
         builder._update(inputs)  # pylint: disable=protected-access
         
         return builder
