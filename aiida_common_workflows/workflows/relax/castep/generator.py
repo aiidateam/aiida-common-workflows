@@ -106,7 +106,9 @@ class CastepRelaxInputGenerator(RelaxInputsGenerator):
             query = orm.QueryBuilder()
             query.append(orm.Node, filters={'id': previous_energy.pk}, tag='eng')
             query.append(orm.CalcFunctionNode, filters={'id': previous_energy.pk}, with_outgoing='eng', tag='calcf')
-            query.append(orm.Dict, edge_filters={'label': 'output_parameters'}, with_outgoing='calcf', tag='output_parameters')
+            query.append(
+                orm.Dict, edge_filters={'label': 'output_parameters'}, with_outgoing='calcf', tag='output_parameters'
+            )
             query.append(orm.CalcJobNode, with_outgoing='output_parameters')
             previous_calcjob = query.one()  # The previous calcjob that computed the energy
 
@@ -117,7 +119,7 @@ class CastepRelaxInputGenerator(RelaxInputsGenerator):
             inputs['base'].pop('kpoints_spacing', None)
 
         builder._update(inputs)  # pylint: disable=protected-access
-        
+
         return builder
 
 
@@ -203,11 +205,7 @@ def generate_inputs(
 
 
 def generate_inputs_relax(
-    protocol: Dict,
-    code: orm.Code,
-    structure: StructureData,
-    otfg_family: OTFGGroup,
-    override: Dict[str, Any] = None
+    protocol: Dict, code: orm.Code, structure: StructureData, otfg_family: OTFGGroup, override: Dict[str, Any] = None
 ) -> Dict[str, Any]:
     """Generate the inputs for the `CastepRelaxWorkChain` for a given code, structure and pseudo potential family.
 
@@ -238,11 +236,7 @@ def generate_inputs_relax(
 
 
 def generate_inputs_base(
-    protocol: Dict,
-    code: orm.Code,
-    structure: StructureData,
-    otfg_family: OTFGGroup,
-    override: Dict[str, Any] = None
+    protocol: Dict, code: orm.Code, structure: StructureData, otfg_family: OTFGGroup, override: Dict[str, Any] = None
 ) -> Dict[str, Any]:
     """Generate the inputs for the `PwBaseWorkChain` for a given code, structure and pseudo potential family.
 
@@ -274,11 +268,7 @@ def generate_inputs_base(
 
 
 def generate_inputs_calculation(
-    protocol: Dict,
-    code: orm.Code,
-    structure: StructureData,
-    otfg_family: OTFGGroup,
-    override: Dict[str, Any] = None
+    protocol: Dict, code: orm.Code, structure: StructureData, otfg_family: OTFGGroup, override: Dict[str, Any] = None
 ) -> Dict[str, Any]:
     """Generate the inputs for the `CastepCalculation` for a given code, structure and pseudo potential family.
 
@@ -313,6 +303,7 @@ def generate_inputs_calculation(
     # NOTE: Need to process settings
 
     return dictionary
+
 
 def ensure_otfg_family(family_name):
     """Add common OTFG families if they do not exist"""
