@@ -13,15 +13,21 @@ __all__ = ('CastepRelaxWorkChain',)
 @calcfunction
 def get_stress_from_trajectory(trajectory):
     """Return the stress array from the given trajectory data."""
+
+    # Taken from http://greif.geo.berkeley.edu/~driver/conversions.html
+    # 1 eV/Angstrom3 = 160.21766208 GPa
+    ev_to_gpa = 160.21766208
+
     stress = orm.ArrayData()
 
     arraynames = trajectory.get_arraynames()
     # Raw stress takes the precedence here
-    if "stress" in arraynames:
+    if 'stress' in arraynames:
         array_ = trajectory.get_array('stress')
     else:
         array_ = trajectory.get_array('symm_stress')
-    stress.set_array(name='stress', array=array_[-1])
+    # Convert stress back to eV/Angstrom3, CASTEP output in GPa
+    stress.set_array(name='stress', array=array_[-1] / ev_to_gpa)
     return stress
 
 
@@ -31,7 +37,8 @@ def get_forces_from_trajectory(trajectory):
     forces = orm.ArrayData()
     arraynames = trajectory.get_arraynames()
     # Raw forces takes the precedence here
-    if "forces" in arraynames:
+    # Forces are already in eV/Angstrom
+    if 'forces' in arraynames:
         array_ = trajectory.get_array('forces')
     else:
         array_ = trajectory.get_array('cons_forces')

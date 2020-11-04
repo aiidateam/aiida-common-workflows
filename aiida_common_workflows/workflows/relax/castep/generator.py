@@ -19,8 +19,6 @@ from ..generator import RelaxInputsGenerator, RelaxType
 
 __all__ = ('CastepRelaxInputGenerator',)
 
-StructureData = plugins.DataFactory('structure')
-
 
 class CastepRelaxInputGenerator(RelaxInputsGenerator):
     """Input generator for the `CastepRelaxWorkChain`."""
@@ -44,7 +42,7 @@ class CastepRelaxInputGenerator(RelaxInputsGenerator):
 
     def get_builder(
         self,
-        structure: StructureData,
+        structure: orm.StructureData,
         calc_engines: Dict[str, Any],
         protocol,
         relaxation_type: RelaxType,
@@ -71,7 +69,8 @@ class CastepRelaxInputGenerator(RelaxInputsGenerator):
         )
 
         # Taken from http://greif.geo.berkeley.edu/~driver/conversions.html
-        ev_to_GPa = 160.21766208
+        # 1 eV/Angstrom3 = 160.21766208 GPa
+        ev_to_gpa = 160.21766208
 
         protocol = self.get_protocol(protocol)
         code = calc_engines['relax']['code']
@@ -81,7 +80,7 @@ class CastepRelaxInputGenerator(RelaxInputsGenerator):
         if threshold_forces is not None:
             param['geom_force_tol'] = threshold_forces
         if threshold_stress is not None:
-            param['geom_stress_tol'] = threshold_stress * ev_to_GPa
+            param['geom_stress_tol'] = threshold_stress * ev_to_gpa
 
         if relaxation_type == RelaxType.ATOMS:
             param['fix_all_cell'] = True
@@ -146,7 +145,7 @@ def generate_inputs(
     process_class: engine.Process,
     protocol: Dict,
     code: orm.Code,
-    structure: StructureData,
+    structure: orm.StructureData,
     override: Dict[str, Any] = None
 ) -> Dict[str, Any]:
     """Generate the input parameters for the given workchain type for a given code, structure and pseudo family.
@@ -205,7 +204,11 @@ def generate_inputs(
 
 
 def generate_inputs_relax(
-    protocol: Dict, code: orm.Code, structure: StructureData, otfg_family: OTFGGroup, override: Dict[str, Any] = None
+    protocol: Dict,
+    code: orm.Code,
+    structure: orm.StructureData,
+    otfg_family: OTFGGroup,
+    override: Dict[str, Any] = None
 ) -> Dict[str, Any]:
     """Generate the inputs for the `CastepRelaxWorkChain` for a given code, structure and pseudo potential family.
 
@@ -236,7 +239,11 @@ def generate_inputs_relax(
 
 
 def generate_inputs_base(
-    protocol: Dict, code: orm.Code, structure: StructureData, otfg_family: OTFGGroup, override: Dict[str, Any] = None
+    protocol: Dict,
+    code: orm.Code,
+    structure: orm.StructureData,
+    otfg_family: OTFGGroup,
+    override: Dict[str, Any] = None
 ) -> Dict[str, Any]:
     """Generate the inputs for the `PwBaseWorkChain` for a given code, structure and pseudo potential family.
 
@@ -252,10 +259,10 @@ def generate_inputs_base(
     # Here we pass the base namespace in
     calc_dictionary = generate_inputs_calculation(protocol, code, structure, otfg_family, override.get('calc', {}))
     # Structure and pseudo should be define at base level
-    calc_dictionary.pop("structure")
-    calc_dictionary.pop("pseudos")
+    calc_dictionary.pop('structure')
+    calc_dictionary.pop('pseudos')
     # Remove the kpoints input as here we use the spacing directly
-    calc_dictionary.pop("kpoints", None)
+    calc_dictionary.pop('kpoints', None)
 
     dictionary = {
         'kpoints_spacing': orm.Float(merged['kpoints_spacing']),
@@ -268,7 +275,11 @@ def generate_inputs_base(
 
 
 def generate_inputs_calculation(
-    protocol: Dict, code: orm.Code, structure: StructureData, otfg_family: OTFGGroup, override: Dict[str, Any] = None
+    protocol: Dict,
+    code: orm.Code,
+    structure: orm.StructureData,
+    otfg_family: OTFGGroup,
+    override: Dict[str, Any] = None
 ) -> Dict[str, Any]:
     """Generate the inputs for the `CastepCalculation` for a given code, structure and pseudo potential family.
 
