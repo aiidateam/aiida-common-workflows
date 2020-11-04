@@ -105,10 +105,8 @@ class CastepRelaxInputGenerator(RelaxInputsGenerator):
             previous_energy = previous_workchain.outputs.total_energy
             query = orm.QueryBuilder()
             query.append(orm.Node, filters={'id': previous_energy.pk}, tag='eng')
-            query.append(orm.CalcFunctionNode, filters={'id': previous_energy.pk}, with_outgoing='eng', tag='calcf')
-            query.append(
-                orm.Dict, edge_filters={'label': 'output_parameters'}, with_outgoing='calcf', tag='output_parameters'
-            )
+            query.append(orm.CalcFunctionNode, with_outgoing='eng', tag='calcf')
+            query.append(orm.Dict, with_outgoing='calcf', tag='output_parameters')
             query.append(orm.CalcJobNode, with_outgoing='output_parameters')
             previous_calcjob = query.one()  # The previous calcjob that computed the energy
 
