@@ -72,7 +72,9 @@ class CastepRelaxInputGenerator(RelaxInputsGenerator):
         # 1 eV/Angstrom3 = 160.21766208 GPa
         ev_to_gpa = 160.21766208
 
-        protocol = self.get_protocol(protocol)
+        # Because the subsequent generators may modify this dictionary and convert things
+        # to AiiDA types, here we make a full copy of the original protocol
+        protocol = copy.deepcopy(self.get_protocol(protocol))
         code = calc_engines['relax']['code']
 
         override = {'base': {'calc': {'metadata': {'options': calc_engines['relax']['options']}}}}
@@ -165,8 +167,11 @@ def generate_inputs(
     # pylint: disable=too-many-arguments,unused-argument
     from aiida.common.lang import type_check
 
+    family_name = protocol['relax']['base']['pseudos_family']
+    if isinstance(family_name, orm.Str):
+        family_name = family_name.value
     try:
-        otfg_family = OTFGGroup.objects.get(label=protocol['relax']['base']['pseudos_family'])
+        otfg_family = OTFGGroup.objects.get(label=family_name)
     except exceptions.NotExistent:
         raise ValueError(
             'protocol `{}` requires the `{}` `pseudos family` but could not be found.'.format(
@@ -320,8 +325,12 @@ def ensure_otfg_family(family_name):
     from aiida.common import NotExistent
     from aiida_castep.data.otfg import upload_otfg_family
 
+    # Ensure family name is a str
+    if isinstance(family_name, orm.Str):
+        family_name = family_name.value
+
     try:
-        OTFGGroup.get(label=family_name)
+        OTFGGroup.objects.get(label=family_name)
     except NotExistent:
         description = f"CASTEP built-in on-the-fly generated pseudos libraray '{family_name}'"
         upload_otfg_family([family_name], family_name, description, stop_if_existing=True)
