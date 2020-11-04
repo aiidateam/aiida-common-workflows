@@ -108,7 +108,7 @@ class CastepRelaxInputGenerator(RelaxInputsGenerator):
             query.append(orm.CalcFunctionNode, with_outgoing='eng', tag='calcf')
             query.append(orm.Dict, with_outgoing='calcf', tag='output_parameters')
             query.append(orm.CalcJobNode, with_outgoing='output_parameters')
-            previous_calcjob = query.one()  # The previous calcjob that computed the energy
+            previous_calcjob = query.one()[0]  # The previous calcjob that computed the energy
 
             # keep the previous kpoints mesh in the new workchain
             previous_kpoints = copy.deepcopy(previous_calcjob.inputs.kpoints)
