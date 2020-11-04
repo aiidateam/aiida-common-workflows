@@ -11,7 +11,8 @@ from aiida import engine
 from aiida import orm
 from aiida import plugins
 from aiida.common import exceptions
-from aiida_castep.data import OTFGGroup, get_pseudos_from_structure
+from aiida_castep.data import get_pseudos_from_structure
+from aiida_castep.data.otfg import OTFGGroup
 
 from ..generator import RelaxInputsGenerator, RelaxType
 # pylint: disable=import-outside-toplevel
@@ -166,7 +167,6 @@ def generate_inputs(
     """
     # pylint: disable=too-many-arguments,unused-argument
     from aiida.common.lang import type_check
-    from aiida_castep.data.otfg import OTFGGroup
 
     try:
         otfg_family = OTFGGroup.objects.get(label=protocol['relax']['base']['pseudos_family'])
