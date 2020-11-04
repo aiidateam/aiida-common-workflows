@@ -93,27 +93,27 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
 
             if magnetism is not None:
                 if not initial_magnetization:
-                    #TODO this is a generic high spin initial state.
+                    # this is a generic high spin initial state.
                     # consider using tools in abipy.
                     initial_magnetization = [[0., 0., 5.]] * len(structure)
 
-                parameters["spinat"] = initial_magnetization
+                parameters['spinat'] = initial_magnetization
 
                 if magnetism == 'ferro':
-                    parameters["nsppol"] = 2
+                    parameters['nsppol'] = 2
                 elif magnetism == 'antiferro':
-                    parameters["nsppol"] = 1
-                    parameters["nspden"] = 2
+                    parameters['nsppol'] = 1
+                    parameters['nspden'] = 2
 
             if is_metallic:
-                parameters["occopt"] = 3
-                parameters["fband"] = 2
-                parameters["tsmear"] = tsmear
+                parameters['occopt'] = 3
+                parameters['fband'] = 2
+                parameters['tsmear'] = tsmear
 
             if do_soc:
-                parameters["nspinor"] = 2
+                parameters['nspinor'] = 2
 
-        override["abinit"]["parameters"] = parameters
+        override['abinit']['parameters'] = parameters
 
         builder = self.process_class.get_builder()
         inputs = generate_inputs(self.process_class._process_class, protocol, code, structure, override)  # pylint: disable=protected-access
@@ -143,6 +143,26 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             threshold_s = threshold_stress * units.eV_to_Ha / units.ang_to_bohr**3  # eV/Å^3
             strfact = threshold_f / threshold_s
             builder.abinit['parameters']['strfact'] = strfact
+
+        if previous_workchain is not None:
+            # ensure same k-points or k-points distance
+            try:
+                kpoints = previous_workchain.inputs.kpoints
+                builder.kpoints = kpoints
+            except exceptions.NotExistentAttributeError:
+                pass
+            else:
+                kpoints_distance = previous_workchain.inputs.kpoints_distance
+                builder.kpoints_distance = kpoints_distance
+
+            # ensure same k-points shift
+            shiftk = previous_workchain.inputs.abinit__parameters.get('shiftk', None)
+            if shiftk is not None:
+                builder.abinit['parameters']['shiftk'] = shiftk
+
+            nshiftk = previous_workchain.inputs.abinit__parameters.get('nshiftk', None)
+            if nshiftk is not None:
+                builder.abinit['parameters']['nshiftk'] = nshiftk
 
         return builder
 
