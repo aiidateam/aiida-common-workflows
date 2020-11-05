@@ -3,7 +3,7 @@
 import inspect
 
 from aiida import orm
-from aiida.common import exceptions
+from aiida.common import exceptions, InputValidationError
 from aiida.engine import WorkChain, append_, calcfunction
 from aiida.plugins import WorkflowFactory
 
@@ -108,6 +108,12 @@ class EquationOfStateWorkChain(WorkChain):
         """Return the builder for the relax workchain."""
         structure = scale_structure(self.inputs.structure, scale_factor)
         process_class = WorkflowFactory(self.inputs.sub_process_class)
+
+        rel_type = self.inputs.generator_inputs.relaxation_type
+        if 'CELL' in rel_type.name or 'VOLUME' in rel_type.name:
+            raise InputValidationError(
+                'Equation of state and relaxation with variable volume are not compatible'
+                )
 
         builder = process_class.get_inputs_generator().get_builder(
             structure,
