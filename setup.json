@@ -15,15 +15,18 @@
     "description": "AiiDA package with utilities and interfaces for common workflows.",
     "python_requires": ">=3.6",
     "install_requires": [
+        "abipy",
+        "aiida-abinit",
         "aiida-core[atomic_tools]~=1.2",
         "aiida-bigdft",
         "aiida-cp2k~=1.1",
         "aiida-fleur~=1.1",
+        "aiida-gaussian",
+        "aiida-pseudo",
         "aiida-quantumespresso~=3.2",
         "aiida-siesta",
         "aiida-sssp~=0.1.0",
-        "aiida-vasp",
-        "aiida-gaussian"
+        "aiida-vasp"
     ],
     "extras_require": {
         "tests": [
@@ -47,7 +50,8 @@
             "common_workflows.relax.gaussian = aiida_common_workflows.workflows.relax.gaussian.workchain:GaussianRelaxWorkChain",
             "common_workflows.relax.quantum_espresso = aiida_common_workflows.workflows.relax.quantum_espresso.workchain:QuantumEspressoRelaxWorkChain",
             "common_workflows.relax.siesta = aiida_common_workflows.workflows.relax.siesta.workchain:SiestaRelaxWorkChain",
-            "common_workflows.relax.vasp = aiida_common_workflows.workflows.relax.vasp.workchain:VaspRelaxWorkChain"
+            "common_workflows.relax.vasp = aiida_common_workflows.workflows.relax.vasp.workchain:VaspRelaxWorkChain",
+            "common_workflows.relax.abinit = aiida_common_workflows.workflows.relax.abinit.workchain:AbinitRelaxWorkChain"
         ]
     },
     "license": "MIT License",

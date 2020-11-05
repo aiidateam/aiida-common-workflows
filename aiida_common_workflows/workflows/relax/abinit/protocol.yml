@@ -1,0 +1,61 @@
+moderate:
+    name: "moderate"
+    description: "Protocol to relax a structure with normal precision at moderate computational cost."
+    pseudo_family: 'nc-sr-04_pbe_standard_psp8'
+    base:
+        kpoints_distance: 0.20
+        abinit:
+            parameters:
+                ecut: 40.0
+                ecutsm: 0.5
+                nshiftk: 1
+                shiftk: [
+                    [0.5, 0.5, 0.5]
+                ]
+                nstep: 200
+                toldfe: 1.0e-12
+                chkprim: 0  # To allow for non-primitive unit cells
+                chksymbreak: 0  # No check on the symmetries of the k-points
+                autoparal: 1  # Run Abinit's built-in automatic parallelization
+
+
+precise:
+    name: "precise"
+    description: "Protocol to relax a structure with high precision at higher computational cost."
+    pseudo_family: 'nc-fr-04_pbe_standard_psp8'
+    base:
+        kpoints_distance: 0.15
+        abinit:
+            parameters:
+                ecut: 60.0
+                ecutsm: 0.5
+                nshiftk: 1
+                shiftk: [
+                    [0.5, 0.5, 0.5]
+                ]
+                nstep: 300
+                toldfe: 1.0e-12
+                chkprim: 0  # To allow for non-primitive unit cells
+                chksymbreak: 0  # No check on the symmetries of the k-points
+                autoparal: 1  # Run Abinit's built-in automatic parallelization
+
+
+fast:
+    name: "fast"
+    description: "Protocol to relax a structure with low precision at minimal computational cost for testing purposes."
+    pseudo_family: 'nc-sr-04_pbe_standard_psp8'
+    base:
+        kpoints_distance: 1.0
+        abinit:
+            parameters:
+                ecut: 20.0
+                ecutsm: 0.5
+                nshiftk: 1
+                shiftk: [
+                    [0.5, 0.5, 0.5]
+                ]
+                nstep: 100
+                toldfe: 1.0e-12
+                chkprim: 0  # To allow for non-primitive unit cells
+                chksymbreak: 0  # No check on the symmetries of the k-points
+                autoparal: 1  # Run Abinit's built-in automatic parallelization
