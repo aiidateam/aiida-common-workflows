@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for ABINIT."""
 import collections
+import copy
 import pathlib
 from typing import Any, Dict
 
@@ -64,7 +65,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             **kwargs
         )
 
-        protocol = self.get_protocol(protocol)
+        protocol = copy.deepcopy(self.get_protocol(protocol))
         code = calc_engines['relax']['code']
         pseudo_family = orm.Group.objects.get(label=protocol.pop('pseudo_family'))
         override = {
@@ -175,11 +176,11 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             builder.kpoints = new_kpoints
 
             # ensure same k-points shift
-            shiftk = previous_workchain.inputs.abinit__parameters.get('shiftk', None)
+            shiftk = previous_workchain.inputs.abinit__parameters.get_dict().get('shiftk', None)
             if shiftk is not None:
                 builder.abinit['parameters']['shiftk'] = shiftk
 
-            nshiftk = previous_workchain.inputs.abinit__parameters.get('nshiftk', None)
+            nshiftk = previous_workchain.inputs.abinit__parameters.get_dict().get('nshiftk', None)
             if nshiftk is not None:
                 builder.abinit['parameters']['nshiftk'] = nshiftk
 
