@@ -22,12 +22,11 @@
         "aiida-cp2k~=1.1",
         "aiida-fleur~=1.1",
         "aiida-gaussian",
-	"aiida-pseudo",
+        "aiida-pseudo",
         "aiida-quantumespresso~=3.2",
         "aiida-siesta",
         "aiida-sssp~=0.1.0",
-        "aiida-vasp",
-        "pymatgen"
+        "aiida-vasp"
     ],
     "extras_require": {
         "tests": [
