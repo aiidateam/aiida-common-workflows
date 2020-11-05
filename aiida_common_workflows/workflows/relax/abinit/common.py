@@ -5,6 +5,7 @@ from aiida.plugins import DataFactory
 
 StructureData = DataFactory('structure')
 
+
 def rescale(structure: StructureData, scale: orm.Float) -> StructureData:
     """Rescale a structure by a scaling factor using ASE.
     :param structure: structure to rescale.

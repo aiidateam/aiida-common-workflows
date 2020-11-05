@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for ABINIT."""
 import collections
+import copy
 import pathlib
 from typing import Any, Dict
 
@@ -64,7 +65,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             **kwargs
         )
 
-        protocol = self.get_protocol(protocol)
+        protocol = copy.deepcopy(self.get_protocol(protocol))
         code = calc_engines['relax']['code']
         pseudo_family = orm.Group.objects.get(label=protocol.pop('pseudo_family'))
         override = {
@@ -76,13 +77,14 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             }
         }
 
+        parameters = {}
+
         if kwargs:
             # param magnetism: Optional[str]
             # param initial_magnetization: Optional[List[float]]
             # param is_metallic: bool
-            # param tsmear: Optiona[float]
+            # param tsmear: Optional[float]
             # param do_soc: bool
-            kwarg_override = {}
 
             magnetism = kwargs.pop('magnetism', None)
             initial_magnetization = kwargs.pop('initial_magnetization', None)
@@ -90,48 +92,29 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             tsmear = kwargs.pop('tsmear', 0.01)  # Ha
             do_soc = kwargs.pop('do_soc', False)
 
-            if initial_magnetization is not None:
-                spinat_lines = []
-                for row in initial_magnetization:
-                    spinat_lines.append(' '.join([f'{spin:f}' for spin in row]))
-                spinat = '\n'.join(spinat_lines)
-
             if magnetism is not None:
+                if not initial_magnetization:
+                    # this is a generic high spin initial state.
+                    # consider using tools in abipy.
+                    initial_magnetization = [[0., 0., 5.]] * len(structure)
+
+                parameters['spinat'] = initial_magnetization
+
                 if magnetism == 'ferro':
-                    kwarg_override = recursive_merge(
-                        kwarg_override, {'abinit': {
-                            'parameters': {
-                                'nsppol': 2,
-                                'spinat': spinat
-                            }
-                        }}
-                    )
+                    parameters['nsppol'] = 2
                 elif magnetism == 'antiferro':
-                    kwarg_override = recursive_merge(
-                        kwarg_override, {'abinit': {
-                            'parameters': {
-                                'nsppol': 1,
-                                'nspden': 2,
-                                'spinat': spinat
-                            }
-                        }}
-                    )
+                    parameters['nsppol'] = 1
+                    parameters['nspden'] = 2
 
             if is_metallic:
-                kwarg_override = recursive_merge(
-                    kwarg_override, {'abinit': {
-                        'parameters': {
-                            'occopt': 3,
-                            'fband': 2,
-                            'tsmear': tsmear
-                        }
-                    }}
-                )
+                parameters['occopt'] = 3
+                parameters['fband'] = 2
+                parameters['tsmear'] = tsmear
 
             if do_soc:
-                kwarg_override = recursive_merge(kwarg_override, {'abinit': {'parameters': {'nspinor': 2}}})
+                parameters['nspinor'] = 2
 
-            override = recursive_merge(left=kwarg_override, right=override)
+        override['abinit']['parameters'] = parameters
 
         builder = self.process_class.get_builder()
         inputs = generate_inputs(self.process_class._process_class, protocol, code, structure, override)  # pylint: disable=protected-access
@@ -151,20 +134,55 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
 
         if threshold_forces is not None:
             # The Abinit threshold_forces is in Ha/Bohr
-            threshold_f = threshold_forces * units.Ha_to_eV / units.bohr_to_ang  # eV/Å
-            builder.abinit['parameters']['tolmxf'] = threshold_f
-            if threshold_stress is not None:
-                threshold_s = threshold_stress * units.Ha_to_eV / units.bohr_to_ang**3  # eV/Å^3
-                strfact = threshold_f / threshold_s
-                builder.abinit['parameters']['strfact'] = strfact
+            threshold_f = threshold_forces * units.eV_to_Ha / units.ang_to_bohr  # eV/Å
         else:
-            threshold_f = 5.0e-5  # ABINIT default value
-            if threshold_stress is not None:
-                threshold_s = threshold_stress * units.Ha_to_eV / units.bohr_to_ang**3
-                strfact = threshold_f / threshold_s
-                builder.abinit['parameters']['strfact'] = strfact
-                # How can we warn the user that we are using the tolxmf Abinit default value?
-                builder.abinit['parameters']['tolmxf'] = threshold_f
+            # ABINIT default value. Set it explicitly in case it is changed.
+            # How can we warn the user that we are using the tolxmf Abinit default value?
+            threshold_f = 5.0e-5
+        builder.abinit['parameters']['tolmxf'] = threshold_f
+        if threshold_stress is not None:
+            threshold_s = threshold_stress * units.eV_to_Ha / units.ang_to_bohr**3  # eV/Å^3
+            strfact = threshold_f / threshold_s
+            builder.abinit['parameters']['strfact'] = strfact
+
+        if previous_workchain is not None:
+            try:
+                previous_kpoints = previous_workchain.inputs.kpoints
+            except exceptions.NotExistentAttributeError:
+                query_builder = orm.QueryBuilder()
+                query_builder.append(orm.WorkChainNode, tag='relax', filters={'id': previous_workchain.id})
+                query_builder.append(
+                    orm.WorkChainNode,
+                    tag='base',
+                    with_incoming='relax',
+                )
+                query_builder.append(
+                    orm.CalcFunctionNode,
+                    tag='calcfunc',
+                    edge_filters={'label': 'create_kpoints_from_distance'},
+                    with_incoming='base'
+                )
+                query_builder.append(orm.KpointsData, tag='kpoints', with_incoming='calcfunc')
+                query_builder.order_by({orm.KpointsData: {'ctime': 'desc'}})
+                query_builder_result = query_builder.all()
+                if query_builder_result == []:
+                    raise ValueError(f'Could not find KpointsData associated with {previous_workchain}')
+                previous_kpoints = query_builder_result[0][0]
+
+            previous_kpoints_mesh, previous_kpoints_offset = previous_kpoints.get_kpoints_mesh()
+            new_kpoints = orm.KpointsData()
+            new_kpoints.set_cell_from_structure(structure)
+            new_kpoints.set_kpoints_mesh(previous_kpoints_mesh, previous_kpoints_offset)
+            builder.kpoints = new_kpoints
+
+            # ensure same k-points shift
+            shiftk = previous_workchain.inputs.abinit__parameters.get_dict().get('shiftk', None)
+            if shiftk is not None:
+                builder.abinit['parameters']['shiftk'] = shiftk
+
+            nshiftk = previous_workchain.inputs.abinit__parameters.get_dict().get('nshiftk', None)
+            if nshiftk is not None:
+                builder.abinit['parameters']['nshiftk'] = nshiftk
 
         return builder
 
