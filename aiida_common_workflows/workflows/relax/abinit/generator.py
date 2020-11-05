@@ -145,15 +145,34 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             builder.abinit['parameters']['strfact'] = strfact
 
         if previous_workchain is not None:
-            # ensure same k-points or k-points distance
             try:
-                kpoints = previous_workchain.inputs.kpoints
-                builder.kpoints = kpoints
+                previous_kpoints = previous_workchain.inputs.kpoints
             except exceptions.NotExistentAttributeError:
-                pass
-            else:
-                kpoints_distance = previous_workchain.inputs.kpoints_distance
-                builder.kpoints_distance = kpoints_distance
+                query_builder = orm.QueryBuilder()
+                query_builder.append(orm.WorkChainNode, tag='relax', filters={'id': previous_workchain.id})
+                query_builder.append(
+                    orm.WorkChainNode,
+                    tag='base',
+                    with_incoming='relax',
+                )
+                query_builder.append(
+                    orm.CalcFunctionNode,
+                    tag='calcfunc',
+                    edge_filters={'label': 'create_kpoints_from_distance'},
+                    with_incoming='base'
+                )
+                query_builder.append(orm.KpointsData, tag='kpoints', with_incoming='calcfunc')
+                query_builder.order_by({orm.KpointsData: {'ctime': 'desc'}})
+                query_builder_result = query_builder.all()
+                if query_builder_result == []:
+                    raise ValueError(f'Could not find KpointsData associated with {previous_workchain}')
+                previous_kpoints = query_builder_result[0][0]
+
+            previous_kpoints_mesh, previous_kpoints_offset = previous_kpoints.get_kpoints_mesh()
+            new_kpoints = orm.KpointsData()
+            new_kpoints.set_cell_from_structure(structure)
+            new_kpoints.set_kpoints_mesh(previous_kpoints_mesh, previous_kpoints_offset)
+            builder.kpoints = new_kpoints
 
             # ensure same k-points shift
             shiftk = previous_workchain.inputs.abinit__parameters.get('shiftk', None)
