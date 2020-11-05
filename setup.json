@@ -26,6 +26,7 @@
         "aiida-quantumespresso~=3.2",
         "aiida-siesta",
         "aiida-sssp~=0.1.0",
+        "aiida-castep>=1.2.0a2",
         "aiida-vasp"
     ],
     "extras_require": {
@@ -51,6 +52,7 @@
             "common_workflows.relax.quantum_espresso = aiida_common_workflows.workflows.relax.quantum_espresso.workchain:QuantumEspressoRelaxWorkChain",
             "common_workflows.relax.siesta = aiida_common_workflows.workflows.relax.siesta.workchain:SiestaRelaxWorkChain",
             "common_workflows.relax.vasp = aiida_common_workflows.workflows.relax.vasp.workchain:VaspRelaxWorkChain",
+            "common_workflows.relax.castep = aiida_common_workflows.workflows.relax.castep.workchain:CastepRelaxWorkChain",
             "common_workflows.relax.abinit = aiida_common_workflows.workflows.relax.abinit.workchain:AbinitRelaxWorkChain"
         ]
     },
