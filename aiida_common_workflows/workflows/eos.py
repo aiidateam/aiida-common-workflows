@@ -3,7 +3,7 @@
 import inspect
 
 from aiida import orm
-from aiida.common import exceptions, InputValidationError
+from aiida.common import exceptions
 from aiida.engine import WorkChain, append_, calcfunction
 from aiida.plugins import WorkflowFactory
 
@@ -111,7 +111,7 @@ class EquationOfStateWorkChain(WorkChain):
 
         rel_type = self.inputs.generator_inputs.relaxation_type
         if 'CELL' in rel_type.name or 'VOLUME' in rel_type.name:
-            raise InputValidationError(
+            raise ValueError(
                 'Equation of state and relaxation with variable volume are not compatible'
                 )
 

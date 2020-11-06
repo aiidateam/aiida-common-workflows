@@ -60,11 +60,11 @@ def test_eos_number_machines(run_cli_command, generate_structure, generate_code)
 
 @pytest.mark.usefixtures('aiida_profile')
 def test_eos_relax_types(run_cli_command, generate_structure, generate_code):
-    """Test the `--number-machines` option."""
+    """Test the `--relaxation-type` option."""
     structure = generate_structure().store()
     generate_code('quantumespresso.pw').store()
 
-    # Passing two values for `-m` should raise as only one value is required
+    # Test that a non-sensical relaxation type raises
     options = ['-S', str(structure.pk), '-r', 'cell', 'quantum_espresso']
     result = run_cli_command(cmd_eos, options, raises=click.BadParameter)
     assert "Error: Invalid value for '-r' / '--relaxation-type': invalid choice: cell. " \

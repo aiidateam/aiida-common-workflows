@@ -16,7 +16,7 @@ def get_workchain_plugins():
 
 
 def get_relax_types_eos():
-    """Return the relaxation types available for the common relax workflow."""
+    """Return the relaxation types available for the common equation of states workflow."""
     return [item.value for item in RelaxType if 'cell' not in item.value and 'volume' not in item.value]
 
 
