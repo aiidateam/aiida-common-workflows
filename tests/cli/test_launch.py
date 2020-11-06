@@ -56,3 +56,16 @@ def test_eos_number_machines(run_cli_command, generate_structure, generate_code)
     result = run_cli_command(cmd_eos, options, raises=click.BadParameter)
     assert 'Error: Invalid value for --number-machines: QuantumEspressoRelaxWorkChain has 1 engine steps, so ' \
            'requires 1 values' in result.output_lines
+
+
+@pytest.mark.usefixtures('aiida_profile')
+def test_eos_relax_types(run_cli_command, generate_structure, generate_code):
+    """Test the `--relaxation-type` option."""
+    structure = generate_structure().store()
+    generate_code('quantumespresso.pw').store()
+
+    # Test that a non-sensical relaxation type raises
+    options = ['-S', str(structure.pk), '-r', 'cell', 'quantum_espresso']
+    result = run_cli_command(cmd_eos, options, raises=click.BadParameter)
+    assert "Error: Invalid value for '-r' / '--relaxation-type': invalid choice: cell. " \
+            '(choose from none, atoms, shape, atoms_shape)' in result.output_lines

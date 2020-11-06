@@ -15,6 +15,11 @@ def get_workchain_plugins():
     return {name[len(entry_point_prefix):] for name in names if name.startswith(entry_point_prefix)}
 
 
+def get_relax_types_eos():
+    """Return the relaxation types available for the common equation of states workflow."""
+    return [item.value for item in RelaxType if 'cell' not in item.value and 'volume' not in item.value]
+
+
 def get_relax_types():
     """Return the relaxation types available for the common relax workflow."""
     return [entry.value for entry in RelaxType]

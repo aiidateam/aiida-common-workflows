@@ -11,9 +11,14 @@ __all__ = ('RelaxType', 'RelaxInputsGenerator')
 class RelaxType(Enum):
     """Enumeration of known relax types."""
 
+    NONE = 'none'
     ATOMS = 'atoms'
+    VOLUME = 'volume'
+    SHAPE = 'shape'
     CELL = 'cell'
     ATOMS_CELL = 'atoms_cell'
+    ATOMS_VOLUME = 'atoms_volume'
+    ATOMS_SHAPE = 'atoms_shape'
 
 
 class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):

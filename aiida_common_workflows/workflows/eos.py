@@ -109,6 +109,12 @@ class EquationOfStateWorkChain(WorkChain):
         structure = scale_structure(self.inputs.structure, scale_factor)
         process_class = WorkflowFactory(self.inputs.sub_process_class)
 
+        rel_type = self.inputs.generator_inputs.relaxation_type
+        if 'CELL' in rel_type.name or 'VOLUME' in rel_type.name:
+            raise ValueError(
+                'Equation of state and relaxation with variable volume are not compatible'
+                )
+
         builder = process_class.get_inputs_generator().get_builder(
             structure,
             previous_workchain=previous_workchain,
