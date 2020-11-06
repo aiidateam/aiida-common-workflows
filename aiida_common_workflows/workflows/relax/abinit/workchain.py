@@ -2,6 +2,7 @@
 """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for Abinit."""
 from aiida import orm
 from aiida.engine import calcfunction
+from aiida.common import exceptions
 from aiida_abinit.workflows.base import AbinitBaseWorkChain
 
 from ..workchain import CommonRelaxWorkChain
@@ -40,7 +41,10 @@ class AbinitRelaxWorkChain(CommonRelaxWorkChain):
 
     def convert_outputs(self):
         """Convert the outputs of the sub workchain to the common output specification."""
-        self.out('relaxed_structure', self.ctx.workchain.outputs.output_structure)
+        try:
+            self.out('relaxed_structure', self.ctx.workchain.outputs.output_structure)
+        except exceptions.NotExistentAttributeError:
+            pass
         self.out('total_energy', get_total_energy(self.ctx.workchain.outputs.output_parameters))
         self.out('forces', get_forces_from_trajectory(self.ctx.workchain.outputs.output_trajectory))
         self.out('stress', get_stress_from_trajectory(self.ctx.workchain.outputs.output_trajectory))

@@ -23,8 +23,22 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
     _default_protocol = 'moderate'
     _calc_types = {'relax': {'code_plugin': 'abinit', 'description': 'The code to perform the relaxation.'}}
     _relax_types = {
-        RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
-        RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell.'
+        RelaxType.NONE:
+        'Fix the atomic positions and volume and shape of the cell.',
+        RelaxType.ATOMS:
+        'Relax the atomic positions while keeping the volume and shape of the cell fixed.',
+        RelaxType.VOLUME:
+        'Relax the volume of the cell while keeping its shape and the atomic positions fixed.',
+        RelaxType.SHAPE:
+        'Relax the shape of the cell while keeping its volume and the atomic positions fixed.',
+        RelaxType.CELL:
+        'Relax the shape and volume of the cell while keeping the atomic positions fixed.',
+        RelaxType.ATOMS_CELL:
+        'Relax the atomic positions and volume and shape of the cell.',
+        RelaxType.ATOMS_VOLUME:
+        'Relax the atomic positions and volume of the cell while keeping the shape of the cell fixed.',
+        RelaxType.ATOMS_SHAPE:
+        'Relax the atomic positions and the shape of the cell while keeping the volume of the cell fixed.'
     }
 
     def __init__(self, *args, **kwargs):
@@ -120,11 +134,29 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         inputs = generate_inputs(self.process_class._process_class, protocol, code, structure, override)  # pylint: disable=protected-access
         builder._update(inputs)  # pylint: disable=protected-access
 
-        if relaxation_type == RelaxType.ATOMS:
+        if relaxation_type == RelaxType.NONE:
+            optcell = 0
+            ionmov = 0
+        elif relaxation_type == RelaxType.ATOMS:
             optcell = 0
             ionmov = 22
+        elif relaxation_type == RelaxType.VOLUME:
+            optcell = 1
+            ionmov = 0
+        elif relaxation_type == RelaxType.SHAPE:
+            optcell = 3
+            ionmov = 0
+        elif relaxation_type == RelaxType.CELL:
+            optcell = 2
+            ionmov = 0
         elif relaxation_type == RelaxType.ATOMS_CELL:
             optcell = 2
+            ionmov = 22
+        elif relaxation_type == RelaxType.ATOMS_VOLUME:
+            optcell = 1
+            ionmov = 22
+        elif relaxation_type == RelaxType.ATOMS_SHAPE:
+            optcell = 3
             ionmov = 22
         else:
             raise ValueError('relaxation type `{}` is not supported'.format(relaxation_type.value))
