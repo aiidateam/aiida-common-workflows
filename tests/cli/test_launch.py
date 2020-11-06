@@ -67,5 +67,5 @@ def test_eos_relax_types(run_cli_command, generate_structure, generate_code):
     # Passing two values for `-m` should raise as only one value is required
     options = ['-S', str(structure.pk), '-r', 'cell', 'quantum_espresso']
     result = run_cli_command(cmd_eos, options, raises=click.BadParameter)
-    assert 'Error: Invalid value for "-r" / "--relaxation-type": invalid choice: cell. ' \
-           '(choose from none, atoms, shape, atoms_shape)' in result.output_lines
+    assert "Error: Invalid value for '-r' / '--relaxation-type': invalid choice: cell. " \
+            '(choose from none, atoms, shape, atoms_shape)' in result.output_lines
