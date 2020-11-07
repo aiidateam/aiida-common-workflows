@@ -4,7 +4,7 @@
 import pytest
 
 from aiida_common_workflows.protocol import ProtocolRegistry
-from aiida_common_workflows.workflows.relax import RelaxInputsGenerator, RelaxType
+from aiida_common_workflows.workflows.relax import RelaxInputsGenerator, RelaxType, SpinType
 from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChain
 
 
@@ -34,6 +34,8 @@ def inputs_generator(protocol_registry) -> RelaxInputsGenerator:
             RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
             RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell.'
         }
+
+        _spin_types = {SpinType.NONE: '...', SpinType.COLLINEAR: '...'}
 
         def get_builder(self):
             pass

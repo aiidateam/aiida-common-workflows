@@ -5,7 +5,7 @@ from enum import Enum
 
 from aiida_common_workflows.protocol import ProtocolRegistry
 
-__all__ = ('RelaxType', 'RelaxInputsGenerator')
+__all__ = ('SpinType', 'RelaxType', 'RelaxInputsGenerator')
 
 
 class RelaxType(Enum):
@@ -33,7 +33,8 @@ class SpinType(Enum):
 class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
     """Input generator for the common structure relaxation workchains.
 
-    Subclasses should define the `_calc_types` and `_relax_types` class attributes, as well as the `get_builder` method.
+    Subclasses should define the `_calc_types`, `_spin_types` and `_relax_types` class attributes,
+    as well as the `get_builder` method.
     """
 
     _spin_types = None
