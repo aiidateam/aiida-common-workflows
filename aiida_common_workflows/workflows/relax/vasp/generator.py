@@ -7,7 +7,7 @@ from aiida.plugins import DataFactory
 from aiida.orm import Code
 from aiida.common.extendeddicts import AttributeDict
 
-from ..generator import RelaxInputsGenerator, RelaxType
+from ..generator import RelaxInputsGenerator, RelaxType, SpinType
 
 __all__ = ('VaspRelaxInputsGenerator',)
 
@@ -48,6 +48,9 @@ class VaspRelaxInputsGenerator(RelaxInputsGenerator):
         threshold_forces=None,
         threshold_stress=None,
         previous_workchain=None,
+        is_insulator=False,
+        spin=SpinType.NONE,
+        initial_magnetization='auto',
         **kwargs
     ):
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
@@ -65,7 +68,7 @@ class VaspRelaxInputsGenerator(RelaxInputsGenerator):
 
         super().get_builder(
             structure, calc_engines, protocol, relaxation_type, threshold_forces, threshold_stress, previous_workchain,
-            **kwargs
+            is_insulator, spin, initial_magnetization, **kwargs
         )
 
         # Get the protocol that we want to use

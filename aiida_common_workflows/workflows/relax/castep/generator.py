@@ -14,7 +14,7 @@ from aiida.common import exceptions
 from aiida_castep.data import get_pseudos_from_structure
 from aiida_castep.data.otfg import OTFGGroup
 
-from ..generator import RelaxInputsGenerator, RelaxType
+from ..generator import RelaxInputsGenerator, RelaxType, SpinType
 # pylint: disable=import-outside-toplevel
 
 __all__ = ('CastepRelaxInputGenerator',)
@@ -49,6 +49,9 @@ class CastepRelaxInputGenerator(RelaxInputsGenerator):
         threshold_forces: float = None,
         threshold_stress: float = None,
         previous_workchain=None,
+        is_insulator=False,
+        spin=SpinType.NONE,
+        initial_magnetization='auto',
         **kwargs
     ) -> engine.ProcessBuilder:
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
@@ -65,7 +68,7 @@ class CastepRelaxInputGenerator(RelaxInputsGenerator):
 
         super().get_builder(
             structure, calc_engines, protocol, relaxation_type, threshold_forces, threshold_stress, previous_workchain,
-            **kwargs
+            is_insulator, spin, initial_magnetization, **kwargs
         )
 
         # Taken from http://greif.geo.berkeley.edu/~driver/conversions.html

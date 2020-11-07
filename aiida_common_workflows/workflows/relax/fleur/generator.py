@@ -6,7 +6,7 @@ from typing import Any, Dict
 import yaml
 from aiida import orm
 from aiida.orm import Code, load_node
-from ..generator import RelaxInputsGenerator, RelaxType
+from ..generator import RelaxInputsGenerator, RelaxType, SpinType
 
 __all__ = ('FleurRelaxInputsGenerator',)
 
@@ -63,6 +63,9 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         threshold_forces=None,
         threshold_stress=None,
         previous_workchain=None,
+        is_insulator=False,
+        spin=SpinType.NONE,
+        initial_magnetization='auto',
         **kwargs
     ):
         """Return a process builder for the corresponding workchain class with
@@ -83,7 +86,7 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
 
         super().get_builder(
             structure, calc_engines, protocol, relaxation_type, threshold_forces, threshold_stress, previous_workchain,
-            **kwargs
+            is_insulator, spin, initial_magnetization, **kwargs
         )
 
         # pylint: disable=too-many-locals

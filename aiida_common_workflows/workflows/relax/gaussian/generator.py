@@ -9,7 +9,7 @@ from aiida import plugins
 
 from aiida.orm import load_code
 
-from ..generator import RelaxInputsGenerator, RelaxType
+from ..generator import RelaxInputsGenerator, RelaxType, SpinType
 
 __all__ = ('GaussianRelaxInputsGenerator',)
 
@@ -69,12 +69,15 @@ class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
         threshold_forces=None,
         threshold_stress=None,
         previous_workchain=None,
+        is_insulator=False,
+        spin=SpinType.NONE,
+        initial_magnetization='auto',
         **kwargs
     ):
         # pylint: disable=too-many-locals
         super().get_builder(
             structure, calc_engines, protocol, relaxation_type, threshold_forces, threshold_stress, previous_workchain,
-            **kwargs
+            is_insulator, spin, initial_magnetization, **kwargs
         )
 
         if relaxation_type != RelaxType.ATOMS:

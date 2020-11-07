@@ -21,12 +21,22 @@ class RelaxType(Enum):
     ATOMS_SHAPE = 'atoms_shape'
 
 
+class SpinType(Enum):
+    """Enumeration of known spin types."""
+
+    NONE = 'none'
+    COLLINEAR = 'collinear'
+    NON_COLLINEAR = 'non_collinear'
+    SPIN_ORBIT = 'spin_orbit'
+
+
 class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
     """Input generator for the common structure relaxation workchains.
 
     Subclasses should define the `_calc_types` and `_relax_types` class attributes, as well as the `get_builder` method.
     """
 
+    _spin_types = None
     _calc_types = None
     _relax_types = None
     _process_class = None
@@ -50,8 +60,14 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
         if self._relax_types is None:
             raise_invalid('does not define `_relax_types`.')
 
+        if self._spin_types is None:
+            raise_invalid('does not define `_spin_types`.')
+
         if any([not isinstance(relax_type, RelaxType) for relax_type in self._relax_types]):
             raise_invalid('`_relax_types` are not all an instance of `RelaxType`')
+
+        if any([not isinstance(spin_type, SpinType) for spin_type in self._spin_types]):
+            raise_invalid('`_spin_types` are not all an instance of `SpinType`')
 
     @property
     def process_class(self):
@@ -68,27 +84,42 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
         threshold_forces=None,
         threshold_stress=None,
         previous_workchain=None,
+        is_insulator=False,
+        spin=SpinType.NONE,
+        initial_magnetization='auto',
         **kwargs
     ):
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
 
-        :param structure: the structure to be relaxed
-        :param calc_engines: ...
-        :param protocol: the protocol to use when determining the workchain inputs
-        :param relaxation_type: the type of relaxation to perform, instance of `RelaxType`
+        :param structure: the structure to be relaxed.
+        :param calc_engines: a dictionary containing the computational resources for the relaxation.
+        :param protocol: the protocol to use when determining the workchain inputs.
+        :param relaxation_type: the type of relaxation to perform, instance of `RelaxType`.
         :param threshold_forces: target threshold for the forces in eV/Å.
         :param threshold_stress: target threshold for the stress in eV/Å^3.
         :param previous_workchain: a <Code>RelaxWorkChain node.
+        :param is_insulator: a bool to activate insulator options (by default metal calcs are assumed.
+        :param spin: the spin state of the calculation, instance of `RelaxType`.
+        :param initial_magnetization: the intial magnetization for a spin calculation ...
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
-        if previous_workchain:
+        if previous_workchain is not None:
             try:
                 prev_wc_class = previous_workchain.process_class
                 if not prev_wc_class == self.process_class:
                     raise ValueError('The "previous_workchain" must be a node of {}'.format(self.process_class))
             except AttributeError:
                 raise ValueError('The "previous_workchain" must be a node of {}'.format(self.process_class))
+
+        if relaxation_type not in self._relaxation_types:
+            raise ValueError('relaxation type `{}` is not supported'.format(relaxation_type))
+
+        if is_insulator not in [False, True, None]:
+            raise ValueError('The argument `is_insulator` accepts only `False`, `True` or `None`')
+
+        if spin not in self._spin_types:
+            raise ValueError('spin type `{}` is not supported'.format(spin))
 
     def get_calc_types(self):
         """Return the calculation types for this input generator."""
@@ -104,3 +135,7 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
     def get_relaxation_types(self):
         """Return the available relaxation types for this input generator."""
         return list(self._relax_types.keys())
+
+    def get_spin_types(self):
+        """Return the available spin types for this input generator."""
+        return list(self._spin_types.keys())

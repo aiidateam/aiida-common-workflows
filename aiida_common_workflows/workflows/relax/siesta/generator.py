@@ -4,7 +4,7 @@ import os
 import yaml
 from aiida.common import exceptions
 from aiida.orm import Group
-from aiida_common_workflows.workflows.relax.generator import RelaxInputsGenerator, RelaxType
+from aiida_common_workflows.workflows.relax.generator import RelaxInputsGenerator, RelaxType, SpinType
 
 __all__ = ('SiestaRelaxInputsGenerator',)
 
@@ -82,12 +82,15 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         threshold_forces=None,
         threshold_stress=None,
         previous_workchain=None,
+        is_insulator=False,
+        spin=SpinType.NONE,
+        initial_magnetization='auto',
         **kwargs
     ):  # pylint: disable=too-many-locals
 
         super().get_builder(
             structure, calc_engines, protocol, relaxation_type, threshold_forces, threshold_stress, previous_workchain,
-            **kwargs
+            is_insulator, spin, initial_magnetization, **kwargs
         )
 
         from aiida.orm import Dict

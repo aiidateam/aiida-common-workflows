@@ -11,7 +11,7 @@ from aiida import plugins
 from aiida.common import exceptions
 from aiida_sssp.groups import SsspFamily
 
-from ..generator import RelaxInputsGenerator, RelaxType
+from ..generator import RelaxInputsGenerator, RelaxType, SpinType
 
 __all__ = ('QuantumEspressoRelaxInputsGenerator',)
 
@@ -47,6 +47,9 @@ class QuantumEspressoRelaxInputsGenerator(RelaxInputsGenerator):
         threshold_forces: float = None,
         threshold_stress: float = None,
         previous_workchain=None,
+        is_insulator=False,
+        spin=SpinType.NONE,
+        initial_magnetization='auto',
         **kwargs
     ) -> engine.ProcessBuilder:
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
@@ -63,7 +66,7 @@ class QuantumEspressoRelaxInputsGenerator(RelaxInputsGenerator):
 
         super().get_builder(
             structure, calc_engines, protocol, relaxation_type, threshold_forces, threshold_stress, previous_workchain,
-            **kwargs
+            is_insulator, spin, initial_magnetization, **kwargs
         )
 
         from qe_tools import CONSTANTS

@@ -2,7 +2,7 @@
 """Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for BigDFT."""
 from aiida import orm
 from aiida.plugins import DataFactory
-from ..generator import RelaxInputsGenerator, RelaxType
+from ..generator import RelaxInputsGenerator, RelaxType, SpinType
 
 __all__ = ('BigDftRelaxInputsGenerator',)
 
@@ -61,12 +61,15 @@ class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
         threshold_forces=None,
         threshold_stress=None,
         previous_workchain=None,
+        is_insulator=False,
+        spin=SpinType.NONE,
+        initial_magnetization='auto',
         **kwargs
-    ):
+    ):  # pylint: disable=too-many-locals
 
         super().get_builder(
             structure, calc_engines, protocol, relaxation_type, threshold_forces, threshold_stress, previous_workchain,
-            **kwargs
+            is_insulator, spin, initial_magnetization, **kwargs
         )
 
         from aiida.orm import Dict
