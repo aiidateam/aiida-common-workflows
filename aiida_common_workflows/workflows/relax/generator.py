@@ -101,7 +101,7 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
         :param previous_workchain: a <Code>RelaxWorkChain node.
         :param is_insulator: a bool to activate insulator options (by default metal calcs are assumed.
         :param spin: the spin state of the calculation, instance of `RelaxType`.
-        :param initial_magnetization: the intial magnetization for a spin calculation ...
+        :param initial_magnetization: a list with the spin polarization for each site.
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
@@ -121,6 +121,12 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
 
         if spin not in self._spin_types:
             raise ValueError('spin type `{}` is not supported'.format(spin))
+
+        if initial_magnetization != 'auto':
+            if not isinstance(initial_magnetization, list):
+                raise ValueError('The `initial_magnetization` must be a list')
+            if len(initial_magnetization) != len(structure.sites):
+                raise ValueError('An initial magnetization must be defined for each site of `structure`')
 
     def get_calc_types(self):
         """Return the calculation types for this input generator."""
