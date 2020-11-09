@@ -28,17 +28,17 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         RelaxType.ATOMS:
         'Relax the atomic positions while keeping the volume and shape of the cell fixed.',
         RelaxType.VOLUME:
-        'Relax the volume of the cell while keeping its shape and the atomic positions fixed.',
+        'Relax the volume of the cell while keeping its shape and relative atomic positions fixed.',
         RelaxType.SHAPE:
-        'Relax the shape of the cell while keeping its volume and the atomic positions fixed.',
+        'Relax the shape of the cell while keeping its volume and the relative atomic positions fixed.',
         RelaxType.CELL:
-        'Relax the shape and volume of the cell while keeping the atomic positions fixed.',
+        'Relax the shape and volume of the cell while keeping the relative atomic positions fixed.',
         RelaxType.ATOMS_CELL:
         'Relax the atomic positions and volume and shape of the cell.',
         RelaxType.ATOMS_VOLUME:
-        'Relax the atomic positions and volume of the cell while keeping the shape of the cell fixed.',
+        'Relax the atomic positions and volume of the cell at fixed cell shape.',
         RelaxType.ATOMS_SHAPE:
-        'Relax the atomic positions and the shape of the cell while keeping the volume of the cell fixed.'
+        'Relax the atomic positions and the shape of the cell at fixed volume.'
     }
 
     def __init__(self, *args, **kwargs):
@@ -129,6 +129,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
                 parameters['nspinor'] = 2
 
         override['abinit']['parameters'] = parameters
+        override = recursive_merge(override, kwargs)
 
         builder = self.process_class.get_builder()
         inputs = generate_inputs(self.process_class._process_class, protocol, code, structure, override)  # pylint: disable=protected-access
