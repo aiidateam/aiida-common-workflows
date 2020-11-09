@@ -26,19 +26,19 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         RelaxType.NONE:
         'Fix the atomic positions and volume and shape of the cell.',
         RelaxType.ATOMS:
-        'Relax the atomic positions while keeping the volume and shape of the cell fixed.',
-        RelaxType.VOLUME:
-        'Relax the volume of the cell while keeping its shape and relative atomic positions fixed.',
-        RelaxType.SHAPE:
-        'Relax the shape of the cell while keeping its volume and the relative atomic positions fixed.',
-        RelaxType.CELL:
-        'Relax the shape and volume of the cell while keeping the relative atomic positions fixed.',
+        'Relax the atomic positions at fixed cell volume and shape.',
+        # RelaxType.VOLUME:
+        # 'Relax the cell volume at fixed cell shape and relative atomic positions.',
+        # RelaxType.SHAPE:
+        # 'Relax the cell shape and at fixed cell volume and relative atomic positions.',
+        # RelaxType.CELL:
+        # 'Relax the cell shape and volume at fixed relative atomic positions.',
         RelaxType.ATOMS_CELL:
-        'Relax the atomic positions and volume and shape of the cell.',
+        'Relax the atomic positions, cell shape, and cell volume.',
         RelaxType.ATOMS_VOLUME:
-        'Relax the atomic positions and volume of the cell at fixed cell shape.',
+        'Relax the atomic positions and cell volume at fixed cell shape.',
         RelaxType.ATOMS_SHAPE:
-        'Relax the atomic positions and the shape of the cell at fixed volume.'
+        'Relax the atomic positions cell shape at fixed cell volume.'
     }
 
     def __init__(self, *args, **kwargs):
@@ -141,15 +141,15 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         elif relaxation_type == RelaxType.ATOMS:
             optcell = 0
             ionmov = 22
-        elif relaxation_type == RelaxType.VOLUME:
-            optcell = 1
-            ionmov = 0
-        elif relaxation_type == RelaxType.SHAPE:
-            optcell = 3
-            ionmov = 0
-        elif relaxation_type == RelaxType.CELL:
-            optcell = 2
-            ionmov = 0
+        # elif relaxation_type == RelaxType.VOLUME:#
+        #     optcell = 1
+        #     ionmov = 0
+        # elif relaxation_type == RelaxType.SHAPE:#
+        #     optcell = 3
+        #     ionmov = 0
+        # elif relaxation_type == RelaxType.CELL:#
+        #     optcell = 2
+        #     ionmov = 0
         elif relaxation_type == RelaxType.ATOMS_CELL:
             optcell = 2
             ionmov = 22
@@ -164,6 +164,10 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
 
         builder.abinit['parameters']['optcell'] = optcell
         builder.abinit['parameters']['ionmov'] = ionmov
+        if relaxation_type in [RelaxType.NONE, RelaxType.ATOMS]:
+            builder.abinit['parameters']['dilatmx'] = 1.00
+        elif builder.abinit['parameters'].get('dilatmx', None) is None:
+            builder.abinit['parameters']['dilatmx'] = 1.10
 
         if threshold_forces is not None:
             # The Abinit threshold_forces is in Ha/Bohr
