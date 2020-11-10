@@ -23,22 +23,11 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
     _default_protocol = 'moderate'
     _calc_types = {'relax': {'code_plugin': 'abinit', 'description': 'The code to perform the relaxation.'}}
     _relax_types = {
-        RelaxType.NONE:
-        'Fix the atomic positions and volume and shape of the cell.',
-        RelaxType.ATOMS:
-        'Relax the atomic positions at fixed cell volume and shape.',
-        # RelaxType.VOLUME:
-        # 'Relax the cell volume at fixed cell shape and relative atomic positions.',
-        # RelaxType.SHAPE:
-        # 'Relax the cell shape and at fixed cell volume and relative atomic positions.',
-        # RelaxType.CELL:
-        # 'Relax the cell shape and volume at fixed relative atomic positions.',
-        RelaxType.ATOMS_CELL:
-        'Relax the atomic positions, cell shape, and cell volume.',
-        RelaxType.ATOMS_VOLUME:
-        'Relax the atomic positions and cell volume at fixed cell shape.',
-        RelaxType.ATOMS_SHAPE:
-        'Relax the atomic positions cell shape at fixed cell volume.'
+        RelaxType.NONE: 'Fix the atomic positions and volume and shape of the cell.',
+        RelaxType.ATOMS: 'Relax the atomic positions at fixed cell volume and shape.',
+        RelaxType.ATOMS_CELL: 'Relax the atomic positions, cell shape, and cell volume.',
+        RelaxType.ATOMS_VOLUME: 'Relax the atomic positions and cell volume at fixed cell shape.',
+        RelaxType.ATOMS_SHAPE: 'Relax the atomic positions cell shape at fixed cell volume.'
     }
 
     def __init__(self, *args, **kwargs):
@@ -141,15 +130,6 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         elif relaxation_type == RelaxType.ATOMS:
             optcell = 0
             ionmov = 22
-        # elif relaxation_type == RelaxType.VOLUME:#
-        #     optcell = 1
-        #     ionmov = 0
-        # elif relaxation_type == RelaxType.SHAPE:#
-        #     optcell = 3
-        #     ionmov = 0
-        # elif relaxation_type == RelaxType.CELL:#
-        #     optcell = 2
-        #     ionmov = 0
         elif relaxation_type == RelaxType.ATOMS_CELL:
             optcell = 2
             ionmov = 22
