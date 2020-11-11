@@ -153,4 +153,4 @@ def test_get_relaxation_types(inputs_generator):
 
 def test_get_spin_types(inputs_generator):
     """Test `RelaxInputsGenerator.get_spin_types`."""
-    assert set(inputs_generator.get_spin_types()) == set([SpinType.NONE, SpinType.COLLINEAR])
+    assert set(inputs_generator.get_spin_types()) == {SpinType.NONE, SpinType.COLLINEAR}
