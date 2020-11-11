@@ -15,7 +15,7 @@ class InitMagnetizationManager():
     and contains methods to manage these quantities.
     """
 
-    def __init__(self, structure, initial_spin_site):
+    def __init__(self, structure, magnetization_per_site):
         """
         Construct an instance of InitMagnetizationManager
         :param: structure: a StructureData
@@ -26,22 +26,22 @@ class InitMagnetizationManager():
         """
 
         if not isinstance(structure, StructureData):
-            raise RuntimeError('structure input must be a StructureData')
+            raise ValueError('structure input must be a StructureData')
 
-        if not isinstance(initial_spin_site, list):
-            raise RuntimeError('initial_spin_site must be a list')
+        if not isinstance(magnetization_per_site, list):
+            raise ValueError('magnetization_per_site must be a list')
 
-        if len(initial_spin_site) != len(structure.sites):
-            raise RuntimeError('an initial magnetization for each site must be spedified')
+        if len(magnetization_per_site) != len(structure.sites):
+            raise ValueError('an initial magnetization for each site must be spedified')
 
         self.structure = structure
-        self.magn_list = initial_spin_site
+        self.magnetization_per_site = magnetization_per_site
 
     def get_per_site_list(self):
         """
         Return the list of spin polarization per site.
         """
-        return self.magn_list
+        return self.magnetization_per_site
 
     def get_per_kind_dict_and_structure(self):
         """
@@ -97,7 +97,7 @@ class InitMagnetizationManager():
 
         for index in range(len(self.structure.sites)):
             kind = self.structure.sites[index].kind_name
-            magn = self.magn_list[index]
+            magn = self.magnetization_per_site[index]
             if kind not in dict_kinds:
                 dict_kinds[kind] = magn
                 collect_magn[kind] = [magn]
