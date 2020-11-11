@@ -148,7 +148,7 @@ def test_get_calc_type_schema(inputs_generator):
 
 def test_get_relaxation_types(inputs_generator):
     """Test `RelaxInputsGenerator.get_relaxation_types`."""
-    assert set(inputs_generator.get_relaxation_types()) == set([RelaxType.ATOMS, RelaxType.ATOMS_CELL])
+    assert set(inputs_generator.get_relaxation_types()) == {RelaxType.ATOMS, RelaxType.ATOMS_CELL}
 
 
 def test_get_spin_types(inputs_generator):
