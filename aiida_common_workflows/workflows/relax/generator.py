@@ -41,7 +41,7 @@ class ElectronicType(Enum):
 class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
     """Input generator for the common structure relaxation workchains.
 
-    Subclasses should define the `_calc_types`, `_spin_types` and `_relax_types` class attributes,
+    Subclasses should define the `_calc_types`, `_spin_types`, `_electronic_types` and `_relax_types` class attributes,
     as well as the `get_builder` method.
     """
 
@@ -76,13 +76,13 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
         if self._electronic_types is None:
             raise_invalid('does not define `_electronic_types`.')
 
-        if any([not isinstance(relax_type, RelaxType) for relax_type in self._relax_types]):
+        if any(not isinstance(relax_type, RelaxType) for relax_type in self._relax_types):
             raise_invalid('`_relax_types` are not all an instance of `RelaxType`')
 
-        if any([not isinstance(spin_type, SpinType) for spin_type in self._spin_types]):
+        if any(not isinstance(spin_type, SpinType) for spin_type in self._spin_types):
             raise_invalid('`_spin_types` are not all an instance of `SpinType`')
 
-        if any([not isinstance(electronic_type, ElectronicType) for electronic_type in self._electronic_types]):
+        if any(not isinstance(electronic_type, ElectronicType) for electronic_type in self._electronic_types):
             raise_invalid('`_electronic_types` are not all an instance of `ElectronicType`')
 
     @property
@@ -166,5 +166,5 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
         return list(self._spin_types.keys())
 
     def get_electronic_types(self):
-        """Return the available spin types for this input generator."""
+        """Return the available electronic types for this input generator."""
         return list(self._electronic_types.keys())

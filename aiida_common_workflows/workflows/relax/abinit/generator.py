@@ -10,7 +10,7 @@ from pymatgen.core import units
 
 from aiida import engine, orm, plugins
 from aiida.common import exceptions
-from aiida_common_workflows.workflows.relax.generator import (RelaxInputsGenerator, RelaxType, SpinType, ElectronicType)
+from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
 
 __all__ = ('AbinitRelaxInputsGenerator',)
 

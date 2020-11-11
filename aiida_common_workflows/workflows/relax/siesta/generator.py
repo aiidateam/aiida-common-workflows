@@ -4,7 +4,7 @@ import os
 import yaml
 from aiida.common import exceptions
 from aiida.orm import Group
-from aiida_common_workflows.workflows.relax.generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
+from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
 
 __all__ = ('SiestaRelaxInputsGenerator',)
 
