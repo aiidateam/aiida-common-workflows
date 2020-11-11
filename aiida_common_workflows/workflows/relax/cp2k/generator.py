@@ -9,7 +9,7 @@ from aiida import engine
 from aiida import orm
 from aiida import plugins
 
-from ..generator import RelaxInputsGenerator, RelaxType, SpinType
+from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
 
 __all__ = ('Cp2kRelaxInputsGenerator',)
 
@@ -106,7 +106,7 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
         threshold_forces: float = None,
         threshold_stress: float = None,
         previous_workchain=None,
-        is_insulator=False,
+        electronic_type=ElectronicType.METAL,
         spin_type=SpinType.NONE,
         magnetization_per_site=None,
         **kwargs
@@ -125,7 +125,7 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
 
         super().get_builder(
             structure, calc_engines, protocol, relaxation_type, threshold_forces, threshold_stress, previous_workchain,
-            is_insulator, spin_type, magnetization_per_site, **kwargs
+            electronic_type, spin_type, magnetization_per_site, **kwargs
         )
 
         # The builder.

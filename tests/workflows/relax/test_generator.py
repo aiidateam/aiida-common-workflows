@@ -4,7 +4,7 @@
 import pytest
 
 from aiida_common_workflows.protocol import ProtocolRegistry
-from aiida_common_workflows.workflows.relax import RelaxInputsGenerator, RelaxType, SpinType
+from aiida_common_workflows.workflows.relax import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
 from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChain
 
 
@@ -37,13 +37,15 @@ def inputs_generator(protocol_registry) -> RelaxInputsGenerator:
 
         _spin_types = {SpinType.NONE: '...', SpinType.COLLINEAR: '...'}
 
+        _electronic_types = {ElectronicType.INSULATOR: '...', ElectronicType.METAL: '...'}
+
         def get_builder(self):
             pass
 
     return InputsGenerator(process_class=CommonRelaxWorkChain)
 
 
-def test_validation(protocol_registry):
+def test_validation(protocol_registry):  #pylint: disable=too-many-statements
     """Test the validation of subclasses of `ProtocolRegistry`."""
 
     # pylint: disable=abstract-class-instantiated,function-redefined
@@ -54,6 +56,7 @@ def test_validation(protocol_registry):
         _calc_types = None
         _relax_types = None
         _spin_types = None
+        _electronic_types = None
 
     # Abstract `get_builder` method so should raise `TypeError`
     with pytest.raises(TypeError):
@@ -77,6 +80,7 @@ def test_validation(protocol_registry):
         _calc_types = {'relax': {}}
         _relax_types = None
         _spin_types = {SpinType.NONE: '...', SpinType.COLLINEAR: '...'}
+        _electronic_types = {ElectronicType.INSULATOR: '...', ElectronicType.METAL: '...'}
 
         def get_builder(self):
             pass
@@ -90,6 +94,7 @@ def test_validation(protocol_registry):
         _calc_types = None
         _relax_types = {RelaxType.ATOMS: 'description'}
         _spin_types = {SpinType.NONE: '...', SpinType.COLLINEAR: '...'}
+        _electronic_types = {ElectronicType.INSULATOR: '...', ElectronicType.METAL: '...'}
 
         def get_builder(self):
             pass
@@ -103,6 +108,21 @@ def test_validation(protocol_registry):
         _calc_types = {'relax': {}}
         _relax_types = {RelaxType.ATOMS: 'description'}
         _spin_types = None
+        _electronic_types = {ElectronicType.INSULATOR: '...', ElectronicType.METAL: '...'}
+
+        def get_builder(self):
+            pass
+
+    with pytest.raises(RuntimeError):
+        InputsGenerator(process_class=CommonRelaxWorkChain)
+
+    class InputsGenerator(protocol_registry, RelaxInputsGenerator):
+        """Invalid inputs generator implementation: no ``_electronic_types``"""
+
+        _calc_types = {'relax': {}}
+        _relax_types = {RelaxType.ATOMS: 'description'}
+        _spin_types = {SpinType.NONE: '...', SpinType.COLLINEAR: '...'}
+        _electronic_types = None
 
         def get_builder(self):
             pass
@@ -115,6 +135,8 @@ def test_validation(protocol_registry):
 
         _calc_types = {'relax': {}}
         _relax_types = {'invalid-type': 'description'}
+        _spin_types = {SpinType.NONE: '...', SpinType.COLLINEAR: '...'}
+        _electronic_types = {ElectronicType.INSULATOR: '...', ElectronicType.METAL: '...'}
 
         def get_builder(self):
             pass
@@ -128,6 +150,21 @@ def test_validation(protocol_registry):
         _calc_types = {'relax': {}}
         _relax_types = {RelaxType.ATOMS: 'description'}
         _spin_types = {'invalid-type': 'description'}
+        _electronic_types = {ElectronicType.INSULATOR: '...', ElectronicType.METAL: '...'}
+
+        def get_builder(self):
+            pass
+
+    with pytest.raises(RuntimeError):
+        InputsGenerator(process_class=CommonRelaxWorkChain)
+
+    class InputsGenerator(protocol_registry, RelaxInputsGenerator):
+        """Invalid inputs generator implementation: invalid ``_electronic_types``"""
+
+        _calc_types = {'relax': {}}
+        _relax_types = {RelaxType.ATOMS: 'description'}
+        _spin_types = {SpinType.NONE: '...', SpinType.COLLINEAR: '...'}
+        _electronic_types = {'invalid_type': '...'}
 
         def get_builder(self):
             pass
@@ -154,3 +191,8 @@ def test_get_relaxation_types(inputs_generator):
 def test_get_spin_types(inputs_generator):
     """Test `RelaxInputsGenerator.get_spin_types`."""
     assert set(inputs_generator.get_spin_types()) == {SpinType.NONE, SpinType.COLLINEAR}
+
+
+def test_get_electronic_types(inputs_generator):
+    """Test `RelaxInputsGenerator.get_electronic_types`."""
+    assert set(inputs_generator.get_electronic_types()) == {ElectronicType.INSULATOR, ElectronicType.METAL}

@@ -5,7 +5,7 @@ from enum import Enum
 
 from aiida_common_workflows.protocol import ProtocolRegistry
 
-__all__ = ('SpinType', 'RelaxType', 'RelaxInputsGenerator')
+__all__ = ('ElectronicType', 'SpinType', 'RelaxType', 'RelaxInputsGenerator')
 
 
 class RelaxType(Enum):
@@ -30,6 +30,14 @@ class SpinType(Enum):
     SPIN_ORBIT = 'spin_orbit'
 
 
+class ElectronicType(Enum):
+    """Enumeration of known electronic types."""
+
+    AUTOMATIC = 'automatic'
+    METAL = 'metal'
+    INSULATOR = 'insulator'
+
+
 class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
     """Input generator for the common structure relaxation workchains.
 
@@ -41,6 +49,7 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
     _calc_types = None
     _relax_types = None
     _process_class = None
+    _electronic_types = None
 
     def __init__(self, *args, **kwargs):
         """Construct an instance of the inputs generator, validating the class attributes."""
@@ -64,11 +73,17 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
         if self._spin_types is None:
             raise_invalid('does not define `_spin_types`.')
 
+        if self._electronic_types is None:
+            raise_invalid('does not define `_electronic_types`.')
+
         if any([not isinstance(relax_type, RelaxType) for relax_type in self._relax_types]):
             raise_invalid('`_relax_types` are not all an instance of `RelaxType`')
 
         if any([not isinstance(spin_type, SpinType) for spin_type in self._spin_types]):
             raise_invalid('`_spin_types` are not all an instance of `SpinType`')
+
+        if any([not isinstance(electronic_type, ElectronicType) for electronic_type in self._electronic_types]):
+            raise_invalid('`_electronic_types` are not all an instance of `ElectronicType`')
 
     @property
     def process_class(self):
@@ -85,7 +100,7 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
         threshold_forces=None,
         threshold_stress=None,
         previous_workchain=None,
-        is_insulator=False,
+        electronic_type=ElectronicType.METAL,
         spin_type=SpinType.NONE,
         magnetization_per_site=None,
         **kwargs
@@ -99,7 +114,7 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
         :param threshold_forces: target threshold for the forces in eV/Å.
         :param threshold_stress: target threshold for the stress in eV/Å^3.
         :param previous_workchain: a <Code>RelaxWorkChain node.
-        :param is_insulator: set to `True` to treat the system as an insulator, default is `False`.
+        :param electronic_type: electronics for the calculation (metal, insulator, ...), instance of `ElectronicType`.
         :param spin_type: the spin polarization type to use for the calculation, instance of `SpinType`.
         :param magnetization_per_site: a list with the initial spin polarization for each site. Float or
                                        integer in units of electrons.
@@ -119,8 +134,8 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
         if relaxation_type not in self._relaxation_types:
             raise ValueError('relaxation type `{}` is not supported'.format(relaxation_type))
 
-        if is_insulator not in [False, True, None]:
-            raise ValueError('The argument `is_insulator` accepts only `False`, `True` or `None`')
+        if electronic_type not in self._electronic_types:
+            raise ValueError('electronic type `{}` is not supported'.format(electronic_type))
 
         if spin_type not in self._spin_types:
             raise ValueError('spin type `{}` is not supported'.format(spin_type))
@@ -149,3 +164,7 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
     def get_spin_types(self):
         """Return the available spin types for this input generator."""
         return list(self._spin_types.keys())
+
+    def get_electronic_types(self):
+        """Return the available spin types for this input generator."""
+        return list(self._electronic_types.keys())

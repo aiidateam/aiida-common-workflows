@@ -10,7 +10,7 @@ from pymatgen.core import units
 
 from aiida import engine, orm, plugins
 from aiida.common import exceptions
-from aiida_common_workflows.workflows.relax.generator import (RelaxInputsGenerator, RelaxType, SpinType)
+from aiida_common_workflows.workflows.relax.generator import (RelaxInputsGenerator, RelaxType, SpinType, ElectronicType)
 
 __all__ = ('AbinitRelaxInputsGenerator',)
 
@@ -46,7 +46,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         threshold_forces: float = None,
         threshold_stress: float = None,
         previous_workchain=None,
-        is_insulator=False,
+        electronic_type=ElectronicType.METAL,
         spin_type=SpinType.NONE,
         magnetization_per_site=None,
         **kwargs
@@ -65,7 +65,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
 
         super().get_builder(
             structure, calc_engines, protocol, relaxation_type, threshold_forces, threshold_stress, previous_workchain,
-            is_insulator, spin_type, magnetization_per_site, **kwargs
+            electronic_type, spin_type, magnetization_per_site, **kwargs
         )
 
         protocol = copy.deepcopy(self.get_protocol(protocol))
