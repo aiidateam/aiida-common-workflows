@@ -99,7 +99,7 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
         :param threshold_forces: target threshold for the forces in eV/Å.
         :param threshold_stress: target threshold for the stress in eV/Å^3.
         :param previous_workchain: a <Code>RelaxWorkChain node.
-        :param is_insulator: a bool to activate insulator options (by default metal calcs are assumed.
+        :param is_insulator: set to `True` to treat the system as an insulator, default is `False`.
         :param spin: the spin state of the calculation, instance of `RelaxType`.
         :param initial_magnetization: a list with the spin polarization for each site.
         :param kwargs: any inputs that are specific to the plugin.
