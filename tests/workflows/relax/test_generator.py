@@ -123,7 +123,7 @@ def test_validation(protocol_registry):
         InputsGenerator(process_class=CommonRelaxWorkChain)
 
     class InputsGenerator(protocol_registry, RelaxInputsGenerator):
-        """Invalid inputs generator implementation. Invalid _relax_types"""
+        """Invalid inputs generator implementation: invalid ``_spin_types``"""
 
         _calc_types = {'relax': {}}
         _relax_types = {RelaxType.ATOMS: 'description'}
