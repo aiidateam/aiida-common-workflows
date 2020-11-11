@@ -100,7 +100,7 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
         :param threshold_stress: target threshold for the stress in eV/Å^3.
         :param previous_workchain: a <Code>RelaxWorkChain node.
         :param is_insulator: set to `True` to treat the system as an insulator, default is `False`.
-        :param spin: the spin state of the calculation, instance of `RelaxType`.
+        :param spin: the spin polarization type to use for the calculation, instance of `SpinType`.
         :param initial_magnetization: a list with the spin polarization for each site.
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
