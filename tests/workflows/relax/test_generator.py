@@ -85,7 +85,7 @@ def test_validation(protocol_registry):
         InputsGenerator(process_class=CommonRelaxWorkChain)
 
     class InputsGenerator(protocol_registry, RelaxInputsGenerator):
-        """Invalid inputs generator implementation. No calc_types"""
+        """Invalid inputs generator implementation: no ``_calc_types``"""
 
         _calc_types = None
         _relax_types = {RelaxType.ATOMS: 'description'}
