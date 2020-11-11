@@ -60,7 +60,7 @@ def test_validation(protocol_registry):
         InputsGenerator()
 
     class InputsGenerator(protocol_registry, RelaxInputsGenerator):
-        """Invalid inputs generator implementation. No process class passed."""
+        """Invalid inputs generator implementation: no process class passed."""
 
         _calc_types = {'relax': {}}
         _relax_types = {RelaxType.ATOMS: 'description'}
