@@ -9,7 +9,7 @@ from aiida import engine
 from aiida import orm
 from aiida import plugins
 
-from ..generator import RelaxInputsGenerator, RelaxType
+from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
 
 __all__ = ('Cp2kRelaxInputsGenerator',)
 
@@ -86,6 +86,8 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
         RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
         RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell.'
     }
+    _spin_types = {SpinType.NONE: '....', SpinType.COLLINEAR: '....'}
+    _electronic_types = {ElectronicType.METAL: '....', ElectronicType.INSULATOR: '....'}
 
     def __init__(self, *args, **kwargs):
         """Construct an instance of the inputs generator, validating the class attributes."""
@@ -106,8 +108,11 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
         threshold_forces: float = None,
         threshold_stress: float = None,
         previous_workchain=None,
+        electronic_type=ElectronicType.METAL,
+        spin_type=SpinType.NONE,
+        magnetization_per_site=None,
         **kwargs
-    ) -> engine.ProcessBuilder:  # pylint: disable=too-many-locals
+    ) -> engine.ProcessBuilder:
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
 
         :param structure: the structure to be relaxed
@@ -118,10 +123,11 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
         :param threshold_stress: target threshold for the stress in eV/Å^3.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
+        # pylint: disable=too-many-locals
 
         super().get_builder(
             structure, calc_engines, protocol, relaxation_type, threshold_forces, threshold_stress, previous_workchain,
-            **kwargs
+            electronic_type, spin_type, magnetization_per_site, **kwargs
         )
 
         # The builder.

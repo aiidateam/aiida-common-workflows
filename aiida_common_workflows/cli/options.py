@@ -3,7 +3,7 @@
 import click
 
 from aiida.cmdline.params import options, types
-from aiida_common_workflows.workflows.relax import RelaxType
+from aiida_common_workflows.workflows.relax import RelaxType, SpinType
 
 
 def get_workchain_plugins():
@@ -23,6 +23,11 @@ def get_relax_types_eos():
 def get_relax_types():
     """Return the relaxation types available for the common relax workflow."""
     return [entry.value for entry in RelaxType]
+
+
+def get_spin_types():
+    """Return the spin types available for the common relax workflow."""
+    return [entry.value for entry in SpinType]
 
 
 def get_structure():
@@ -94,6 +99,16 @@ RELAXATION_TYPE = options.OverridableOption(
     show_default=True,
     callback=lambda ctx, value: RelaxType(value),
     help='Select the relaxation type with which the workflow should be run.'
+)
+
+SPIN_TYPE = options.OverridableOption(
+    '-s',
+    '--spin-type',
+    type=types.LazyChoice(get_spin_types),
+    default='none',
+    show_default=True,
+    callback=lambda ctx, value: SpinType(value),
+    help='Select the spin type with which the workflow should be run.'
 )
 
 THRESHOLD_FORCES = options.OverridableOption(

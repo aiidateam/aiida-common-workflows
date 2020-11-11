@@ -4,7 +4,7 @@ import os
 import yaml
 from aiida.common import exceptions
 from aiida.orm import Group
-from aiida_common_workflows.workflows.relax.generator import RelaxInputsGenerator, RelaxType
+from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
 
 __all__ = ('SiestaRelaxInputsGenerator',)
 
@@ -35,6 +35,8 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         #        'it does not make much sense to specify a target stress or pressure in this'
         #        'case, except for anisotropic (traceless) stresses'
     }
+    _spin_types = {SpinType.NONE: '....', SpinType.COLLINEAR: '....'}
+    _electronic_types = {ElectronicType.METAL: '....', ElectronicType.INSULATOR: '....'}
 
     def __init__(self, *args, **kwargs):
         """Construct an instance of the inputs generator, validating the class attributes."""
@@ -82,12 +84,15 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         threshold_forces=None,
         threshold_stress=None,
         previous_workchain=None,
+        electronic_type=ElectronicType.METAL,
+        spin_type=SpinType.NONE,
+        magnetization_per_site=None,
         **kwargs
     ):  # pylint: disable=too-many-locals
 
         super().get_builder(
             structure, calc_engines, protocol, relaxation_type, threshold_forces, threshold_stress, previous_workchain,
-            **kwargs
+            electronic_type, spin_type, magnetization_per_site, **kwargs
         )
 
         from aiida.orm import Dict
