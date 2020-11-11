@@ -72,7 +72,7 @@ def test_validation(protocol_registry):
         InputsGenerator()
 
     class InputsGenerator(protocol_registry, RelaxInputsGenerator):
-        """Invalid inputs generator implementation. No _relax_types"""
+        """Invalid inputs generator implementation: no ``_relax_types``"""
 
         _calc_types = {'relax': {}}
         _relax_types = None
