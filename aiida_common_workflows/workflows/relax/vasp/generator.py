@@ -22,6 +22,8 @@ class VaspRelaxInputsGenerator(RelaxInputsGenerator):
         RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell (shape and volume).',
         RelaxType.CELL: 'Relax only the cell (shape and volume).'
     }
+    _spin_types = {SpinType.NONE: '....', SpinType.COLLINEAR: '....'}
+    _electronic_types = {ElectronicType.METAL: '....', ElectronicType.INSULATOR: '....'}
 
     def __init__(self, *args, **kwargs):
         """Construct an instance of the inputs generator, validating the class attributes."""

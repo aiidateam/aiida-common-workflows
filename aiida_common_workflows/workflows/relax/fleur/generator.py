@@ -43,6 +43,8 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         # RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell.'
         # currently not supported by Fleur
     }
+    _spin_types = {SpinType.NONE: '....', SpinType.COLLINEAR: '....'}
+    _electronic_types = {ElectronicType.METAL: '....', ElectronicType.INSULATOR: '....'}
 
     def __init__(self, *args, **kwargs):
         """Construct an instance of the inputs generator, validating the class attributes."""
