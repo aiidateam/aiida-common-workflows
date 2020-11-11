@@ -49,7 +49,7 @@ def test_validation(protocol_registry):
     # pylint: disable=abstract-class-instantiated,function-redefined
 
     class InputsGenerator(protocol_registry, RelaxInputsGenerator):
-        """Invalid inputs generator implementation. No gey_builder"""
+        """Invalid inputs generator implementation: no ``get_builder``"""
 
         _calc_types = None
         _relax_types = None
