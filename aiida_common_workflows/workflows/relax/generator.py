@@ -86,8 +86,8 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
         threshold_stress=None,
         previous_workchain=None,
         is_insulator=False,
-        spin=SpinType.NONE,
-        initial_magnetization='auto',
+        spin_type=SpinType.NONE,
+        magnetization_per_site=None,
         **kwargs
     ):
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
@@ -100,8 +100,11 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
         :param threshold_stress: target threshold for the stress in eV/Å^3.
         :param previous_workchain: a <Code>RelaxWorkChain node.
         :param is_insulator: set to `True` to treat the system as an insulator, default is `False`.
-        :param spin: the spin polarization type to use for the calculation, instance of `SpinType`.
-        :param initial_magnetization: a list with the spin polarization for each site.
+        :param spin_type: the spin polarization type to use for the calculation, instance of `SpinType`.
+        :param magnetization_per_site: a list with the initial spin polarization for each site. Float or
+                                       integer in units of electrons.
+                                       If not defined, the builder will automatically define the initial
+                                       magnetization if and only if `spin_type != SpinType.NONE`.
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
@@ -119,13 +122,13 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
         if is_insulator not in [False, True, None]:
             raise ValueError('The argument `is_insulator` accepts only `False`, `True` or `None`')
 
-        if spin not in self._spin_types:
-            raise ValueError('spin type `{}` is not supported'.format(spin))
+        if spin_type not in self._spin_types:
+            raise ValueError('spin type `{}` is not supported'.format(spin_type))
 
-        if initial_magnetization != 'auto':
-            if not isinstance(initial_magnetization, list):
+        if magnetization_per_site is not None:
+            if not isinstance(magnetization_per_site, list):
                 raise ValueError('The `initial_magnetization` must be a list')
-            if len(initial_magnetization) != len(structure.sites):
+            if len(magnetization_per_site) != len(structure.sites):
                 raise ValueError('An initial magnetization must be defined for each site of `structure`')
 
     def get_calc_types(self):

@@ -83,14 +83,14 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         threshold_stress=None,
         previous_workchain=None,
         is_insulator=False,
-        spin=SpinType.NONE,
-        initial_magnetization='auto',
+        spin_type=SpinType.NONE,
+        magnetization_per_site=None,
         **kwargs
     ):  # pylint: disable=too-many-locals
 
         super().get_builder(
             structure, calc_engines, protocol, relaxation_type, threshold_forces, threshold_stress, previous_workchain,
-            is_insulator, spin, initial_magnetization, **kwargs
+            is_insulator, spin_type, magnetization_per_site, **kwargs
         )
 
         from aiida.orm import Dict

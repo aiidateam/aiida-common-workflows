@@ -104,7 +104,7 @@ def cmd_relax(
         engines[engine]['code'] = code[0].full_label
 
     builder = generator.get_builder(
-        structure, engines, protocol, relaxation_type, threshold_forces, threshold_stress, spin=spin_type
+        structure, engines, protocol, relaxation_type, threshold_forces, threshold_stress, spin_type=spin_type
     )
     utils.launch_process(builder, daemon)
 
@@ -202,7 +202,7 @@ def cmd_eos(
             'calc_engines': engines,
             'protocol': protocol,
             'relaxation_type': relaxation_type,
-            'spin': spin_type,
+            'spin_type': spin_type,
         },
         'sub_process_class': get_entry_point_name_from_class(process_class).name,
     }

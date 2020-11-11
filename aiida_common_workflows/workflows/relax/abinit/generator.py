@@ -47,8 +47,8 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         threshold_stress: float = None,
         previous_workchain=None,
         is_insulator=False,
-        spin=SpinType.NONE,
-        initial_magnetization='auto',
+        spin_type=SpinType.NONE,
+        magnetization_per_site=None,
         **kwargs
     ) -> engine.ProcessBuilder:
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
@@ -65,7 +65,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
 
         super().get_builder(
             structure, calc_engines, protocol, relaxation_type, threshold_forces, threshold_stress, previous_workchain,
-            is_insulator, spin, initial_magnetization, **kwargs
+            is_insulator, spin_type, magnetization_per_site, **kwargs
         )
 
         protocol = copy.deepcopy(self.get_protocol(protocol))
