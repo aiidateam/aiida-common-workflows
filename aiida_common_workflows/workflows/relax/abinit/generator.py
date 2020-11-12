@@ -23,11 +23,11 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
     _default_protocol = 'moderate'
     _calc_types = {'relax': {'code_plugin': 'abinit', 'description': 'The code to perform the relaxation.'}}
     _relax_types = {
-        RelaxType.NONE: 'Fix the atomic positions and volume and shape of the cell.',
+        RelaxType.NONE: 'Fix the atomic positions, cell volume, and cell shape.',
         RelaxType.ATOMS: 'Relax the atomic positions at fixed cell volume and shape.',
-        RelaxType.ATOMS_CELL: 'Relax the atomic positions, cell shape, and cell volume.',
+        RelaxType.ATOMS_CELL: 'Relax the atomic positions, cell volume, and cell shape.',
         RelaxType.ATOMS_VOLUME: 'Relax the atomic positions and cell volume at fixed cell shape.',
-        RelaxType.ATOMS_SHAPE: 'Relax the atomic positions cell shape at fixed cell volume.'
+        RelaxType.ATOMS_SHAPE: 'Relax the atomic positions and cell shape at fixed cell volume.'
     }
     _spin_types = {SpinType.NONE: '....', SpinType.COLLINEAR: '....'}
     _electronic_types = {ElectronicType.METAL: '....', ElectronicType.INSULATOR: '....'}
