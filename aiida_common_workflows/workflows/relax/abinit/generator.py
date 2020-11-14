@@ -23,8 +23,11 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
     _default_protocol = 'moderate'
     _calc_types = {'relax': {'code_plugin': 'abinit', 'description': 'The code to perform the relaxation.'}}
     _relax_types = {
-        RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
-        RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell.'
+        RelaxType.NONE: 'Fix the atomic positions, cell volume, and cell shape.',
+        RelaxType.ATOMS: 'Relax the atomic positions at fixed cell volume and shape.',
+        RelaxType.ATOMS_CELL: 'Relax the atomic positions, cell volume, and cell shape.',
+        RelaxType.ATOMS_VOLUME: 'Relax the atomic positions and cell volume at fixed cell shape.',
+        RelaxType.ATOMS_SHAPE: 'Relax the atomic positions and cell shape at fixed cell volume.'
     }
     _spin_types = {SpinType.NONE: '....', SpinType.COLLINEAR: '....'}
     _electronic_types = {ElectronicType.METAL: '....', ElectronicType.INSULATOR: '....'}
@@ -120,22 +123,36 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
                 parameters['nspinor'] = 2
 
         override['abinit']['parameters'] = parameters
+        override = recursive_merge(override, kwargs)
 
         builder = self.process_class.get_builder()
         inputs = generate_inputs(self.process_class._process_class, protocol, code, structure, override)  # pylint: disable=protected-access
         builder._update(inputs)  # pylint: disable=protected-access
 
-        if relaxation_type == RelaxType.ATOMS:
+        if relaxation_type == RelaxType.NONE:
+            optcell = 0
+            ionmov = 0
+        elif relaxation_type == RelaxType.ATOMS:
             optcell = 0
             ionmov = 22
         elif relaxation_type == RelaxType.ATOMS_CELL:
             optcell = 2
+            ionmov = 22
+        elif relaxation_type == RelaxType.ATOMS_VOLUME:
+            optcell = 1
+            ionmov = 22
+        elif relaxation_type == RelaxType.ATOMS_SHAPE:
+            optcell = 3
             ionmov = 22
         else:
             raise ValueError('relaxation type `{}` is not supported'.format(relaxation_type.value))
 
         builder.abinit['parameters']['optcell'] = optcell
         builder.abinit['parameters']['ionmov'] = ionmov
+        if relaxation_type in [RelaxType.NONE, RelaxType.ATOMS]:
+            builder.abinit['parameters']['dilatmx'] = 1.00
+        elif builder.abinit['parameters'].get('dilatmx', None) is None:
+            builder.abinit['parameters']['dilatmx'] = 1.10
 
         if threshold_forces is not None:
             # The Abinit threshold_forces is in Ha/Bohr
