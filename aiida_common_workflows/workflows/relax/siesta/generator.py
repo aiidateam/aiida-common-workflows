@@ -86,7 +86,7 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         with open(_filepath) as _thefile:
             self._protocols = yaml.full_load(_thefile)
 
-    def get_builder(
+    def get_builder(  # pylint: disable=too-many-branches, too-many-locals
         self,
         structure: StructureData,
         calc_engines: Dict[str, Any],
@@ -100,8 +100,9 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         threshold_stress: float = None,
         previous_workchain=None,
         **kwargs
-    ) -> engine.ProcessBuilder:  # pylint: disable=too-many-locals,too-many-branches
-        """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
+    ) -> engine.ProcessBuilder:
+        """
+        Return a process builder for the corresponding workchain class with inputs set according to the protocol.
 
         :param structure: the structure to be relaxed.
         :param calc_engines: a dictionary containing the computational resources for the relaxation.
@@ -118,7 +119,7 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
-        # pylint: disable=too-many-locals
+
         protocol = protocol or self.get_default_protocol_name()
 
         super().get_builder(
@@ -140,7 +141,6 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
             import warnings
             warnings.warn('no protocol implemented with name {}, using default moderate'.format(protocol))
             protocol = self.get_default_protocol_name()
-        
         if 'relaxation' not in calc_engines:
             raise ValueError('The `calc_engines` dictionaly must contain "relaxation" as outermost key')
 
@@ -156,21 +156,21 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         # K points
         kpoints_mesh = self._get_kpoints(protocol, structure, previous_workchain)
 
-        # Parameters, including scf and relax and spin options
+        # Parameters, including scf ...
         parameters = self._get_param(protocol, structure)
-        if relaxation_type != RelaxType.NONE:
+        #... relax options ...
+        if relax_type != RelaxType.NONE:
             parameters['md-type-of-run'] = 'cg'
             parameters['md-num-cg-steps'] = 100
-        if relaxation_type == RelaxType.ATOMS_CELL:
+        if relax_type == RelaxType.ATOMS_CELL:
             parameters['md-variable-cell'] = True
         if threshold_forces:
             parameters['md-max-force-tol'] = str(threshold_forces) + ' eV/Ang'
         if threshold_stress:
             parameters['md-max-stress-tol'] = str(threshold_stress) + ' eV/Ang**3'
-
+        #... spin options (including initial magentization) ...
         if spin_type == SpinType.COLLINEAR:
             parameters['spin'] = 'polarized'
-
         if magnetization_per_site is not None:
             if spin_type == SpinType.NONE:
                 import warnings
