@@ -74,7 +74,7 @@ class EquationOfStateWorkChain(WorkChain):
         spec.input('generator_inputs.calc_engines', valid_type=dict, non_db=True)
         spec.input('generator_inputs.protocol', valid_type=str, non_db=True,
             help='The protocol to use when determining the workchain inputs.')
-        spec.input('generator_inputs.relaxation_type', valid_type=RelaxType, non_db=True,
+        spec.input('generator_inputs.relax_type', valid_type=RelaxType, non_db=True,
             help='The type of relaxation to perform.')
         spec.input('generator_inputs.threshold_forces', valid_type=float, required=False, non_db=True,
             help='Target threshold for the forces in eV/Å.')
@@ -109,11 +109,9 @@ class EquationOfStateWorkChain(WorkChain):
         structure = scale_structure(self.inputs.structure, scale_factor)
         process_class = WorkflowFactory(self.inputs.sub_process_class)
 
-        rel_type = self.inputs.generator_inputs.relaxation_type
-        if 'CELL' in rel_type.name or 'VOLUME' in rel_type.name:
-            raise ValueError(
-                'Equation of state and relaxation with variable volume are not compatible'
-                )
+        relax_type = self.inputs.generator_inputs.relax_type
+        if 'CELL' in relax_type.name or 'VOLUME' in relax_type.name:
+            raise ValueError('Equation of state and relaxation with variable volume are not compatible')
 
         builder = process_class.get_inputs_generator().get_builder(
             structure,
