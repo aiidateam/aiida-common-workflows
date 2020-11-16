@@ -27,7 +27,7 @@ class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
         'fast': {
             'description': 'Optimal performance, minimal accuracy.',
             'functional': 'PBEPBE',
-            'basis_set': 'STO-3G',
+            'basis_set': 'Def2SVP',
             'route_parameters': {
                 'nosymm': None,
                 'opt': None,
@@ -36,7 +36,7 @@ class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
         'moderate': {
             'description': 'Moderate performance, moderate accuracy.',
             'functional': 'PBEPBE',
-            'basis_set': '6-31+G(d,p)',
+            'basis_set': 'Def2TZVP',
             'route_parameters': {
                 'int': 'ultrafine',
                 'nosymm': None,
@@ -46,7 +46,7 @@ class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
         'precise': {
             'description': 'Low performance, high accuracy',
             'functional': 'PBEPBE',
-            'basis_set': '6-311+G(d,p)',
+            'basis_set': 'Def2QZVP',
             'route_parameters': {
                 'int': 'superfine',
                 'nosymm': None,
