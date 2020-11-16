@@ -1,12 +1,19 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for SIESTA."""
 import os
+from typing import Any, Dict, List
+
 import yaml
+
+from aiida import engine
+from aiida import orm
+from aiida import plugins
 from aiida.common import exceptions
-from aiida.orm import Group
 from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
 
 __all__ = ('SiestaRelaxInputsGenerator',)
+
+StructureData = plugins.DataFactory('structure')
 
 
 class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
@@ -77,40 +84,66 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
 
     def get_builder(
         self,
-        structure,
-        calc_engines,
-        protocol,
-        relaxation_type,
-        threshold_forces=None,
-        threshold_stress=None,
+        structure: StructureData,
+        calc_engines: Dict[str, Any],
+        *,
+        protocol: str = None,
+        relax_type: RelaxType = RelaxType.ATOMS,
+        electronic_type: ElectronicType = ElectronicType.METAL,
+        spin_type: SpinType = SpinType.NONE,
+        magnetization_per_site: List[float] = None,
+        threshold_forces: float = None,
+        threshold_stress: float = None,
         previous_workchain=None,
-        electronic_type=ElectronicType.METAL,
-        spin_type=SpinType.NONE,
-        magnetization_per_site=None,
         **kwargs
-    ):  # pylint: disable=too-many-locals
+    ) -> engine.ProcessBuilder:
+        """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
+
+        :param structure: the structure to be relaxed.
+        :param calc_engines: a dictionary containing the computational resources for the relaxation.
+        :param protocol: the protocol to use when determining the workchain inputs.
+        :param relax_type: the type of relaxation to perform.
+        :param electronic_type: the electronic character that is to be used for the structure.
+        :param spin_type: the spin polarization type to use for the calculation.
+        :param magnetization_per_site: a list with the initial spin polarization for each site. Float or integer in
+            units of electrons. If not defined, the builder will automatically define the initial magnetization if and
+            only if `spin_type != SpinType.NONE`.
+        :param threshold_forces: target threshold for the forces in eV/Å.
+        :param threshold_stress: target threshold for the stress in eV/Å^3.
+        :param previous_workchain: a <Code>RelaxWorkChain node.
+        :param kwargs: any inputs that are specific to the plugin.
+        :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
+        """
+        # pylint: disable=too-many-locals
+        protocol = protocol or self.get_default_protocol_name()
 
         super().get_builder(
-            structure, calc_engines, protocol, relaxation_type, threshold_forces, threshold_stress, previous_workchain,
-            electronic_type, spin_type, magnetization_per_site, **kwargs
+            structure,
+            calc_engines,
+            protocol=protocol,
+            relax_type=relax_type,
+            electronic_type=electronic_type,
+            spin_type=spin_type,
+            magnetization_per_site=magnetization_per_site,
+            threshold_forces=threshold_forces,
+            threshold_stress=threshold_stress,
+            previous_workchain=previous_workchain,
+            **kwargs
         )
-
-        from aiida.orm import Dict
-        from aiida.orm import load_code
 
         # Checks
         if protocol not in self.get_protocol_names():
             import warnings
             warnings.warn('no protocol implemented with name {}, using default moderate'.format(protocol))
             protocol = self.get_default_protocol_name()
-        if relaxation_type not in self.get_relaxation_types():
-            raise ValueError('Wrong relaxation type: no relax_type with name {} implemented'.format(relaxation_type))
+        if relax_type not in self.get_relax_types():
+            raise ValueError('Wrong relaxation type: no relax_type with name {} implemented'.format(relax_type))
         if 'relaxation' not in calc_engines:
             raise ValueError('The `calc_engines` dictionaly must contain "relaxation" as outermost key')
 
         pseudo_family = self._protocols[protocol]['pseudo_family']
         try:
-            Group.objects.get(label=pseudo_family)
+            orm.Group.objects.get(label=pseudo_family)
         except exceptions.NotExistent:
             raise ValueError(
                 'protocol `{}` requires `pseudo_family` with name {} '
@@ -124,9 +157,9 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         parameters = self._get_param(protocol, structure)
         parameters['md-type-of-run'] = 'cg'
         parameters['md-num-cg-steps'] = 100
-        if relaxation_type == RelaxType.ATOMS_CELL:
+        if relax_type == RelaxType.ATOMS_CELL:
             parameters['md-variable-cell'] = True
-        # if relaxation_type == 'constant_volume':
+        # if relax_type == 'constant_volume':
         #     parameters['md-variable-cell'] = True
         #     parameters['md-constant-volume'] = True
         if threshold_forces:
@@ -142,13 +175,13 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
 
         builder = self.process_class.get_builder()
         builder.structure = structure
-        builder.basis = Dict(dict=basis)
-        builder.parameters = Dict(dict=parameters)
+        builder.basis = orm.Dict(dict=basis)
+        builder.parameters = orm.Dict(dict=parameters)
         if kpoints_mesh:
             builder.kpoints = kpoints_mesh
         builder.pseudo_family = pseudo_family
-        builder.options = Dict(dict=calc_engines['relaxation']['options'])
-        builder.code = load_code(calc_engines['relaxation']['code'])
+        builder.options = orm.Dict(dict=calc_engines['relaxation']['options'])
+        builder.code = orm.load_code(calc_engines['relaxation']['code'])
 
         return builder
 

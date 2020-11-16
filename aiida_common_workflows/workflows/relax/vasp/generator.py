@@ -1,15 +1,20 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for VASP."""
 import pathlib
+from typing import Any, Dict, List
+
 import yaml
 
-from aiida.plugins import DataFactory
-from aiida.orm import Code
+from aiida import engine
+from aiida import orm
+from aiida import plugins
 from aiida.common.extendeddicts import AttributeDict
 
 from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
 
 __all__ = ('VaspRelaxInputsGenerator',)
+
+StructureData = plugins.DataFactory('structure')
 
 
 class VaspRelaxInputsGenerator(RelaxInputsGenerator):
@@ -43,34 +48,51 @@ class VaspRelaxInputsGenerator(RelaxInputsGenerator):
 
     def get_builder(
         self,
-        structure,
-        calc_engines,
-        protocol,
-        relaxation_type,
-        threshold_forces=None,
-        threshold_stress=None,
+        structure: StructureData,
+        calc_engines: Dict[str, Any],
+        *,
+        protocol: str = None,
+        relax_type: RelaxType = RelaxType.ATOMS,
+        electronic_type: ElectronicType = ElectronicType.METAL,
+        spin_type: SpinType = SpinType.NONE,
+        magnetization_per_site: List[float] = None,
+        threshold_forces: float = None,
+        threshold_stress: float = None,
         previous_workchain=None,
-        electronic_type=ElectronicType.METAL,
-        spin_type=SpinType.NONE,
-        magnetization_per_site=None,
         **kwargs
-    ):
+    ) -> engine.ProcessBuilder:
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
 
-        :param structure: the structure to be relaxed
-        :param calc_engines: ...
-        :param protocol: the protocol to use when determining the workchain inputs
-        :param relaxation_type: the type of relaxation to perform, instance of `RelaxType`
+        :param structure: the structure to be relaxed.
+        :param calc_engines: a dictionary containing the computational resources for the relaxation.
+        :param protocol: the protocol to use when determining the workchain inputs.
+        :param relax_type: the type of relaxation to perform.
+        :param electronic_type: the electronic character that is to be used for the structure.
+        :param spin_type: the spin polarization type to use for the calculation.
+        :param magnetization_per_site: a list with the initial spin polarization for each site. Float or integer in
+            units of electrons. If not defined, the builder will automatically define the initial magnetization if and
+            only if `spin_type != SpinType.NONE`.
         :param threshold_forces: target threshold for the forces in eV/Å.
         :param threshold_stress: target threshold for the stress in eV/Å^3.
+        :param previous_workchain: a <Code>RelaxWorkChain node.
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
         # pylint: disable=too-many-locals
+        protocol = protocol or self.get_default_protocol_name()
 
         super().get_builder(
-            structure, calc_engines, protocol, relaxation_type, threshold_forces, threshold_stress, previous_workchain,
-            electronic_type, spin_type, magnetization_per_site, **kwargs
+            structure,
+            calc_engines,
+            protocol=protocol,
+            relax_type=relax_type,
+            electronic_type=electronic_type,
+            spin_type=spin_type,
+            magnetization_per_site=magnetization_per_site,
+            threshold_forces=threshold_forces,
+            threshold_stress=threshold_stress,
+            previous_workchain=previous_workchain,
+            **kwargs
         )
 
         # Get the protocol that we want to use
@@ -82,32 +104,34 @@ class VaspRelaxInputsGenerator(RelaxInputsGenerator):
         builder = self.process_class.get_builder()
 
         # Set code
-        builder.code = Code.get_from_string(calc_engines['relax']['code'])
+        builder.code = orm.load_code(calc_engines['relax']['code'])
 
         # Set structure
         builder.structure = structure
 
         # Set options
-        builder.options = DataFactory('dict')(dict=calc_engines['relax']['options'])
+        builder.options = plugins.DataFactory('dict')(dict=calc_engines['relax']['options'])
 
         # Set settings
         # Make sure we add forces and stress for the VASP parser
         settings = AttributeDict()
         settings.update({'parser_settings': {'add_forces': True, 'add_stress': True}})
-        builder.settings = DataFactory('dict')(dict=settings)
+        builder.settings = plugins.DataFactory('dict')(dict=settings)
 
         # Set workchain related inputs, in this case, give more explicit output to report
-        builder.verbose = DataFactory('bool')(True)
+        builder.verbose = plugins.DataFactory('bool')(True)
 
         # Set parameters
-        builder.parameters = DataFactory('dict')(dict=protocol['parameters'])
+        builder.parameters = plugins.DataFactory('dict')(dict=protocol['parameters'])
 
         # Set potentials and their mapping
-        builder.potential_family = DataFactory('str')(protocol['potential_family'])
-        builder.potential_mapping = DataFactory('dict')(dict=self._potential_mapping[protocol['potential_mapping']])
+        builder.potential_family = plugins.DataFactory('str')(protocol['potential_family'])
+        builder.potential_mapping = plugins.DataFactory('dict')(
+            dict=self._potential_mapping[protocol['potential_mapping']]
+        )
 
         # Set the kpoint grid from the density in the protocol
-        kpoints = DataFactory('array.kpoints')()
+        kpoints = plugins.DataFactory('array.kpoints')()
         kpoints.set_kpoints_mesh([1, 1, 1])
         kpoints.set_cell_from_structure(structure)
         rec_cell = kpoints.reciprocal_cell
@@ -118,29 +142,29 @@ class VaspRelaxInputsGenerator(RelaxInputsGenerator):
         # After a while these will be set in the VASP workchain entrypoints using the convergence workchain etc.
         # However, for now we rely on defaults plane wave cutoffs and a set k-point density for the chosen protocol.
         relax = AttributeDict()
-        relax.perform = DataFactory('bool')(True)
-        relax.algo = DataFactory('str')(protocol['relax']['algo'])
+        relax.perform = plugins.DataFactory('bool')(True)
+        relax.algo = plugins.DataFactory('str')(protocol['relax']['algo'])
 
-        if relaxation_type == RelaxType.ATOMS:
-            relax.positions = DataFactory('bool')(True)
-            relax.shape = DataFactory('bool')(False)
-            relax.volume = DataFactory('bool')(False)
-        elif relaxation_type == RelaxType.CELL:
-            relax.positions = DataFactory('bool')(False)
-            relax.shape = DataFactory('bool')(True)
-            relax.volume = DataFactory('bool')(True)
-        elif relaxation_type == RelaxType.ATOMS_CELL:
-            relax.positions = DataFactory('bool')(True)
-            relax.shape = DataFactory('bool')(True)
-            relax.volume = DataFactory('bool')(True)
+        if relax_type == RelaxType.ATOMS:
+            relax.positions = plugins.DataFactory('bool')(True)
+            relax.shape = plugins.DataFactory('bool')(False)
+            relax.volume = plugins.DataFactory('bool')(False)
+        elif relax_type == RelaxType.CELL:
+            relax.positions = plugins.DataFactory('bool')(False)
+            relax.shape = plugins.DataFactory('bool')(True)
+            relax.volume = plugins.DataFactory('bool')(True)
+        elif relax_type == RelaxType.ATOMS_CELL:
+            relax.positions = plugins.DataFactory('bool')(True)
+            relax.shape = plugins.DataFactory('bool')(True)
+            relax.volume = plugins.DataFactory('bool')(True)
         else:
-            raise ValueError('relaxation type `{}` is not supported'.format(relaxation_type.value))
+            raise ValueError('relaxation type `{}` is not supported'.format(relax_type.value))
 
         if threshold_forces is not None:
             threshold = threshold_forces
         else:
             threshold = protocol['relax']['threshold_forces']
-        relax.force_cutoff = DataFactory('float')(threshold)
+        relax.force_cutoff = plugins.DataFactory('float')(threshold)
 
         if threshold_stress is not None:
             raise ValueError('Using a stress threshold is not directly available in VASP during relaxation.')
