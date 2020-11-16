@@ -131,7 +131,7 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
         if previous_workchain is not None:
             try:
                 prev_wc_class = previous_workchain.process_class
-                if not prev_wc_class == self.process_class:
+                if prev_wc_class not in [self.process_class, self.process_class._process_class]:  # pylint: disable=protected-access
                     raise ValueError('The "previous_workchain" must be a node of {}'.format(self.process_class))
             except AttributeError:
                 raise ValueError('The "previous_workchain" must be a node of {}'.format(self.process_class))

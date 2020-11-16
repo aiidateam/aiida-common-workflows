@@ -23,10 +23,8 @@
         "aiida-cp2k~=1.1",
         "aiida-fleur~=1.1",
         "aiida-gaussian",
-        "aiida-pseudo",
         "aiida-quantumespresso~=3.2",
         "aiida-siesta~=1.1",
-        "aiida-sssp~=0.1.0",
         "aiida-castep>=1.2.0a5",
         "aiida-vasp",
         "aiida-orca"
