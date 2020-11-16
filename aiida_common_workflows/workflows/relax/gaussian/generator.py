@@ -64,10 +64,7 @@ class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
         SpinType.NONE: 'Restricted Kohn-Sham calculation',
         SpinType.COLLINEAR: 'Unrestricted Kohn-Sham calculation',
     }
-    _electronic_types = {
-        ElectronicType.METAL: 'ignored',
-        ElectronicType.INSULATOR: 'ignored'
-    }
+    _electronic_types = {ElectronicType.METAL: 'ignored', ElectronicType.INSULATOR: 'ignored'}
 
     def get_builder(
         self,
@@ -89,12 +86,8 @@ class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
             electronic_type, spin_type, magnetization_per_site, **kwargs
         )
 
-        sel_protocol = copy.deepcopy(self.get_protocol(protocol))
-        route_params = sel_protocol['route_parameters']
-
-        if relaxation_type == RelaxType.NONE:
-            del route_params['opt']
-            route_params['force'] = None
+        if magnetization_per_site is not None:
+            print('Warning: magnetization_per_site not supported, ignoring it.')
 
         # -----------------------------------------------------------------
         # Set the link0 memory and n_proc based on the calc_engines options dict
@@ -127,6 +120,18 @@ class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
         if n_proc is not None:
             link0_parameters['%nprocshared'] = '%d' % n_proc
         # -----------------------------------------------------------------
+
+        sel_protocol = copy.deepcopy(self.get_protocol(protocol))
+        route_params = sel_protocol['route_parameters']
+
+        if relaxation_type == RelaxType.NONE:
+            del route_params['opt']
+            route_params['force'] = None
+
+        if spin_type == SpinType.COLLINEAR:
+            # In case of collinear spin, enable UKS and specify guess=mix
+            sel_protocol['functional'] = 'U' + sel_protocol['functional']
+            route_params['guess'] = 'mix'
 
         if threshold_forces is not None:
             # Set the RMS force threshold with the iop(1/7=N) command
