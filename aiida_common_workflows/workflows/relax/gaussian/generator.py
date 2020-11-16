@@ -100,7 +100,7 @@ class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
-        # pylint: disable=too-many-locals
+        # pylint: disable=too-many-locals,too-many-branches
         protocol = protocol or self.get_default_protocol_name()
 
         super().get_builder(
@@ -155,7 +155,7 @@ class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
         sel_protocol = copy.deepcopy(self.get_protocol(protocol))
         route_params = sel_protocol['route_parameters']
 
-        if relaxation_type == RelaxType.NONE:
+        if relax_type == RelaxType.NONE:
             del route_params['opt']
             route_params['force'] = None
 
