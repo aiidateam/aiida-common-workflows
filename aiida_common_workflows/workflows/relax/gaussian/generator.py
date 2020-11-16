@@ -57,10 +57,17 @@ class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
 
     _calc_types = {'relax': {'code_plugin': 'gaussian', 'description': 'The code to perform the relaxation.'}}
     _relax_types = {
+        RelaxType.NONE: 'Single point calculation.',
         RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
     }
-    _spin_types = {SpinType.NONE: '....', SpinType.COLLINEAR: '....'}
-    _electronic_types = {ElectronicType.METAL: '....', ElectronicType.INSULATOR: '....'}
+    _spin_types = {
+        SpinType.NONE: 'Restricted Kohn-Sham calculation',
+        SpinType.COLLINEAR: 'Unrestricted Kohn-Sham calculation',
+    }
+    _electronic_types = {
+        ElectronicType.METAL: 'ignored',
+        ElectronicType.INSULATOR: 'ignored'
+    }
 
     def get_builder(
         self,
@@ -82,8 +89,12 @@ class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
             electronic_type, spin_type, magnetization_per_site, **kwargs
         )
 
-        if relaxation_type != RelaxType.ATOMS:
-            raise ValueError('relaxation type `{}` is not supported'.format(relaxation_type.value))
+        sel_protocol = copy.deepcopy(self.get_protocol(protocol))
+        route_params = sel_protocol['route_parameters']
+
+        if relaxation_type == RelaxType.NONE:
+            del route_params['opt']
+            route_params['force'] = None
 
         # -----------------------------------------------------------------
         # Set the link0 memory and n_proc based on the calc_engines options dict
@@ -116,10 +127,6 @@ class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
         if n_proc is not None:
             link0_parameters['%nprocshared'] = '%d' % n_proc
         # -----------------------------------------------------------------
-
-        sel_protocol = copy.deepcopy(self.get_protocol(protocol))
-
-        route_params = sel_protocol['route_parameters']
 
         if threshold_forces is not None:
             # Set the RMS force threshold with the iop(1/7=N) command
