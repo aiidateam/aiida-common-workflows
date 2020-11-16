@@ -92,7 +92,7 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         spin_type=SpinType.NONE,
         magnetization_per_site=None,
         **kwargs
-    ):  # pylint: disable=too-many-locals
+    ):  # pylint: disable=too-many-locals,too-many-branches
 
         super().get_builder(
             structure, calc_engines, protocol, relaxation_type, threshold_forces, threshold_stress, previous_workchain,
@@ -122,7 +122,7 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         # K points
         kpoints_mesh = self._get_kpoints(protocol, structure, previous_workchain)
 
-        # Parameters, including scf and relax options
+        # Parameters, including scf and relax and spin options
         parameters = self._get_param(protocol, structure)
         if relaxation_type != RelaxType.NONE:
             parameters['md-type-of-run'] = 'cg'
@@ -133,6 +133,20 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
             parameters['md-max-force-tol'] = str(threshold_forces) + ' eV/Ang'
         if threshold_stress:
             parameters['md-max-stress-tol'] = str(threshold_stress) + ' eV/Ang**3'
+
+        if spin_type == SpinType.COLLINEAR:
+            parameters['spin'] = 'polarized'
+
+        if magnetization_per_site is not None:
+            if spin_type == SpinType.NONE:
+                import warnings
+                warnings.warn('`magnetization_per_site` will be ignored as `spin_type` is set to SpinType.NONE')
+            if spin_type == SpinType.COLLINEAR:
+                in_spin_card = '\n'
+                for i, magn in enumerate(magnetization_per_site):
+                    in_spin_card += f' {i+1} {magn} \n'
+                in_spin_card += '%endblock-dm-init-spin'
+                parameters['%block-dm-init-spin'] = in_spin_card
 
         # Basis
         basis = self._get_basis(protocol, structure)
