@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for Gaussian."""
-
 import copy
+from typing import Any, Dict, List
+
 import numpy as np
 
+from aiida import engine
 from aiida import orm
 from aiida import plugins
 
@@ -64,26 +66,55 @@ class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
 
     def get_builder(
         self,
-        structure,
-        calc_engines,
-        protocol,
-        relaxation_type,
-        threshold_forces=None,
-        threshold_stress=None,
+        structure: StructureData,
+        calc_engines: Dict[str, Any],
+        *,
+        protocol: str = None,
+        relax_type: RelaxType = RelaxType.ATOMS,
+        electronic_type: ElectronicType = ElectronicType.METAL,
+        spin_type: SpinType = SpinType.NONE,
+        magnetization_per_site: List[float] = None,
+        threshold_forces: float = None,
+        threshold_stress: float = None,
         previous_workchain=None,
-        electronic_type=ElectronicType.METAL,
-        spin_type=SpinType.NONE,
-        magnetization_per_site=None,
         **kwargs
-    ):
+    ) -> engine.ProcessBuilder:
+        """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
+
+        :param structure: the structure to be relaxed.
+        :param calc_engines: a dictionary containing the computational resources for the relaxation.
+        :param protocol: the protocol to use when determining the workchain inputs.
+        :param relax_type: the type of relaxation to perform.
+        :param electronic_type: the electronic character that is to be used for the structure.
+        :param spin_type: the spin polarization type to use for the calculation.
+        :param magnetization_per_site: a list with the initial spin polarization for each site. Float or integer in
+            units of electrons. If not defined, the builder will automatically define the initial magnetization if and
+            only if `spin_type != SpinType.NONE`.
+        :param threshold_forces: target threshold for the forces in eV/Å.
+        :param threshold_stress: target threshold for the stress in eV/Å^3.
+        :param previous_workchain: a <Code>RelaxWorkChain node.
+        :param kwargs: any inputs that are specific to the plugin.
+        :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
+        """
         # pylint: disable=too-many-locals
+        protocol = protocol or self.get_default_protocol_name()
+
         super().get_builder(
-            structure, calc_engines, protocol, relaxation_type, threshold_forces, threshold_stress, previous_workchain,
-            electronic_type, spin_type, magnetization_per_site, **kwargs
+            structure,
+            calc_engines,
+            protocol=protocol,
+            relax_type=relax_type,
+            electronic_type=electronic_type,
+            spin_type=spin_type,
+            magnetization_per_site=magnetization_per_site,
+            threshold_forces=threshold_forces,
+            threshold_stress=threshold_stress,
+            previous_workchain=previous_workchain,
+            **kwargs
         )
 
-        if relaxation_type != RelaxType.ATOMS:
-            raise ValueError('relaxation type `{}` is not supported'.format(relaxation_type.value))
+        if relax_type != RelaxType.ATOMS:
+            raise ValueError('relax type `{}` is not supported'.format(relax_type.value))
 
         # -----------------------------------------------------------------
         # Set the link0 memory and n_proc based on the calc_engines options dict

@@ -104,7 +104,13 @@ def cmd_relax(
         engines[engine]['code'] = code[0].full_label
 
     builder = generator.get_builder(
-        structure, engines, protocol, relaxation_type, threshold_forces, threshold_stress, spin_type=spin_type
+        structure,
+        engines,
+        protocol=protocol,
+        relaxation_type=relaxation_type,
+        threshold_forces=threshold_forces,
+        threshold_stress=threshold_stress,
+        spin_type=spin_type
     )
     utils.launch_process(builder, daemon)
 

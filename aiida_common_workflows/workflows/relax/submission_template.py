@@ -84,11 +84,11 @@ assert set(InpGen.get_protocol('moderate')) == {
 
 # Another compulsory input, specifying the task. Typical values: 'atoms', 'cell'
 # but every plugin is free to implement its own
-relaxation_type = 'atoms'
+relax_type = 'atoms'
 
 # As some codes might support limited functionality (for instance fleur can't relax the cell),
-# it is useful to have a method returning the available `relaxation_type`
-assert set(InpGen.get_relaxation_types()) == set(['atoms', 'cell', 'atoms_cell'])
+# it is useful to have a method returning the available `relax_type`
+assert set(InpGen.get_relax_types()) == set(['atoms', 'cell', 'atoms_cell'])
 
 #Other inputs the user need to define:
 structure = StructureData()  # The initial structure is a compulsory input
@@ -107,7 +107,7 @@ builder = rel_inp_gen.get_builder(
     structure=structure,
     calc_engines=calc_engines,
     protocol=protocol,
-    relaxation_type=relaxation_type,
+    relax_type=relax_type,
     threshold_forces=threshold_forces,
     threshold_stress=threshold_stress
 )

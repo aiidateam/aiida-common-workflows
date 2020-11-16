@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
-"""Module with base input generator for the common structure relaxation workchains."""
+"""Module with base input generator for the common structure relax workchains."""
 from abc import ABCMeta, abstractmethod
 from enum import Enum
+from typing import Any, Dict, List
 
+from aiida import engine
+from aiida import plugins
 from aiida_common_workflows.protocol import ProtocolRegistry
 
 __all__ = ('ElectronicType', 'SpinType', 'RelaxType', 'RelaxInputsGenerator')
+
+StructureData = plugins.DataFactory('structure')
 
 
 class RelaxType(Enum):
@@ -39,7 +44,7 @@ class ElectronicType(Enum):
 
 
 class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
-    """Input generator for the common structure relaxation workchains.
+    """Input generator for the common structure relax workchains.
 
     Subclasses should define the `_calc_types`, `_spin_types`, `_electronic_types` and `_relax_types` class attributes,
     as well as the `get_builder` method.
@@ -93,33 +98,33 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
     @abstractmethod
     def get_builder(
         self,
-        structure,
-        calc_engines,
-        protocol,
-        relaxation_type,
-        threshold_forces=None,
-        threshold_stress=None,
+        structure: StructureData,
+        calc_engines: Dict[str, Any],
+        *,
+        protocol: str = None,
+        relax_type: RelaxType = RelaxType.ATOMS,
+        electronic_type: ElectronicType = ElectronicType.METAL,
+        spin_type: SpinType = SpinType.NONE,
+        magnetization_per_site: List[float] = None,
+        threshold_forces: float = None,
+        threshold_stress: float = None,
         previous_workchain=None,
-        electronic_type=ElectronicType.METAL,
-        spin_type=SpinType.NONE,
-        magnetization_per_site=None,
         **kwargs
-    ):
+    ) -> engine.ProcessBuilder:
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
 
         :param structure: the structure to be relaxed.
         :param calc_engines: a dictionary containing the computational resources for the relaxation.
         :param protocol: the protocol to use when determining the workchain inputs.
-        :param relaxation_type: the type of relaxation to perform, instance of `RelaxType`.
+        :param relax_type: the type of relaxation to perform.
+        :param electronic_type: the electronic character that is to be used for the structure.
+        :param spin_type: the spin polarization type to use for the calculation.
+        :param magnetization_per_site: a list with the initial spin polarization for each site. Float or integer in
+            units of electrons. If not defined, the builder will automatically define the initial magnetization if and
+            only if `spin_type != SpinType.NONE`.
         :param threshold_forces: target threshold for the forces in eV/Å.
         :param threshold_stress: target threshold for the stress in eV/Å^3.
         :param previous_workchain: a <Code>RelaxWorkChain node.
-        :param electronic_type: electronics for the calculation (metal, insulator, ...), instance of `ElectronicType`.
-        :param spin_type: the spin polarization type to use for the calculation, instance of `SpinType`.
-        :param magnetization_per_site: a list with the initial spin polarization for each site. Float or
-                                       integer in units of electrons.
-                                       If not defined, the builder will automatically define the initial
-                                       magnetization if and only if `spin_type != SpinType.NONE`.
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
@@ -131,8 +136,8 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
             except AttributeError:
                 raise ValueError('The "previous_workchain" must be a node of {}'.format(self.process_class))
 
-        if relaxation_type not in self._relax_types:
-            raise ValueError('relaxation type `{}` is not supported'.format(relaxation_type))
+        if relax_type not in self._relax_types:
+            raise ValueError('relax type `{}` is not supported'.format(relax_type))
 
         if electronic_type not in self._electronic_types:
             raise ValueError('electronic type `{}` is not supported'.format(electronic_type))
@@ -157,8 +162,8 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
         except KeyError:
             raise ValueError('the calculation type `{}` does not exist'.format(key))
 
-    def get_relaxation_types(self):
-        """Return the available relaxation types for this input generator."""
+    def get_relax_types(self):
+        """Return the available relax types for this input generator."""
         return list(self._relax_types.keys())
 
     def get_spin_types(self):
