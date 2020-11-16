@@ -131,7 +131,7 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
             except AttributeError:
                 raise ValueError('The "previous_workchain" must be a node of {}'.format(self.process_class))
 
-        if relaxation_type not in self._relaxation_types:
+        if relaxation_type not in self._relax_types:
             raise ValueError('relaxation type `{}` is not supported'.format(relaxation_type))
 
         if electronic_type not in self._electronic_types:
