@@ -25,18 +25,22 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         }
     }
     _relax_types = {
+        RelaxType.NONE:
+        'no relaxation performed',
         RelaxType.ATOMS:
-        'the latice shape and volume is fixed, only the athomic positions are relaxed',
+        'latice shape and volume fixed, only atomic positions are relaxed',
         RelaxType.ATOMS_CELL:
-        'the lattice is relaxed together with the atomic coordinates. It allows'
+        'lattice relaxed together with atomic coordinates. Allows '
         'to target hydro-static pressures or arbitrary stress tensors.',
-        #    'constant_volume':'the cell volume is kept constant in a variable-cell relaxation: only'
-        #        'the cell shape and the atomic coordinates are allowed to change.  Note that'
-        #        'it does not make much sense to specify a target stress or pressure in this'
-        #        'case, except for anisotropic (traceless) stresses'
     }
-    _spin_types = {SpinType.NONE: '....', SpinType.COLLINEAR: '....'}
-    _electronic_types = {ElectronicType.METAL: '....', ElectronicType.INSULATOR: '....'}
+    _spin_types = {
+        SpinType.NONE: 'non magnetic calculation',
+        SpinType.COLLINEAR: 'magnetic calculation with collinear spins'
+    }
+    _electronic_types = {
+        ElectronicType.METAL: 'increase the kpoints mesh to account for metal situations',
+        ElectronicType.INSULATOR: 'standard set of inputs'
+    }
 
     def __init__(self, *args, **kwargs):
         """Construct an instance of the inputs generator, validating the class attributes."""
@@ -103,8 +107,6 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
             import warnings
             warnings.warn('no protocol implemented with name {}, using default moderate'.format(protocol))
             protocol = self.get_default_protocol_name()
-        if relaxation_type not in self.get_relaxation_types():
-            raise ValueError('Wrong relaxation type: no relax_type with name {} implemented'.format(relaxation_type))
         if 'relaxation' not in calc_engines:
             raise ValueError('The `calc_engines` dictionaly must contain "relaxation" as outermost key')
 
@@ -122,13 +124,11 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
 
         # Parameters, including scf and relax options
         parameters = self._get_param(protocol, structure)
-        parameters['md-type-of-run'] = 'cg'
-        parameters['md-num-cg-steps'] = 100
+        if relaxation_type != RelaxType.NONE:
+            parameters['md-type-of-run'] = 'cg'
+            parameters['md-num-cg-steps'] = 100
         if relaxation_type == RelaxType.ATOMS_CELL:
             parameters['md-variable-cell'] = True
-        # if relaxation_type == 'constant_volume':
-        #     parameters['md-variable-cell'] = True
-        #     parameters['md-constant-volume'] = True
         if threshold_forces:
             parameters['md-max-force-tol'] = str(threshold_forces) + ' eV/Ang'
         if threshold_stress:
