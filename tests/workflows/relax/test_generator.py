@@ -45,10 +45,10 @@ def inputs_generator(protocol_registry) -> RelaxInputsGenerator:
     return InputsGenerator(process_class=CommonRelaxWorkChain)
 
 
-def test_validation(protocol_registry):  #pylint: disable=too-many-statements
+def test_validation(protocol_registry):
     """Test the validation of subclasses of `ProtocolRegistry`."""
 
-    # pylint: disable=abstract-class-instantiated,function-redefined
+    # pylint: disable=abstract-class-instantiated,function-redefined,too-many-statements
 
     class InputsGenerator(protocol_registry, RelaxInputsGenerator):
         """Invalid inputs generator implementation: no ``get_builder``"""
@@ -183,9 +183,9 @@ def test_get_calc_type_schema(inputs_generator):
     assert inputs_generator.get_calc_type_schema('relax') == {'code_plugin': 'entry.point', 'description': 'test'}
 
 
-def test_get_relaxation_types(inputs_generator):
-    """Test `RelaxInputsGenerator.get_relaxation_types`."""
-    assert set(inputs_generator.get_relaxation_types()) == {RelaxType.ATOMS, RelaxType.ATOMS_CELL}
+def test_get_relax_types(inputs_generator):
+    """Test `RelaxInputsGenerator.get_relax_types`."""
+    assert set(inputs_generator.get_relax_types()) == {RelaxType.ATOMS, RelaxType.ATOMS_CELL}
 
 
 def test_get_spin_types(inputs_generator):
