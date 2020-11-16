@@ -45,8 +45,8 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         SpinType.COLLINEAR: 'magnetic calculation with collinear spins'
     }
     _electronic_types = {
-        ElectronicType.METAL: 'increase the kpoints mesh to account for metal situations',
-        ElectronicType.INSULATOR: 'standard set of inputs'
+        ElectronicType.METAL: 'For Siesta, metals and insulators are equally treated',
+        ElectronicType.INSULATOR: 'For Siesta, metals and insulators are equally treated'
     }
 
     def __init__(self, *args, **kwargs):
