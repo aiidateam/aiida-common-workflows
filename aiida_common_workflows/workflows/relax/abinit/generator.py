@@ -46,8 +46,8 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         self,
         structure: StructureData,
         calc_engines: Dict[str, Any],
-        protocol: str,
         *,
+        protocol: str = None,
         relax_type: RelaxType = RelaxType.ATOMS,
         electronic_type: ElectronicType = ElectronicType.METAL,
         spin_type: SpinType = SpinType.NONE,
@@ -75,10 +75,12 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
         # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+        protocol = protocol or self.get_default_protocol_name()
+
         super().get_builder(
             structure,
             calc_engines,
-            protocol,
+            protocol=protocol,
             relax_type=relax_type,
             electronic_type=electronic_type,
             spin_type=spin_type,
