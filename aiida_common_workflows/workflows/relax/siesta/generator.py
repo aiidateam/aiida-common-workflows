@@ -179,8 +179,8 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
                 in_spin_card = '\n'
                 for i, magn in enumerate(magnetization_per_site):
                     in_spin_card += f' {i+1} {magn} \n'
-                in_spin_card += '%endblock-dm-init-spin'
-                parameters['%block-dm-init-spin'] = in_spin_card
+                in_spin_card += '%endblock dm-init-spin'
+                parameters['%block dm-init-spin'] = in_spin_card
 
         # Basis
         basis = self._get_basis(protocol, structure)
