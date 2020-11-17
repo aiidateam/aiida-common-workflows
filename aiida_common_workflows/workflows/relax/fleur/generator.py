@@ -49,13 +49,13 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         # currently not supported by Fleur
     }
     _spin_types = {
-        SpinType.NONE: 'Non magnetic calculation, forcefully switch it off in FLEUR.', 
+        SpinType.NONE: 'Non magnetic calculation, forcefully switch it off in FLEUR.',
         SpinType.COLLINEAR: 'Magnetic calculation with collinear spins'
-        }
+    }
     _electronic_types = {
-        ElectronicType.METAL: 'For FLEUR, metals and insulators are equally treated', 
+        ElectronicType.METAL: 'For FLEUR, metals and insulators are equally treated',
         ElectronicType.INSULATOR: 'For FLEUR, metals and insulators are equally treated'
-        }
+    }
 
     def __init__(self, *args, **kwargs):
         """Construct an instance of the inputs generator, validating the class attributes."""
@@ -166,14 +166,14 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
             wf_para_dict['relax_iter'] = 0
         else:
             raise ValueError('relaxation type `{}` is not supported'.format(relax_type.value))
-        
+
         # Spin type options
         if spin_type == SpinType.NONE:
             jspins = 1
         else:
             jspins = 2
-        
-        add_parameter_dict = {'comp':{'jspins': jspins}}
+
+        add_parameter_dict = {'comp': {'jspins': jspins}}
 
         if magnetization_per_site is not None:
             if spin_type == SpinType.NONE:
@@ -183,9 +183,8 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
                 pass
                 # add atom lists for each kind and set bmu
                 # this will break symmetry
-                # be careful here because this may override things the plugin is during already.       
-        
-        
+                # be careful here because this may override things the plugin is during already.
+
         # electronic Structure options
         # None. Gff we want to increase the smearing and kpoint density in case of metal
 
@@ -217,15 +216,14 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         if 'calc_parameters' in kwargs.keys():
             parameters = kwargs.pop('calc_parameters')
 
-        if kmax is not None: # add kmax from protocol
-            add_parameter_dict = recursive_merge(add_parameter_dict, {'comp':{'kmax': kmax}})
+        if kmax is not None:  # add kmax from protocol
+            add_parameter_dict = recursive_merge(add_parameter_dict, {'comp': {'kmax': kmax}})
             if parameters is not None:
                 parameters_dict = parameters.get_dict()
                 add_parameter_dict = recursive_merge(add_parameter_dict, parameters_dict)
                 # In general better use aiida-fleur merge of parameters...
 
         parameters = orm.Dict(dict=add_parameter_dict)
-
 
         inputs = {
             'scf': {
