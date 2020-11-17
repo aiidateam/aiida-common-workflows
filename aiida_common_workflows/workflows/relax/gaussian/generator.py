@@ -29,7 +29,7 @@ class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
         'fast': {
             'description': 'Optimal performance, minimal accuracy.',
             'functional': 'PBEPBE',
-            'basis_set': 'STO-3G',
+            'basis_set': 'Def2SVP',
             'route_parameters': {
                 'nosymm': None,
                 'opt': None,
@@ -38,7 +38,7 @@ class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
         'moderate': {
             'description': 'Moderate performance, moderate accuracy.',
             'functional': 'PBEPBE',
-            'basis_set': '6-31+G(d,p)',
+            'basis_set': 'Def2TZVP',
             'route_parameters': {
                 'int': 'ultrafine',
                 'nosymm': None,
@@ -48,7 +48,7 @@ class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
         'precise': {
             'description': 'Low performance, high accuracy',
             'functional': 'PBEPBE',
-            'basis_set': '6-311+G(d,p)',
+            'basis_set': 'Def2QZVP',
             'route_parameters': {
                 'int': 'superfine',
                 'nosymm': None,
@@ -59,10 +59,14 @@ class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
 
     _calc_types = {'relax': {'code_plugin': 'gaussian', 'description': 'The code to perform the relaxation.'}}
     _relax_types = {
+        RelaxType.NONE: 'Single point calculation.',
         RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
     }
-    _spin_types = {SpinType.NONE: '....', SpinType.COLLINEAR: '....'}
-    _electronic_types = {ElectronicType.METAL: '....', ElectronicType.INSULATOR: '....'}
+    _spin_types = {
+        SpinType.NONE: 'Restricted Kohn-Sham calculation',
+        SpinType.COLLINEAR: 'Unrestricted Kohn-Sham calculation',
+    }
+    _electronic_types = {ElectronicType.METAL: 'ignored', ElectronicType.INSULATOR: 'ignored'}
 
     def get_builder(
         self,
@@ -96,7 +100,7 @@ class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
-        # pylint: disable=too-many-locals
+        # pylint: disable=too-many-locals,too-many-branches
         protocol = protocol or self.get_default_protocol_name()
 
         super().get_builder(
@@ -113,8 +117,8 @@ class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
             **kwargs
         )
 
-        if relax_type != RelaxType.ATOMS:
-            raise ValueError('relax type `{}` is not supported'.format(relax_type.value))
+        if magnetization_per_site is not None:
+            print('Warning: magnetization_per_site not supported, ignoring it.')
 
         # -----------------------------------------------------------------
         # Set the link0 memory and n_proc based on the calc_engines options dict
@@ -149,8 +153,16 @@ class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
         # -----------------------------------------------------------------
 
         sel_protocol = copy.deepcopy(self.get_protocol(protocol))
-
         route_params = sel_protocol['route_parameters']
+
+        if relax_type == RelaxType.NONE:
+            del route_params['opt']
+            route_params['force'] = None
+
+        if spin_type == SpinType.COLLINEAR:
+            # In case of collinear spin, enable UKS and specify guess=mix
+            sel_protocol['functional'] = 'U' + sel_protocol['functional']
+            route_params['guess'] = 'mix'
 
         if threshold_forces is not None:
             # Set the RMS force threshold with the iop(1/7=N) command
