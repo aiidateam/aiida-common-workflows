@@ -21,6 +21,7 @@ moderate:
                     opt_strategy: speed
                     write_bib: false
                     max_scf_cycles: 100
+                    elec_energy_tol: 1e-6
                     geom_force_tol: 0.05
                     geom_energy_tol: 2.0e-5
                     geom_stress_tol: 0.1
@@ -49,9 +50,12 @@ precise:
                     opt_strategy: speed
                     write_bib: false
                     max_scf_cycles: 100
+                    elec_energy_tol: 1e-8
                     geom_force_tol: 0.03
                     geom_energy_tol: 1.0e-5
                     geom_stress_tol: 0.05
+                    grid_scale: 2
+                    fine_grid_scale : 3
 
 fast:
     name: 'fast'
