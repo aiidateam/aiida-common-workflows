@@ -107,7 +107,7 @@ def cmd_relax(
         structure,
         engines,
         protocol=protocol,
-        relaxation_type=relaxation_type,
+        relax_type=relaxation_type,
         threshold_forces=threshold_forces,
         threshold_stress=threshold_stress,
         spin_type=spin_type
@@ -207,7 +207,7 @@ def cmd_eos(
         'generator_inputs': {
             'calc_engines': engines,
             'protocol': protocol,
-            'relaxation_type': relaxation_type,
+            'relax_type': relaxation_type,
             'spin_type': spin_type,
         },
         'sub_process_class': get_entry_point_name_from_class(process_class).name,
