@@ -163,7 +163,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             optcell = 3
             ionmov = 22
         else:
-            raise ValueError('relaxation type `{}` is not supported'.format(relax_type.value))
+            raise ValueError('relax type `{}` is not supported'.format(relax_type.value))
 
         builder.abinit['parameters']['optcell'] = optcell
         builder.abinit['parameters']['ionmov'] = ionmov

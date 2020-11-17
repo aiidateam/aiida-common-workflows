@@ -137,7 +137,7 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
             warnings.warn('no protocol implemented with name {}, using default moderate'.format(protocol))
             protocol = self.get_default_protocol_name()
         if relax_type not in self.get_relax_types():
-            raise ValueError('Wrong relaxation type: no relax_type with name {} implemented'.format(relax_type))
+            raise ValueError('Wrong relax type: no relax_type with name {} implemented'.format(relax_type))
         if 'relaxation' not in calc_engines:
             raise ValueError('The `calc_engines` dictionaly must contain "relaxation" as outermost key')
 

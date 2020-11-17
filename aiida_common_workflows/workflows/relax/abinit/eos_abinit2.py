@@ -40,7 +40,7 @@ def launch():
         'sub_process_class': 'common_workflows.relax.abinit',
         'generator_inputs': {
             'protocol': 'precise',
-            'relaxation_type': RelaxType.ATOMS,
+            'relax_type': RelaxType.ATOMS,
             'threshold_forces': 0.001,
             'calc_engines': {
                 'relax': {
