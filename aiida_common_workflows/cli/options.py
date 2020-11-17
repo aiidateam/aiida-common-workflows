@@ -91,14 +91,14 @@ PROTOCOL = options.OverridableOption(
     help='Select the protocol with which the inputs for the workflow should be generated.'
 )
 
-RELAXATION_TYPE = options.OverridableOption(
+RELAX_TYPE = options.OverridableOption(
     '-r',
-    '--relaxation-type',
+    '--relax-type',
     type=types.LazyChoice(get_relax_types),
     default='atoms',
     show_default=True,
     callback=lambda ctx, value: RelaxType(value),
-    help='Select the relaxation type with which the workflow should be run.'
+    help='Select the relax type with which the workflow should be run.'
 )
 
 SPIN_TYPE = options.OverridableOption(

@@ -22,7 +22,7 @@ def cmd_launch():
 @click.argument('plugin', type=types.LazyChoice(functools.partial(get_workflow_entry_point_names, 'relax', True)))
 @options.STRUCTURE(help='The structure to relax.')
 @options.PROTOCOL(type=click.Choice(['fast', 'moderate', 'precise']), default='fast')
-@options.RELAXATION_TYPE()
+@options.RELAX_TYPE()
 @options.SPIN_TYPE()
 @options.THRESHOLD_FORCES()
 @options.THRESHOLD_STRESS()
@@ -31,7 +31,7 @@ def cmd_launch():
 @options.DAEMON()
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
 def cmd_relax(
-    plugin, structure, protocol, relaxation_type, spin_type, threshold_forces, threshold_stress, number_machines,
+    plugin, structure, protocol, relax_type, spin_type, threshold_forces, threshold_stress, number_machines,
     wallclock_seconds, daemon, show_engines
 ):
     """Relax a crystal structure using the common relax workflow for one of the existing plugin implementations.
@@ -107,7 +107,7 @@ def cmd_relax(
         structure,
         engines,
         protocol=protocol,
-        relaxation_type=relaxation_type,
+        relax_type=relax_type,
         threshold_forces=threshold_forces,
         threshold_stress=threshold_stress,
         spin_type=spin_type
@@ -119,7 +119,7 @@ def cmd_relax(
 @click.argument('plugin', type=types.LazyChoice(functools.partial(get_workflow_entry_point_names, 'relax', True)))
 @options.STRUCTURE(help='The structure to relax.')
 @options.PROTOCOL(type=click.Choice(['fast', 'moderate', 'precise']), default='fast')
-@options.RELAXATION_TYPE(type=types.LazyChoice(options.get_relax_types_eos))
+@options.RELAX_TYPE(type=types.LazyChoice(options.get_relax_types_eos))
 @options.SPIN_TYPE()
 @options.THRESHOLD_FORCES()
 @options.THRESHOLD_STRESS()
@@ -128,7 +128,7 @@ def cmd_relax(
 @options.DAEMON()
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
 def cmd_eos(
-    plugin, structure, protocol, relaxation_type, spin_type, threshold_forces, threshold_stress, number_machines,
+    plugin, structure, protocol, relax_type, spin_type, threshold_forces, threshold_stress, number_machines,
     wallclock_seconds, daemon, show_engines
 ):
     """Compute the equation of state of a crystal structure using the common relax workflow.
@@ -207,7 +207,7 @@ def cmd_eos(
         'generator_inputs': {
             'calc_engines': engines,
             'protocol': protocol,
-            'relaxation_type': relaxation_type,
+            'relax_type': relax_type,
             'spin_type': spin_type,
         },
         'sub_process_class': get_entry_point_name_from_class(process_class).name,
