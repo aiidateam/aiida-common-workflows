@@ -40,6 +40,7 @@ class GaussianRelaxWorkChain(CommonRelaxWorkChain):
 
     def convert_outputs(self):
         """Convert the outputs of the sub workchain to the common output specification."""
-        self.out('relaxed_structure', self.ctx.workchain.outputs.output_structure)
+        if 'output_structure' in self.ctx.workchain.outputs:
+            self.out('relaxed_structure', self.ctx.workchain.outputs.output_structure)
         self.out('total_energy', get_total_energy(self.ctx.workchain.outputs.output_parameters))
         self.out('forces', get_forces(self.ctx.workchain.outputs.output_parameters))
