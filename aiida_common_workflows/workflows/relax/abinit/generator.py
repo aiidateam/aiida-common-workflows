@@ -29,8 +29,16 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         RelaxType.ATOMS_VOLUME: 'Relax the atomic positions and cell volume at fixed cell shape.',
         RelaxType.ATOMS_SHAPE: 'Relax the atomic positions and cell shape at fixed cell volume.'
     }
-    _spin_types = {SpinType.NONE: '....', SpinType.COLLINEAR: '....'}
-    _electronic_types = {ElectronicType.METAL: '....', ElectronicType.INSULATOR: '....'}
+    _spin_types = {
+        SpinType.NONE: 'Do not enable any spin-magnetization or spin-orbit coupling.',
+        SpinType.COLLINEAR: 'Enable collinear spin-magnetization. You must provide magnetization_per_site.',
+        SpinType.SPIN_ORBIT: 'Enable spin-orbit coupling.'
+    }
+    _electronic_types = {
+        ElectronicType.METAL: 'Treat the system as metallic by allowing occupations to change, ' \
+            'using Fermi-Dirac smearing, and adding additional bands.',
+        ElectronicType.INSULATOR: 'Treat the system as an insulator by freezing occupations.'
+    }
 
     def __init__(self, *args, **kwargs):
         """Construct an instance of the inputs generator, validating the class attributes."""
@@ -103,75 +111,51 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             }
         }
 
-        parameters = {}
-
-        if kwargs:
-            # param magnetism: Optional[str]
-            # param initial_magnetization: Optional[List[float]]
-            # param is_metallic: bool
-            # param tsmear: Optional[float]
-            # param do_soc: bool
-
-            magnetism = kwargs.pop('magnetism', None)
-            initial_magnetization = kwargs.pop('initial_magnetization', None)
-            is_metallic = kwargs.pop('is_metallic', False)
-            tsmear = kwargs.pop('tsmear', 0.01)  # Ha
-            do_soc = kwargs.pop('do_soc', False)
-
-            if magnetism is not None:
-                if not initial_magnetization:
-                    # this is a generic high spin initial state.
-                    # consider using tools in abipy.
-                    initial_magnetization = [[0., 0., 5.]] * len(structure)
-
-                parameters['spinat'] = initial_magnetization
-
-                if magnetism == 'ferro':
-                    parameters['nsppol'] = 2
-                elif magnetism == 'antiferro':
-                    parameters['nsppol'] = 1
-                    parameters['nspden'] = 2
-
-            if is_metallic:
-                parameters['occopt'] = 3
-                parameters['fband'] = 2
-                parameters['tsmear'] = tsmear
-
-            if do_soc:
-                parameters['nspinor'] = 2
-
-        override['abinit']['parameters'] = parameters
-        override = recursive_merge(override, kwargs)
-
         builder = self.process_class.get_builder()
         inputs = generate_inputs(self.process_class._process_class, protocol, code, structure, override)  # pylint: disable=protected-access
         builder._update(inputs)  # pylint: disable=protected-access
 
+        # RelaxType
         if relax_type == RelaxType.NONE:
-            optcell = 0
-            ionmov = 0
+            builder.abinit['parameters']['optcell'] = 0  # do not optimize the cell, Abinit default
+            builder.abinit['parameters']['ionmov'] = 0  # do not move the ions, Abinit default
+            builder.abinit['parameters']['dilatmx'] = 1.00  # don't book additional mem. for expansion Abinit default
         elif relax_type == RelaxType.ATOMS:
-            optcell = 0
-            ionmov = 22
+            # protocol defaults to ATOMS
+            pass
         elif relax_type == RelaxType.ATOMS_CELL:
-            optcell = 2
-            ionmov = 22
+            builder.abinit['parameters']['optcell'] = 2  # fully optimize the cell geometry
         elif relax_type == RelaxType.ATOMS_VOLUME:
-            optcell = 1
-            ionmov = 22
+            builder.abinit['parameters']['optcell'] = 1  # optimize volume only
         elif relax_type == RelaxType.ATOMS_SHAPE:
-            optcell = 3
-            ionmov = 22
+            builder.abinit['parameters']['optcell'] = 3  # constant-volume optimization of cell geometry
         else:
             raise ValueError('relaxation type `{}` is not supported'.format(relax_type.value))
 
-        builder.abinit['parameters']['optcell'] = optcell
-        builder.abinit['parameters']['ionmov'] = ionmov
-        if relax_type in [RelaxType.NONE, RelaxType.ATOMS]:
-            builder.abinit['parameters']['dilatmx'] = 1.00
-        elif builder.abinit['parameters'].get('dilatmx', None) is None:
-            builder.abinit['parameters']['dilatmx'] = 1.10
+        # SpinType
+        if spin_type == SpinType.NONE:
+            # protocol defaults to NONE
+            pass
+        elif spin_type == SpinType.COLLINEAR:
+            builder.abinit['parameters']['nsppol'] = 2  # collinear spin-polarization
+            builder.abinit['parameters']['nspden'] = 2  # scalar spin-magnetization in the z-axis
+            builder.abinit['parameters']['spinat'] = [[0.0, 0.0, mag] for mag in magnetization_per_site]
+        elif spin_type == SpinType.SPIN_ORBIT:
+            builder.abinit['parameters']['nspinor'] = 2  # spin-orbit coupling
+        else:
+            raise ValueError('spin type `{}` is not supported'.format(spin_type.value))
 
+        # ElectronicType
+        if electronic_type == ElectronicType.METAL:
+            # protocal defaults to METAL
+            pass
+        elif electronic_type == ElectronicType.INSULATOR:
+            builder.abinit['parameters']['occopt'] = 1  # fixed occupations, Abinit default
+            builder.abinit['parameters']['fband'] = 0.125  # Abinit default
+        else:
+            raise ValueError('electronic type `{}` is not supported'.format(electronic_type.value))
+
+        # force and stress thresholds
         if threshold_forces is not None:
             # The Abinit threshold_forces is in Ha/Bohr
             threshold_f = threshold_forces * units.eV_to_Ha / units.ang_to_bohr  # eV/Å
@@ -185,6 +169,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             strfact = threshold_f / threshold_s
             builder.abinit['parameters']['strfact'] = strfact
 
+        # previous workchain
         if previous_workchain is not None:
             try:
                 previous_kpoints = previous_workchain.inputs.kpoints
@@ -209,6 +194,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
                     raise ValueError(f'Could not find KpointsData associated with {previous_workchain}')
                 previous_kpoints = query_builder_result[0][0]
 
+            # ensure same k-points
             previous_kpoints_mesh, previous_kpoints_offset = previous_kpoints.get_kpoints_mesh()
             new_kpoints = orm.KpointsData()
             new_kpoints.set_cell_from_structure(structure)
