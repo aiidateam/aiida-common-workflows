@@ -115,8 +115,8 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
             previous_workchain=previous_workchain,
             **kwargs
         )
-
         # pylint: disable=too-many-locals
+
         inpgen_code = calc_engines['inpgen']['code']
         fleur_code = calc_engines['relax']['code']
         if not isinstance(inpgen_code, orm.Code):
@@ -157,7 +157,7 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         wf_para_dict = recursive_merge(default_wf_para, protocol.get('relax', {}))
 
         parameters = None
-        add_parameter_dict = {}
+
         # Relax type options
         if relax_type == RelaxType.ATOMS:
             relaxation_mode = 'force'
@@ -166,27 +166,6 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
             wf_para_dict['relax_iter'] = 0
         else:
             raise ValueError('relaxation type `{}` is not supported'.format(relax_type.value))
-
-        # Spin type options
-        if spin_type == SpinType.NONE:
-            jspins = 1
-        else:
-            jspins = 2
-
-        add_parameter_dict = {'comp': {'jspins': jspins}}
-
-        if magnetization_per_site is not None:
-            if spin_type == SpinType.NONE:
-                import warnings
-                warnings.warn('`magnetization_per_site` will be ignored as `spin_type` is set to SpinType.NONE')
-            if spin_type == SpinType.COLLINEAR:
-                pass
-                # add atom lists for each kind and set bmu
-                # this will break symmetry
-                # be careful here because this may override things the plugin is during already.
-
-        # electronic Structure options
-        # None. Gff we want to increase the smearing and kpoint density in case of metal
 
         wf_para = orm.Dict(dict=wf_para_dict)
 
@@ -216,14 +195,7 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         if 'calc_parameters' in kwargs.keys():
             parameters = kwargs.pop('calc_parameters')
 
-        if kmax is not None:  # add kmax from protocol
-            add_parameter_dict = recursive_merge(add_parameter_dict, {'comp': {'kmax': kmax}})
-            if parameters is not None:
-                parameters_dict = parameters.get_dict()
-                add_parameter_dict = recursive_merge(add_parameter_dict, parameters_dict)
-                # In general better use aiida-fleur merge of parameters...
-
-        parameters = orm.Dict(dict=add_parameter_dict)
+        parameters = prepare_calc_parameters(parameters, spin_type, magnetization_per_site, kmax)
 
         inputs = {
             'scf': {
@@ -241,6 +213,49 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         builder._update(inputs)  # pylint: disable=protected-access
 
         return builder
+
+
+def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, kmax):
+    """Prepare a calc_parameter node for a inpgen jobcalc
+
+    Depending on the imports merge information
+
+    :param parameters: given calc_parameter orm.Dict node to merge with
+    :param spin_type: type of magnetic calculation
+    :param magnetization_per_site: list
+    :param kmax: int, basis cutoff for the simulations
+    :return: orm.Dict
+    """
+    # Spin type options
+    if spin_type == SpinType.NONE:
+        jspins = 1
+    else:
+        jspins = 2
+    add_parameter_dict = {'comp': {'jspins': jspins}}
+
+    if magnetization_per_site is not None:
+        if spin_type == SpinType.NONE:
+            import warnings
+            warnings.warn('`magnetization_per_site` will be ignored as `spin_type` is set to SpinType.NONE')
+        if spin_type == SpinType.COLLINEAR:
+            pass
+            # add atom lists for each kind and set bmu
+            # this will break symmetry
+            # be careful here because this may override things the plugin is during already.
+
+    # electronic Structure options
+    # None. Gff we want to increase the smearing and kpoint density in case of metal
+
+    if kmax is not None:  # add kmax from protocol
+        add_parameter_dict = recursive_merge(add_parameter_dict, {'comp': {'kmax': kmax}})
+
+    if parameters is not None:
+        add_parameter_dict = recursive_merge(add_parameter_dict, parameters.get_dict())
+        # In general better use aiida-fleur merge methods for calc parameters...
+
+    new_parameters = orm.Dict(dict=add_parameter_dict)
+
+    return new_parameters
 
 
 def get_parameters(previous_workchain):
