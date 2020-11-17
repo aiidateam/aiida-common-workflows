@@ -174,7 +174,7 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
         elif relax_type == RelaxType.ATOMS_CELL:
             run_type = 'CELL_OPT'
         else:
-            raise ValueError('relaxation type `{}` is not supported'.format(relax_type.value))
+            raise ValueError('relax type `{}` is not supported'.format(relax_type.value))
         parameters['GLOBAL'] = {'RUN_TYPE': run_type}
 
         ## Redefining forces threshold.
