@@ -1,0 +1,42 @@
+fast:
+  description: 'Minimal basis set for testing purpose!'
+  charge: 0
+  input_blocks:
+    pal:
+      nproc: 2
+    scf:
+      convergence: tight
+  input_keywords:
+  - PBE0
+  - def2-SVP
+  - Opt
+  multiplicity: 1
+  extra_input_keywords: []
+moderate:
+  description: 'Moderate size basis set'
+  charge: 0
+  input_blocks:
+    pal:
+      nproc: 2
+    scf:
+      convergence: tight
+  input_keywords:
+  - PBE0
+  - def2-TZVP
+  - Opt
+  multiplicity: 1
+  extra_input_keywords: []
+precise:
+  description: 'Slightly larger basis set for more accurate results?!'
+  charge: 0
+  input_blocks:
+    pal:
+      nproc: 2
+    scf:
+      convergence: tight
+  input_keywords:
+  - PBE0
+  - def2-QZVP
+  - Opt
+  multiplicity: 1
+  extra_input_keywords: []
