@@ -2,13 +2,17 @@
 """Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for FLEUR."""
 import collections
 import pathlib
-from typing import Any, Dict
+from typing import Any, Dict, List
 import yaml
+
+from aiida import engine
 from aiida import orm
-from aiida.orm import Code, load_node
-from ..generator import RelaxInputsGenerator, RelaxType
+from aiida import plugins
+from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
 
 __all__ = ('FleurRelaxInputsGenerator',)
+
+StructureData = plugins.DataFactory('structure')
 
 
 class FleurRelaxInputsGenerator(RelaxInputsGenerator):
@@ -43,6 +47,8 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         # RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell.'
         # currently not supported by Fleur
     }
+    _spin_types = {SpinType.NONE: '....', SpinType.COLLINEAR: '....'}
+    _electronic_types = {ElectronicType.METAL: '....', ElectronicType.INSULATOR: '....'}
 
     def __init__(self, *args, **kwargs):
         """Construct an instance of the inputs generator, validating the class attributes."""
@@ -56,43 +62,60 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
 
     def get_builder(
         self,
-        structure,
-        calc_engines,
-        protocol,
-        relaxation_type,
-        threshold_forces=None,
-        threshold_stress=None,
+        structure: StructureData,
+        calc_engines: Dict[str, Any],
+        *,
+        protocol: str = None,
+        relax_type: RelaxType = RelaxType.ATOMS,
+        electronic_type: ElectronicType = ElectronicType.METAL,
+        spin_type: SpinType = SpinType.NONE,
+        magnetization_per_site: List[float] = None,
+        threshold_forces: float = None,
+        threshold_stress: float = None,
         previous_workchain=None,
         **kwargs
-    ):
-        """Return a process builder for the corresponding workchain class with
-           inputs set according to the protocol.
+    ) -> engine.ProcessBuilder:
+        """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
 
-        :param structure: the structure to be relaxed
-        :param calc_engines: ...
-        :param protocol: the protocol to use when determining the workchain inputs
-        :param relaxation_type: the type of relaxation to perform, instance of `RelaxType`
+        :param structure: the structure to be relaxed.
+        :param calc_engines: a dictionary containing the computational resources for the relaxation.
+        :param protocol: the protocol to use when determining the workchain inputs.
+        :param relax_type: the type of relaxation to perform.
+        :param electronic_type: the electronic character that is to be used for the structure.
+        :param spin_type: the spin polarization type to use for the calculation.
+        :param magnetization_per_site: a list with the initial spin polarization for each site. Float or integer in
+            units of electrons. If not defined, the builder will automatically define the initial magnetization if and
+            only if `spin_type != SpinType.NONE`.
         :param threshold_forces: target threshold for the forces in eV/Å.
         :param threshold_stress: target threshold for the stress in eV/Å^3.
-        :param previous_workchain: AiiDA workchain node from which information can be extracted
+        :param previous_workchain: a <Code>RelaxWorkChain node.
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
         # pylint: disable=too-many-locals
-        from aiida.orm import load_code
+        protocol = protocol or self.get_default_protocol_name()
 
         super().get_builder(
-            structure, calc_engines, protocol, relaxation_type, threshold_forces, threshold_stress, previous_workchain,
+            structure,
+            calc_engines,
+            protocol=protocol,
+            relax_type=relax_type,
+            electronic_type=electronic_type,
+            spin_type=spin_type,
+            magnetization_per_site=magnetization_per_site,
+            threshold_forces=threshold_forces,
+            threshold_stress=threshold_stress,
+            previous_workchain=previous_workchain,
             **kwargs
         )
 
         # pylint: disable=too-many-locals
         inpgen_code = calc_engines['inpgen']['code']
         fleur_code = calc_engines['relax']['code']
-        if not isinstance(inpgen_code, Code):
-            inpgen_code = load_code(inpgen_code)
-        if not isinstance(fleur_code, Code):
-            fleur_code = load_code(fleur_code)
+        if not isinstance(inpgen_code, orm.Code):
+            inpgen_code = orm.load_code(inpgen_code)
+        if not isinstance(fleur_code, orm.Code):
+            fleur_code = orm.load_code(fleur_code)
 
         # Checks if protocol exists
         if protocol not in self.get_protocol_names():
@@ -108,10 +131,10 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         # has to go over calc parameters, kmax, lmax, kpoint density
         # inputs = generate_scf_inputs(process_class, protocol, code, structure)
 
-        if relaxation_type == RelaxType.ATOMS:
+        if relax_type == RelaxType.ATOMS:
             relaxation_mode = 'force'
         else:
-            raise ValueError('relaxation type `{}` is not supported'.format(relaxation_type.value))
+            raise ValueError('relaxation type `{}` is not supported'.format(relax_type.value))
 
         if threshold_forces is not None:
             # Fleur expects atomic units i.e Hartree/bohr
@@ -197,9 +220,9 @@ def get_parameters(previous_workchain):
     # Find Fleurinp
     try:
         last_base_relax = find_last_submitted_workchain(previous_workchain)
-        last_relax = find_last_submitted_workchain(load_node(last_base_relax))
-        last_scf = find_last_submitted_workchain(load_node(last_relax))
-        last_scf = load_node(last_scf)
+        last_relax = find_last_submitted_workchain(orm.load_node(last_base_relax))
+        last_scf = find_last_submitted_workchain(orm.load_node(last_relax))
+        last_scf = orm.load_node(last_scf)
     except NotExistent:
         # something went wrong in the previous workchain run
         #.. we just continue without previous parameters but defaults.

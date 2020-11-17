@@ -2,14 +2,14 @@
 """Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for CP2K."""
 import collections
 import pathlib
-from typing import Any, Dict
+from typing import Any, Dict, List
 import yaml
 
 from aiida import engine
 from aiida import orm
 from aiida import plugins
 
-from ..generator import RelaxInputsGenerator, RelaxType
+from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
 
 __all__ = ('Cp2kRelaxInputsGenerator',)
 
@@ -86,6 +86,8 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
         RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
         RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell.'
     }
+    _spin_types = {SpinType.NONE: '....', SpinType.COLLINEAR: '....'}
+    _electronic_types = {ElectronicType.METAL: '....', ElectronicType.INSULATOR: '....'}
 
     def __init__(self, *args, **kwargs):
         """Construct an instance of the inputs generator, validating the class attributes."""
@@ -101,26 +103,48 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
         self,
         structure: StructureData,
         calc_engines: Dict[str, Any],
-        protocol,
-        relaxation_type: RelaxType,
+        *,
+        protocol: str = None,
+        relax_type: RelaxType = RelaxType.ATOMS,
+        electronic_type: ElectronicType = ElectronicType.METAL,
+        spin_type: SpinType = SpinType.NONE,
+        magnetization_per_site: List[float] = None,
         threshold_forces: float = None,
         threshold_stress: float = None,
         previous_workchain=None,
         **kwargs
-    ) -> engine.ProcessBuilder:  # pylint: disable=too-many-locals
+    ) -> engine.ProcessBuilder:
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
 
-        :param structure: the structure to be relaxed
-        :param calc_engines: ...
-        :param protocol: the protocol to use when determining the workchain inputs
-        :param relaxation_type: the type of relaxation to perform, instance of `RelaxType`
+        :param structure: the structure to be relaxed.
+        :param calc_engines: a dictionary containing the computational resources for the relaxation.
+        :param protocol: the protocol to use when determining the workchain inputs.
+        :param relax_type: the type of relaxation to perform.
+        :param electronic_type: the electronic character that is to be used for the structure.
+        :param spin_type: the spin polarization type to use for the calculation.
+        :param magnetization_per_site: a list with the initial spin polarization for each site. Float or integer in
+            units of electrons. If not defined, the builder will automatically define the initial magnetization if and
+            only if `spin_type != SpinType.NONE`.
         :param threshold_forces: target threshold for the forces in eV/Å.
         :param threshold_stress: target threshold for the stress in eV/Å^3.
+        :param previous_workchain: a <Code>RelaxWorkChain node.
+        :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
+        # pylint: disable=too-many-locals
+        protocol = protocol or self.get_default_protocol_name()
 
         super().get_builder(
-            structure, calc_engines, protocol, relaxation_type, threshold_forces, threshold_stress, previous_workchain,
+            structure,
+            calc_engines,
+            protocol=protocol,
+            relax_type=relax_type,
+            electronic_type=electronic_type,
+            spin_type=spin_type,
+            magnetization_per_site=magnetization_per_site,
+            threshold_forces=threshold_forces,
+            threshold_stress=threshold_stress,
+            previous_workchain=previous_workchain,
             **kwargs
         )
 
@@ -145,12 +169,12 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
         dict_merge(parameters, kinds_section)
 
         ## Relaxation type.
-        if relaxation_type == RelaxType.ATOMS:
+        if relax_type == RelaxType.ATOMS:
             run_type = 'GEO_OPT'
-        elif relaxation_type == RelaxType.ATOMS_CELL:
+        elif relax_type == RelaxType.ATOMS_CELL:
             run_type = 'CELL_OPT'
         else:
-            raise ValueError('relaxation type `{}` is not supported'.format(relaxation_type.value))
+            raise ValueError('relaxation type `{}` is not supported'.format(relax_type.value))
         parameters['GLOBAL'] = {'RUN_TYPE': run_type}
 
         ## Redefining forces threshold.
