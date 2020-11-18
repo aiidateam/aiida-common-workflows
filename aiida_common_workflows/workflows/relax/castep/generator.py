@@ -38,7 +38,8 @@ class CastepRelaxInputGenerator(RelaxInputsGenerator):
         SpinType.NONE: 'No spin polarisation',
         SpinType.COLLINEAR: 'Collinear spin polarisation',
         SpinType.NON_COLLINEAR: 'Non-collinear spin. Symmetry is disabled by default.',
-        SpinType.SPIN_ORBIT: 'Non-collinear spin with spin-orbit coupling. Symmetry is disabled by default'
+        # For now SOC requires special tabulated pseudopotentials (not the on-the-fly generated ones)
+        # SpinType.SPIN_ORBIT: 'Non-collinear spin with spin-orbit coupling. Symmetry is disabled by default'
     }
     _electronic_types = {
         ElectronicType.METAL:
@@ -149,10 +150,10 @@ class CastepRelaxInputGenerator(RelaxInputsGenerator):
             # Symmetry should be off, unless QUANTISATION_AXIS is supplied
             # that would be too advanced, here I just turn it off
             param.pop('symmetry_generate', None)
-        elif spin_type == SpinType.SPIN_ORBIT:
-            param['spin_treatment'] = 'noncollinear'
-            param['spin_orbit_coupling'] = True
-            param.pop('symmetry_generate', None)
+        #elif spin_type == SpinType.SPIN_ORBIT:
+        #    param['spin_treatment'] = 'noncollinear'
+        #    param['spin_orbit_coupling'] = True
+        #    param.pop('symmetry_generate', None)
         elif spin_type == SpinType.NONE:
             param['spin_polarized'] = False
         else:
