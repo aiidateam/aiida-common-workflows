@@ -224,8 +224,11 @@ def cmd_eos(
 
 @cmd_launch.command('plot-eos')
 @arguments.NODE()
-def cmd_plot_eos(node):
+@click.option('-t', '--print-table', is_flag=True, help='Print the volume and energy table instead of plotting.')
+def cmd_plot_eos(node, print_table):
     """Plot the results from an `EquationOfStateWorkChain`."""
+    from tabulate import tabulate
+
     from aiida.common import LinkType
     from aiida_common_workflows.common.visualization.eos import plot_eos
 
@@ -238,4 +241,7 @@ def cmd_plot_eos(node):
         volumes.append(structure.get_cell_volume())
         energies.append(outputs['total_energies'][index].value)
 
-    plot_eos(volumes, energies)
+    if print_table:
+        click.echo(tabulate(list(zip(volumes, energies)), headers=['Volume (Å^3)', 'Energy (eV)']))
+    else:
+        plot_eos(volumes, energies)
