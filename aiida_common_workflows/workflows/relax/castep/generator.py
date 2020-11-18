@@ -188,6 +188,15 @@ class CastepRelaxInputGenerator(RelaxInputsGenerator):
         else:
             raise ValueError('Unsupported `electronic_type` {}.'.format(electronic_type))
 
+        # Raise the cut off energy for very soft pseudopotentials
+        # this is because the small basis set will give rise to errors in EOS / variable volume
+        # relaxation even with the "fine" option
+        with open(str(pathlib.Path(__file__).parent / 'soft_elements.yml')) as fhandle:
+            soft_elements = yaml.safe_load(fhandle)
+        symbols = [kind.symbols for kind in structure.kinds]
+        if all([sym in soft_elements for sym in symbols]):
+            param['cut_off_energy'] = 326  # eV, approximately 12 Ha
+
         # Apply the overrides
         if param:
             override['base']['calc']['parameters'] = param
@@ -397,6 +406,12 @@ def generate_inputs_calculation(
 
     # For bare calculation level, we need to make sure the dictionary is not "flat"
     param = merged['calc']['parameters']
+
+    # Remove incompatible options: cut_off_energy and basis_precisions can not be
+    # both specified
+    if 'cut_off_energy' in param:
+        param.pop('basis_precision', None)
+
     helper = CastepHelper()
     param = helper.check_dict(param, auto_fix=True, allow_flat=True)
 
