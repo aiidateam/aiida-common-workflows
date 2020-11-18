@@ -5,11 +5,12 @@ fast:
     pal:
       nproc: 2
     scf:
-      convergence: tight
+      convergence: Strong
   input_keywords:
   - PBE0
   - def2-SVP
   - Opt
+  - LOOSEOPT
   multiplicity: 1
   extra_input_keywords: []
 moderate:
@@ -19,11 +20,12 @@ moderate:
     pal:
       nproc: 2
     scf:
-      convergence: tight
+      convergence: Tight
   input_keywords:
   - PBE0
   - def2-TZVP
   - Opt
+  - NORMALOPT
   multiplicity: 1
   extra_input_keywords: []
 precise:
@@ -33,10 +35,11 @@ precise:
     pal:
       nproc: 2
     scf:
-      convergence: tight
+      convergence: VeryTight
   input_keywords:
   - PBE0
   - def2-QZVP
   - Opt
+  - TIGHTOPT
   multiplicity: 1
   extra_input_keywords: []

@@ -114,6 +114,12 @@ class OrcaRelaxInputsGenerator(RelaxInputsGenerator):
         if magnetization_per_site is not None:
             print('Warning: magnetization_per_site not supported, ignoring it.')
 
+        if relax_type == RelaxType.NONE:
+            params = params['input_keywords'].remove('Opt')
+
+        if spin_type == SpinType.COLLINEAR:
+            params = params['input_keywords'].append('UKS')
+
         options = calc_engines['relax']['options']
 
         params = self._get_params(protocol)
