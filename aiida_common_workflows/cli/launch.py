@@ -20,7 +20,7 @@ def cmd_launch():
 
 @cmd_launch.command('relax')
 @click.argument('plugin', type=types.LazyChoice(functools.partial(get_workflow_entry_point_names, 'relax', True)))
-@options.STRUCTURE(help='The structure to relax.')
+@options.STRUCTURE()
 @options.PROTOCOL(type=click.Choice(['fast', 'moderate', 'precise']), default='fast')
 @options.RELAX_TYPE()
 @options.SPIN_TYPE()
@@ -117,7 +117,7 @@ def cmd_relax(
 
 @cmd_launch.command('eos')
 @click.argument('plugin', type=types.LazyChoice(functools.partial(get_workflow_entry_point_names, 'relax', True)))
-@options.STRUCTURE(help='The structure to relax.')
+@options.STRUCTURE()
 @options.PROTOCOL(type=click.Choice(['fast', 'moderate', 'precise']), default='fast')
 @options.RELAX_TYPE(type=types.LazyChoice(options.get_relax_types_eos))
 @options.SPIN_TYPE()
