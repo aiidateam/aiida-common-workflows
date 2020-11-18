@@ -123,13 +123,18 @@ class OrcaRelaxInputsGenerator(RelaxInputsGenerator):
             for item in inp_keywords:
                 if 'opt' not in item.lower():
                     new_inp_keywords.append(item)
-        params['input_keywords'] = new_inp_keywords
+            params['input_keywords'] = new_inp_keywords
 
         if spin_type == SpinType.COLLINEAR:
             params = params['input_keywords'].append('UKS')
 
-        resources = calc_engines['relax']['options']['resources']
+        # Handle charge and multiplicity
+        strc_pmg = structure.get_pymatgen_molecule()
+        params['charge'] = int(strc_pmg.charge)
+        params['multiplicity'] = strc_pmg.spin_multiplicity
 
+        # Handle resources
+        resources = calc_engines['relax']['options']['resources']
         nproc = None
         if 'tot_num_mpiprocs' in resources:
             nproc = resources['tot_num_mpiprocs']

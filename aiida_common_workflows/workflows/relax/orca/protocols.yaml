@@ -1,6 +1,5 @@
 fast:
   description: 'Minimal basis set for testing purpose!'
-  charge: 0
   input_blocks:
     scf:
       convergence: Strong
@@ -9,11 +8,9 @@ fast:
   - def2-SVP
   - Opt
   - LOOSEOPT
-  multiplicity: 1
   extra_input_keywords: []
 moderate:
   description: 'Moderate size basis set'
-  charge: 0
   input_blocks:
     scf:
       convergence: Tight
@@ -22,11 +19,9 @@ moderate:
   - def2-TZVP
   - Opt
   - NORMALOPT
-  multiplicity: 1
   extra_input_keywords: []
 precise:
   description: 'Slightly larger basis set for more accurate results?!'
-  charge: 0
   input_blocks:
     scf:
       convergence: VeryTight
@@ -35,5 +30,4 @@ precise:
   - def2-QZVP
   - Opt
   - TIGHTOPT
-  multiplicity: 1
   extra_input_keywords: []
