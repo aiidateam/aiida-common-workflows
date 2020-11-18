@@ -4,9 +4,11 @@ import collections
 import copy
 import pathlib
 from typing import Any, Dict, List
+import warnings
 
 import yaml
 from pymatgen.core import units
+import numpy as np
 
 from aiida import engine, orm, plugins
 from aiida.common import exceptions
@@ -30,14 +32,15 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         RelaxType.ATOMS_SHAPE: 'Relax the atomic positions and cell shape at fixed cell volume.'
     }
     _spin_types = {
-        SpinType.NONE: 'Do not enable any spin-magnetization or spin-orbit coupling.',
-        SpinType.COLLINEAR: 'Enable collinear spin-magnetization. You must provide magnetization_per_site.',
-        SpinType.SPIN_ORBIT: 'Enable spin-orbit coupling.'
+        SpinType.NONE: 'Do not enable any magnetization or spin-orbit coupling.',
+        SpinType.COLLINEAR: 'Enable collinear magnetization. You must provide magnetization_per_site.',
+        SpinType.NON_COLLINEAR: 'Enable non-collinear magnetization with spin-orbit coupling (spinor w.f.s).',
+        SpinType.SPIN_ORBIT: 'Enable spin-orbit coupling (spinor w.f.s) without magnetization.'
     }
     _electronic_types = {
         ElectronicType.METAL: 'Treat the system as metallic by allowing occupations to change, ' \
             'using Fermi-Dirac smearing, and adding additional bands.',
-        ElectronicType.INSULATOR: 'Treat the system as an insulator by freezing occupations.'
+        ElectronicType.INSULATOR: 'Treat the system as an insulator with fixed integer occupations.'
     }
 
     def __init__(self, *args, **kwargs):
@@ -117,16 +120,16 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
 
         # RelaxType
         if relax_type == RelaxType.NONE:
-            builder.abinit['parameters']['optcell'] = 0  # do not optimize the cell, Abinit default
             builder.abinit['parameters']['ionmov'] = 0  # do not move the ions, Abinit default
-            builder.abinit['parameters']['dilatmx'] = 1.00  # don't book additional mem. for expansion Abinit default
         elif relax_type == RelaxType.ATOMS:
             # protocol defaults to ATOMS
             pass
         elif relax_type == RelaxType.ATOMS_CELL:
             builder.abinit['parameters']['optcell'] = 2  # fully optimize the cell geometry
+            builder.abinit['parameters']['dilatmx'] = 1.15  # book additional mem. for p.w. basis exp.
         elif relax_type == RelaxType.ATOMS_VOLUME:
             builder.abinit['parameters']['optcell'] = 1  # optimize volume only
+            builder.abinit['parameters']['dilatmx'] = 1.15  # book additional mem. for p.w. basis exp.
         elif relax_type == RelaxType.ATOMS_SHAPE:
             builder.abinit['parameters']['optcell'] = 3  # constant-volume optimization of cell geometry
         else:
@@ -137,11 +140,24 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             # protocol defaults to NONE
             pass
         elif spin_type == SpinType.COLLINEAR:
-            builder.abinit['parameters']['nsppol'] = 2  # collinear spin-polarization
-            builder.abinit['parameters']['nspden'] = 2  # scalar spin-magnetization in the z-axis
+            if np.all(np.isclose(magnetization_per_site, 0)):
+                warnings.warn('All initial magnetizations are 0, doing a non-spin-polarized calculation.')
+            elif np.isclose(sum(magnetization_per_site), 0):  # antiferromagnetic
+                builder.abinit['parameters']['nsppol'] = 1  # antiferromagnetic system
+                builder.abinit['parameters']['nspden'] = 2  # scalar spin-magnetization in the z-axis
+                builder.abinit['parameters']['spinat'] = [[0.0, 0.0, mag] for mag in magnetization_per_site]
+            else:  # ferromagnetic
+                builder.abinit['parameters']['nsppol'] = 2  # collinear spin-polarization
+                builder.abinit['parameters']['nspden'] = 2  # scalar spin-magnetization in the z-axis
+                builder.abinit['parameters']['spinat'] = [[0.0, 0.0, mag] for mag in magnetization_per_site]
+        elif spin_type == SpinType.NON_COLLINEAR:
+            # LATER: support vector magnetization_per_site
+            builder.abinit['parameters']['nspinor'] = 2  # w.f. as spinors
+            builder.abinit['parameters']['nsppol'] = 1  # spin-up and spin-down can't be disentangled
+            builder.abinit['parameters']['nspden'] = 4  # vector magnetization
             builder.abinit['parameters']['spinat'] = [[0.0, 0.0, mag] for mag in magnetization_per_site]
         elif spin_type == SpinType.SPIN_ORBIT:
-            builder.abinit['parameters']['nspinor'] = 2  # spin-orbit coupling
+            builder.abinit['parameters']['nspinor'] = 2  # w.f. as spinors
         else:
             raise ValueError('spin type `{}` is not supported'.format(spin_type.value))
 
@@ -150,7 +166,8 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             # protocal defaults to METAL
             pass
         elif electronic_type == ElectronicType.INSULATOR:
-            if spin_type != SpinType.NONE:
+            # LATER: Support magnetization with insulators
+            if spin_type not in [SpinType.NONE, SpinType.SPIN_ORBIT]:
                 raise ValueError('`spin_type` {} is not supported for insulating systems.'.format(spin_type.value))
             builder.abinit['parameters']['occopt'] = 1  # fixed occupations, Abinit default
             builder.abinit['parameters']['fband'] = 0.125  # Abinit default

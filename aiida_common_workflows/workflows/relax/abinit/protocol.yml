@@ -11,7 +11,8 @@ fast:
                 nshiftk: 1
                 shiftk: [[0.5, 0.5, 0.5]]
                 nstep: 100
-                toldfe: 1.0e-12 # Ha
+                # tolerances
+                tolvrs: 1.0e-7 # Ha
                 chkprim: 0 # To allow for non-primitive unit cells
                 chksymbreak: 0 # No check on the symmetries of the k-points
                 autoparal: 1 # Run Abinit's built-in automatic parallelization
@@ -21,8 +22,8 @@ fast:
                 dilatmx: 1.00 # don't book additional memory for basis set enlargement, Abinit default
                 # default to metallic treatment
                 occopt: 3 # Fermi-Dirac smearing
-                fband: 2 # increase the number of bands to > fband * natoms
-                tsmear: 0.02 # Ha
+                fband: 1.5 # increase the number of bands to > fband * natoms
+                tsmear: 0.03 # Ha
                 # default to no spin treatment
                 nspinor: 1 # no spin-orbit coupling, Abinit default
                 nsppol: 1 # no spin-polarization, Abinit default
@@ -41,7 +42,8 @@ moderate:
                 nshiftk: 1
                 shiftk: [[0.5, 0.5, 0.5]]
                 nstep: 200
-                toldfe: 1.0e-12 # Ha
+                # tolerances
+                tolvrs: 1.0e-9 # Ha
                 chkprim: 0 # To allow for non-primitive unit cells
                 chksymbreak: 0 # No check on the symmetries of the k-points
                 autoparal: 1 # Run Abinit's built-in automatic parallelization
@@ -51,7 +53,7 @@ moderate:
                 dilatmx: 1.00 # don't book additional memory for basis set enlargement, Abinit default
                 # default to metallic treatment
                 occopt: 3 # Fermi-Dirac smearing
-                fband: 2 # increase the number of bands to > fband * natoms
+                fband: 1.35 # increase the number of bands to > fband * natoms
                 tsmear: 0.01 # Ha
                 # default to no spin treatment
                 nspinor: 1 # no spin-orbit coupling, Abinit default
@@ -71,7 +73,8 @@ precise:
                 nshiftk: 1
                 shiftk: [[0.5, 0.5, 0.5]]
                 nstep: 300
-                toldfe: 1.0e-12 # Ha
+                # tolerances
+                tolvrs: 1.0e-10 # Ha
                 chkprim: 0 # To allow for non-primitive unit cells
                 chksymbreak: 0 # No check on the symmetries of the k-points
                 autoparal: 1 # Run Abinit's built-in automatic parallelization
@@ -81,8 +84,8 @@ precise:
                 dilatmx: 1.00 # don't book additional memory for basis set enlargement, Abinit default
                 # default to metallic treatment
                 occopt: 3 # Fermi-Dirac smearing
-                fband: 2 # increase the number of bands to > fband * natoms
-                tsmear: 0.007 # Ha
+                fband: 1.20 # increase the number of bands to > fband * natoms
+                tsmear: 0.0075 # Ha
                 # default to no spin treatment
                 nspinor: 1 # no spin-orbit coupling, Abinit default
                 nsppol: 1 # no spin-polarization, Abinit default
