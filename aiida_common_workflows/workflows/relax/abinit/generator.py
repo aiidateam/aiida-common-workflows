@@ -150,7 +150,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             # protocal defaults to METAL
             pass
         elif electronic_type == ElectronicType.INSULATOR:
-            if spin_type != SpinType.None:
+            if spin_type != SpinType.NONE:
                 raise ValueError('`spin_type` {} is not supported for insulating systems.'.format(spin_type.value))
             builder.abinit['parameters']['occopt'] = 1  # fixed occupations, Abinit default
             builder.abinit['parameters']['fband'] = 0.125  # Abinit default
