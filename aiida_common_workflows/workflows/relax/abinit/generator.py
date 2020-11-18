@@ -130,7 +130,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         elif relax_type == RelaxType.ATOMS_SHAPE:
             builder.abinit['parameters']['optcell'] = 3  # constant-volume optimization of cell geometry
         else:
-            raise ValueError('relaxation type `{}` is not supported'.format(relax_type.value))
+            raise ValueError('relax type `{}` is not supported'.format(relax_type.value))
 
         # SpinType
         if spin_type == SpinType.NONE:
