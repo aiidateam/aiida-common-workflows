@@ -26,7 +26,7 @@
         "aiida-quantumespresso~=3.2",
         "aiida-siesta",
         "aiida-sssp~=0.1.0",
-	"aiida-castep>=1.2.0a2",
+	    "aiida-castep>=1.2.0a2",
         "aiida-vasp",
         "aiida-orca"
     ],

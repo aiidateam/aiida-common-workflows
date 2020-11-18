@@ -3,7 +3,7 @@
 
 import os
 from typing import Any, Dict, List
-
+from copy import deepcopy
 import yaml
 
 from aiida import engine
@@ -55,7 +55,7 @@ class OrcaRelaxInputsGenerator(RelaxInputsGenerator):
         with open(yamlpath) as handler:
             self._protocols = yaml.safe_load(handler)
 
-    def get_builder(
+    def get_builder( # pylint: disable=too-many-branches
         self,
         structure: StructureData,
         calc_engines: Dict[str, Any],
@@ -114,19 +114,37 @@ class OrcaRelaxInputsGenerator(RelaxInputsGenerator):
         if magnetization_per_site is not None:
             print('Warning: magnetization_per_site not supported, ignoring it.')
 
+        params = self._get_params(protocol)
+
+        # Delete optimization related keywords if it is a single point calculation
         if relax_type == RelaxType.NONE:
-            params = params['input_keywords'].remove('Opt')
+            inp_keywords = deepcopy(params['input_keywords'])
+            new_inp_keywords = []
+            for item in inp_keywords:
+                if 'opt' not in item.lower():
+                    new_inp_keywords.append(item)
+        params['input_keywords'] = new_inp_keywords
 
         if spin_type == SpinType.COLLINEAR:
             params = params['input_keywords'].append('UKS')
 
-        options = calc_engines['relax']['options']
+        resources = calc_engines['relax']['options']['resources']
 
-        params = self._get_params(protocol)
-        params['input_blocks']['pal'].update({
-            'nproc':
-            options['resources']['num_machines'] * options['resources']['num_mpiprocs_per_machine']
-        })
+        nproc = None
+        if 'tot_num_mpiprocs' in resources:
+            nproc = resources['tot_num_mpiprocs']
+        elif 'num_machines' in resources:
+            if 'num_mpiprocs_per_machine' in resources:
+                nproc = resources['num_machines'] * resources['num_mpiprocs_per_machine']
+            else:
+                code = orm.load_code(calc_engines['relax']['code'])
+                default_mpiprocs = code.computer.get_default_mpiprocs_per_machine()
+                if default_mpiprocs is not None:
+                    nproc = resources['num_machines'] * default_mpiprocs
+
+        if nproc is not None:
+            params['input_blocks']['pal'] = {'nproc': nproc}
+
         builder = self.process_class.get_builder()
         builder.orca.structure = structure
         builder.orca.parameters = orm.Dict(dict=params)

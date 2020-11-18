@@ -2,8 +2,6 @@ fast:
   description: 'Minimal basis set for testing purpose!'
   charge: 0
   input_blocks:
-    pal:
-      nproc: 2
     scf:
       convergence: Strong
   input_keywords:
@@ -17,8 +15,6 @@ moderate:
   description: 'Moderate size basis set'
   charge: 0
   input_blocks:
-    pal:
-      nproc: 2
     scf:
       convergence: Tight
   input_keywords:
@@ -32,8 +28,6 @@ precise:
   description: 'Slightly larger basis set for more accurate results?!'
   charge: 0
   input_blocks:
-    pal:
-      nproc: 2
     scf:
       convergence: VeryTight
   input_keywords:
