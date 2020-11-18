@@ -364,9 +364,7 @@ def generate_inputs_base(
     merged = recursive_merge(protocol, override or {})
 
     # Here we pass the base namespace in
-    calc_dictionary = generate_inputs_calculation(
-        protocol['calc'], code, structure, otfg_family, override.get('calc', {})
-    )
+    calc_dictionary = generate_inputs_calculation(protocol, code, structure, otfg_family, override.get('calc', {}))
     # Structure and pseudo should be define at base level
     calc_dictionary.pop('structure')
     calc_dictionary.pop('pseudos')
@@ -400,14 +398,14 @@ def generate_inputs_calculation(
     :return: the fully defined input dictionary.
     """
     from aiida_castep.calculations.helper import CastepHelper
-    merged = recursive_merge(protocol, override or {})
+    merged_calc = recursive_merge(protocol['calc'], override or {})
 
     kpoints = orm.KpointsData()
     kpoints.set_cell_from_structure(structure)
     kpoints.set_kpoints_mesh_from_density(protocol['kpoints_spacing'] * pi * 2)
 
     # For bare calculation level, we need to make sure the dictionary is not "flat"
-    param = merged['parameters']
+    param = merged_calc['parameters']
 
     # Remove incompatible options: cut_off_energy and basis_precisions can not be
     # both specified
@@ -423,11 +421,11 @@ def generate_inputs_calculation(
         'code': code,
         'parameters': orm.Dict(dict=param),
         'pseudos': get_pseudos_from_structure(structure, otfg_family.label),
-        'metadata': merged.get('metadata', {})
+        'metadata': merged_calc.get('metadata', {})
     }
     # Add the settings input if present
-    if 'settings' in merged:
-        dictionary['settings'] = orm.Dict(dict=merged['settings'])
+    if 'settings' in merged_calc:
+        dictionary['settings'] = orm.Dict(dict=merged_calc['settings'])
 
     return dictionary
 
