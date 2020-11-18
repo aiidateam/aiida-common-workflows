@@ -364,7 +364,9 @@ def generate_inputs_base(
     merged = recursive_merge(protocol, override or {})
 
     # Here we pass the base namespace in
-    calc_dictionary = generate_inputs_calculation(protocol, code, structure, otfg_family, override.get('calc', {}))
+    calc_dictionary = generate_inputs_calculation(
+        protocol['calc'], code, structure, otfg_family, override.get('calc', {})
+    )
     # Structure and pseudo should be define at base level
     calc_dictionary.pop('structure')
     calc_dictionary.pop('pseudos')
@@ -405,7 +407,7 @@ def generate_inputs_calculation(
     kpoints.set_kpoints_mesh_from_density(protocol['kpoints_spacing'] * pi * 2)
 
     # For bare calculation level, we need to make sure the dictionary is not "flat"
-    param = merged['calc']['parameters']
+    param = merged['parameters']
 
     # Remove incompatible options: cut_off_energy and basis_precisions can not be
     # both specified
