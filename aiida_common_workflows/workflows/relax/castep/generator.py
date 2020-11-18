@@ -193,7 +193,7 @@ class CastepRelaxInputGenerator(RelaxInputsGenerator):
         # relaxation even with the "fine" option
         with open(str(pathlib.Path(__file__).parent / 'soft_elements.yml')) as fhandle:
             soft_elements = yaml.safe_load(fhandle)
-        symbols = [kind.symbols for kind in structure.kinds]
+        symbols = [kind.symbol for kind in structure.kinds]
         if all([sym in soft_elements for sym in symbols]):
             param['cut_off_energy'] = 326  # eV, approximately 12 Ha
 
