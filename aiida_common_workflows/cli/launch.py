@@ -236,12 +236,21 @@ def cmd_plot_eos(node, print_table):
 
     volumes = []
     energies = []
+    magnetizations = []
 
     for index, structure in sorted(outputs['structures'].items()):
         volumes.append(structure.get_cell_volume())
         energies.append(outputs['total_energies'][index].value)
 
+        try:
+            total_magnetization = outputs['total_magnetizations'][index].value
+        except KeyError:
+            total_magnetization = None
+
+        magnetizations.append(total_magnetization)
+
     if print_table:
-        click.echo(tabulate(list(zip(volumes, energies)), headers=['Volume (Å^3)', 'Energy (eV)']))
+        headers = ['Volume (Å^3)', 'Energy (eV)', 'Total magnetization (μB)']
+        click.echo(tabulate(list(zip(volumes, energies, magnetizations)), headers=headers))
     else:
         plot_eos(volumes, energies)
