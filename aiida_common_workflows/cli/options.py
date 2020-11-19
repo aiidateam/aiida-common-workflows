@@ -96,7 +96,7 @@ STRUCTURE = options.OverridableOption(
     '-S',
     '--structure',
     type=StructureDataParamType(),
-    default='silicon',
+    default='Si',
     help='Select a structure: either choose one of the default structures listed above, or an existing `StructureData` '
     'identifier, or a file on disk with a structure definition that can be parsed by `ase`.'
 )
