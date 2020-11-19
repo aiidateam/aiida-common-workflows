@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=redefined-outer-name
 """Configuration and fixtures for unit test suite."""
 import click
 import pytest
@@ -78,3 +79,29 @@ def generate_code(aiida_localhost):
         return code
 
     return _generate_code
+
+
+@pytest.fixture
+def generate_eos_node(generate_structure):
+    """Generate an instance of ``EquationOfStateWorkChain``."""
+
+    def _generate_eos_node(include_magnetization=True):
+        from aiida.common import LinkType
+        from aiida.orm import Float, WorkflowNode
+
+        node = WorkflowNode(process_type='aiida.workflows:common_workflows.eos').store()
+
+        for index in range(5):
+            structure = generate_structure().store()
+            energy = Float(index).store()
+
+            structure.add_incoming(node, link_type=LinkType.RETURN, link_label=f'structures__{index}')
+            energy.add_incoming(node, link_type=LinkType.RETURN, link_label=f'total_energies__{index}')
+
+            if include_magnetization:
+                magnetization = Float(index).store()
+                magnetization.add_incoming(node, link_type=LinkType.RETURN, link_label=f'total_magnetizations__{index}')
+
+        return node
+
+    return _generate_eos_node
