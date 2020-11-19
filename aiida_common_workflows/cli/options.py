@@ -1,10 +1,22 @@
 # -*- coding: utf-8 -*-
 """Module with pre-defined options and defaults for CLI command parameters."""
+import pathlib
+
 import click
 
 from aiida.cmdline.params import options, types
 from aiida.cmdline.utils.decorators import with_dbenv
 from aiida_common_workflows.workflows.relax import RelaxType, SpinType
+
+DEFAULT_STRUCTURES_MAPPING = {
+    'Al': 'Al.cif',
+    'Fe': 'Fe.cif',
+    'GeTe': 'GeTe.cif',
+    'Si': 'Si.cif',
+    'NH3-pyramidal': 'nh3_cone.xyz',
+    'NH3-planar': 'nh3_flat.xyz',
+    'H2': 'h2.xyz',
+}
 
 
 def get_workchain_plugins():
@@ -31,54 +43,24 @@ def get_spin_types():
     return [entry.value for entry in SpinType]
 
 
-def get_default_structures_path(name):  #pylint: disable=too-many-return-statements
-    """
-    Return the filepath for the few default strutures we run as test cases:
-    silicon, aluminum, iron, ammonia_pyramidal, ammonia_planar, hydrogen_molecule
-    and germanium_telluride
-    """
-    import os.path as op
-    datapath = op.join(op.dirname(__file__), '../common/data')
-
-    if name == 'silicon':
-        return op.join(datapath, 'Si.cif')
-    if name == 'aluminum':
-        return op.join(datapath, 'Al.cif')
-    if name == 'iron':
-        return op.join(datapath, 'Fe.cif')
-    if name == 'germanium_telluride':
-        return op.join(datapath, 'GeTe.cif')
-    if name == 'ammonia_pyramidal':
-        return op.join(datapath, 'nh3_cone.xyz')
-    if name == 'ammonia_planar':
-        return op.join(datapath, 'nh3_flat.xyz')
-    if name == 'hydrogen_molecule':
-        return op.join(datapath, 'h2.xyz')
-
-
-class StructureDataParamType(types.DataParamType):
+class StructureDataParamType(click.Choice):
     """CLI parameter type that can load `StructureData` from identifier or from a CIF file on disk."""
 
     def __init__(self):
-        super().__init__(sub_classes=('aiida.data:structure',))
+        super().__init__(list(DEFAULT_STRUCTURES_MAPPING.keys()))
 
     @with_dbenv()
     def convert(self, value, param, ctx):
         """Attempt to interpret the value as a file first and if that fails try to load as a node."""
         from aiida.orm import StructureData, QueryBuilder
 
-        list_defaults = [
-            'silicon', 'aluminum', 'iron', 'ammonia_pyramidal', 'ammonia_planar', 'hydrogen_molecule',
-            'germanium_telluride'
-        ]
-
-        if value in list_defaults:
-            value = get_default_structures_path(value)
-
         try:
-            return super().convert(value, param, ctx)
-        except click.BadParameter:
-            pass
+            filepath = pathlib.Path(__file__).parent.parent / 'common' / 'data' / DEFAULT_STRUCTURES_MAPPING[value]
+        except KeyError:
+            try:
+                return types.DataParamType(sub_classes=('aiida.data:structure',)).convert(value, param, ctx)
+            except click.BadParameter:
+                filepath = value
 
         try:
             import ase.io
@@ -89,7 +71,7 @@ class StructureDataParamType(types.DataParamType):
             ) from exception
 
         try:
-            filepath = click.Path(exists=True, dir_okay=False, resolve_path=True).convert(value, param, ctx)
+            filepath = click.Path(exists=True, dir_okay=False, resolve_path=True).convert(filepath, param, ctx)
         except click.BadParameter as exception:
             raise click.BadParameter(
                 f'failed to load a structure with identifier `{value}` and it can also not be resolved as a file.'
@@ -115,7 +97,8 @@ STRUCTURE = options.OverridableOption(
     '--structure',
     type=StructureDataParamType(),
     default='silicon',
-    help='A structure data node or a file on disk that can be parsed by `ase`.'
+    help='Select a structure: either choose one of the default structures listed above, or an existing `StructureData` '
+    'identifier, or a file on disk with a structure definition that can be parsed by `ase`.'
 )
 
 PROTOCOL = options.OverridableOption(
