@@ -31,7 +31,7 @@ def get_spin_types():
     return [entry.value for entry in SpinType]
 
 
-def get_default_structures_path(name):
+def get_default_structures_path(name):  #pylint: disable=too-many-return-statements
     """
     Return the filepath for the few default strutures we run as test cases:
     silicon, aluminum, iron, ammonia_pyramidal, ammonia_planar, hydrogen_molecule
@@ -53,7 +53,7 @@ def get_default_structures_path(name):
     if name == 'ammonia_planar':
         return op.join(datapath, 'nh3_flat.xyz')
     if name == 'hydrogen_molecule':
-        return op.join(datapath, 'nh2.xyz')
+        return op.join(datapath, 'h2.xyz')
 
 
 class StructureDataParamType(types.DataParamType):
