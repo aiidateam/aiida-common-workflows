@@ -3,6 +3,7 @@
 import click
 
 from aiida.cmdline.params import options, types
+from aiida.cmdline.utils.decorators import with_dbenv
 from aiida_common_workflows.workflows.relax import RelaxType, SpinType
 
 
@@ -74,12 +75,58 @@ def get_structure():
     return structure.uuid
 
 
+class StructureDataParamType(types.DataParamType):
+    """CLI parameter type that can load `StructureData` from identifier or from a CIF file on disk."""
+
+    def __init__(self):
+        super().__init__(sub_classes=('aiida.data:structure',))
+
+    @with_dbenv()
+    def convert(self, value, param, ctx):
+        """Attempt to interpret the value as a file first and if that fails try to load as a node."""
+        from aiida.orm import StructureData, QueryBuilder
+
+        try:
+            return super().convert(value, param, ctx)
+        except click.BadParameter:
+            pass
+
+        try:
+            import ase.io
+        except ImportError as exception:
+            raise click.BadParameter(
+                f'failed to load a structure with identifier `{value}`.\n'
+                'Cannot parse from file because `ase` is not installed.'
+            ) from exception
+
+        try:
+            filepath = click.Path(exists=True, dir_okay=False, resolve_path=True).convert(value, param, ctx)
+        except click.BadParameter as exception:
+            raise click.BadParameter(
+                f'failed to load a structure with identifier `{value}` and it can also not be resolved as a file.'
+            ) from exception
+
+        try:
+            structure = StructureData(ase=ase.io.read(filepath))
+        except Exception as exception:  # pylint: disable=broad-except
+            raise click.BadParameter(
+                f'file `{value}` could not be parsed into a `StructureData`: {exception}'
+            ) from exception
+
+        duplicate = QueryBuilder().append(StructureData, filters={'extras._aiida_hash': structure._get_hash()}).first()  # pylint: disable=protected-access
+
+        if duplicate:
+            return duplicate[0]
+
+        return structure
+
+
 STRUCTURE = options.OverridableOption(
     '-S',
     '--structure',
-    type=types.DataParamType(sub_classes=('aiida.data:structure',)),
+    type=StructureDataParamType(),
     default=get_structure,
-    help='A structure data node.'
+    help='A structure data node or a file on disk that can be parsed by `ase`.'
 )
 
 PROTOCOL = options.OverridableOption(
