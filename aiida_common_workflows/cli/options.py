@@ -31,48 +31,29 @@ def get_spin_types():
     return [entry.value for entry in SpinType]
 
 
-def get_structure():
-    """Return a `StructureData` representing bulk silicon.
-
-    The database will first be queried for the existence of a bulk silicon crystal. If this is not the case, one is
-    created and stored. This function should be used as a default for CLI options that require a `StructureData` node.
-    This way new users can launch the command without having to construct or import a structure first. This is the
-    reason that we hardcode a bulk silicon crystal to be returned. More flexibility is not required for this purpose.
-
-    :return: a `StructureData` representing bulk silicon
+def get_default_structures_path(name):
     """
-    from ase.spacegroup import crystal
-    from aiida.orm import QueryBuilder, StructureData
+    Return the filepath for the few default strutures we run as test cases:
+    silicon, aluminum, iron, ammonia_pyramidal, ammonia_planar, hydrogen_molecule
+    and germanium_telluride
+    """
+    import os.path as op
+    datapath = op.join(op.dirname(__file__), '../common/data')
 
-    # Filters that will match any elemental Silicon structure with 2 or less sites in total
-    filters = {
-        'attributes.sites': {
-            'of_length': 2
-        },
-        'attributes.kinds': {
-            'of_length': 1
-        },
-        'attributes.kinds.0.symbols.0': 'Si'
-    }
-
-    builder = QueryBuilder().append(StructureData, filters=filters)
-    results = builder.first()
-
-    if not results:
-        alat = 5.43
-        ase_structure = crystal(
-            'Si',
-            [(0, 0, 0)],
-            spacegroup=227,
-            cellpar=[alat, alat, alat, 90, 90, 90],
-            primitive_cell=True,
-        )
-        structure = StructureData(ase=ase_structure)
-        structure.store()
-    else:
-        structure = results[0]
-
-    return structure.uuid
+    if name == 'silicon':
+        return op.join(datapath, 'Si.cif')
+    if name == 'aluminum':
+        return op.join(datapath, 'Al.cif')
+    if name == 'iron':
+        return op.join(datapath, 'Fe.cif')
+    if name == 'germanium_telluride':
+        return op.join(datapath, 'GeTe.cif')
+    if name == 'ammonia_pyramidal':
+        return op.join(datapath, 'nh3_cone.xyz')
+    if name == 'ammonia_planar':
+        return op.join(datapath, 'nh3_flat.xyz')
+    if name == 'hydrogen_molecule':
+        return op.join(datapath, 'nh2.xyz')
 
 
 class StructureDataParamType(types.DataParamType):
@@ -85,6 +66,14 @@ class StructureDataParamType(types.DataParamType):
     def convert(self, value, param, ctx):
         """Attempt to interpret the value as a file first and if that fails try to load as a node."""
         from aiida.orm import StructureData, QueryBuilder
+
+        list_defaults = [
+            'silicon', 'aluminum', 'iron', 'ammonia_pyramidal', 'ammonia_planar', 'hydrogen_molecule',
+            'germanium_telluride'
+        ]
+
+        if value in list_defaults:
+            value = get_default_structures_path(value)
 
         try:
             return super().convert(value, param, ctx)
@@ -125,7 +114,7 @@ STRUCTURE = options.OverridableOption(
     '-S',
     '--structure',
     type=StructureDataParamType(),
-    default=get_structure,
+    default='silicon',
     help='A structure data node or a file on disk that can be parsed by `ase`.'
 )
 
