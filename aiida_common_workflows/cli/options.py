@@ -1,10 +1,22 @@
 # -*- coding: utf-8 -*-
 """Module with pre-defined options and defaults for CLI command parameters."""
+import pathlib
+
 import click
 
 from aiida.cmdline.params import options, types
 from aiida.cmdline.utils.decorators import with_dbenv
 from aiida_common_workflows.workflows.relax import RelaxType, SpinType
+
+DEFAULT_STRUCTURES_MAPPING = {
+    'Al': 'Al.cif',
+    'Fe': 'Fe.cif',
+    'GeTe': 'GeTe.cif',
+    'Si': 'Si.cif',
+    'NH3-pyramidal': 'nh3_cone.xyz',
+    'NH3-planar': 'nh3_flat.xyz',
+    'H2': 'h2.xyz',
+}
 
 
 def get_workchain_plugins():
@@ -31,55 +43,11 @@ def get_spin_types():
     return [entry.value for entry in SpinType]
 
 
-def get_structure():
-    """Return a `StructureData` representing bulk silicon.
-
-    The database will first be queried for the existence of a bulk silicon crystal. If this is not the case, one is
-    created and stored. This function should be used as a default for CLI options that require a `StructureData` node.
-    This way new users can launch the command without having to construct or import a structure first. This is the
-    reason that we hardcode a bulk silicon crystal to be returned. More flexibility is not required for this purpose.
-
-    :return: a `StructureData` representing bulk silicon
-    """
-    from ase.spacegroup import crystal
-    from aiida.orm import QueryBuilder, StructureData
-
-    # Filters that will match any elemental Silicon structure with 2 or less sites in total
-    filters = {
-        'attributes.sites': {
-            'of_length': 2
-        },
-        'attributes.kinds': {
-            'of_length': 1
-        },
-        'attributes.kinds.0.symbols.0': 'Si'
-    }
-
-    builder = QueryBuilder().append(StructureData, filters=filters)
-    results = builder.first()
-
-    if not results:
-        alat = 5.43
-        ase_structure = crystal(
-            'Si',
-            [(0, 0, 0)],
-            spacegroup=227,
-            cellpar=[alat, alat, alat, 90, 90, 90],
-            primitive_cell=True,
-        )
-        structure = StructureData(ase=ase_structure)
-        structure.store()
-    else:
-        structure = results[0]
-
-    return structure.uuid
-
-
-class StructureDataParamType(types.DataParamType):
+class StructureDataParamType(click.Choice):
     """CLI parameter type that can load `StructureData` from identifier or from a CIF file on disk."""
 
     def __init__(self):
-        super().__init__(sub_classes=('aiida.data:structure',))
+        super().__init__(list(DEFAULT_STRUCTURES_MAPPING.keys()))
 
     @with_dbenv()
     def convert(self, value, param, ctx):
@@ -87,9 +55,12 @@ class StructureDataParamType(types.DataParamType):
         from aiida.orm import StructureData, QueryBuilder
 
         try:
-            return super().convert(value, param, ctx)
-        except click.BadParameter:
-            pass
+            filepath = pathlib.Path(__file__).parent.parent / 'common' / 'data' / DEFAULT_STRUCTURES_MAPPING[value]
+        except KeyError:
+            try:
+                return types.DataParamType(sub_classes=('aiida.data:structure',)).convert(value, param, ctx)
+            except click.BadParameter:
+                filepath = value
 
         try:
             import ase.io
@@ -100,7 +71,7 @@ class StructureDataParamType(types.DataParamType):
             ) from exception
 
         try:
-            filepath = click.Path(exists=True, dir_okay=False, resolve_path=True).convert(value, param, ctx)
+            filepath = click.Path(exists=True, dir_okay=False, resolve_path=True).convert(filepath, param, ctx)
         except click.BadParameter as exception:
             raise click.BadParameter(
                 f'failed to load a structure with identifier `{value}` and it can also not be resolved as a file.'
@@ -125,8 +96,9 @@ STRUCTURE = options.OverridableOption(
     '-S',
     '--structure',
     type=StructureDataParamType(),
-    default=get_structure,
-    help='A structure data node or a file on disk that can be parsed by `ase`.'
+    default='Si',
+    help='Select a structure: either choose one of the default structures listed above, or an existing `StructureData` '
+    'identifier, or a file on disk with a structure definition that can be parsed by `ase`.'
 )
 
 PROTOCOL = options.OverridableOption(

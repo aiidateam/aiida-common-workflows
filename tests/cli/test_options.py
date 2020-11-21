@@ -60,3 +60,22 @@ class TestStructureDataParamType:
 
         result = param_type.convert(filepath_cif, None, None)
         assert result.uuid == structure.uuid
+
+    @pytest.mark.parametrize(
+        'label, formula', (
+            ('Al', 'Al4'),
+            ('Fe', 'Fe2'),
+            ('GeTe', 'GeTe'),
+            ('Si', 'Si2'),
+            ('NH3-pyramidal', 'H3N'),
+            ('NH3-planar', 'H3N'),
+        )
+    )
+    def test_parse_predefined_defaults(self, param_type, label, formula):
+        """Test the shortcut labels.
+
+        The parameter type should preferentially treat the value as one of the default structure labels. If found it
+        should load structure from the corresponding CIF file that is shipped with the repo.
+        """
+        result = param_type.convert(label, None, None)
+        assert result.get_formula() == formula
