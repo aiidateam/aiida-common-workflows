@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=redefined-outer-name
-"""Tests for the :mod:`aiida_common_workflows.workflows.eos` module."""
+"""Tests for the :mod:`aiida_common_workflows.workflows.dissociation` module."""
 import pytest
 
 from aiida import orm
@@ -36,7 +36,9 @@ def test_validate_sub_process_class(ctx):
 def test_validate_sub_process_class_plugins(ctx, common_relax_workchain):
     """Test the `validate_sub_process_class` validator."""
     from aiida_common_workflows.plugins import get_entry_point_name_from_class
-    assert dissociation.validate_sub_process_class(get_entry_point_name_from_class(common_relax_workchain).name, ctx) is None
+    assert dissociation.validate_sub_process_class(
+        get_entry_point_name_from_class(common_relax_workchain).name, ctx
+    ) is None
 
 
 @pytest.mark.usefixtures('with_database')
@@ -44,8 +46,8 @@ def test_validate_molecule(ctx, generate_structure):
     """Test the `validate_molecule` validator."""
     molecule = generate_structure()
     assert dissociation.validate_molecule(molecule, ctx) == '`molecule`. only diatomic molecules are supported.'
-    molecule.append_atom(position=(0.000, 0.000, 0.000),symbols=['Si'])
-    molecule.append_atom(position=(0.250, 0.250, 0.250),symbols=['Si'])
+    molecule.append_atom(position=(0.000, 0.000, 0.000), symbols=['Si'])
+    molecule.append_atom(position=(0.250, 0.250, 0.250), symbols=['Si'])
     assert dissociation.validate_molecule(molecule, ctx) is None
 
 
@@ -56,7 +58,7 @@ def test_validate_distances(ctx):
     assert dissociation.validate_distances(orm.List(list=[0.98, 1, 1.02]), ctx) is None
 
     assert dissociation.validate_distances(orm.List(list=[0]), ctx) == 'need at least 2 distances.'
-    assert dissociation.validate_distances(orm.List(list=[-1,-2,-2]), ctx) == 'distances must be positive.'
+    assert dissociation.validate_distances(orm.List(list=[-1, -2, -2]), ctx) == 'distances must be positive.'
 
 
 @pytest.mark.usefixtures('with_database')
