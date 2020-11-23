@@ -7,7 +7,7 @@ from aiida.common import exceptions
 from aiida.engine import WorkChain, append_, calcfunction
 from aiida.plugins import WorkflowFactory
 
-from aiida_common_workflows.workflows.relax.generator import RelaxType
+from aiida_common_workflows.workflows.relax.generator import RelaxType, SpinType, ElectronicType
 from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChain
 
 
@@ -46,6 +46,12 @@ def validate_scale_increment(value, _):
         return 'scale increment needs to be between 0 and 1.'
 
 
+def validate_relax(value, _):
+    """Validate the `generator_inputs.relax_type` input."""
+    if 'CELL' in value.name or 'VOLUME' in value.name:
+        return '`generator_inputs.relax_type`. Equation of state and relaxation with variable volume not compatible.'
+
+
 @calcfunction
 def scale_structure(structure: orm.StructureData, scale_factor: orm.Float) -> orm.StructureData:
     """Scale the structure with the given scaling factor."""
@@ -74,8 +80,14 @@ class EquationOfStateWorkChain(WorkChain):
         spec.input('generator_inputs.calc_engines', valid_type=dict, non_db=True)
         spec.input('generator_inputs.protocol', valid_type=str, non_db=True,
             help='The protocol to use when determining the workchain inputs.')
-        spec.input('generator_inputs.relax_type', valid_type=RelaxType, non_db=True,
+        spec.input('generator_inputs.relax_type', valid_type=RelaxType, non_db=True, validator=validate_relax,
             help='The type of relaxation to perform.')
+        spec.input('generator_inputs.spin_type', valid_type=SpinType, required=False, non_db=True,
+            help='The type of spin for the calculation.')
+        spec.input('generator_inputs.electronic_type', valid_type=ElectronicType, required=False, non_db=True,
+            help='The type of electronics (insulator/metal) for the calculation.')
+        spec.input('generator_inputs.magnetization_per_site', valid_type=orm.List, required=False, non_db=True,
+            help='List containing the initial magnetization fer each site.')
         spec.input('generator_inputs.threshold_forces', valid_type=float, required=False, non_db=True,
             help='Target threshold for the forces in eV/Å.')
         spec.input('generator_inputs.threshold_stress', valid_type=float, required=False, non_db=True,
@@ -110,10 +122,6 @@ class EquationOfStateWorkChain(WorkChain):
         """Return the builder for the relax workchain."""
         structure = scale_structure(self.inputs.structure, scale_factor)
         process_class = WorkflowFactory(self.inputs.sub_process_class)
-
-        relax_type = self.inputs.generator_inputs.relax_type
-        if 'CELL' in relax_type.name or 'VOLUME' in relax_type.name:
-            raise ValueError('Equation of state and relaxation with variable volume are not compatible')
 
         builder = process_class.get_inputs_generator().get_builder(
             structure,
