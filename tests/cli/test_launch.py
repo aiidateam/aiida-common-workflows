@@ -3,7 +3,7 @@
 import click
 import pytest
 
-from aiida_common_workflows.cli.launch import cmd_relax, cmd_eos, cmd_plot_eos
+from aiida_common_workflows.cli.launch import cmd_relax, cmd_eos, cmd_plot_eos, cmd_dissociation_curve
 
 
 @pytest.mark.usefixtures('aiida_profile')
@@ -99,3 +99,29 @@ def test_plot_eos_print_table(run_cli_command, generate_eos_node, include_magnet
     options = [str(node.pk), '--print-table']
     result = run_cli_command(cmd_plot_eos, options)
     data_regression.check({'output_lines': result.output_lines})
+
+
+@pytest.mark.usefixtures('aiida_profile')
+def test_dissociation_curve_wallclock_seconds(run_cli_command, generate_structure, generate_code):
+    """Test the `--wallclock-seconds` option."""
+    structure = generate_structure().store()
+    generate_code('quantumespresso.pw').store()
+
+    # Passing two values for `-w` should raise as only one value is required
+    options = ['-S', str(structure.pk), '-w', '100', '100', '--', 'quantum_espresso']
+    result = run_cli_command(cmd_dissociation_curve, options, raises=click.BadParameter)
+    assert 'Error: Invalid value for --wallclock-seconds: QuantumEspressoRelaxWorkChain has 1 engine steps, so ' \
+           'requires 1 values' in result.output_lines
+
+
+@pytest.mark.usefixtures('aiida_profile')
+def test_dissociation_curve_number_machines(run_cli_command, generate_structure, generate_code):
+    """Test the `--number-machines` option."""
+    structure = generate_structure().store()
+    generate_code('quantumespresso.pw').store()
+
+    # Passing two values for `-m` should raise as only one value is required
+    options = ['-S', str(structure.pk), '-m', '100', '100', '--', 'quantum_espresso']
+    result = run_cli_command(cmd_dissociation_curve, options, raises=click.BadParameter)
+    assert 'Error: Invalid value for --number-machines: QuantumEspressoRelaxWorkChain has 1 engine steps, so ' \
+           'requires 1 values' in result.output_lines

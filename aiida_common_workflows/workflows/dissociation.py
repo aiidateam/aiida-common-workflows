@@ -53,7 +53,7 @@ def validate_distances(value, _):
 def validate_distances_count(value, _):
     """Validate the `dinstances_count` input."""
     if value is not None and value < 2:
-        return 'need at least 2 dinstances.'
+        return 'need at least 2 distances.'
 
 
 def validate_distance_max(value, _):
