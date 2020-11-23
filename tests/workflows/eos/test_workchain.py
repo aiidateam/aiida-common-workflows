@@ -10,6 +10,7 @@ from aiida.plugins import WorkflowFactory
 from aiida_common_workflows.plugins import get_workflow_entry_point_names
 from aiida_common_workflows.workflows import eos
 from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChain
+from aiida_common_workflows.workflows.relax.generator import RelaxType
 
 
 @pytest.fixture
@@ -67,3 +68,12 @@ def test_validate_scale_increment(ctx):
     assert eos.validate_scale_increment(orm.Float(1), ctx) == 'scale increment needs to be between 0 and 1.'
     assert eos.validate_scale_increment(orm.Float(-0.0001), ctx) == 'scale increment needs to be between 0 and 1.'
     assert eos.validate_scale_increment(orm.Float(1.00001), ctx) == 'scale increment needs to be between 0 and 1.'
+
+
+@pytest.mark.usefixtures('with_database')
+def test_validate_relax(ctx):
+    """Test the `validate_relax` validator."""
+    assert eos.validate_relax(RelaxType.NONE, ctx) is None
+    assert eos.validate_relax(
+        RelaxType.CELL, ctx
+    ) == '`generator_inputs.relax_type`. Equation of state and relaxation with variable volume not compatible.'
