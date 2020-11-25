@@ -71,8 +71,8 @@ def test_validate_scale_increment(ctx):
 
 
 @pytest.mark.usefixtures('with_database')
-def test_validate_relax(ctx):
-    """Test the `validate_relax` validator."""
+def test_validate_relax_type(ctx):
+    """Test the `validate_relax_type` validator."""
     assert eos.validate_relax(RelaxType.NONE, ctx) is None
     assert eos.validate_relax(
         RelaxType.CELL, ctx

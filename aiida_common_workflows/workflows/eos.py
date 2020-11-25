@@ -46,9 +46,9 @@ def validate_scale_increment(value, _):
         return 'scale increment needs to be between 0 and 1.'
 
 
-def validate_relax(value, _):
+def validate_relax_type(value, _):
     """Validate the `generator_inputs.relax_type` input."""
-    if 'CELL' in value.name or 'VOLUME' in value.name:
+    if value not in [RelaxType.NONE, RelaxType.ATOMS, RelaxType.SHAPE, RelaxType.ATOMS_SHAPE]:
         return '`generator_inputs.relax_type`. Equation of state and relaxation with variable volume not compatible.'
 
 
@@ -80,14 +80,14 @@ class EquationOfStateWorkChain(WorkChain):
         spec.input('generator_inputs.calc_engines', valid_type=dict, non_db=True)
         spec.input('generator_inputs.protocol', valid_type=str, non_db=True,
             help='The protocol to use when determining the workchain inputs.')
-        spec.input('generator_inputs.relax_type', valid_type=RelaxType, non_db=True, validator=validate_relax,
+        spec.input('generator_inputs.relax_type', valid_type=RelaxType, non_db=True, validator=validate_relax_type,
             help='The type of relaxation to perform.')
         spec.input('generator_inputs.spin_type', valid_type=SpinType, required=False, non_db=True,
             help='The type of spin for the calculation.')
         spec.input('generator_inputs.electronic_type', valid_type=ElectronicType, required=False, non_db=True,
             help='The type of electronics (insulator/metal) for the calculation.')
         spec.input('generator_inputs.magnetization_per_site', valid_type=orm.List, required=False, non_db=True,
-            help='List containing the initial magnetization fer each site.')
+            help='List containing the initial magnetization per atomic site.')
         spec.input('generator_inputs.threshold_forces', valid_type=float, required=False, non_db=True,
             help='Target threshold for the forces in eV/Å.')
         spec.input('generator_inputs.threshold_stress', valid_type=float, required=False, non_db=True,
