@@ -91,7 +91,9 @@ class EquationOfStateWorkChain(WorkChain):
         spec.output_namespace('structures', valid_type=orm.StructureData,
             help='The relaxed structures at each scaling factor.')
         spec.output_namespace('total_energies', valid_type=orm.Float,
-            help='The computed total energy of the relaxed structure at each scaling factor.')
+            help='The computed total energy of the relaxed structures at each scaling factor.')
+        spec.output_namespace('total_magnetizations', valid_type=orm.Float,
+            help='The computed total magnetization of the relaxed structures at each scaling factor.')
         spec.exit_code(400, 'ERROR_SUB_PROCESS_FAILED',
             message='At least one of the `{cls}` sub processes did not finish successfully.')
 
@@ -120,21 +122,24 @@ class EquationOfStateWorkChain(WorkChain):
         )
         builder._update(**self.inputs.get('sub_process', {}))  # pylint: disable=protected-access
 
-        return builder
+        return builder, structure
 
     def run_init(self):
         """Run the first workchain."""
         scale_factor = self.get_scale_factors()[0]
-        builder = self.get_sub_workchain_builder(scale_factor)
+        builder, structure = self.get_sub_workchain_builder(scale_factor)
         self.report(f'submitting `{builder.process_class.__name__}` for scale_factor `{scale_factor}`')
         self.ctx.previous_workchain = self.submit(builder)
+        self.ctx.structures = [structure]
         self.to_context(children=append_(self.ctx.previous_workchain))
 
     def run_eos(self):
         """Run the sub process at each scale factor to compute the structure volume and total energy."""
         for scale_factor in self.get_scale_factors()[1:]:
-            builder = self.get_sub_workchain_builder(scale_factor, previous_workchain=self.ctx.previous_workchain)
+            previous_workchain = self.ctx.previous_workchain
+            builder, structure = self.get_sub_workchain_builder(scale_factor, previous_workchain=previous_workchain)
             self.report(f'submitting `{builder.process_class.__name__}` for scale_factor `{scale_factor}`')
+            self.ctx.structures.append(structure)
             self.to_context(children=append_(self.submit(builder)))
 
     def inspect_eos(self):
@@ -143,8 +148,17 @@ class EquationOfStateWorkChain(WorkChain):
             return self.exit_codes.ERROR_SUB_PROCESS_FAILED.format(cls=self.inputs.sub_process_class)  # pylint: disable=no-member
 
         for index, child in enumerate(self.ctx.children):
-            volume = child.outputs.relaxed_structure.get_cell_volume()
-            energy = child.outputs.total_energy.value
-            self.report(f'Image {index}: volume={volume}, total energy={energy}')
-            self.out(f'structures.{index}', child.outputs.relaxed_structure)
-            self.out(f'total_energies.{index}', child.outputs.total_energy)
+            try:
+                structure = child.outputs.relaxed_structure
+            except exceptions.NotExistent:
+                structure = self.ctx.structures[index]
+
+            volume = structure.get_cell_volume()
+            energy = child.outputs.total_energy
+
+            self.report(f'Image {index}: volume={volume}, total energy={energy.value}')
+            self.out(f'structures.{index}', structure)
+            self.out(f'total_energies.{index}', energy)
+
+            if 'total_magnetization' in child.outputs:
+                self.out(f'total_magnetizations.{index}', child.outputs.total_magnetization)
