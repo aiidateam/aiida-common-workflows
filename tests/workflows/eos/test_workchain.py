@@ -73,7 +73,7 @@ def test_validate_scale_increment(ctx):
 @pytest.mark.usefixtures('with_database')
 def test_validate_relax_type(ctx):
     """Test the `validate_relax_type` validator."""
-    assert eos.validate_relax(RelaxType.NONE, ctx) is None
-    assert eos.validate_relax(
+    assert eos.validate_relax_type(RelaxType.NONE, ctx) is None
+    assert eos.validate_relax_type(
         RelaxType.CELL, ctx
     ) == '`generator_inputs.relax_type`. Equation of state and relaxation with variable volume not compatible.'
