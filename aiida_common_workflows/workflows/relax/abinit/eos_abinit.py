@@ -29,7 +29,7 @@ CALC_ENGINES = {
 
 def launch():
     """Launch the relax work chain for a basic silicon crystal structure at a range of scaling factors."""
-    relaxation_type = RelaxType.ATOMS
+    relax_type = RelaxType.ATOMS
     protocol = 'moderate'
 
     structure = structure_init()
@@ -38,7 +38,7 @@ def launch():
         scaled = rescale(structure, scale)
         generator = RelaxWorkChain.get_inputs_generator()
         #import pdb; pdb.set_trace()
-        builder = generator.get_builder(scaled, CALC_ENGINES, protocol, relaxation_type, threshold_forces=0.001)
+        builder = generator.get_builder(scaled, CALC_ENGINES, protocol, relax_type, threshold_forces=0.001)
         results = run(builder)
         print(results['relaxed_structure'].get_cell_volume(), results['total_energy'].value)
 

@@ -35,7 +35,8 @@ class SiestaRelaxWorkChain(CommonRelaxWorkChain):
     def convert_outputs(self):
         """Convert the outputs of the sub workchain to the common output specification."""
         self.report('Relaxation task concluded sucessfully, converting outputs')
-        self.out('relaxed_structure', self.ctx.workchain.outputs.output_structure)
+        if 'output_structure' in self.ctx.workchain.outputs:
+            self.out('relaxed_structure', self.ctx.workchain.outputs.output_structure)
         self.out('total_energy', get_energy(self.ctx.workchain.outputs.output_parameters))
         res_dict = get_forces_and_stress(self.ctx.workchain.outputs.forces_and_stress)
         self.out('forces', res_dict['forces'])
