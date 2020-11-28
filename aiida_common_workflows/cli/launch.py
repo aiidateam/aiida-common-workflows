@@ -29,10 +29,11 @@ def cmd_launch():
 @options.NUMBER_MACHINES()
 @options.WALLCLOCK_SECONDS()
 @options.DAEMON()
+@options.MAGNETIZATION_PER_SITE()
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
 def cmd_relax(
     plugin, structure, codes, protocol, relax_type, spin_type, threshold_forces, threshold_stress, number_machines,
-    wallclock_seconds, daemon, show_engines
+    wallclock_seconds, daemon, magnetization_per_site, show_engines
 ):
     """Relax a crystal structure using the common relax workflow for one of the existing plugin implementations.
 
@@ -104,6 +105,9 @@ def cmd_relax(
             }
         }
 
+    if magnetization_per_site:
+        magnetization_per_site = list(magnetization_per_site)
+
     builder = generator.get_builder(
         structure,
         engines,
@@ -111,7 +115,8 @@ def cmd_relax(
         relax_type=relax_type,
         threshold_forces=threshold_forces,
         threshold_stress=threshold_stress,
-        spin_type=spin_type
+        spin_type=spin_type,
+        magnetization_per_site=magnetization_per_site
     )
     utils.launch_process(builder, daemon)
 
@@ -128,10 +133,11 @@ def cmd_relax(
 @options.NUMBER_MACHINES()
 @options.WALLCLOCK_SECONDS()
 @options.DAEMON()
+@options.MAGNETIZATION_PER_SITE()
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
 def cmd_eos(
     plugin, structure, codes, protocol, relax_type, spin_type, threshold_forces, threshold_stress, number_machines,
-    wallclock_seconds, daemon, show_engines
+    wallclock_seconds, daemon, magnetization_per_site, show_engines
 ):
     """Compute the equation of state of a crystal structure using the common relax workflow.
 
@@ -204,6 +210,9 @@ def cmd_eos(
             }
         }
 
+    if magnetization_per_site:
+        magnetization_per_site = list(magnetization_per_site)
+
     inputs = {
         'structure': structure,
         'generator_inputs': {
@@ -211,6 +220,7 @@ def cmd_eos(
             'protocol': protocol,
             'relax_type': relax_type,
             'spin_type': spin_type,
+            'magnetization_per_site': magnetization_per_site,
         },
         'sub_process_class': get_entry_point_name_from_class(process_class).name,
     }
