@@ -37,9 +37,10 @@ def cmd_relax(
 ):
     """Relax a crystal structure using the common relax workflow for one of the existing plugin implementations.
 
-    The command will automatically try to find and load the codes that are required by the plugin workflow. If no code
-    is installed for at least one of the calculation engines, the command will fail. Use the `--show-engine` flag to
-    display the required calculation engines for the selected plugin workflow.
+    The codes required for the plugin workflow in order to complete the task can be passed with the option `-X`,
+    however, if no code is passed, the command will automatically try to find and load the codes that are required.
+    If no code is installed for at least one of the calculation engines, the command will fail.
+    Use the `--show-engine` flag to display the required calculation engines for the selected plugin workflow.
     """
     # pylint: disable=too-many-locals
 
@@ -138,9 +139,10 @@ def cmd_eos(
 ):
     """Compute the equation of state of a crystal structure using the common relax workflow.
 
-    The command will automatically try to find and load the codes that are required by the plugin workflow. If no code
-    is installed for at least one of the calculation engines, the command will fail. Use the `--show-engine` flag to
-    display the required calculation engines for the selected plugin workflow.
+    The codes required for the plugin workflow in order to complete the task can be passed with the option `-X`,
+    however, if no code is passed, the command will automatically try to find and load the codes that are required.
+    If no code is installed for at least one of the calculation engines, the command will fail.
+    Use the `--show-engine` flag to display the required calculation engines for the selected plugin workflow.
     """
     # pylint: disable=too-many-locals
     from aiida_common_workflows.plugins import get_entry_point_name_from_class
@@ -231,6 +233,7 @@ def cmd_eos(
 @cmd_launch.command('dissociation-curve')
 @click.argument('plugin', type=types.LazyChoice(functools.partial(get_workflow_entry_point_names, 'relax', True)))
 @options.STRUCTURE(default='H2')
+@options.CODES()
 @options.PROTOCOL(type=click.Choice(['fast', 'moderate', 'precise']), default='fast')
 @options.SPIN_TYPE()
 @options.NUMBER_MACHINES()
@@ -239,18 +242,20 @@ def cmd_eos(
 @options.MAGNETIZATION_PER_SITE()
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
 def cmd_dissociation_curve(
-    plugin, structure, protocol, spin_type, number_machines, wallclock_seconds, daemon, magnetization_per_site,
+    plugin, structure, codes, protocol, spin_type, number_machines, wallclock_seconds, daemon, magnetization_per_site,
     show_engines
 ):
-    """Compute the dissociation curve of a diatomic molecule using the common relax workflow (in single point
-    relaxation mode - i.e. RelaxType.NONE).
+    """Compute the dissociation curve of a diatomic molecule using the common relax workflow.
 
-    The command will automatically try to find and load the codes that are required by the plugin workflow. If no code
-    is installed for at least one of the calculation engines, the command will fail. Use the `--show-engine` flag to
-    display the required calculation engines for the selected plugin workflow.
+    The relaxation type is constrained to be `RelaxType.NONE`, meaning a single point calculation.
+    It does not make sense to have any other type of relaxation for this task.
+
+    The codes required for the plugin workflow in order to complete the task can be passed with the option `-X`,
+    however, if no code is passed, the command will automatically try to find and load the codes that are required.
+    If no code is installed for at least one of the calculation engines, the command will fail.
+    Use the `--show-engine` flag to display the required calculation engines for the selected plugin workflow.
     """
     # pylint: disable=too-many-locals
-    from aiida.orm import QueryBuilder, Code
     from aiida_common_workflows.plugins import get_entry_point_name_from_class
     from aiida_common_workflows.workflows.dissociation import DissociationCurveWorkChain
     from aiida_common_workflows.workflows.relax.generator import RelaxType
@@ -297,7 +302,18 @@ def cmd_dissociation_curve(
 
     for index, engine in enumerate(generator.get_calc_types()):
         schema = generator.get_calc_type_schema(engine)
+        code_plugin = schema['code_plugin']
+
+        code = utils.get_code_from_list_or_database(codes or [], code_plugin)
+
+        if code is None:
+            raise click.UsageError(
+                f'could not find a configured code for the plugin `{code_plugin}`. '
+                'Either provide it with the -X option or make sure such a code is configured in the DB.'
+            )
+
         engines[engine] = {
+            'code': code.full_label,
             'options': {
                 'resources': {
                     'num_machines': number_machines[index]
@@ -305,15 +321,6 @@ def cmd_dissociation_curve(
                 'max_wallclock_seconds': wallclock_seconds[index],
             }
         }
-        code_plugin = schema['code_plugin']
-        query = QueryBuilder().append(Code, filters={'attributes.input_plugin': code_plugin})
-
-        code = query.first()
-
-        if code is None:
-            raise click.UsageError(f'could not find a configured code for the plugin `{code_plugin}`.')
-
-        engines[engine]['code'] = code[0].full_label
 
     inputs = {
         'molecule': structure,

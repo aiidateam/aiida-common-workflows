@@ -42,6 +42,31 @@ def test_validate_sub_process_class_plugins(ctx, common_relax_workchain):
 
 
 @pytest.mark.usefixtures('with_database')
+def test_validate_inputs(ctx):
+    """Test the `validate_inputs` validator."""
+    value = {}
+    assert dissociation.validate_inputs(
+        value, ctx
+    ) == 'neither `distances` nor the `distances_count`, `distance_min`, and `distance_max` set were defined.'
+    value = {'distances_count': 3, 'distance_min': 0.5}
+    assert dissociation.validate_inputs(
+        value, ctx
+    ) == 'neither `distances` nor the `distances_count`, `distance_min`, and `distance_max` set were defined.'
+    value = {'distances_count': 3, 'distance_max': 1.5}
+    assert dissociation.validate_inputs(
+        value, ctx
+    ) == 'neither `distances` nor the `distances_count`, `distance_min`, and `distance_max` set were defined.'
+    value = {'distance_max': 2, 'distance_min': 0.5}
+    assert dissociation.validate_inputs(
+        value, ctx
+    ) == 'neither `distances` nor the `distances_count`, `distance_min`, and `distance_max` set were defined.'
+    value = {'distance_max': 2, 'distance_min': 0.5, 'distances_count': 3}
+    assert dissociation.validate_inputs(value, ctx) is None
+    value = {'distances': []}
+    assert dissociation.validate_inputs(value, ctx) is None
+
+
+@pytest.mark.usefixtures('with_database')
 def test_validate_molecule(ctx, generate_structure):
     """Test the `validate_molecule` validator."""
     molecule = generate_structure()

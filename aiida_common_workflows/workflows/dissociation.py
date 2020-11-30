@@ -8,14 +8,15 @@ from aiida import orm
 from aiida.common import exceptions
 from aiida.engine import WorkChain, append_, calcfunction
 from aiida.plugins import WorkflowFactory
-from aiida_common_workflows.workflows.relax.generator import RelaxType, SpinType, ElectronicType
+from aiida_common_workflows.workflows.relax.generator import RelaxType, SpinType
 from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChain
 
 
 def validate_inputs(value, _):
     """Validate the entire input namespace."""
-    if 'distances' not in value or any(key not in value for key in ['distances_count', 'distance_min', 'distance_max']):
-        return 'neither `distances` nor the `distances_count`, `distance_min`, and `distance_max` set were defined.'
+    if 'distances' not in value:
+        if any(key not in value for key in ['distances_count', 'distance_min', 'distance_max']):
+            return 'neither `distances` nor the `distances_count`, `distance_min`, and `distance_max` set were defined.'
     if 'distance_min' in value:
         if value['distance_min'] >= value['distance_max']:
             return '`distance_min` must be smaller than `distance_max`'
@@ -115,8 +116,6 @@ class DissociationCurveWorkChain(WorkChain):
             help='The type of relaxation to perform.')
         spec.input('generator_inputs.spin_type', valid_type=SpinType, required=False, non_db=True,
             help='The type of spin for the calculation.')
-        spec.input('generator_inputs.electronic_type', valid_type=ElectronicType, required=False, non_db=True,
-            help='The type of electronics (insulator/metal) for the calculation.')
         spec.input('generator_inputs.magnetization_per_site', valid_type=(list, tuple), required=False, non_db=True,
             help='List containing the initial magnetization fer each site.')
         spec.input_namespace('sub_process', dynamic=True, populate_defaults=False)
@@ -138,9 +137,9 @@ class DissociationCurveWorkChain(WorkChain):
             return self.inputs.distances
 
         count = self.inputs.distances_count.value
-        maxim = self.inputs.distance_max.value
-        minim = self.inputs.distance_min.value
-        return [orm.Float(minim + i * (maxim-minim) / (count-1)) for i in range(count)]
+        maximum = self.inputs.distance_max.value
+        minimum = self.inputs.distance_min.value
+        return [orm.Float(minimum + i * (maximum-minimum) / (count-1)) for i in range(count)]
 
     def get_sub_workchain_builder(self, distance, previous_workchain=None):
         """Return the builder for the relax workchain."""
