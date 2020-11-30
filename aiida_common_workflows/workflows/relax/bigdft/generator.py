@@ -234,7 +234,7 @@ class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
 
         if magnetization_per_site:
             for (i, at) in enumerate(inputdict["posinp"]["positions"]):
-                at["IGSpin"] = magnetization_per_site[i]
+                at["IGSpin"] = int(magnetization_per_site[i])
 
         print(inputdict)
         builder.parameters = BigDFTParameters(dict=inputdict)
