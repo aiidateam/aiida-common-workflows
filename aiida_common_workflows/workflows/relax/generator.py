@@ -2,7 +2,7 @@
 """Module with base input generator for the common structure relax workchains."""
 from abc import ABCMeta, abstractmethod
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple, Union
 
 from aiida import engine
 from aiida import plugins
@@ -105,7 +105,7 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
         relax_type: RelaxType = RelaxType.ATOMS,
         electronic_type: ElectronicType = ElectronicType.METAL,
         spin_type: SpinType = SpinType.NONE,
-        magnetization_per_site: List[float] = None,
+        magnetization_per_site: Union[List[float], Tuple[float]] = None,
         threshold_forces: float = None,
         threshold_stress: float = None,
         previous_workchain=None,
@@ -119,9 +119,9 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
         :param relax_type: the type of relaxation to perform.
         :param electronic_type: the electronic character that is to be used for the structure.
         :param spin_type: the spin polarization type to use for the calculation.
-        :param magnetization_per_site: a list with the initial spin polarization for each site. Float or integer in
-            units of electrons. If not defined, the builder will automatically define the initial magnetization if and
-            only if `spin_type != SpinType.NONE`.
+        :param magnetization_per_site: a list/tuple with the initial spin polarization for each site. Float or integer
+            in units of electrons. If not defined, the builder will automatically define the initial magnetization if
+            and only if `spin_type != SpinType.NONE`.
         :param threshold_forces: target threshold for the forces in eV/Å.
         :param threshold_stress: target threshold for the stress in eV/Å^3.
         :param previous_workchain: a <Code>RelaxWorkChain node.
@@ -146,8 +146,8 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
             raise ValueError('spin type `{}` is not supported'.format(spin_type))
 
         if magnetization_per_site is not None:
-            if not isinstance(magnetization_per_site, list):
-                raise ValueError('The `initial_magnetization` must be a list')
+            if not isinstance(magnetization_per_site, (list, tuple)):
+                raise ValueError('The `initial_magnetization` must be a list or a tuple')
             if len(magnetization_per_site) != len(structure.sites):
                 raise ValueError('An initial magnetization must be defined for each site of `structure`')
 
