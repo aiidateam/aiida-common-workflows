@@ -216,7 +216,6 @@ def cmd_eos(
             'protocol': protocol,
             'relax_type': relax_type,
             'spin_type': spin_type,
-            'magnetization_per_site': magnetization_per_site,
         },
         'sub_process_class': get_entry_point_name_from_class(process_class).name,
     }
@@ -226,6 +225,9 @@ def cmd_eos(
 
     if threshold_stress is not None:
         inputs['generator_inputs']['threshold_stress'] = threshold_stress
+
+    if magnetization_per_site is not None:
+        inputs['generator_inputs']['magnetization_per_site'] = magnetization_per_site
 
     utils.launch_process(EquationOfStateWorkChain, daemon, **inputs)
 
