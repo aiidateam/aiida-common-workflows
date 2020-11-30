@@ -74,8 +74,14 @@ def generate_code(aiida_localhost):
     """Generate a `Code` node."""
 
     def _generate_code(entry_point):
+        import random
+        import string
         from aiida.plugins import DataFactory
-        code = DataFactory('code')(input_plugin_name=entry_point, remote_computer_exec=[aiida_localhost, '/bin/bash'])
+
+        label = ''.join(random.choice(string.ascii_letters) for _ in range(16))
+        code = DataFactory('code')(
+            label=label, input_plugin_name=entry_point, remote_computer_exec=[aiida_localhost, '/bin/bash']
+        )
         return code
 
     return _generate_code

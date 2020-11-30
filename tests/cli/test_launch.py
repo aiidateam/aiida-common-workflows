@@ -3,6 +3,7 @@
 import click
 import pytest
 
+from aiida_common_workflows.cli import utils
 from aiida_common_workflows.cli.launch import cmd_relax, cmd_eos, cmd_plot_eos
 
 
@@ -30,6 +31,33 @@ def test_relax_number_machines(run_cli_command, generate_structure, generate_cod
     result = run_cli_command(cmd_relax, options, raises=click.BadParameter)
     assert 'Error: Invalid value for --number-machines: QuantumEspressoRelaxWorkChain has 1 engine steps, so ' \
            'requires 1 values' in result.output_lines
+
+
+@pytest.mark.usefixtures('clear_database_before_test')
+def test_relax_codes(run_cli_command, generate_structure, generate_code, monkeypatch):
+    """Test the `--codes` option."""
+
+    def launch_process(_, __):
+        pass
+
+    monkeypatch.setattr(utils, 'launch_process', launch_process)
+    structure = generate_structure().store()
+
+    # No codes available
+    options = ['-S', str(structure.pk), 'fleur']
+    result = run_cli_command(cmd_relax, options, raises=click.UsageError)
+    assert 'could not find a configured code for the plugin' in result.output
+
+    code_fleur = generate_code('fleur.fleur').store()
+    code_inpgen = generate_code('fleur.inpgen').store()
+
+    # Passing two codes explicitly
+    options = ['-S', str(structure.pk), '-X', str(code_fleur.uuid), str(code_inpgen.uuid), '--', 'fleur']
+    result = run_cli_command(cmd_relax, options)
+
+    # Passing one code explicitly
+    options = ['-S', str(structure.pk), '-X', str(code_fleur.uuid), '--', 'fleur']
+    result = run_cli_command(cmd_relax, options)
 
 
 @pytest.mark.usefixtures('aiida_profile')
