@@ -14,27 +14,27 @@ BigDFTParameters = plugins.DataFactory('bigdft')
 StructureData = plugins.DataFactory('structure')
 
 
-def ortho_struct(input):
-    # Create and update a dict to pass to transform_to_orthorombic,
-    # and then get back data to the input dict
+def ortho_struct(input_struct):
+    """Create and update a dict to pass to transform_to_orthorombic,
+      and then get back data to the input dict """
     dico = dict()
-    dico['name'] = input.sites[0].kind_name
-    dico['a'] = round(input.cell_lengths[0], 6)
-    dico['alpha'] = round(input.cell_angles[0], 6)
-    dico['b'] = round(input.cell_lengths[1], 6)
-    dico['beta'] = round(input.cell_angles[1], 6)
-    dico['c'] = round(input.cell_lengths[2], 6)
-    dico['gamma'] = round(input.cell_angles[2], 6)
-    dico['nat'] = nat = len(input.sites)
+    dico['name'] = input_struct.sites[0].kind_name
+    dico['a'] = round(input_struct.cell_lengths[0], 6)
+    dico['alpha'] = round(input_struct.cell_angles[0], 6)
+    dico['b'] = round(input_struct.cell_lengths[1], 6)
+    dico['beta'] = round(input_struct.cell_angles[1], 6)
+    dico['c'] = round(input_struct.cell_lengths[2], 6)
+    dico['gamma'] = round(input_struct.cell_angles[2], 6)
+    dico['nat'] = len(input_struct.sites)
     # use abc coordinates
     for i in range(dico['nat']):
-        dico[i + 1] = list(input.get_pymatgen().sites[i].frac_coords)
+        dico[i + 1] = list(input_struct.get_pymatgen().sites[i].frac_coords)
     BigDFTParameters.transform_to_orthorombic(dico)
-    output = input.clone()
+    output = input_struct.clone()
     output.clear_sites()
     output.cell = [[dico['a'], 0, 0], [0, dico['b'], 0], [0, 0, dico['c']]]
     for i in range(dico['nat']):
-        site = input.sites[0]
+        site = input_struct.sites[0]
         site.position = (dico[i + 1][0] * dico['a'], dico[i + 1][1] * dico['b'], dico[i + 1][2] * dico['c'])
         output.append_site(site)
     return output, dico
@@ -143,7 +143,7 @@ class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
-        # pylint: disable=too-many-locals
+        # pylint: disable=too-many-locals, too-many-branches, too-many-statements
         protocol = protocol or self.get_default_protocol_name()
 
         super().get_builder(
@@ -160,10 +160,6 @@ class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
             **kwargs
         )
 
-        from aiida.orm import Dict, Float, Bool
-        from aiida.orm import load_code
-        import pymatgen
-
         if relax_type == RelaxType.ATOMS:
             relaxation_schema = 'relax'
         else:
@@ -174,7 +170,7 @@ class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
         pymatgen_struct = structure.get_pymatgen()
         ortho_dict = None
         # for single atom computations, we should actually not perform relaxation
-        if (pymatgen_struct.ntypesp <= 1):
+        if pymatgen_struct.ntypesp <= 1:
             builder.relax.perform = orm.Bool(False)
             # pass the structure through a transform to generate orthorhombic structure if possible/needed.
             newstruct, ortho_dict = ortho_struct(structure)
@@ -193,7 +189,7 @@ class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
         # adapt hgrid to the strain
         if previous_workchain is not None and previous_workchain.is_finished_ok:
             logfile = previous_workchain.outputs.bigdft_logfile.logfile
-            if (isinstance(logfile, list)):
+            if isinstance(logfile, list):
                 hgrids = logfile[0].get('dft').get('hgrids')
             else:
                 hgrids = logfile.get('dft').get('hgrids')
@@ -201,7 +197,7 @@ class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
                 previous_workchain.inputs.structure.cell_lengths[0]
 
 
-#       TODO : Use inputActions
+#       Soon : Use inputActions
         if electronic_type is ElectronicType.METAL:
             if 'mix' not in inputdict:
                 inputdict['mix'] = {}
@@ -225,14 +221,14 @@ class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
             )
         else:
             inputdict['kpt'] = BigDFTParameters.set_kpoints(len(builder.structure.sites))
-            if (pymatgen_struct.ntypesp <= 1):
+            if pymatgen_struct.ntypesp <= 1:
                 inputdict['dft'].update(
                     BigDFTParameters.set_spin(builder.structure.sites[0].kind_name, len(builder.structure.sites))
                 )
 
         if magnetization_per_site:
-            for (i, at) in enumerate(inputdict['posinp']['positions']):
-                at['IGSpin'] = int(magnetization_per_site[i])
+            for (i, atom) in enumerate(inputdict['posinp']['positions']):
+                atom['IGSpin'] = int(magnetization_per_site[i])
 
         builder.parameters = BigDFTParameters(dict=inputdict)
         builder.code = orm.load_code(calc_engines[relaxation_schema]['code'])
