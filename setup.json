@@ -19,7 +19,7 @@
         "aiida-abinit",
         "ase==3.19",
         "aiida-core[atomic_tools]~=1.2",
-        "aiida-bigdft>=0.2.2a2",
+        "aiida-bigdft>=0.2.2a0",
         "aiida-cp2k~=1.1",
         "aiida-fleur~=1.1",
         "aiida-gaussian",
