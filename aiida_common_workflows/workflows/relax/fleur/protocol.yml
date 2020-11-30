@@ -7,7 +7,7 @@ moderate:
         run_final_scf: true
     scf:
         density_converged: 0.00002
-        kpoints_distance: 0.1
+        kpoints_distance: 0.2
         k_max_cutoff: 4.0
         fleur_runmax: 2
         itmax_per_run: 120
@@ -26,7 +26,7 @@ precise:
     scf:
         density_converged: 0.000002
         k_max_cutoff: 5.0
-        kpoints_distance: 0.05
+        kpoints_distance: 0.1
         fleur_runmax: 3
         itmax_per_run: 120
         force_dict:
