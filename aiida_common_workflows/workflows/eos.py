@@ -86,7 +86,7 @@ class EquationOfStateWorkChain(WorkChain):
             help='The type of spin for the calculation.')
         spec.input('generator_inputs.electronic_type', valid_type=ElectronicType, required=False, non_db=True,
             help='The type of electronics (insulator/metal) for the calculation.')
-        spec.input('generator_inputs.magnetization_per_site', valid_type=list, required=False, non_db=True,
+        spec.input('generator_inputs.magnetization_per_site', valid_type=(list, tuple), required=False, non_db=True,
             help='List containing the initial magnetization per atomic site.')
         spec.input('generator_inputs.threshold_forces', valid_type=float, required=False, non_db=True,
             help='Target threshold for the forces in eV/Å.')
