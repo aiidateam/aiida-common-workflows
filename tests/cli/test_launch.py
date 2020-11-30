@@ -138,8 +138,8 @@ def test_relax_magn_per_type(run_cli_command, generate_structure, generate_code)
     structure.store()
     generate_code('quantumespresso.pw').store()
 
-    # Correct
+    # Test that only `float` are admissible
     options = ['-S', str(structure.pk), '--magnetization-per-site', 'str', '--', 'quantum_espresso']
-    result = run_cli_command(cmd_relax, options, raises=click.UsageError)
+    result = run_cli_command(cmd_relax, options, raises=click.BadParameter)
     assert "Error: Invalid value for '--magnetization-per-site': str is not a valid floating point " \
            'value' in result.output
