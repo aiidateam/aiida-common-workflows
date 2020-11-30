@@ -5,15 +5,16 @@ Tests from the generator
 # pylint: disable=abstract-method,arguments-differ,redefined-outer-name,unused-argument
 import copy
 import pytest
+from ase.build.bulk import bulk
+from aiida.orm import StructureData
+from aiida.plugins import WorkflowFactory
+from aiida_castep.data.otfg import OTFGGroup
+
+from aiida_common_workflows.workflows.relax.castep.workchain import CastepRelaxWorkChain
 from aiida_common_workflows.workflows.relax.castep.generator import (
     CastepRelaxInputGenerator, generate_inputs, generate_inputs_base, generate_inputs_calculation,
     generate_inputs_relax, ensure_otfg_family, RelaxType, ElectronicType, SpinType
 )
-from aiida_common_workflows.workflows.relax.castep.workchain import CastepRelaxWorkChain
-from aiida.orm import StructureData
-from aiida.plugins import WorkflowFactory
-from aiida_castep.data.otfg import OTFGGroup
-from ase.build.bulk import bulk
 
 
 @pytest.fixture
