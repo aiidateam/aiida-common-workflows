@@ -236,9 +236,11 @@ def cmd_eos(
 @options.NUMBER_MACHINES()
 @options.WALLCLOCK_SECONDS()
 @options.DAEMON()
+@options.MAGNETIZATION_PER_SITE()
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
 def cmd_dissociation_curve(
-    plugin, structure, protocol, spin_type, number_machines, wallclock_seconds, daemon, show_engines
+    plugin, structure, protocol, spin_type, number_machines, wallclock_seconds, daemon, magnetization_per_site,
+    show_engines
 ):
     """Compute the dissociation curve of a diatomic molecule using the common relax workflow (in single point
     relaxation mode - i.e. RelaxType.NONE).
@@ -323,6 +325,9 @@ def cmd_dissociation_curve(
         },
         'sub_process_class': get_entry_point_name_from_class(process_class).name,
     }
+
+    if magnetization_per_site is not None:
+        inputs['generator_inputs']['magnetization_per_site'] = magnetization_per_site
 
     utils.launch_process(DissociationCurveWorkChain, daemon, **inputs)
 

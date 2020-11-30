@@ -119,12 +119,8 @@ class DissociationCurveWorkChain(WorkChain):
             help='The type of spin for the calculation.')
         spec.input('generator_inputs.electronic_type', valid_type=ElectronicType, required=False, non_db=True,
             help='The type of electronics (insulator/metal) for the calculation.')
-        spec.input('generator_inputs.magnetization_per_site', valid_type=orm.List, required=False, non_db=True,
+        spec.input('generator_inputs.magnetization_per_site', valid_type=(list, tuple), required=False, non_db=True,
             help='List containing the initial magnetization fer each site.')
-        spec.input('generator_inputs.threshold_forces', valid_type=float, required=False, non_db=True,
-            help='Target threshold for the forces in eV/Å.')
-        spec.input('generator_inputs.threshold_stress', valid_type=float, required=False, non_db=True,
-            help='Target threshold for the stress in eV/Å^3.')
         spec.input_namespace('sub_process', dynamic=True, populate_defaults=False)
         spec.input('sub_process_class', non_db=True, validator=validate_sub_process_class)
         spec.inputs.validator = validate_inputs
