@@ -236,7 +236,6 @@ class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
             for (i, at) in enumerate(inputdict["posinp"]["positions"]):
                 at["IGSpin"] = int(magnetization_per_site[i])
 
-        print(inputdict)
         builder.parameters = BigDFTParameters(dict=inputdict)
         builder.code = orm.load_code(calc_engines[relaxation_schema]['code'])
         run_opts = {'options': calc_engines[relaxation_schema]['options']}
