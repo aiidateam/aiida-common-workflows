@@ -126,8 +126,12 @@ class DissociationCurveWorkChain(WorkChain):
             cls.run_dissociation,
             cls.inspect_results,
         )
-        spec.output('curve_data', valid_type=orm.ArrayData,
-            help='The computed total energy (and eventually spin) versus distance.')
+        spec.output_namespace('distances', valid_type=orm.Float,
+            help='The distance between the two atoms.')
+        spec.output_namespace('total_energies', valid_type=orm.Float,
+            help='The computed total energy of the molecule at each distance.')
+        spec.output_namespace('total_magnetizations', valid_type=orm.Float,
+            help='The computed total magnetization of the molecule at each distance.')
         spec.exit_code(400, 'ERROR_SUB_PROCESS_FAILED',
             message='At least one of the `{cls}` sub processes did not finish successfully.')
 
@@ -153,12 +157,15 @@ class DissociationCurveWorkChain(WorkChain):
         )
         builder._update(**self.inputs.get('sub_process', {}))  # pylint: disable=protected-access
 
-        return builder
+        distance_node = molecule.creator.inputs.distance
+
+        return builder, distance_node
 
     def run_init(self):
         """Run the first workchain."""
         distance = self.get_distances()[0]
-        builder = self.get_sub_workchain_builder(distance)
+        builder, distance_node = self.get_sub_workchain_builder(distance)
+        self.ctx.distance_nodes = [distance_node]
         self.report(f'submitting `{builder.process_class.__name__}` for distance `{distance.value}`')
         self.ctx.previous_workchain = self.submit(builder)
         self.to_context(children=append_(self.ctx.previous_workchain))
@@ -167,7 +174,8 @@ class DissociationCurveWorkChain(WorkChain):
         """Run the sub process at each distance to compute the total energy."""
         for distance in self.get_distances()[1:]:
             previous_workchain = self.ctx.previous_workchain
-            builder = self.get_sub_workchain_builder(distance, previous_workchain=previous_workchain)
+            builder, distance_node = self.get_sub_workchain_builder(distance, previous_workchain=previous_workchain)
+            self.ctx.distance_nodes.append(distance_node)
             self.report(f'submitting `{builder.process_class.__name__}` for dinstance `{distance.value}`')
             self.to_context(children=append_(self.submit(builder)))
 
@@ -179,31 +187,14 @@ class DissociationCurveWorkChain(WorkChain):
         if any([not child.is_finished_ok for child in self.ctx.children]):
             return self.exit_codes.ERROR_SUB_PROCESS_FAILED.format(cls=self.inputs.sub_process_class)  # pylint: disable=no-member
 
-        self.report('distance (ang),  energy (eV)')
-
-        collectwcinfo = {}
         for index, child in enumerate(self.ctx.children):
-            dist = self.get_distances()[index].value
-            collectwcinfo[f'd{dist}'.replace('.', '_')] = child.outputs.total_energy
-            self.report(f'{self.get_distances()[index].value}, {child.outputs.total_energy.value}')
 
-        self.out('curve_data', get_curve_data(**collectwcinfo))
+            energy = child.outputs.total_energy
+            distance = self.ctx.distance_nodes[index]
 
-@calcfunction
-def get_curve_data(**energies):
-    """
-    Calcfunction that collects all the `total_energy` outputs
-    nodes and creates an array energy versus distances.
-    """
-    distance = []
-    energy = []
-    for key, value in energies.items():
-        dist = key.replace('_', '.')[1:]
-        distance.append(float(dist))
-        energy.append(value.value)
+            self.report(f'Image {index}: distance={distance.value}, total energy={energy.value}')
+            self.out(f'distances.{index}', distance)
+            self.out(f'total_energies.{index}', energy)
 
-    import numpy as np
-    array_data = np.array([distance, energy])
-    curve_array = orm.ArrayData()
-    curve_array.set_array('energy_vs_distance', array_data)
-    return curve_array
+            if 'total_magnetization' in child.outputs:
+                self.out(f'total_magnetizations.{index}', child.outputs.total_magnetization)

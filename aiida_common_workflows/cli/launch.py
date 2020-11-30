@@ -380,24 +380,34 @@ def cmd_plot_eos(node, print_table):
 @click.option('-t', '--print-table', is_flag=True, help='Print the volume and energy table instead of plotting.')
 def cmd_plot_dissociation_curve(node, print_table):
     """Plot the results from a `DissociationCurveWorkChain`."""
+
     from tabulate import tabulate
 
     from aiida.common import LinkType
 
     outputs = node.get_outgoing(link_type=LinkType.RETURN).nested()
 
-    energies = outputs['curve_data'].get_array('energy_vs_distance')[1]
-    distances = outputs['curve_data'].get_array('energy_vs_distance')[0]
+    distances = []
+    energies = []
+    magnetizations = []
+
+    for index in outputs['total_energies'].keys():
+        distances.append(outputs['distances'][index].value)
+        energies.append(outputs['total_energies'][index].value)
+
+        try:
+            total_magnetization = outputs['total_magnetizations'][index].value
+        except KeyError:
+            total_magnetization = None
+
+        magnetizations.append(total_magnetization)
 
     if print_table:
-        headers = [
-            'Distance (Å)',
-            'Energy (eV)',
-        ]
-        click.echo(tabulate(list(zip(distances, energies)), headers=headers))
+        headers = ['Distance (Å)', 'Energy (eV)', 'Total magnetization (μB)']
+        click.echo(tabulate(list(zip(distances, energies, magnetizations)), headers=headers))
     else:
         import pylab as plt
         plt.plot(distances, energies, 'o-')
-        plt.xlabel('Distnces [Å]')
+        plt.xlabel('Distance [Å]')
         plt.ylabel('Energy [eV]')
         plt.show()
