@@ -105,9 +105,6 @@ def cmd_relax(
             }
         }
 
-    if magnetization_per_site:
-        magnetization_per_site = list(magnetization_per_site)
-
     builder = generator.get_builder(
         structure,
         engines,
@@ -209,9 +206,6 @@ def cmd_eos(
                 'max_wallclock_seconds': wallclock_seconds[index],
             }
         }
-
-    if magnetization_per_site:
-        magnetization_per_site = list(magnetization_per_site)
 
     inputs = {
         'structure': structure,
