@@ -153,3 +153,19 @@ def test_dissociation_curve_number_machines(run_cli_command, generate_structure,
     result = run_cli_command(cmd_dissociation_curve, options, raises=click.BadParameter)
     assert 'Error: Invalid value for --number-machines: QuantumEspressoRelaxWorkChain has 1 engine steps, so ' \
            'requires 1 values' in result.output_lines
+
+
+@pytest.mark.usefixtures('aiida_profile')
+def test_relax_magn_per_type(run_cli_command, generate_structure, generate_code):
+    """Test the `--magnetization-per-site` option."""
+    structure = generate_structure()
+    structure.append_atom(position=(0.000, 0.000, 0.468), symbols=['H'])
+    structure.append_atom(position=(0.000, 0.000, 0.268), symbols=['H'])
+    structure.store()
+    generate_code('quantumespresso.pw').store()
+
+    # Test that only `float` are admissible
+    options = ['-S', str(structure.pk), '--magnetization-per-site', 'str', '--', 'quantum_espresso']
+    result = run_cli_command(cmd_relax, options, raises=click.BadParameter)
+    assert "Error: Invalid value for '--magnetization-per-site': str is not a valid floating point " \
+           'value' in result.output
