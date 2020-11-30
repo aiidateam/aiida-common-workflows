@@ -92,6 +92,18 @@ class StructureDataParamType(click.Choice):
         return structure
 
 
+CODES = options.OverridableOption(
+    '-X',
+    '--codes',
+    'codes',
+    type=types.CodeParamType(),
+    cls=options.MultipleValueOption,
+    help='One or multiple codes identified by their ID, UUID or label. What codes are required is dependent on the '
+    'selected plugin and can be shown using the `--show-engines` option. If no explicit codes are specified, one will '
+    'be loaded from the database based on the required input plugins. If multiple codes are matched, a random one will '
+    'be selected.'
+)
+
 STRUCTURE = options.OverridableOption(
     '-S',
     '--structure',
@@ -116,7 +128,7 @@ RELAX_TYPE = options.OverridableOption(
     type=types.LazyChoice(get_relax_types),
     default='atoms',
     show_default=True,
-    callback=lambda ctx, value: RelaxType(value),
+    callback=lambda ctx, param, value: RelaxType(value),
     help='Select the relax type with which the workflow should be run.'
 )
 
@@ -126,7 +138,7 @@ SPIN_TYPE = options.OverridableOption(
     type=types.LazyChoice(get_spin_types),
     default='none',
     show_default=True,
-    callback=lambda ctx, value: SpinType(value),
+    callback=lambda ctx, param, value: SpinType(value),
     help='Select the spin type with which the workflow should be run.'
 )
 

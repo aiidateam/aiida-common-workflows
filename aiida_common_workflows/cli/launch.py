@@ -6,7 +6,6 @@ import click
 
 from aiida.cmdline.params import arguments
 from aiida.cmdline.params import types
-
 from aiida_common_workflows.plugins import get_workflow_entry_point_names, load_workflow_entry_point
 from .root import cmd_root
 from . import options
@@ -21,6 +20,7 @@ def cmd_launch():
 @cmd_launch.command('relax')
 @click.argument('plugin', type=types.LazyChoice(functools.partial(get_workflow_entry_point_names, 'relax', True)))
 @options.STRUCTURE()
+@options.CODES()
 @options.PROTOCOL(type=click.Choice(['fast', 'moderate', 'precise']), default='fast')
 @options.RELAX_TYPE()
 @options.SPIN_TYPE()
@@ -31,7 +31,7 @@ def cmd_launch():
 @options.DAEMON()
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
 def cmd_relax(
-    plugin, structure, protocol, relax_type, spin_type, threshold_forces, threshold_stress, number_machines,
+    plugin, structure, codes, protocol, relax_type, spin_type, threshold_forces, threshold_stress, number_machines,
     wallclock_seconds, daemon, show_engines
 ):
     """Relax a crystal structure using the common relax workflow for one of the existing plugin implementations.
@@ -41,7 +41,6 @@ def cmd_relax(
     display the required calculation engines for the selected plugin workflow.
     """
     # pylint: disable=too-many-locals
-    from aiida.orm import QueryBuilder, Code
 
     process_class = load_workflow_entry_point('relax', plugin)
     generator = process_class.get_inputs_generator()
@@ -85,7 +84,18 @@ def cmd_relax(
 
     for index, engine in enumerate(generator.get_calc_types()):
         schema = generator.get_calc_type_schema(engine)
+        code_plugin = schema['code_plugin']
+
+        code = utils.get_code_from_list_or_database(codes or [], code_plugin)
+
+        if code is None:
+            raise click.UsageError(
+                f'could not find a configured code for the plugin `{code_plugin}`. '
+                'Either provide it with the -X option or make sure such a code is configured in the DB.'
+            )
+
         engines[engine] = {
+            'code': code.full_label,
             'options': {
                 'resources': {
                     'num_machines': number_machines[index]
@@ -93,15 +103,6 @@ def cmd_relax(
                 'max_wallclock_seconds': wallclock_seconds[index],
             }
         }
-        code_plugin = schema['code_plugin']
-        query = QueryBuilder().append(Code, filters={'attributes.input_plugin': code_plugin})
-
-        code = query.first()
-
-        if code is None:
-            raise click.UsageError(f'could not find a configured code for the plugin `{code_plugin}`.')
-
-        engines[engine]['code'] = code[0].full_label
 
     builder = generator.get_builder(
         structure,
@@ -118,6 +119,7 @@ def cmd_relax(
 @cmd_launch.command('eos')
 @click.argument('plugin', type=types.LazyChoice(functools.partial(get_workflow_entry_point_names, 'relax', True)))
 @options.STRUCTURE()
+@options.CODES()
 @options.PROTOCOL(type=click.Choice(['fast', 'moderate', 'precise']), default='fast')
 @options.RELAX_TYPE(type=types.LazyChoice(options.get_relax_types_eos))
 @options.SPIN_TYPE()
@@ -128,7 +130,7 @@ def cmd_relax(
 @options.DAEMON()
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
 def cmd_eos(
-    plugin, structure, protocol, relax_type, spin_type, threshold_forces, threshold_stress, number_machines,
+    plugin, structure, codes, protocol, relax_type, spin_type, threshold_forces, threshold_stress, number_machines,
     wallclock_seconds, daemon, show_engines
 ):
     """Compute the equation of state of a crystal structure using the common relax workflow.
@@ -138,7 +140,6 @@ def cmd_eos(
     display the required calculation engines for the selected plugin workflow.
     """
     # pylint: disable=too-many-locals
-    from aiida.orm import QueryBuilder, Code
     from aiida_common_workflows.plugins import get_entry_point_name_from_class
     from aiida_common_workflows.workflows.eos import EquationOfStateWorkChain
 
@@ -184,7 +185,17 @@ def cmd_eos(
 
     for index, engine in enumerate(generator.get_calc_types()):
         schema = generator.get_calc_type_schema(engine)
+        code_plugin = schema['code_plugin']
+        code = utils.get_code_from_list_or_database(codes or [], code_plugin)
+
+        if code is None:
+            raise click.UsageError(
+                f'could not find a configured code for the plugin `{code_plugin}`. '
+                'Either provide it with the -X option or make sure such a code is configured in the DB.'
+            )
+
         engines[engine] = {
+            'code': code.full_label,
             'options': {
                 'resources': {
                     'num_machines': number_machines[index]
@@ -192,15 +203,6 @@ def cmd_eos(
                 'max_wallclock_seconds': wallclock_seconds[index],
             }
         }
-        code_plugin = schema['code_plugin']
-        query = QueryBuilder().append(Code, filters={'attributes.input_plugin': code_plugin})
-
-        code = query.first()
-
-        if code is None:
-            raise click.UsageError(f'could not find a configured code for the plugin `{code_plugin}`.')
-
-        engines[engine]['code'] = code[0].full_label
 
     inputs = {
         'structure': structure,

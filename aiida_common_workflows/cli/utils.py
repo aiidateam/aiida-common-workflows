@@ -58,3 +58,27 @@ def launch_process(process, daemon, **inputs):
         click.echo('Running a {}...'.format(process_name))
         _, node = launch.run_get_node(process, **inputs)
         echo_process_results(node)
+
+
+def get_code_from_list_or_database(codes, entry_point: str):
+    """Return a code that is configured for the given calculation job entry point.
+
+    First the list of ``Code`` instances is scanned for a suitable code and if not found, one is attempted to be loaded
+    from the database. If no codes are found, ``None`` is returned.
+
+    :param codes: list of aiida `Code` nodes.
+    :param entry_point: calculation job entry point name.
+    :return: a ``Code`` instance configured for the given entry point or ``None``.
+    """
+    from aiida.orm import QueryBuilder, Code
+
+    for entry in codes:
+        if entry.get_attribute('input_plugin') == entry_point:
+            return entry
+
+    result = QueryBuilder().append(Code, filters={'attributes.input_plugin': entry_point}).first()
+
+    if result is not None:
+        return result[0]
+
+    return None
