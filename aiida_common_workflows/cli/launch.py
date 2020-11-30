@@ -370,7 +370,7 @@ def cmd_plot_eos(node, print_table):
 @arguments.NODE()
 @click.option('-t', '--print-table', is_flag=True, help='Print the volume and energy table instead of plotting.')
 def cmd_plot_dissociation_curve(node, print_table):
-    """Plot the results from an `EquationOfStateWorkChain`."""
+    """Plot the results from a `DissociationCurveWorkChain`."""
     from tabulate import tabulate
 
     from aiida.common import LinkType

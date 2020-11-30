@@ -14,9 +14,7 @@ from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChai
 
 def validate_inputs(value, _):
     """Validate the entire input namespace."""
-    if 'distances' not in value and (
-        'distances_count' not in value and 'distance_min' not in value and 'distance_max' not in value
-    ):
+    if 'distances' not in value or any(key not in value for key in ['distances_count', 'distance_min', 'distance_max']):
         return 'neither `distances` nor the `distances_count`, `distance_min`, and `distance_max` set were defined.'
     if 'distance_min' in value:
         if value['distance_min'] >= value['distance_max']:
@@ -98,16 +96,16 @@ class DissociationCurveWorkChain(WorkChain):
         super().define(spec)
         spec.input('molecule', valid_type=orm.StructureData, validator=validate_molecule, help='The input molecule.')
         spec.input('distances', valid_type=orm.List, required=False, validator=validate_distances,
-            help='The list of dinstances in Ang at which the total energy of the molecule should be computed.')
+            help='The list of distances in Ångstrom at which the total energy of the molecule should be computed.')
         spec.input('distances_count', valid_type=orm.Int, default=lambda: orm.Int(20),
             validator=validate_distances_count,
             help='The number of points to compute in the dissociation curve.')
         spec.input('distance_min', valid_type=orm.Float, default=lambda: orm.Float(0.5),
             validator=validate_distance_min,
-            help='The minimum tested dinstance in Ang.')
+            help='The minimum tested distance in Ångstrom.')
         spec.input('distance_max', valid_type=orm.Float, default=lambda: orm.Float(3),
             validator=validate_distance_max,
-            help='The maximum tested distance in Ang.')
+            help='The maximum tested distance in Ångstrom.')
         spec.input_namespace('generator_inputs', dynamic=True,
             help='The inputs that will be passed to the inputs generator of the specified `sub_process`.')
         spec.input('generator_inputs.calc_engines', valid_type=dict, non_db=True)
