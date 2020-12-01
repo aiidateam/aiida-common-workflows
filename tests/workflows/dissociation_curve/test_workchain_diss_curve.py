@@ -64,6 +64,10 @@ def test_validate_inputs(ctx):
     assert dissociation.validate_inputs(value, ctx) is None
     value = {'distances': []}
     assert dissociation.validate_inputs(value, ctx) is None
+    value = {'distances': [], 'distance_min': 0.5}
+    assert dissociation.validate_inputs(value, ctx) is None
+    value = {'distance_max': 2, 'distance_min': 5, 'distances_count': 3}
+    assert dissociation.validate_inputs(value, ctx) == '`distance_min` must be smaller than `distance_max`'
 
 
 @pytest.mark.usefixtures('with_database')

@@ -17,7 +17,6 @@ def validate_inputs(value, _):
     if 'distances' not in value:
         if any(key not in value for key in ['distances_count', 'distance_min', 'distance_max']):
             return 'neither `distances` nor the `distances_count`, `distance_min`, and `distance_max` set were defined.'
-    if 'distance_min' in value:
         if value['distance_min'] >= value['distance_max']:
             return '`distance_min` must be smaller than `distance_max`'
 
