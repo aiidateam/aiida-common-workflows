@@ -26,6 +26,7 @@ def get_total_energy(parameters):
     """Calcfunction to get total energy from relax output"""
     return orm.Float(parameters.get_attribute('energy'))
 
+
 @calcfunction
 def get_total_magnetization(parameters):
     """Return the total magnetic moment of the cell from the given parameters node."""
@@ -40,9 +41,9 @@ class FleurRelaxWorkChain(CommonRelaxWorkChain):
 
     def convert_outputs(self):
         """Convert the outputs of the sub workchain to the common output specification."""
-        
+
         outputs = self.ctx.workchain.outputs
-        
+
         if 'optimized_structure' in outputs:
             self.out('relaxed_structure', outputs.optimized_structure)
 
