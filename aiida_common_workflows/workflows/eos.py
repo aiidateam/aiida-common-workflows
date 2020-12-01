@@ -13,8 +13,9 @@ from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChai
 
 def validate_inputs(value, _):
     """Validate the entire input namespace."""
-    if 'scale_factors' not in value and ('scale_count' not in value and 'scale_count' not in value):
-        return 'neither `scale_factors` nor the pair of `scale_count` and `scale_increment` were defined.'
+    if 'scale_factors' not in value:
+        if 'scale_count' not in value or 'scale_increment' not in value:
+            return 'neither `scale_factors` nor the pair of `scale_count` and `scale_increment` were defined.'
 
 
 def validate_sub_process_class(value, _):
