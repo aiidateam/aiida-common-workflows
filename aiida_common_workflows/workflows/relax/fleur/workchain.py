@@ -26,6 +26,11 @@ def get_total_energy(parameters):
     """Calcfunction to get total energy from relax output"""
     return orm.Float(parameters.get_attribute('energy'))
 
+@calcfunction
+def get_total_magnetization(parameters):
+    """Return the total magnetic moment of the cell from the given parameters node."""
+    return orm.Float(parameters.get_attribute('total_magnetic_moment_cell'))
+
 
 class FleurRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for FLEUR."""
@@ -35,6 +40,14 @@ class FleurRelaxWorkChain(CommonRelaxWorkChain):
 
     def convert_outputs(self):
         """Convert the outputs of the sub workchain to the common output specification."""
-        self.out('relaxed_structure', self.ctx.workchain.outputs.optimized_structure)
-        self.out('total_energy', get_total_energy(self.ctx.workchain.outputs.output_relax_wc_para))
-        self.out('forces', get_forces_from_trajectory(self.ctx.workchain.outputs.output_relax_wc_para))
+        
+        outputs = self.ctx.workchain.outputs
+        
+        if 'optimized_structure' in outputs:
+            self.out('relaxed_structure', outputs.optimized_structure)
+
+        output_parameters = outputs.output_relax_wc_para
+        if 'total_magnetic_moment_cell' in output_parameters.get_dict():
+            self.out('total_magnetization', get_total_magnetization(output_parameters))
+        self.out('total_energy', get_total_energy(outputs.output_relax_wc_para))
+        self.out('forces', get_forces_from_trajectory(outputs.output_relax_wc_para))
