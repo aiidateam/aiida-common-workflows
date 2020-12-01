@@ -117,6 +117,9 @@ class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
             **kwargs
         )
 
+        if any(structure.get_attribute_many(['pbc1', 'pbc2', 'pbc3'])):
+            print('Warning: PBC detected in input structure. It is not supported and thus ignored.')
+
         # -----------------------------------------------------------------
         # Set the link0 memory and n_proc based on the calc_engines options dict
 
