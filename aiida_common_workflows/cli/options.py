@@ -181,3 +181,11 @@ NUMBER_MACHINES = options.OverridableOption(
     required=False,
     help='Define the number of machines to request for each engine step.'
 )
+
+MAGNETIZATION_PER_SITE = options.OverridableOption(
+    '--magnetization-per-site',
+    type=click.FLOAT,
+    cls=options.MultipleValueOption,
+    required=False,
+    help='Optional list containing the initial spin polarization per site in units of electrons.'
+)
