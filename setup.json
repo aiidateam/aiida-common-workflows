@@ -48,6 +48,7 @@
         ],
         "aiida.workflows": [
             "common_workflows.eos = aiida_common_workflows.workflows.eos:EquationOfStateWorkChain",
+            "common_workflows.dissociation_curve = aiida_common_workflows.workflows.dissociation:DissociationCurveWorkChain",
             "common_workflows.relax.bigdft = aiida_common_workflows.workflows.relax.bigdft.workchain:BigDftRelaxWorkChain",
             "common_workflows.relax.cp2k = aiida_common_workflows.workflows.relax.cp2k.workchain:Cp2kRelaxWorkChain",
             "common_workflows.relax.fleur = aiida_common_workflows.workflows.relax.fleur.workchain:FleurRelaxWorkChain",
