@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for Quantum ESPRESSO."""
+"""Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for CASTEP"""
 import collections
 import copy
 import pathlib
@@ -15,11 +15,11 @@ from aiida_castep.data import get_pseudos_from_structure
 from aiida_castep.data.otfg import OTFGGroup
 
 from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
-# pylint: disable=import-outside-toplevel
+# pylint: disable=import-outside-toplevel, too-many-branches, too-many-statements
 
 __all__ = ('CastepRelaxInputGenerator',)
 
-StructureData = plugins.DataFactory('structure')
+StructureData = plugins.DataFactory('structure')  # pylint: disable=invalid-name
 
 
 class CastepRelaxInputGenerator(RelaxInputsGenerator):
@@ -29,10 +29,26 @@ class CastepRelaxInputGenerator(RelaxInputsGenerator):
     _calc_types = {'relax': {'code_plugin': 'castep.castep', 'description': 'The code to perform the relaxation.'}}
     _relax_types = {
         RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
-        RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell.'
+        RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell.',
+        RelaxType.ATOMS_SHAPE: 'Relax both atomic positions and the shape of the cell, keeping the volume fixed.',
+        RelaxType.ATOMS_VOLUME: 'Relax both atomic positions and the volume of the cell, keeping the cell shape fixed.',
+        RelaxType.NONE: 'Do not do any relaxation.'
     }
-    _spin_types = {SpinType.NONE: '....', SpinType.COLLINEAR: '....'}
-    _electronic_types = {ElectronicType.METAL: '....', ElectronicType.INSULATOR: '....'}
+    _spin_types = {
+        SpinType.NONE: 'No spin polarisation',
+        SpinType.COLLINEAR: 'Collinear spin polarisation',
+        SpinType.NON_COLLINEAR: 'Non-collinear spin. Symmetry is disabled by default.',
+        # For now SOC requires special tabulated pseudopotentials (not the on-the-fly generated ones)
+        # SpinType.SPIN_ORBIT: 'Non-collinear spin with spin-orbit coupling. Symmetry is disabled by default'
+    }
+    _electronic_types = {
+        ElectronicType.METAL:
+        'Allow variable occupation and use density mixing method with increased k-point density.',
+        ElectronicType.INSULATOR:
+        'Interally treated as metals, since density mixing is often more efficient for insulators.',
+        ElectronicType.AUTOMATIC:
+        'Interally treated as metals, since density mixing is often more efficient for insulators.'
+    }
 
     def __init__(self, *args, **kwargs):
         """Construct an instance of the inputs generator, validating the class attributes."""
@@ -109,12 +125,80 @@ class CastepRelaxInputGenerator(RelaxInputsGenerator):
         if threshold_stress is not None:
             param['geom_stress_tol'] = threshold_stress * ev_to_gpa
 
+        # Assign relaxation types
         if relax_type == RelaxType.ATOMS:
             param['fix_all_cell'] = True
         elif relax_type == RelaxType.ATOMS_CELL:
             pass
+        elif relax_type == RelaxType.ATOMS_VOLUME:
+            # Use cell constraints to tie the lattice parameters fix angles
+            param['cell_constraints'] = ['1 1 1', '0 0 0']
+        elif relax_type == RelaxType.ATOMS_SHAPE:
+            param['fix_vol'] = True
+            # Use TPSD optimiser since LBFGS typically has slow convergence when
+            # cell constraint is applied
+            param['geom_method'] = 'tpsd'
+        elif relax_type == RelaxType.NONE:
+            param['task'] = 'singlepoint'
+            # Activate the bypass mode
+            override['relax_options'] = {'bypass': True}
         else:
             raise ValueError('relaxation type `{}` is not supported'.format(relax_type.value))
+
+        # Process the spin types
+        if spin_type == SpinType.COLLINEAR:
+            param['spin_polarized'] = True
+        elif spin_type == SpinType.NON_COLLINEAR:
+            param['spin_treatment'] = 'noncollinear'
+            # Symmetry should be off, unless QUANTISATION_AXIS is supplied
+            # that would be too advanced, here I just turn it off
+            param.pop('symmetry_generate', None)
+        #elif spin_type == SpinType.SPIN_ORBIT:
+        #    param['spin_treatment'] = 'noncollinear'
+        #    param['spin_orbit_coupling'] = True
+        #    param.pop('symmetry_generate', None)
+        elif spin_type == SpinType.NONE:
+            param['spin_polarized'] = False
+        else:
+            raise ValueError('Spin type `{}` is not supported'.format(spin_type.value))
+
+        # Process the initial magnetic moments
+        if magnetization_per_site:
+            # Support for colinear and non-colinear spins
+            # for non-colinear spins a vector of length three is supplied and passed
+            # to CASTEP
+            if isinstance(magnetization_per_site[0], (float, int, list, tuple)):
+                override['base']['calc']['settings'] = {'SPINS': magnetization_per_site}
+            elif isinstance(magnetization_per_site[0], dict):
+                raise ValueError('Dictionary style initialisation is not supported yet')
+            else:
+                raise ValueError('Unsupported `magnetization_per_site` format {}'.format(magnetization_per_site[0]))
+        elif spin_type == SpinType.COLLINEAR:
+            # Initialise with FM spin arrangement
+            override['base']['calc']['settings'] = {'SPINS': [1.0] * len(structure.sites)}
+        elif spin_type in (SpinType.NON_COLLINEAR, SpinType.SPIN_ORBIT):
+            override['base']['calc']['settings'] = {'SPINS': [[1.0, 1.0, 1.0]] * len(structure.sites)}
+            print('WARNING: initialising non-collinear calculation with spin pointing at (1., 1., 1.).')
+
+        # Process electronic type
+        # for plane-wave DFT density mixing is most efficient for both metal and insulators
+        # these days. Here we stick to the default of CASTEP and do nothing here.
+        if electronic_type == ElectronicType.METAL:
+            # Use fine kpoints grid for all metallic calculations
+            override['base']['kpoints_spacing'] = 0.03
+        elif electronic_type in (ElectronicType.INSULATOR, ElectronicType.AUTOMATIC):
+            pass
+        else:
+            raise ValueError('Unsupported `electronic_type` {}.'.format(electronic_type))
+
+        # Raise the cut off energy for very soft pseudopotentials
+        # this is because the small basis set will give rise to errors in EOS / variable volume
+        # relaxation even with the "fine" option
+        with open(str(pathlib.Path(__file__).parent / 'soft_elements.yml')) as fhandle:
+            soft_elements = yaml.safe_load(fhandle)
+        symbols = [kind.symbol for kind in structure.kinds]
+        if all([sym in soft_elements for sym in symbols]):
+            param['cut_off_energy'] = 326  # eV, approximately 12 Ha
 
         # Apply the overrides
         if param:
@@ -158,6 +242,7 @@ def recursive_merge(left: Dict[str, Any], right: Dict[str, Any]) -> Dict[str, An
     for key, value in left.items():
         if key in right:
             if isinstance(value, collections.Mapping) and isinstance(right[key], collections.Mapping):
+                # Here, the right dictionary is modified in-place and contains the merged items
                 right[key] = recursive_merge(value, right[key])
 
     merged = left.copy()
@@ -177,12 +262,10 @@ def generate_inputs(
 
     The override argument can be used to pass a dictionary with values for specific inputs that should override the
     defaults. This dictionary should have the same nested structure as the final input dictionary would have for the
-    workchain submission. For example if one wanted to generate the inputs for a PwBandsWorkChain and override the
-    ecutwfc parameter for the PwBaseWorkChain of the PwRelaxWorkChains, one would have to pass:
+    workchain submission.
 
-        override = {'relax': {'base': {'ecutwfc': 400}}}
-
-    :param process_class: process class, either calculation or workchain, i.e. ``PwCalculation`` or ``PwBaseWorkChain``
+    :param process_class: process class, either calculation or workchain,
+     i.e. ``CastepCalculation`` or ``CastepBaseWorkChain``
     :param protocol: the protocol based on which to choose input parameters
     :param code: the code or code name to use
     :param structure: the structure
@@ -254,6 +337,7 @@ def generate_inputs_relax(
     merged['base'].pop('structure', None)
 
     calc = merged['base'].pop('calc')
+    calc.pop('structure', None)
 
     # Here we move the 'calc' up from the 'base' this is how the relax workchain accepts inputs
     dictionary = {
@@ -273,7 +357,7 @@ def generate_inputs_base(
     otfg_family: OTFGGroup,
     override: Dict[str, Any] = None
 ) -> Dict[str, Any]:
-    """Generate the inputs for the `PwBaseWorkChain` for a given code, structure and pseudo potential family.
+    """Generate the inputs for the `CastepBaseWorkChain` for a given code, structure and pseudo potential family.
 
     :param protocol: the dictionary with protocol inputs.
     :param code: the code to use.
@@ -285,9 +369,8 @@ def generate_inputs_base(
     merged = recursive_merge(protocol, override or {})
 
     # Here we pass the base namespace in
-    calc_dictionary = generate_inputs_calculation(protocol, code, structure, otfg_family, override.get('calc', {}))
+    calc_dictionary = generate_inputs_calculation(protocol, code, structure, otfg_family, override)
     # Structure and pseudo should be define at base level
-    calc_dictionary.pop('structure')
     calc_dictionary.pop('pseudos')
     # Remove the kpoints input as here we use the spacing directly
     calc_dictionary.pop('kpoints', None)
@@ -319,14 +402,22 @@ def generate_inputs_calculation(
     :return: the fully defined input dictionary.
     """
     from aiida_castep.calculations.helper import CastepHelper
-    merged = recursive_merge(protocol, override or {})
+    override = {} if not override else override.get('calc', {})
+    # This merge perserves the merged `parameters` in the override
+    merged_calc = recursive_merge(protocol['calc'], override)
 
     kpoints = orm.KpointsData()
     kpoints.set_cell_from_structure(structure)
     kpoints.set_kpoints_mesh_from_density(protocol['kpoints_spacing'] * pi * 2)
 
     # For bare calculation level, we need to make sure the dictionary is not "flat"
-    param = merged['calc']['parameters']
+    param = merged_calc['parameters']
+
+    # Remove incompatible options: cut_off_energy and basis_precisions can not be
+    # both specified
+    if 'cut_off_energy' in param:
+        param.pop('basis_precision', None)
+
     helper = CastepHelper()
     param = helper.check_dict(param, auto_fix=True, allow_flat=True)
 
@@ -336,10 +427,11 @@ def generate_inputs_calculation(
         'code': code,
         'parameters': orm.Dict(dict=param),
         'pseudos': get_pseudos_from_structure(structure, otfg_family.label),
-        'metadata': merged.get('metadata', {})
+        'metadata': merged_calc.get('metadata', {})
     }
-
-    # NOTE: Need to process settings
+    # Add the settings input if present
+    if 'settings' in merged_calc:
+        dictionary['settings'] = orm.Dict(dict=merged_calc['settings'])
 
     return dictionary
 
