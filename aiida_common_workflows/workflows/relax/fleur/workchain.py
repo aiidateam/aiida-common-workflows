@@ -48,7 +48,9 @@ class FleurRelaxWorkChain(CommonRelaxWorkChain):
             self.out('relaxed_structure', outputs.optimized_structure)
 
         output_parameters = outputs.output_relax_wc_para
-        if 'total_magnetic_moment_cell' in output_parameters.get_dict():
-            self.out('total_magnetization', get_total_magnetization(output_parameters))
+        out_para_dict = output_parameters.get_dict()
+        if 'total_magnetic_moment_cell' in out_para_dict:
+            if out_para_dict.get('total_magnetic_moment_cell', None) is not None:
+                self.out('total_magnetization', get_total_magnetization(output_parameters))
         self.out('total_energy', get_total_energy(outputs.output_relax_wc_para))
         self.out('forces', get_forces_from_trajectory(outputs.output_relax_wc_para))
