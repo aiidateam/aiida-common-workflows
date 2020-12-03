@@ -8,8 +8,10 @@ import yaml
 from aiida import engine
 from aiida import orm
 from aiida import plugins
-from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
+from aiida.common.constants import elements as PeriodicTableElements
 
+from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
+from aiida_fleur.tools.StructureData_util import break_symmetry
 __all__ = ('FleurRelaxInputsGenerator',)
 
 StructureData = plugins.DataFactory('structure')
@@ -195,7 +197,7 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         if 'calc_parameters' in kwargs.keys():
             parameters = kwargs.pop('calc_parameters')
 
-        parameters = prepare_calc_parameters(parameters, spin_type, magnetization_per_site, kmax)
+        parameters, structure = prepare_calc_parameters(parameters, spin_type, magnetization_per_site, structure, kmax)
 
         inputs = {
             'scf': {
@@ -215,7 +217,7 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         return builder
 
 
-def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, kmax):
+def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, structure, kmax):
     """Prepare a calc_parameter node for a inpgen jobcalc
 
     Depending on the imports merge information
@@ -226,6 +228,7 @@ def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, kmax)
     :param kmax: int, basis cutoff for the simulations
     :return: orm.Dict
     """
+    parameters_b = None
     # Spin type options
     if spin_type == SpinType.NONE:
         jspins = 1
@@ -233,16 +236,8 @@ def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, kmax)
         jspins = 2
     add_parameter_dict = {'comp': {'jspins': jspins}}
 
-    if magnetization_per_site is not None:
-        if spin_type == SpinType.NONE:
-            import warnings
-            warnings.warn('`magnetization_per_site` will be ignored as `spin_type` is set to SpinType.NONE')
-        if spin_type == SpinType.COLLINEAR:
-            pass
-            # add atom lists for each kind and set bmu
-            # this will break symmetry
-            # be careful here because this may override things the plugin is during already.
 
+  
     # electronic Structure options
     # None. Gff we want to increase the smearing and kpoint density in case of metal
 
@@ -253,9 +248,42 @@ def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, kmax)
         add_parameter_dict = recursive_merge(add_parameter_dict, parameters.get_dict())
         # In general better use aiida-fleur merge methods for calc parameters...
 
-    new_parameters = orm.Dict(dict=add_parameter_dict)
+    if magnetization_per_site is not None:
+        # This is a simplified version where no new kinds will be created. The last value specified for any given
+        # kind will be taken as the final value to be used for all sites of that kind.
+        # Do for now sake we have this. If the structure is not rightly prepared it will run, but
+        # the set magnetization will be wrong, TODO fix, this
+        #initial_magnetization = dict(zip([site.kind_name for site in structure.sites], magnetization_per_site))
+        atomic_numbers = {data['symbol']: num for num, data in six.iteritems(PeriodicTableElements)}
 
-    return new_parameters
+        if spin_type == SpinType.NONE:
+            import warnings
+            warnings.warn('`magnetization_per_site` will be ignored as `spin_type` is set to SpinType.NONE')
+        if spin_type == SpinType.COLLINEAR:
+            # add atom lists for each kind and set bmu in muBohr
+            # this will break symmetry and changes the structure, if needed
+            # be careful here because this may override things the plugin is during already.
+            # This is very fragile and not robust
+            mag_dict = {}
+            sites = list(structure.sites)
+            for i, val in enumerate(magnetization_per_site):
+                kind_name = sites[i].kind_name
+                kind = structure.get_kind(kind_name)
+                site_symbol = kind.symbols[0] # assume atoms
+                atomic_number = _atomic_numbers[site_symbol]
+
+                head = kind_name.rstrip('0123456789')
+                kind_namet = int(kind_name[len(head):])
+                kind_id = f'{atomic_number}.{kind_namet}'
+                mag_dict[f'atom{i}'] = {'id': kind_id, 'bmu': val}
+            structure , parameters_b = break_symmetry(structure, parameterdata=orm.Dict(dict=add_parameter_dict))
+
+    if parameters_b is not None:
+        new_parameters = orm.Dict(dict=add_parameter_dict)
+    else:
+        new_parameters = parameters_b
+
+    return new_parameters, structure
 
 
 def get_parameters(previous_workchain):
