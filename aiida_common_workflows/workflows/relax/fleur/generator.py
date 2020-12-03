@@ -271,10 +271,15 @@ def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, struc
                 site_symbol = kind.symbols[0]  # assume atoms
                 atomic_number = atomic_numbers[site_symbol]
 
-                head = kind_name.rstrip('0123456789')
-                kind_namet = int(kind_name[len(head):])
-                kind_id = f'{atomic_number}.{kind_namet}'
-                mag_dict[f'atom{i}'] = {'id': kind_id, 'bmu': val}
+                if kind_name != site_symbol:
+                    head = kind_name.rstrip('0123456789')
+                    kind_namet = int(kind_name[len(head):])
+                    kind_id = f'{atomic_number}.{kind_namet}'
+                else:
+                    kind_id = f'{atomic_number}'
+                mag_dict[f'atom{i}'] = {'z': atomic_number, 'id': kind_id, 'bmu': val}
+            add_parameter_dict = recursive_merge(add_parameter_dict, mag_dict)
+
             structure, parameters_b = break_symmetry(structure, parameterdata=orm.Dict(dict=add_parameter_dict))
 
     if parameters_b is not None:
