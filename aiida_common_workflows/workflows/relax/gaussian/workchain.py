@@ -32,6 +32,16 @@ def get_forces(parameters):
     return forces_arr
 
 
+@calcfunction
+def get_total_magnetization(parameters):
+    """Return the total magnetizaton [Bohr magnetons] from the output parameters node."""
+    # This is fully determined by the input multiplicity.
+    # Find it from the mulliken atomic spins
+    mulliken_spins = np.array(parameters['atomspins']['mulliken'])  # in num electrons
+    tot_magnetization_au = 0.5 * np.sum(mulliken_spins)
+    return orm.Float(tot_magnetization_au)
+
+
 class GaussianRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for Gaussian."""
 
@@ -40,7 +50,9 @@ class GaussianRelaxWorkChain(CommonRelaxWorkChain):
 
     def convert_outputs(self):
         """Convert the outputs of the sub workchain to the common output specification."""
-        if 'output_structure' in self.ctx.workchain.outputs:
-            self.out('relaxed_structure', self.ctx.workchain.outputs.output_structure)
         self.out('total_energy', get_total_energy(self.ctx.workchain.outputs.output_parameters))
         self.out('forces', get_forces(self.ctx.workchain.outputs.output_parameters))
+        if 'output_structure' in self.ctx.workchain.outputs:
+            self.out('relaxed_structure', self.ctx.workchain.outputs.output_structure)
+        if 'atomspins' in dict(self.ctx.workchain.outputs.output_parameters):
+            self.out('total_magnetization', get_total_magnetization(self.ctx.workchain.outputs.output_parameters))

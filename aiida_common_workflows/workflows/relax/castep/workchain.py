@@ -56,6 +56,15 @@ def get_free_energy(parameters):
     return orm.Float(parameters.get_attribute('free_energy'))
 
 
+@calcfunction
+def get_total_magnetization(parameters):
+    """
+    Return the free energy from the given parameters node.
+    The free energy reported by CASTEP is the one that is consistent with the forces.
+    """
+    return orm.Float(parameters.get_attribute('spin_density'))
+
+
 class CastepRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for CASTEP"""
 
@@ -64,7 +73,20 @@ class CastepRelaxWorkChain(CommonRelaxWorkChain):
 
     def convert_outputs(self):
         """Convert the outputs of the sub workchain to the common output specification."""
-        self.out('relaxed_structure', self.ctx.workchain.outputs.output_structure)
-        self.out('total_energy', get_free_energy(self.ctx.workchain.outputs.output_parameters))
-        self.out('forces', get_forces_from_trajectory(self.ctx.workchain.outputs.output_trajectory))
-        self.out('stress', get_stress_from_trajectory(self.ctx.workchain.outputs.output_trajectory))
+        workchain = self.ctx.workchain
+        if 'output_structure' in workchain.outputs:
+            self.out('relaxed_structure', workchain.outputs.output_structure)
+
+        output_parameters = workchain.outputs.output_parameters
+        self.out('total_energy', get_free_energy(output_parameters))
+
+        if 'spin_density' in output_parameters.get_dict():
+            self.out('total_magnetization', get_total_magnetization(output_parameters))
+
+        if 'output_trajectory' in workchain.outputs:
+            self.out('forces', get_forces_from_trajectory(workchain.outputs.output_trajectory))
+            self.out('stress', get_stress_from_trajectory(workchain.outputs.output_trajectory))
+        # This can be a single point calculation - get force/stress from the ArrayData
+        else:
+            self.out('forces', get_forces_from_trajectory(workchain.outputs.output_array))
+            self.out('stress', get_stress_from_trajectory(workchain.outputs.output_array))

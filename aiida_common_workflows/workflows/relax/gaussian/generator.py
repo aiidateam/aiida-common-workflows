@@ -100,7 +100,7 @@ class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
-        # pylint: disable=too-many-locals,too-many-branches
+        # pylint: disable=too-many-locals,too-many-branches,too-many-statements
         protocol = protocol or self.get_default_protocol_name()
 
         super().get_builder(
@@ -117,8 +117,8 @@ class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
             **kwargs
         )
 
-        if magnetization_per_site is not None:
-            print('Warning: magnetization_per_site not supported, ignoring it.')
+        if any(structure.get_attribute_many(['pbc1', 'pbc2', 'pbc3'])):
+            print('Warning: PBC detected in input structure. It is not supported and thus ignored.')
 
         # -----------------------------------------------------------------
         # Set the link0 memory and n_proc based on the calc_engines options dict
@@ -151,6 +151,7 @@ class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
         if n_proc is not None:
             link0_parameters['%nprocshared'] = '%d' % n_proc
         # -----------------------------------------------------------------
+        # General route parameters
 
         sel_protocol = copy.deepcopy(self.get_protocol(protocol))
         route_params = sel_protocol['route_parameters']
@@ -158,11 +159,6 @@ class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
         if relax_type == RelaxType.NONE:
             del route_params['opt']
             route_params['force'] = None
-
-        if spin_type == SpinType.COLLINEAR:
-            # In case of collinear spin, enable UKS and specify guess=mix
-            sel_protocol['functional'] = 'U' + sel_protocol['functional']
-            route_params['guess'] = 'mix'
 
         if threshold_forces is not None:
             # Set the RMS force threshold with the iop(1/7=N) command
@@ -174,23 +170,60 @@ class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
             threshold_forces_n = int(np.round(threshold_forces_au * 1e6))
             route_params['iop(1/7=%d)' % threshold_forces_n] = None
 
+        # -----------------------------------------------------------------
+        # Handle spin-polarization
+
+        pymatgen_structure = structure.get_pymatgen_molecule()
+        num_electrons = pymatgen_structure.nelectrons
+        spin_multiplicity = 1
+
+        if num_electrons % 2 == 1 and spin_type == SpinType.NONE:
+            raise ValueError(f'Spin-restricted calculation does not support odd number of electrons ({num_electrons})')
+
+        if spin_type == SpinType.COLLINEAR:
+            # enable UKS
+            sel_protocol['functional'] = 'U' + sel_protocol['functional']
+
+            # determine the spin multiplicity
+
+            if magnetization_per_site is None:
+                multiplicity_guess = 1
+            else:
+                print(
+                    'Warning: magnetization_per_site site-resolved info is disregarded, only total spin is processed.'
+                )
+                # magnetization_per_site are in units of Bohr magnetons
+                total_spin_guess = np.abs(np.sum(magnetization_per_site))
+                multiplicity_guess = 2 * total_spin_guess + 1
+
+            # in case of even/odd electrons, find closest odd/even multiplicity
+            if num_electrons % 2 == 0:
+                # round guess to nearest odd integer
+                spin_multiplicity = int(np.round((multiplicity_guess - 1) / 2) * 2 + 1)
+            else:
+                # round guess to nearest even integer; 0 goes to 2
+                spin_multiplicity = max([int(np.round(multiplicity_guess / 2) * 2), 2])
+
+            # Mix HOMO and LUMO if we're looking for the open-shell singlet
+            if spin_multiplicity == 1:
+                route_params['guess'] = 'mix'
+
+        # -----------------------------------------------------------------
+        # Build the builder
+
         params = {
             'link0_parameters': link0_parameters,
             'functional': sel_protocol['functional'],
             'basis_set': sel_protocol['basis_set'],
             'charge': 0,
-            'multiplicity': 1,
+            'multiplicity': spin_multiplicity,
             'route_parameters': route_params
         }
 
         builder = self.process_class.get_builder()
-
         builder.gaussian.structure = structure
-
         builder.gaussian.parameters = orm.Dict(dict=params)
-
         builder.gaussian.code = orm.load_code(calc_engines['relax']['code'])
-
         builder.gaussian.metadata.options = calc_engines['relax']['options']
 
         return builder
