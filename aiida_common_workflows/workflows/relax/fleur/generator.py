@@ -154,7 +154,8 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
             'force_criterion': force_criterion,
             'change_mixing_criterion': 0.025,
             'atoms_off': [],
-            'run_final_scf': True  # we always run a final scf after the relaxation
+            'run_final_scf': True,  # we always run a final scf after the relaxation
+            'relaxation_type': 'atoms'
         }
         wf_para_dict = recursive_merge(default_wf_para, protocol.get('relax', {}))
 
@@ -166,6 +167,7 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         elif relax_type == RelaxType.NONE:
             relaxation_mode = 'force'
             wf_para_dict['relax_iter'] = 0
+            wf_para_dict['relaxation_type'] = None
         else:
             raise ValueError('relaxation type `{}` is not supported'.format(relax_type.value))
 
