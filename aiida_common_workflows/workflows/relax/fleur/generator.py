@@ -262,7 +262,8 @@ def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, struc
             # add atom lists for each kind and set bmu in muBohr
             # this will break symmetry and changes the structure, if needed
             # be careful here because this may override things the plugin is during already.
-            # This is very fragile and not robust
+            # This is very fragile and not robust, it will fail if input structure is wrong, does not have enough kinds
+            # but we do not change the input structure that way
             mag_dict = {}
             sites = list(structure.sites)
             for i, val in enumerate(magnetization_per_site):
@@ -274,18 +275,19 @@ def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, struc
                 if kind_name != site_symbol:
                     head = kind_name.rstrip('0123456789')
                     kind_namet = int(kind_name[len(head):])
+                    print(kind_namet)
                     kind_id = f'{atomic_number}.{kind_namet}'
                 else:
                     kind_id = f'{atomic_number}'
                 mag_dict[f'atom{i}'] = {'z': atomic_number, 'id': kind_id, 'bmu': val}
             add_parameter_dict = recursive_merge(add_parameter_dict, mag_dict)
-
-            structure, parameters_b = break_symmetry(structure, parameterdata=orm.Dict(dict=add_parameter_dict))
+            parameter_b = None
+            #structure, parameters_b = break_symmetry(structure, parameterdata=orm.Dict(dict=add_parameter_dict))
 
     if parameters_b is not None:
-        new_parameters = orm.Dict(dict=add_parameter_dict)
-    else:
         new_parameters = parameters_b
+    else:
+        new_parameters = orm.Dict(dict=add_parameter_dict)
 
     return new_parameters, structure
 
