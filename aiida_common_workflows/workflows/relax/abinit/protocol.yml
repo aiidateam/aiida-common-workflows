@@ -1,7 +1,7 @@
 fast:
     name: "fast"
     description: "Protocol to relax a structure with low precision at minimal computational cost for testing purposes."
-    pseudo_family: "nc-sr-04_pbe_standard_psp8"
+    pseudo_family: "PseudoDojo/0.4/pbe/sr/standard/psp8"
     base:
         kpoints_distance: 1.0
         abinit:
@@ -32,7 +32,7 @@ fast:
 moderate:
     name: "moderate"
     description: "Protocol to relax a structure with normal precision at moderate computational cost."
-    pseudo_family: "nc-sr-04_pbe_standard_psp8"
+    pseudo_family: "PseudoDojo/0.4/pbe/sr/standard/psp8"
     base:
         kpoints_distance: 0.20
         abinit:
@@ -63,7 +63,7 @@ moderate:
 precise:
     name: "precise"
     description: "Protocol to relax a structure with high precision at higher computational cost."
-    pseudo_family: "nc-fr-04_pbe_standard_psp8"
+    pseudo_family: "PseudoDojo/0.4/pbe/fr/standard/psp8"
     base:
         kpoints_distance: 0.15
         abinit:
