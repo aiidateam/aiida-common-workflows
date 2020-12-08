@@ -8,7 +8,6 @@ import warnings
 
 import yaml
 from pymatgen.core import units
-from pymatgen.io.ase import AseAtomsAdaptor
 import numpy as np
 
 from aiida import engine, orm, plugins
@@ -124,16 +123,18 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         if threshold_forces is not None:
             threshold_f = threshold_forces * units.eV_to_Ha / units.ang_to_bohr  # eV/Å -> Ha/Bohr
         else:
-            threshold_f = 5.0e-5 # Abinit default value in Ha/Bohr
+            threshold_f = 5.0e-5  # Abinit default value in Ha/Bohr
 
         # Deal with molecular case
         if structure.pbc == (False, False, False):
             # We assume the structure is a molecule which already has an appropriate vacuum applied
             # NB: the vacuum around the molecule must maintain the molecule's symmetries!
-            warnings.warn(f'The input structure {structure} has periodic boundary conditions {structure.pbc}, so we '
+            warnings.warn(
+                f'The input structure {structure} has periodic boundary conditions {structure.pbc}, so we '
                 'assume the structure is a molecule. The structure will be modified to have full PBC. We assume that '
                 'the cell contains appropriate symmetry-conserving vacuum, and various tweaks to the protocol will be '
-                'applied!')
+                'applied!'
+            )
 
             # Set pbc to [True, True, True]
             pbc_structure = structure.clone()
@@ -141,7 +142,9 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
 
             # Update protocol
             _ = protocol['base'].pop('kpoints_distance')  # Remove k-points distance; we will use gamma only
-            _ = protocol['base']['abinit']['parameters'].pop('tolvrs')  # Remove tolvrs; we will use force tolerance for SCF
+            _ = protocol['base']['abinit']['parameters'].pop(
+                'tolvrs'
+            )  # Remove tolvrs; we will use force tolerance for SCF
             # Set k-points to gamma-point
             protocol['base']['kpoints'] = [1, 1, 1]
             protocol['base']['abinit']['parameters']['nkpt'] = 1
@@ -155,8 +158,10 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
 
             inputs = generate_inputs(self.process_class._process_class, protocol, code, pbc_structure, override)  # pylint: disable=protected-access
         elif False in structure.pbc:
-            raise ValueError(f'The input structure has periodic boundary conditions {structure.pbc}, but partial '
-                'periodic boundary conditions are not supported.')
+            raise ValueError(
+                f'The input structure has periodic boundary conditions {structure.pbc}, but partial '
+                'periodic boundary conditions are not supported.'
+            )
         else:
             inputs = generate_inputs(self.process_class._process_class, protocol, code, structure, override)  # pylint: disable=protected-access
 
@@ -202,9 +207,11 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             builder.abinit['parameters']['spinat'] = [[0.0, 0.0, mag] for mag in magnetization_per_site]
         elif spin_type == SpinType.SPIN_ORBIT:
             if 'fr' not in protocol['pseudo_family']:
-                raise ValueError('You must use the `stringent` protocol for SPIN_ORBIT calculations because '
+                raise ValueError(
+                    'You must use the `stringent` protocol for SPIN_ORBIT calculations because '
                     'it provides fully-relativistic pseudopotentials (`fr` is not in the protocol\'s '
-                    '`pseudo_family` entry).')
+                    '`pseudo_family` entry).'
+                )
             builder.abinit['parameters']['nspinor'] = 2  # w.f. as spinors
         else:
             raise ValueError('spin type `{}` is not supported'.format(spin_type.value))
