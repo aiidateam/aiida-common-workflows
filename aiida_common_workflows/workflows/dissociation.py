@@ -75,16 +75,18 @@ def validate_relax(value, _):
 @calcfunction
 def set_distance(molecule: orm.StructureData, distance: orm.Float) -> orm.StructureData:
     """
-    Move the second site of the molecule to meet a target distance
-    between the two sites of the molecule.
+    Move both sites of the molecule to symmetric points around the origin which are on the line connecting the original
+    sites and which are separated by the target distance.
     """
     import numpy as np
     vector_diff = np.array(molecule.sites[1].position) - np.array(molecule.sites[0].position)
     versor_diff = vector_diff / np.linalg.norm(vector_diff)
-    molecule_new = molecule.clone()
-    new_position = np.array(molecule.sites[0].position) + distance.value * versor_diff
-    molecule_new.attributes['sites'][1]['position'] = new_position
-    return molecule_new
+    new_molecule = molecule.clone()
+    new_position_0 = (distance.value * versor_diff) / 2
+    new_position_1 = (distance.value * versor_diff) / 2
+    new_molecule.attributes['sites'][0]['position'] = new_position_0
+    new_molecule.attributes['sites'][0]['position'] = new_position_1
+    return new_molecule
 
 
 class DissociationCurveWorkChain(WorkChain):
