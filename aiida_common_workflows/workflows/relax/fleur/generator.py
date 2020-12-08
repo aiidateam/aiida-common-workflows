@@ -145,8 +145,22 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
 
         if threshold_stress is not None:
             pass  # Stress is not supported
+        
+        molecule = False
+        if structure.pbc == (False, False, False):
+            molecule = True
+            # we have to change the structure
 
+            # check if vaccum box
+            # maybe check if b-vectors are shorter than 10 A
+            # else elongate them
+
+            # make pbc (True, True, True)
+            # keep provenance?
+            structure = structure.clone()
+            structure.pbc = (True, True, True)
         film_relax = not structure.pbc[-1]
+            
 
         default_wf_para = {
             'relax_iter': 5,
@@ -189,6 +203,9 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         protocol_scf_para = protocol.get('scf', {})
         kmax = protocol_scf_para.pop('k_max_cutoff', None)
 
+        if molecule: # We want to use only one kpoint
+            protocol_scf_para['kpoints_distance'] = 10000
+            
         wf_para_scf_dict = recursive_merge(default_scf, protocol_scf_para)
         wf_para_scf = orm.Dict(dict=wf_para_scf_dict)
 
