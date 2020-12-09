@@ -35,6 +35,12 @@ def get_total_energy(parameters):
     return orm.Float(parameters.get_attribute('energy'))
 
 
+@calcfunction
+def get_total_magnetization(parameters):
+    """Return the total magnetization from the given parameters node."""
+    return orm.Float(parameters['total_magnetization'])
+
+
 class AbinitRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for Abinit."""
 
@@ -50,3 +56,7 @@ class AbinitRelaxWorkChain(CommonRelaxWorkChain):
         self.out('total_energy', get_total_energy(self.ctx.workchain.outputs.output_parameters))
         self.out('forces', get_forces(self.ctx.workchain.outputs.output_parameters))
         self.out('stress', get_stress(self.ctx.workchain.outputs.output_parameters))
+        try:
+            self.out('total_magnetization', get_total_magnetization(self.ctx.workchain.outputs.output_parameters))
+        except exceptions.NotExistentKeyError:
+            pass
