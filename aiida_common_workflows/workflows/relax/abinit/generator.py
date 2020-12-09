@@ -181,6 +181,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             builder.abinit['parameters']['dilatmx'] = 1.15  # book additional mem. for p.w. basis exp.
         elif relax_type == RelaxType.ATOMS_SHAPE:
             builder.abinit['parameters']['optcell'] = 3  # constant-volume optimization of cell geometry
+            builder.abinit['parameters']['dilatmx'] = 1.05 # book additional mem. for p.w. basis exp.
         else:
             raise ValueError('relax type `{}` is not supported'.format(relax_type.value))
 
