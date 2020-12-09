@@ -104,6 +104,7 @@ class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
 
     _relax_types = {
         RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
+        RelaxType.NONE: 'No relaxation'
     }
     _spin_types = {SpinType.NONE: 'nspin : 1', SpinType.COLLINEAR: 'nspin: 2'}
     _electronic_types = {
@@ -160,12 +161,16 @@ class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
             **kwargs
         )
 
+        builder = self.process_class.get_builder()
+
         if relax_type == RelaxType.ATOMS:
             relaxation_schema = 'relax'
+        elif relax_type == RelaxType.NONE:
+            relaxation_schema = 'relax'
+            builder.relax.perform = orm.Bool(False)
         else:
             raise ValueError('relaxation type `{}` is not supported'.format(relax_type.value))
 
-        builder = self.process_class.get_builder()
 
         pymatgen_struct = structure.get_pymatgen()
         ortho_dict = None
@@ -225,10 +230,11 @@ class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
                 inputdict['dft'].update(
                     BigDFTParameters.set_spin(builder.structure.sites[0].kind_name, len(builder.structure.sites))
                 )
-
+        # units for spin is halved from the Bohr magnetons input
         if magnetization_per_site:
             for (i, atom) in enumerate(inputdict['posinp']['positions']):
-                atom['IGSpin'] = int(magnetization_per_site[i])
+                atom['IGSpin'] = int(magnetization_per_site[i])*0.5
+        #inputdict.update({'perf': {'accel': 'OCLGPU', 'ocl_devices': 'Tesla K40c', 'blas': 'Yes'}})
 
         builder.parameters = BigDFTParameters(dict=inputdict)
         builder.code = orm.load_code(calc_engines[relaxation_schema]['code'])
