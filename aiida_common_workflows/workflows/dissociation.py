@@ -82,10 +82,9 @@ def set_distance(molecule: orm.StructureData, distance: orm.Float) -> orm.Struct
     vector_diff = np.array(molecule.sites[1].position) - np.array(molecule.sites[0].position)
     versor_diff = vector_diff / np.linalg.norm(vector_diff)
     new_molecule = molecule.clone()
-    new_position_0 = (distance.value * versor_diff) / 2
-    new_position_1 = (distance.value * versor_diff) / 2
-    new_molecule.attributes['sites'][0]['position'] = new_position_0
-    new_molecule.attributes['sites'][0]['position'] = new_position_1
+    new_position = (distance.value * versor_diff) / 2
+    new_molecule.attributes['sites'][0]['position'] = -new_position
+    new_molecule.attributes['sites'][1]['position'] = new_position
     return new_molecule
 
 
