@@ -130,10 +130,10 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             # We assume the structure is a molecule which already has an appropriate vacuum applied
             # NB: the vacuum around the molecule must maintain the molecule's symmetries!
             warnings.warn(
-                f'The input structure {structure} has periodic boundary conditions {structure.pbc}, so we '
+                f'The input structure {structure} has no periodic boundary conditions, so we '
                 'assume the structure is a molecule. The structure will be modified to have full PBC. We assume that '
-                'the cell contains appropriate symmetry-conserving vacuum, and various tweaks to the protocol will be '
-                'applied!'
+                'the cell contains appropriate symmetry-conserving vacuum, and various tweaks for molecular systems '
+                ' will be applied to the selected protocol!'
             )
 
             # Set pbc to [True, True, True]
