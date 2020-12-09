@@ -206,7 +206,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             builder.abinit['parameters']['nspden'] = 4  # vector magnetization
             builder.abinit['parameters']['spinat'] = [[0.0, 0.0, mag] for mag in magnetization_per_site]
         elif spin_type == SpinType.SPIN_ORBIT:
-            if 'fr' not in protocol['pseudo_family']:
+            if 'fr' not in pseudo_family.label:
                 raise ValueError(
                     'You must use the `stringent` protocol for SPIN_ORBIT calculations because '
                     'it provides fully-relativistic pseudopotentials (`fr` is not in the protocol\'s '

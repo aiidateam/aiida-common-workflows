@@ -34,6 +34,7 @@ def get_total_energy(parameters):
     """Return the total energy from the given parameters node."""
     return orm.Float(parameters.get_attribute('energy'))
 
+
 @calcfunction
 def get_total_magnetization(parameters):
     """Return the total magnetization from the given parameters node."""
