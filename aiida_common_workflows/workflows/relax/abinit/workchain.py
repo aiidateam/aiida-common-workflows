@@ -58,5 +58,5 @@ class AbinitRelaxWorkChain(CommonRelaxWorkChain):
         self.out('stress', get_stress(self.ctx.workchain.outputs.output_parameters))
         try:
             self.out('total_magnetization', get_total_magnetization(self.ctx.workchain.outputs.output_parameters))
-        except exceptions.NotExistentKeyError:
+        except KeyError:
             pass
