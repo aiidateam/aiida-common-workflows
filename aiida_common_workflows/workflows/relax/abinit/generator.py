@@ -190,16 +190,35 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             # protocol defaults to NONE
             pass
         elif spin_type == SpinType.COLLINEAR:
-            if np.all(np.isclose(magnetization_per_site, 0)):
-                warnings.warn('All initial magnetizations are 0, doing a non-spin-polarized calculation.')
-            elif np.isclose(sum(magnetization_per_site), 0):  # antiferromagnetic
+            if magnetization_per_site is None:
+                magnetization_per_site = [1.0] * len(structure.sites)
+                warnings.warn(f'input magnetization per site was None, setting it to {magnetization_per_site}')
+            magnetization_per_site = np.array(magnetization_per_site)
+
+            sum_is_zero = np.isclose(sum(magnetization_per_site), 0.0)
+            all_are_zero = np.all(np.isclose(magnetization_per_site, 0.0))
+            non_zero_mags = magnetization_per_site[~np.isclose(magnetization_per_site, 0.0)]
+            all_non_zero_pos = np.all(non_zero_mags > 0.0)
+            all_non_zero_neg = np.all(non_zero_mags < 0.0)
+
+            if all_are_zero:  # non-magnetic
+                warnings.warn(
+                    'all of the initial magnetizations per site are close to zero; doing a non-spin-polarized '
+                    'calculation'
+                )
+            elif ((sum_is_zero and not all_are_zero) or
+                  (not all_non_zero_pos and not all_non_zero_neg)):  # antiferromagnetic
+                print('Detected antiferromagnetic!')
                 builder.abinit['parameters']['nsppol'] = 1  # antiferromagnetic system
                 builder.abinit['parameters']['nspden'] = 2  # scalar spin-magnetization in the z-axis
                 builder.abinit['parameters']['spinat'] = [[0.0, 0.0, mag] for mag in magnetization_per_site]
-            else:  # ferromagnetic
+            elif not all_are_zero and (all_non_zero_pos or all_non_zero_neg):  # ferromagnetic
+                print('Detected ferromagnetic!')
                 builder.abinit['parameters']['nsppol'] = 2  # collinear spin-polarization
                 builder.abinit['parameters']['nspden'] = 2  # scalar spin-magnetization in the z-axis
                 builder.abinit['parameters']['spinat'] = [[0.0, 0.0, mag] for mag in magnetization_per_site]
+            else:
+                raise ValueError(f'Initial magnetization {magnetization_per_site} is ambiguous')
         elif spin_type == SpinType.NON_COLLINEAR:
             # LATER: support vector magnetization_per_site
             builder.abinit['parameters']['nspinor'] = 2  # w.f. as spinors
