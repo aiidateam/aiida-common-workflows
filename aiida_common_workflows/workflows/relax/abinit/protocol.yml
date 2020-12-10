@@ -1,7 +1,7 @@
 fast:
     name: "fast"
     description: "Protocol to relax a structure with low precision at minimal computational cost for testing purposes."
-    pseudo_family: "PseudoDojo/0.4/pbe/sr/standard/psp8"
+    pseudo_family: "PseudoDojo/0.4/PBE/SR/standard/psp8"
     base:
         kpoints_distance: 1.0
         abinit:
@@ -22,8 +22,8 @@ fast:
                 dilatmx: 1.00 # don't book additional memory for basis set enlargement, Abinit default
                 # default to metallic treatment
                 occopt: 3 # Fermi-Dirac smearing
-                fband: 1.5 # increase the number of bands to > fband * natoms
-                tsmear: 0.03 # Ha
+                fband: 1.75 # increase the number of bands to > fband * natoms
+                tsmear: 0.005 # Ha
                 # default to no spin treatment
                 nspinor: 1 # no spin-orbit coupling, Abinit default
                 nsppol: 1 # no spin-polarization, Abinit default
@@ -32,7 +32,7 @@ fast:
 moderate:
     name: "moderate"
     description: "Protocol to relax a structure with normal precision at moderate computational cost."
-    pseudo_family: "PseudoDojo/0.4/pbe/sr/standard/psp8"
+    pseudo_family: "PseudoDojo/0.4/PBE/SR/standard/psp8"
     base:
         kpoints_distance: 0.20
         abinit:
@@ -53,8 +53,8 @@ moderate:
                 dilatmx: 1.00 # don't book additional memory for basis set enlargement, Abinit default
                 # default to metallic treatment
                 occopt: 3 # Fermi-Dirac smearing
-                fband: 1.35 # increase the number of bands to > fband * natoms
-                tsmear: 0.01 # Ha
+                fband: 1.75 # increase the number of bands to > fband * natoms
+                tsmear: 0.005 # Ha
                 # default to no spin treatment
                 nspinor: 1 # no spin-orbit coupling, Abinit default
                 nsppol: 1 # no spin-polarization, Abinit default
@@ -63,7 +63,7 @@ moderate:
 precise:
     name: "precise"
     description: "Protocol to relax a structure with high precision at higher computational cost."
-    pseudo_family: "PseudoDojo/0.4/pbe/fr/standard/psp8"
+    pseudo_family: "PseudoDojo/0.4/PBE/FR/standard/psp8"
     base:
         kpoints_distance: 0.15
         abinit:
@@ -84,8 +84,8 @@ precise:
                 dilatmx: 1.00 # don't book additional memory for basis set enlargement, Abinit default
                 # default to metallic treatment
                 occopt: 3 # Fermi-Dirac smearing
-                fband: 1.20 # increase the number of bands to > fband * natoms
-                tsmear: 0.0075 # Ha
+                fband: 1.75 # increase the number of bands to > fband * natoms
+                tsmear: 0.005 # Ha
                 # default to no spin treatment
                 nspinor: 1 # no spin-orbit coupling, Abinit default
                 nsppol: 1 # no spin-polarization, Abinit default
