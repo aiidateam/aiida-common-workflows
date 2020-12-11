@@ -185,11 +185,10 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
             wf_para_dict['relaxation_type'] = None
         else:
             raise ValueError('relaxation type `{}` is not supported'.format(relax_type.value))
-        
-        # We reduce the number of sigfigs for the cell and atom positions accounts for less
-        #  numerical inpgen errors during relaxation and accuracy is still enough for this purpose       
-        settings = ormDict(dict={'significant_figures_cell':7, 'significant_figures_position':7}) 
 
+        # We reduce the number of sigfigs for the cell and atom positions accounts for less
+        #  numerical inpgen errors during relaxation and accuracy is still enough for this purpose
+        settings = orm.Dict(dict={'significant_figures_cell': 7, 'significant_figures_position': 7})
 
         wf_para = orm.Dict(dict=wf_para_dict)
 
@@ -230,7 +229,7 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
                 'wf_parameters': wf_para_scf,
                 'structure': structure,
                 'calc_parameters': parameters,
-                'settings_inpgen' : settings,
+                'settings_inpgen': settings,
                 # 'options': options_scf,
                 # options do not matter on QM, in general they do...
                 'inpgen': inpgen_code,
