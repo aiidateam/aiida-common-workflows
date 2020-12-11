@@ -9,7 +9,7 @@ from aiida import engine
 from aiida import orm
 from aiida import plugins
 from aiida.common.constants import elements as PeriodicTableElements
-from aiida_fleur.tools.StructureData_util import break_symmetry
+#from aiida_fleur.tools.StructureData_util import break_symmetry
 
 from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
 __all__ = ('FleurRelaxInputsGenerator',)
@@ -102,6 +102,8 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
         # pylint: disable=too-many-locals
+        # pylint: disable=too-many-branches
+        # pylint: disable=too-many-statements
         protocol = protocol or self.get_default_protocol_name()
 
         super().get_builder(
@@ -145,7 +147,7 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
 
         if threshold_stress is not None:
             pass  # Stress is not supported
-        
+
         molecule = False
         if structure.pbc == (False, False, False):
             molecule = True
@@ -160,7 +162,6 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
             structure = structure.clone()
             structure.pbc = (True, True, True)
         film_relax = not structure.pbc[-1]
-            
 
         default_wf_para = {
             'relax_iter': 5,
@@ -184,6 +185,11 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
             wf_para_dict['relaxation_type'] = None
         else:
             raise ValueError('relaxation type `{}` is not supported'.format(relax_type.value))
+        
+        # We reduce the number of sigfigs for the cell and atom positions accounts for less
+        #  numerical inpgen errors during relaxation and accuracy is still enough for this purpose       
+        settings = ormDict(dict={'significant_figures_cell':7, 'significant_figures_position':7}) 
+
 
         wf_para = orm.Dict(dict=wf_para_dict)
 
@@ -203,9 +209,10 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         protocol_scf_para = protocol.get('scf', {})
         kmax = protocol_scf_para.pop('k_max_cutoff', None)
 
-        if molecule: # We want to use only one kpoint
+        if molecule:  # We want to use only one kpoint, can be overwritten by user input
             protocol_scf_para['kpoints_distance'] = 10000
-            
+            # In addition we might want to use a different basis APW+LO?
+
         wf_para_scf_dict = recursive_merge(default_scf, protocol_scf_para)
         wf_para_scf = orm.Dict(dict=wf_para_scf_dict)
 
@@ -223,6 +230,7 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
                 'wf_parameters': wf_para_scf,
                 'structure': structure,
                 'calc_parameters': parameters,
+                'settings_inpgen' : settings,
                 # 'options': options_scf,
                 # options do not matter on QM, in general they do...
                 'inpgen': inpgen_code,
@@ -248,7 +256,8 @@ def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, struc
     :return: orm.Dict
     """
     # pylint: disable=too-many-locals
-    parameters_b = None
+    #parameters_b = None
+
     # Spin type options
     if spin_type == SpinType.NONE:
         jspins = 1
@@ -300,13 +309,12 @@ def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, struc
                     kind_id = f'{atomic_number}'
                 mag_dict[f'atom{i}'] = {'z': atomic_number, 'id': kind_id, 'bmu': val}
             add_parameter_dict = recursive_merge(add_parameter_dict, mag_dict)
-            parameter_b = None
             #structure, parameters_b = break_symmetry(structure, parameterdata=orm.Dict(dict=add_parameter_dict))
 
-    if parameters_b is not None:
-        new_parameters = parameters_b
-    else:
-        new_parameters = orm.Dict(dict=add_parameter_dict)
+    #if parameters_b is not None:
+    #    new_parameters = parameters_b
+    #else:
+    new_parameters = orm.Dict(dict=add_parameter_dict)
 
     return new_parameters, structure
 
