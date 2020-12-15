@@ -188,7 +188,7 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
 
         # We reduce the number of sigfigs for the cell and atom positions accounts for less
         #  numerical inpgen errors during relaxation and accuracy is still enough for this purpose
-        settings = orm.Dict(dict={'significant_figures_cell': 7, 'significant_figures_position': 7})
+        settings = orm.Dict(dict={'significant_figures_cell': 9, 'significant_figures_position': 9})
 
         wf_para = orm.Dict(dict=wf_para_dict)
 
@@ -275,11 +275,8 @@ def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, struc
         # In general better use aiida-fleur merge methods for calc parameters...
 
     if magnetization_per_site is not None:
-        # This is a simplified version where no new kinds will be created. The last value specified for any given
-        # kind will be taken as the final value to be used for all sites of that kind.
         # Do for now sake we have this. If the structure is not rightly prepared it will run, but
-        # the set magnetization will be wrong, TODO fix, this
-        #initial_magnetization = dict(zip([site.kind_name for site in structure.sites], magnetization_per_site))
+        # the set magnetization will be wrong
         atomic_numbers = {data['symbol']: num for num, data in PeriodicTableElements.items()}
 
         if spin_type == SpinType.NONE:
@@ -289,8 +286,9 @@ def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, struc
             # add atom lists for each kind and set bmu in muBohr
             # this will break symmetry and changes the structure, if needed
             # be careful here because this may override things the plugin is during already.
-            # This is very fragile and not robust, it will fail if input structure is wrong, does not have enough kinds
-            # but we do not change the input structure that way
+            # This is very fragile and not robust, it will be wrong if input structure is wrong,
+            # i.e does not have enough kinds but we do not change the input structure that way.
+            # In the end this should be implemented aiida-fleur and imported
             mag_dict = {}
             sites = list(structure.sites)
             for i, val in enumerate(magnetization_per_site):
@@ -301,12 +299,16 @@ def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, struc
 
                 if kind_name != site_symbol:
                     head = kind_name.rstrip('0123456789')
-                    kind_namet = int(kind_name[len(head):])
-                    print(kind_namet)
+                    try:
+                        kind_namet = int(kind_name[len(head):])
+                    except ValueError:
+                        kind_namet = 0
                     kind_id = f'{atomic_number}.{kind_namet}'
                 else:
                     kind_id = f'{atomic_number}'
                 mag_dict[f'atom{i}'] = {'z': atomic_number, 'id': kind_id, 'bmu': val}
+            # Better would be a valid parameter data merge from aiida-fleur, to merge atom lists
+            # right
             add_parameter_dict = recursive_merge(add_parameter_dict, mag_dict)
             #structure, parameters_b = break_symmetry(structure, parameterdata=orm.Dict(dict=add_parameter_dict))
 
@@ -347,8 +349,10 @@ def get_parameters(previous_workchain):
     else:
         return None
     # Be aware that this parameter node is incomplete. LOs and econfig is
-    # currently missing for example.
+    # currently missing for example, also we do not reuse the same kpoints.
+    # the density is likely the same, but the set may vary.
     parameters = fleurinp.get_parameterdata_ncf()  # This is not a calcfunction!
+
     return parameters
 
 
