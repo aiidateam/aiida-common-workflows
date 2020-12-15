@@ -308,13 +308,13 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
             if size_dict:
                 card = '\n'
                 for k, value in size_dict.items():
-                    card = card + '  {k}  {value} \n'
+                    card = card + f'  {k}  {value} \n'
                 card = card + '%endblock paobasissizes'
                 basis['%block pao-basis-sizes'] = card
             if pao_block_dict:
                 card = '\n'
                 for k, value in pao_block_dict.items():
-                    card = card + '{value} \n'
+                    card = card + f'{value} \n'
                 card = card + '%endblock pao-basis'
                 basis['%block pao-basis'] = card
 
