@@ -189,3 +189,16 @@ MAGNETIZATION_PER_SITE = options.OverridableOption(
     required=False,
     help='Optional list containing the initial spin polarization per site in units of electrons.'
 )
+
+PRECISIONS = options.OverridableOption(
+    '-p',
+    '--precisions',
+    cls=options.MultipleValueOption,
+    type=click.INT,
+    required=False,
+    help='Specify the precision of floats used when printing them to stdout with the `--print-table` option.'
+)
+
+PRINT_TABLE = options.OverridableOption(
+    '-t', '--print-table', is_flag=True, help='Print the volume and energy table instead of plotting.'
+)

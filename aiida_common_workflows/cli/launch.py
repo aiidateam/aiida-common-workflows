@@ -343,8 +343,9 @@ def cmd_dissociation_curve(
 
 @cmd_launch.command('plot-eos')
 @arguments.NODE()
-@click.option('-t', '--print-table', is_flag=True, help='Print the volume and energy table instead of plotting.')
-def cmd_plot_eos(node, print_table):
+@options.PRECISIONS()
+@options.PRINT_TABLE()
+def cmd_plot_eos(node, precisions, print_table):
     """Plot the results from an `EquationOfStateWorkChain`."""
     from tabulate import tabulate
 
@@ -370,15 +371,22 @@ def cmd_plot_eos(node, print_table):
 
     if print_table:
         headers = ['Volume (Å^3)', 'Energy (eV)', 'Total magnetization (μB)']
-        click.echo(tabulate(list(zip(volumes, energies, magnetizations)), headers=headers))
+
+        if precisions is not None:
+            floatfmt = [f'.{precision}f' for precision in precisions]
+            click.echo(tabulate(list(zip(volumes, energies, magnetizations)), headers=headers, floatfmt=floatfmt))
+        else:
+            click.echo(tabulate(list(zip(volumes, energies, magnetizations)), headers=headers))
+
     else:
         plot_eos(volumes, energies)
 
 
 @cmd_launch.command('plot-dissociation-curve')
 @arguments.NODE()
-@click.option('-t', '--print-table', is_flag=True, help='Print the volume and energy table instead of plotting.')
-def cmd_plot_dissociation_curve(node, print_table):
+@options.PRECISIONS()
+@options.PRINT_TABLE()
+def cmd_plot_dissociation_curve(node, precisions, print_table):
     """Plot the results from a `DissociationCurveWorkChain`."""
 
     from tabulate import tabulate
@@ -404,7 +412,12 @@ def cmd_plot_dissociation_curve(node, print_table):
 
     if print_table:
         headers = ['Distance (Å)', 'Energy (eV)', 'Total magnetization (μB)']
-        click.echo(tabulate(list(zip(distances, energies, magnetizations)), headers=headers))
+
+        if precisions is not None:
+            floatfmt = [f'.{precision}f' for precision in precisions]
+            click.echo(tabulate(list(zip(distances, energies, magnetizations)), headers=headers, floatfmt=floatfmt))
+        else:
+            click.echo(tabulate(list(zip(distances, energies, magnetizations)), headers=headers))
     else:
         import pylab as plt
         plt.plot(distances, energies, 'o-')
