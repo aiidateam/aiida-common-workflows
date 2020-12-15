@@ -13,7 +13,8 @@ from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicTyp
 
 __all__ = ('Cp2kRelaxInputsGenerator',)
 
-StructureData = plugins.DataFactory('structure')
+StructureData = plugins.DataFactory('structure')  # pylint: disable=invalid-name
+KpointsData = plugins.DataFactory('array.kpoints')  # pylint: disable=invalid-name
 
 EV_A3_TO_GPA = 160.21766208
 
@@ -83,11 +84,18 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
     _default_protocol = 'moderate'
     _calc_types = {'relax': {'code_plugin': 'cp2k', 'description': 'The code to perform the relaxation.'}}
     _relax_types = {
+        RelaxType.NONE: 'No relaxation performed.',
         RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
         RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell.'
     }
-    _spin_types = {SpinType.NONE: '....', SpinType.COLLINEAR: '....'}
-    _electronic_types = {ElectronicType.METAL: '....', ElectronicType.INSULATOR: '....'}
+    _spin_types = {
+        SpinType.NONE: 'Non magnetic calculation.',
+        SpinType.COLLINEAR: 'Magnetic calculation with collinear spins.'
+    }
+    _electronic_types = {
+        ElectronicType.METAL: 'Use smearing (default).',
+        ElectronicType.INSULATOR: 'Do not use smearing.'
+    }
 
     def __init__(self, *args, **kwargs):
         """Construct an instance of the inputs generator, validating the class attributes."""
@@ -162,11 +170,30 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
         # Input parameters.
         parameters = self.get_protocol(protocol)
 
+        ## Kpoints.
+        kpoints_distance = parameters.pop('kpoints_distance', None)
+        builder.cp2k.kpoints = self._get_kpoints(kpoints_distance, structure, previous_workchain)
+
         ## Removing description.
         _ = parameters.pop('description')
 
         kinds_section = get_kinds_section(builder.cp2k.structure)
         dict_merge(parameters, kinds_section)
+
+        ## Metal or insulator.
+        if electronic_type == ElectronicType.METAL:
+            parameters['FORCE_EVAL']['DFT']['SCF']['SMEAR'] = {
+                '_': 'ON',
+                'METHOD': 'FERMI_DIRAC',
+                'ELECTRONIC_TEMPERATURE': '[K] 300'
+            }
+            parameters['FORCE_EVAL']['DFT']['SCF']['ADDED_MOS'] = 100
+
+        ## Magnetic calculation
+        if spin_type == SpinType.NONE:
+            parameters['FORCE_EVAL']['DFT']['UKS'] = False
+        elif spin_type == SpinType.COLLINEAR:
+            parameters['FORCE_EVAL']['DFT']['UKS'] = True
 
         ## Relaxation type.
         if relax_type == RelaxType.ATOMS:
@@ -174,16 +201,16 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
         elif relax_type == RelaxType.ATOMS_CELL:
             run_type = 'CELL_OPT'
         else:
-            raise ValueError('relax type `{}` is not supported'.format(relax_type.value))
+            raise ValueError(f'Relax type `{relax_type.value}` is not supported')
         parameters['GLOBAL'] = {'RUN_TYPE': run_type}
 
         ## Redefining forces threshold.
         if threshold_forces is not None:
-            parameters['MOTION'][run_type]['MAX_FORCE'] = '[eV/angstrom] {}'.format(threshold_forces)
+            parameters['MOTION'][run_type]['MAX_FORCE'] = f'[eV/angstrom] {threshold_forces}'
 
         ## Redefining stress threshold.
         if threshold_stress is not None:
-            parameters['MOTION']['CELL_OPT']['PRESSURE_TOLERANCE'] = '[GPa] {}'.format(threshold_stress * EV_A3_TO_GPA)
+            parameters['MOTION']['CELL_OPT']['PRESSURE_TOLERANCE'] = f'[GPa] {threshold_stress * EV_A3_TO_GPA}'
         builder.cp2k.parameters = orm.Dict(dict=parameters)
 
         # Additional files to be retrieved.
@@ -196,3 +223,18 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
         builder.cp2k.metadata.options = calc_engines['relax']['options']
 
         return builder
+
+    @staticmethod
+    def _get_kpoints(kpoints_distance, structure, previous_workchain):
+        if previous_workchain:
+            kpoints_mesh = KpointsData()
+            kpoints_mesh.set_cell_from_structure(structure)
+            kpoints_mesh.set_kpoints_mesh(previous_workchain.inputs.cp2k__kpoints.get_attribute('mesh'))
+            return kpoints_mesh
+
+        if kpoints_distance:
+            kpoints_mesh = KpointsData()
+            kpoints_mesh.set_cell_from_structure(structure)
+            kpoints_mesh.set_kpoints_mesh_from_density(distance=kpoints_distance)
+            return kpoints_mesh
+        return None
