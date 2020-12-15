@@ -17,6 +17,12 @@ def get_energy(pardict):
 
 
 @calcfunction
+def get_magn(pardict):
+    """Extract the energy from the `output_parameters` dictionary"""
+    return orm.Float(pardict['stot'])
+
+
+@calcfunction
 def get_forces_and_stress(totalarray):
     """Separates the forces and stress in two different arrays"""
     forces = orm.ArrayData()
@@ -41,3 +47,5 @@ class SiestaRelaxWorkChain(CommonRelaxWorkChain):
         res_dict = get_forces_and_stress(self.ctx.workchain.outputs.forces_and_stress)
         self.out('forces', res_dict['forces'])
         self.out('stress', res_dict['stress'])
+        if 'stot' in self.ctx.workchain.outputs.output_parameters.attributes:
+            self.out('total_magnetization', get_magn(self.ctx.workchain.outputs.output_parameters))
