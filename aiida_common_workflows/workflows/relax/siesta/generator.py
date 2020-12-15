@@ -301,20 +301,20 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
 
             if pol_dict:
                 card = '\n'
-                for k, v in pol_dict.items():
-                    card = card + '  {0}  {1} \n'.format(k, v)
+                for k, value in pol_dict.items():
+                    card = card + f'  {k}  {value} \n'
                 card = card + '%endblock paopolarizationscheme'
                 basis['%block pao-polarization-scheme'] = card
             if size_dict:
                 card = '\n'
-                for k, v in size_dict.items():
-                    card = card + '  {0}  {1} \n'.format(k, v)
+                for k, value in size_dict.items():
+                    card = card + '  {k}  {value} \n'
                 card = card + '%endblock paobasissizes'
                 basis['%block pao-basis-sizes'] = card
             if pao_block_dict:
                 card = '\n'
-                for k, v in pao_block_dict.items():
-                    card = card + '{0} \n'.format(v)
+                for k, value in pao_block_dict.items():
+                    card = card + '{value} \n'
                 card = card + '%endblock pao-basis'
                 basis['%block pao-basis'] = card
 
