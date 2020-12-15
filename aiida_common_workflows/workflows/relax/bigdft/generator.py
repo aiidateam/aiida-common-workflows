@@ -100,7 +100,22 @@ class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
             'description': 'This profile should be chosen if highly accurate energy differences are required.',
             'inputdict_cubic': {
                 'dft': {
+                    'ixc': 'PBE',
+                    'ncong': 2,
+                    'rmult': [10, 8],
+                    'itermax': 3,
+                    'idsx': 0,
+                    'gnrm_cv': 1e-8,
                     'hgrids': 0.15
+                },
+                'mix': {
+                    'iscf': 7,
+                    'itrpmax': 200,
+                    'rpnrm_cv': 1e-12,
+                    'tel': 1e-3,
+                    'alphamix': 0.5,
+                    'norbsempty': 1000,
+                    'alphadiis': 1.0
                 }
             },
             'inputdict_linear': {
