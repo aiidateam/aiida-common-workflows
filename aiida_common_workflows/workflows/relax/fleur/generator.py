@@ -8,8 +8,10 @@ import yaml
 from aiida import engine
 from aiida import orm
 from aiida import plugins
-from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
+from aiida.common.constants import elements as PeriodicTableElements
+#from aiida_fleur.tools.StructureData_util import break_symmetry
 
+from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
 __all__ = ('FleurRelaxInputsGenerator',)
 
 StructureData = plugins.DataFactory('structure')
@@ -43,12 +45,19 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
     }
 
     _relax_types = {
+        RelaxType.NONE: 'Do not relax forces, just run a SCF workchain.',
         RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.'
         # RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell.'
         # currently not supported by Fleur
     }
-    _spin_types = {SpinType.NONE: '....', SpinType.COLLINEAR: '....'}
-    _electronic_types = {ElectronicType.METAL: '....', ElectronicType.INSULATOR: '....'}
+    _spin_types = {
+        SpinType.NONE: 'Non magnetic calculation, forcefully switch it off in FLEUR.',
+        SpinType.COLLINEAR: 'Magnetic calculation with collinear spins'
+    }
+    _electronic_types = {
+        ElectronicType.METAL: 'For FLEUR, metals and insulators are equally treated',
+        ElectronicType.INSULATOR: 'For FLEUR, metals and insulators are equally treated'
+    }
 
     def __init__(self, *args, **kwargs):
         """Construct an instance of the inputs generator, validating the class attributes."""
@@ -93,6 +102,8 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
         # pylint: disable=too-many-locals
+        # pylint: disable=too-many-branches
+        # pylint: disable=too-many-statements
         protocol = protocol or self.get_default_protocol_name()
 
         super().get_builder(
@@ -108,8 +119,8 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
             previous_workchain=previous_workchain,
             **kwargs
         )
-
         # pylint: disable=too-many-locals
+
         inpgen_code = calc_engines['inpgen']['code']
         fleur_code = calc_engines['relax']['code']
         if not isinstance(inpgen_code, orm.Code):
@@ -127,15 +138,6 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
 
         builder = self.process_class.get_builder()
 
-        # implement this, protocol dependent, we still have option keys as nodes ...
-        # has to go over calc parameters, kmax, lmax, kpoint density
-        # inputs = generate_scf_inputs(process_class, protocol, code, structure)
-
-        if relax_type == RelaxType.ATOMS:
-            relaxation_mode = 'force'
-        else:
-            raise ValueError('relaxation type `{}` is not supported'.format(relax_type.value))
-
         if threshold_forces is not None:
             # Fleur expects atomic units i.e Hartree/bohr
             conversion_fac = 51.421
@@ -146,6 +148,19 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         if threshold_stress is not None:
             pass  # Stress is not supported
 
+        molecule = False
+        if structure.pbc == (False, False, False):
+            molecule = True
+            # we have to change the structure
+
+            # check if vaccum box
+            # maybe check if b-vectors are shorter than 10 A
+            # else elongate them
+
+            # make pbc (True, True, True)
+            # keep provenance?
+            structure = structure.clone()
+            structure.pbc = (True, True, True)
         film_relax = not structure.pbc[-1]
 
         default_wf_para = {
@@ -154,9 +169,27 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
             'force_criterion': force_criterion,
             'change_mixing_criterion': 0.025,
             'atoms_off': [],
-            'run_final_scf': True  # we always run a final scf after the relaxation
+            'run_final_scf': True,  # we always run a final scf after the relaxation
+            'relaxation_type': 'atoms'
         }
         wf_para_dict = recursive_merge(default_wf_para, protocol.get('relax', {}))
+
+        parameters = None
+
+        # Relax type options
+        if relax_type == RelaxType.ATOMS:
+            relaxation_mode = 'force'
+        elif relax_type == RelaxType.NONE:
+            relaxation_mode = 'force'
+            wf_para_dict['relax_iter'] = 0
+            wf_para_dict['relaxation_type'] = None
+        else:
+            raise ValueError('relaxation type `{}` is not supported'.format(relax_type.value))
+
+        # We reduce the number of sigfigs for the cell and atom positions accounts for less
+        #  numerical inpgen errors during relaxation and accuracy is still enough for this purpose
+        settings = orm.Dict(dict={'significant_figures_cell': 9, 'significant_figures_position': 9})
+
         wf_para = orm.Dict(dict=wf_para_dict)
 
         default_scf = {
@@ -172,15 +205,31 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
             'serial': False,
             'mode': relaxation_mode,
         }
+        protocol_scf_para = protocol.get('scf', {})
+        kmax = protocol_scf_para.pop('k_max_cutoff', None)
 
-        wf_para_scf_dict = recursive_merge(default_scf, protocol.get('scf', {}))
+        if molecule:  # We want to use only one kpoint, can be overwritten by user input
+            protocol_scf_para['kpoints_distance'] = 10000
+            # In addition we might want to use a different basis APW+LO?
+
+        wf_para_scf_dict = recursive_merge(default_scf, protocol_scf_para)
         wf_para_scf = orm.Dict(dict=wf_para_scf_dict)
+
+        if previous_workchain is not None:
+            parameters = get_parameters(previous_workchain)
+
+        # User specification overrides previous workchain!
+        if 'calc_parameters' in kwargs.keys():
+            parameters = kwargs.pop('calc_parameters')
+
+        parameters, structure = prepare_calc_parameters(parameters, spin_type, magnetization_per_site, structure, kmax)
 
         inputs = {
             'scf': {
                 'wf_parameters': wf_para_scf,
                 'structure': structure,
-                # 'calc_parameters': parameters, # protocol depended
+                'calc_parameters': parameters,
+                'settings_inpgen': settings,
                 # 'options': options_scf,
                 # options do not matter on QM, in general they do...
                 'inpgen': inpgen_code,
@@ -189,18 +238,86 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
             'wf_parameters': wf_para
         }
 
-        if previous_workchain is not None:
-            parameters = get_parameters(previous_workchain)
-            inputs['scf']['calc_parameters'] = parameters
-
-        # User specification overrides previous workchain!
-        if 'calc_parameters' in kwargs.keys():
-            parameters = kwargs.pop('calc_parameters')
-            inputs['scf']['calc_parameters'] = parameters
-
         builder._update(inputs)  # pylint: disable=protected-access
 
         return builder
+
+
+def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, structure, kmax):
+    """Prepare a calc_parameter node for a inpgen jobcalc
+
+    Depending on the imports merge information
+
+    :param parameters: given calc_parameter orm.Dict node to merge with
+    :param spin_type: type of magnetic calculation
+    :param magnetization_per_site: list
+    :param kmax: int, basis cutoff for the simulations
+    :return: orm.Dict
+    """
+    # pylint: disable=too-many-locals
+    #parameters_b = None
+
+    # Spin type options
+    if spin_type == SpinType.NONE:
+        jspins = 1
+    else:
+        jspins = 2
+    add_parameter_dict = {'comp': {'jspins': jspins}}
+
+    # electronic Structure options
+    # None. Gff we want to increase the smearing and kpoint density in case of metal
+
+    if kmax is not None:  # add kmax from protocol
+        add_parameter_dict = recursive_merge(add_parameter_dict, {'comp': {'kmax': kmax}})
+
+    if parameters is not None:
+        add_parameter_dict = recursive_merge(add_parameter_dict, parameters.get_dict())
+        # In general better use aiida-fleur merge methods for calc parameters...
+
+    if magnetization_per_site is not None:
+        # Do for now sake we have this. If the structure is not rightly prepared it will run, but
+        # the set magnetization will be wrong
+        atomic_numbers = {data['symbol']: num for num, data in PeriodicTableElements.items()}
+
+        if spin_type == SpinType.NONE:
+            import warnings
+            warnings.warn('`magnetization_per_site` will be ignored as `spin_type` is set to SpinType.NONE')
+        if spin_type == SpinType.COLLINEAR:
+            # add atom lists for each kind and set bmu in muBohr
+            # this will break symmetry and changes the structure, if needed
+            # be careful here because this may override things the plugin is during already.
+            # This is very fragile and not robust, it will be wrong if input structure is wrong,
+            # i.e does not have enough kinds but we do not change the input structure that way.
+            # In the end this should be implemented aiida-fleur and imported
+            mag_dict = {}
+            sites = list(structure.sites)
+            for i, val in enumerate(magnetization_per_site):
+                kind_name = sites[i].kind_name
+                kind = structure.get_kind(kind_name)
+                site_symbol = kind.symbols[0]  # assume atoms
+                atomic_number = atomic_numbers[site_symbol]
+
+                if kind_name != site_symbol:
+                    head = kind_name.rstrip('0123456789')
+                    try:
+                        kind_namet = int(kind_name[len(head):])
+                    except ValueError:
+                        kind_namet = 0
+                    kind_id = f'{atomic_number}.{kind_namet}'
+                else:
+                    kind_id = f'{atomic_number}'
+                mag_dict[f'atom{i}'] = {'z': atomic_number, 'id': kind_id, 'bmu': val}
+            # Better would be a valid parameter data merge from aiida-fleur, to merge atom lists
+            # right
+            add_parameter_dict = recursive_merge(add_parameter_dict, mag_dict)
+            #structure, parameters_b = break_symmetry(structure, parameterdata=orm.Dict(dict=add_parameter_dict))
+
+    #if parameters_b is not None:
+    #    new_parameters = parameters_b
+    #else:
+    new_parameters = orm.Dict(dict=add_parameter_dict)
+
+    return new_parameters, structure
 
 
 def get_parameters(previous_workchain):
@@ -232,8 +349,10 @@ def get_parameters(previous_workchain):
     else:
         return None
     # Be aware that this parameter node is incomplete. LOs and econfig is
-    # currently missing for example.
+    # currently missing for example, also we do not reuse the same kpoints.
+    # the density is likely the same, but the set may vary.
     parameters = fleurinp.get_parameterdata_ncf()  # This is not a calcfunction!
+
     return parameters
 
 

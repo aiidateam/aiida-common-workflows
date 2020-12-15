@@ -115,7 +115,56 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         }
 
         builder = self.process_class.get_builder()
-        inputs = generate_inputs(self.process_class._process_class, protocol, code, structure, override)  # pylint: disable=protected-access
+
+        # Force threshold
+        # NB we deal with this here because knowing threshold_f is necessary if the structure is a molecule.
+        #   threshold_f will be used later in the generator to set the relax threshold
+        #   (find "Continue force and stress thresholds" in this file.)
+        if threshold_forces is not None:
+            threshold_f = threshold_forces * units.eV_to_Ha / units.ang_to_bohr  # eV/Å -> Ha/Bohr
+        else:
+            threshold_f = 5.0e-5  # Abinit default value in Ha/Bohr
+
+        # Deal with molecular case
+        if structure.pbc == (False, False, False):
+            # We assume the structure is a molecule which already has an appropriate vacuum applied
+            # NB: the vacuum around the molecule must maintain the molecule's symmetries!
+            warnings.warn(
+                f'The input structure {structure} has no periodic boundary conditions, so we '
+                'assume the structure is a molecule. The structure will be modified to have full PBC. We assume that '
+                'the cell contains appropriate symmetry-conserving vacuum, and various tweaks for molecular systems '
+                ' will be applied to the selected protocol!'
+            )
+
+            # Set pbc to [True, True, True]
+            pbc_structure = structure.clone()
+            pbc_structure.set_pbc([True, True, True])
+
+            # Update protocol
+            _ = protocol['base'].pop('kpoints_distance')  # Remove k-points distance; we will use gamma only
+            _ = protocol['base']['abinit']['parameters'].pop(
+                'tolvrs'
+            )  # Remove tolvrs; we will use force tolerance for SCF
+            # Set k-points to gamma-point
+            protocol['base']['kpoints'] = [1, 1, 1]
+            protocol['base']['abinit']['parameters']['nkpt'] = 1
+            # Set a force tolerance for SCF convergence
+            protocol['base']['abinit']['parameters']['toldff'] = threshold_f * 1.0e-1
+            # Add a model macroscopic dielectric constant
+            protocol['base']['abinit']['parameters']['diemac'] = 2.0
+            # Decrease fband and tsmear because molecules don't need many bands or high smearing
+            protocol['base']['abinit']['parameters']['fband'] = 1.20
+            protocol['base']['abinit']['parameters']['tsmear'] = 0.075
+
+            inputs = generate_inputs(self.process_class._process_class, protocol, code, pbc_structure, override)  # pylint: disable=protected-access
+        elif False in structure.pbc:
+            raise ValueError(
+                f'The input structure has periodic boundary conditions {structure.pbc}, but partial '
+                'periodic boundary conditions are not supported.'
+            )
+        else:
+            inputs = generate_inputs(self.process_class._process_class, protocol, code, structure, override)  # pylint: disable=protected-access
+
         builder._update(inputs)  # pylint: disable=protected-access
 
         # RelaxType
@@ -132,6 +181,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             builder.abinit['parameters']['dilatmx'] = 1.15  # book additional mem. for p.w. basis exp.
         elif relax_type == RelaxType.ATOMS_SHAPE:
             builder.abinit['parameters']['optcell'] = 3  # constant-volume optimization of cell geometry
+            builder.abinit['parameters']['dilatmx'] = 1.05  # book additional mem. for p.w. basis exp.
         else:
             raise ValueError('relax type `{}` is not supported'.format(relax_type.value))
 
@@ -140,16 +190,35 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             # protocol defaults to NONE
             pass
         elif spin_type == SpinType.COLLINEAR:
-            if np.all(np.isclose(magnetization_per_site, 0)):
-                warnings.warn('All initial magnetizations are 0, doing a non-spin-polarized calculation.')
-            elif np.isclose(sum(magnetization_per_site), 0):  # antiferromagnetic
+            if magnetization_per_site is None:
+                magnetization_per_site = [1.0] * len(structure.sites)
+                warnings.warn(f'input magnetization per site was None, setting it to {magnetization_per_site}')
+            magnetization_per_site = np.array(magnetization_per_site)
+
+            sum_is_zero = np.isclose(sum(magnetization_per_site), 0.0)
+            all_are_zero = np.all(np.isclose(magnetization_per_site, 0.0))
+            non_zero_mags = magnetization_per_site[~np.isclose(magnetization_per_site, 0.0)]
+            all_non_zero_pos = np.all(non_zero_mags > 0.0)
+            all_non_zero_neg = np.all(non_zero_mags < 0.0)
+
+            if all_are_zero:  # non-magnetic
+                warnings.warn(
+                    'all of the initial magnetizations per site are close to zero; doing a non-spin-polarized '
+                    'calculation'
+                )
+            elif ((sum_is_zero and not all_are_zero) or
+                  (not all_non_zero_pos and not all_non_zero_neg)):  # antiferromagnetic
+                print('Detected antiferromagnetic!')
                 builder.abinit['parameters']['nsppol'] = 1  # antiferromagnetic system
                 builder.abinit['parameters']['nspden'] = 2  # scalar spin-magnetization in the z-axis
                 builder.abinit['parameters']['spinat'] = [[0.0, 0.0, mag] for mag in magnetization_per_site]
-            else:  # ferromagnetic
+            elif not all_are_zero and (all_non_zero_pos or all_non_zero_neg):  # ferromagnetic
+                print('Detected ferromagnetic!')
                 builder.abinit['parameters']['nsppol'] = 2  # collinear spin-polarization
                 builder.abinit['parameters']['nspden'] = 2  # scalar spin-magnetization in the z-axis
                 builder.abinit['parameters']['spinat'] = [[0.0, 0.0, mag] for mag in magnetization_per_site]
+            else:
+                raise ValueError(f'Initial magnetization {magnetization_per_site} is ambiguous')
         elif spin_type == SpinType.NON_COLLINEAR:
             # LATER: support vector magnetization_per_site
             builder.abinit['parameters']['nspinor'] = 2  # w.f. as spinors
@@ -157,10 +226,12 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             builder.abinit['parameters']['nspden'] = 4  # vector magnetization
             builder.abinit['parameters']['spinat'] = [[0.0, 0.0, mag] for mag in magnetization_per_site]
         elif spin_type == SpinType.SPIN_ORBIT:
-            if 'fr' not in protocol['pseudo_family']:
-                raise ValueError('You must use the `stringent` protocol for SPIN_ORBIT calculations because '\
-                    'it provides fully-relativistic pseudopotentials (`fr` is not in the protocol\'s '\
-                    '`pseudo_family` entry).')
+            if 'fr' not in pseudo_family.label:
+                raise ValueError(
+                    'You must use the `stringent` protocol for SPIN_ORBIT calculations because '
+                    'it provides fully-relativistic pseudopotentials (`fr` is not in the protocol\'s '
+                    '`pseudo_family` entry).'
+                )
             builder.abinit['parameters']['nspinor'] = 2  # w.f. as spinors
         else:
             raise ValueError('spin type `{}` is not supported'.format(spin_type.value))
@@ -178,14 +249,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         else:
             raise ValueError('electronic type `{}` is not supported'.format(electronic_type.value))
 
-        # force and stress thresholds
-        if threshold_forces is not None:
-            # The Abinit threshold_forces is in Ha/Bohr
-            threshold_f = threshold_forces * units.eV_to_Ha / units.ang_to_bohr  # eV/Å
-        else:
-            # ABINIT default value. Set it explicitly in case it is changed.
-            # How can we warn the user that we are using the tolxmf Abinit default value?
-            threshold_f = 5.0e-5
+        # Continue force and stress thresholds from above (see molecule treatment)
         builder.abinit['parameters']['tolmxf'] = threshold_f
         if threshold_stress is not None:
             threshold_s = threshold_stress * units.eV_to_Ha / units.ang_to_bohr**3  # eV/Å^3
@@ -322,7 +386,14 @@ def generate_inputs_base(protocol: Dict,
     if isinstance(merged['abinit']['parameters'], dict):
         merged['abinit']['parameters'] = orm.Dict(dict=merged['abinit']['parameters'])
 
-    dictionary = {'abinit': merged['abinit'], 'kpoints_distance': orm.Float(merged['kpoints_distance'])}
+    if merged.get('kpoints_distance') is not None:
+        dictionary = {'abinit': merged['abinit'], 'kpoints_distance': orm.Float(merged['kpoints_distance'])}
+    elif merged.get('kpoints') is not None:
+        kpoints = orm.KpointsData()
+        kpoints.set_kpoints_mesh(merged['kpoints'])
+        dictionary = {'abinit': merged['abinit'], 'kpoints': kpoints}
+    else:
+        raise ValueError('Neither `kpoints_distance` nor `kpoints` were specified as inputs')
 
     return dictionary
 
