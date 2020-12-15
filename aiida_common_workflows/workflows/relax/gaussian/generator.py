@@ -192,8 +192,8 @@ class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
                 print(
                     'Warning: magnetization_per_site site-resolved info is disregarded, only total spin is processed.'
                 )
-                # magnetization_per_site are in units of Bohr magnetons
-                total_spin_guess = np.abs(np.sum(magnetization_per_site))
+                # magnetization_per_site are in units of [Bohr magnetons] (*0.5 to get in [au])
+                total_spin_guess = 0.5 * np.abs(np.sum(magnetization_per_site))
                 multiplicity_guess = 2 * total_spin_guess + 1
 
             # in case of even/odd electrons, find closest odd/even multiplicity
