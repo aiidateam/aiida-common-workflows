@@ -27,15 +27,25 @@ def ortho_struct(input_struct):
     dico['gamma'] = round(input_struct.cell_angles[2], 6)
     dico['nat'] = len(input_struct.sites)
     # use abc coordinates
+    import pymatgen
+    periodic = 0
     for i in range(dico['nat']):
-        dico[i + 1] = list(input_struct.get_pymatgen().sites[i].frac_coords)
+        site = input_struct.get_pymatgen().sites[i]
+        if type(site) is pymatgen.core.sites.PeriodicSite:
+            periodic = 1
+            dico[i + 1] = list(site.frac_coords)
+        else:
+            dico[i + 1] = (site.coords[0]/ dico['a'], site.coords[1]/ dico['b'], site.coords[2]/ dico['c'])
     BigDFTParameters.transform_to_orthorombic(dico)
     output = input_struct.clone()
     output.clear_sites()
     output.cell = [[dico['a'], 0, 0], [0, dico['b'], 0], [0, 0, dico['c']]]
     for i in range(dico['nat']):
         site = input_struct.sites[0]
-        site.position = (dico[i + 1][0] * dico['a'], dico[i + 1][1] * dico['b'], dico[i + 1][2] * dico['c'])
+        if periodic == 1:
+            site.position = (dico[i + 1][0] * dico['a'], dico[i + 1][1] * dico['b'], dico[i + 1][2] * dico['c'])
+        else:
+            site.position = dico[i + 1]
         output.append_site(site)
     return output, dico
 
