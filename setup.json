@@ -25,7 +25,7 @@
         "aiida-gaussian",
         "aiida-pseudo",
         "aiida-quantumespresso~=3.2",
-        "aiida-siesta",
+        "aiida-siesta~=1.1",
         "aiida-sssp~=0.1.0",
         "aiida-castep>=1.2.0a4",
         "aiida-vasp"
