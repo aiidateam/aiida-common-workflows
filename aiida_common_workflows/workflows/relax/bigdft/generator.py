@@ -255,10 +255,9 @@ class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
                 inputdict['dft'].update(
                     BigDFTParameters.set_spin(builder.structure.sites[0].kind_name, len(builder.structure.sites))
                 )
-        # units for spin is halved from the Bohr magnetons input
         if magnetization_per_site:
             for (i, atom) in enumerate(inputdict['posinp']['positions']):
-                atom['IGSpin'] = int(magnetization_per_site[i])*0.5
+                atom['IGSpin'] = int(magnetization_per_site[i])
         #inputdict.update({'perf': {'accel': 'OCLGPU', 'ocl_devices': 'Tesla K40c', 'blas': 'Yes'}})
 
         builder.parameters = BigDFTParameters(dict=inputdict)
