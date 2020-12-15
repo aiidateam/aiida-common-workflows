@@ -35,7 +35,7 @@ def ortho_struct(input_struct):
             periodic = 1
             dico[i + 1] = list(site.frac_coords)
         else:
-            dico[i + 1] = (site.coords[0]/ dico['a'], site.coords[1]/ dico['b'], site.coords[2]/ dico['c'])
+            dico[i + 1] = (site.coords[0] / dico['a'], site.coords[1] / dico['b'], site.coords[2] / dico['c'])
     BigDFTParameters.transform_to_orthorombic(dico)
     output = input_struct.clone()
     output.clear_sites()
@@ -195,7 +195,6 @@ class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
             builder.relax.perform = orm.Bool(False)
         else:
             raise ValueError('relaxation type `{}` is not supported'.format(relax_type.value))
-
 
         pymatgen_struct = structure.get_pymatgen()
         ortho_dict = None
