@@ -31,7 +31,7 @@ def ortho_struct(input_struct):
     periodic = 0
     for i in range(dico['nat']):
         site = input_struct.get_pymatgen().sites[i]
-        if type(site) is pymatgen.core.sites.PeriodicSite:
+        if isinstance(site, pymatgen.core.sites.PeriodicSite):
             periodic = 1
             dico[i + 1] = list(site.frac_coords)
         else:
