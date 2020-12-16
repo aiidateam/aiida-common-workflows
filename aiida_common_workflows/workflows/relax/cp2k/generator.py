@@ -236,7 +236,6 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
 
         elif spin_type == SpinType.COLLINEAR:
             parameters['FORCE_EVAL']['DFT']['UKS'] = True
-            print()
             structure, magnetization_tags = tags_and_magnetization(structure, magnetization_per_site)
             parameters['FORCE_EVAL']['DFT']['MULTIPLICITY'] = guess_multiplicity(structure, magnetization_per_site)
 
