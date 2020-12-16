@@ -7,7 +7,7 @@ import click
 import pytest
 
 from aiida import orm
-from aiida_common_workflows.cli.options import StructureDataParamType
+from aiida_common_workflows.cli import options
 
 
 @pytest.fixture
@@ -21,7 +21,7 @@ def filepath_cif():
 @pytest.fixture
 def param_type():
     """Return instance of ``StructureDataParamType``."""
-    return StructureDataParamType()
+    return options.StructureDataParamType()
 
 
 class TestStructureDataParamType:
@@ -79,3 +79,15 @@ class TestStructureDataParamType:
         """
         result = param_type.convert(label, None, None)
         assert result.get_formula() == formula
+
+
+def test_previous_workchain(run_cli_command):
+    """Test the ``options.PREVIOUS_WORKCHAIN`` option."""
+    node = orm.WorkflowNode().store()
+
+    @click.command()
+    @options.PREVIOUS_WORKCHAIN()
+    def command(previous_workchain):
+        assert previous_workchain.pk == node.pk
+
+    run_cli_command(command, ['--previous-workchain', str(node.pk)])

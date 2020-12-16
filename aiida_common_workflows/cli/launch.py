@@ -30,10 +30,11 @@ def cmd_launch():
 @options.WALLCLOCK_SECONDS()
 @options.DAEMON()
 @options.MAGNETIZATION_PER_SITE()
+@options.PREVIOUS_WORKCHAIN()
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
 def cmd_relax(
     plugin, structure, codes, protocol, relax_type, spin_type, threshold_forces, threshold_stress, number_machines,
-    wallclock_seconds, daemon, magnetization_per_site, show_engines
+    wallclock_seconds, daemon, magnetization_per_site, previous_workchain, show_engines
 ):
     """Relax a crystal structure using the common relax workflow for one of the existing plugin implementations.
 
@@ -43,7 +44,6 @@ def cmd_relax(
     Use the `--show-engine` flag to display the required calculation engines for the selected plugin workflow.
     """
     # pylint: disable=too-many-locals
-
     process_class = load_workflow_entry_point('relax', plugin)
     generator = process_class.get_inputs_generator()
 
@@ -114,7 +114,8 @@ def cmd_relax(
         threshold_forces=threshold_forces,
         threshold_stress=threshold_stress,
         spin_type=spin_type,
-        magnetization_per_site=magnetization_per_site
+        magnetization_per_site=magnetization_per_site,
+        previous_workchain=previous_workchain,
     )
     utils.launch_process(builder, daemon)
 
