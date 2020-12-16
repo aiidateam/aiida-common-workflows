@@ -4,6 +4,7 @@ import collections
 import pathlib
 from typing import Any, Dict, List
 import yaml
+import numpy as np
 
 from aiida import engine
 from aiida import orm
@@ -36,20 +37,66 @@ def dict_merge(dct, merge_dct):
             dct[k] = merge_dct[k]
 
 
-def get_kinds_section(structure: StructureData):
+def get_kinds_section(structure: StructureData, magnetization_tags=None):
     """ Write the &KIND sections given the structure and the settings_dict"""
     kinds = []
-    with open(pathlib.Path(__file__).parent / 'atomic_kinds.yml') as handle:
-        atom_data = yaml.safe_load(handle)
-    all_atoms = set(structure.get_ase().get_chemical_symbols())
-    for atom in all_atoms:
-        kinds.append({
-            '_': atom,
-            'BASIS_SET': atom_data['basis_set'][atom],
-            'POTENTIAL': atom_data['pseudopotential'][atom],
-            'MAGNETIZATION': atom_data['initial_magnetization'][atom],
-        })
+    with open(pathlib.Path(__file__).parent / 'atomic_kinds.yml') as fhandle:
+        atom_data = yaml.safe_load(fhandle)
+    ase_structure = structure.get_ase()
+    symbol_tag = {
+        (symbol, str(tag)) for symbol, tag in zip(ase_structure.get_chemical_symbols(), ase_structure.get_tags())
+    }
+    for symbol, tag in symbol_tag:
+        new_atom = {
+            '_': symbol + tag,
+            'BASIS_SET': atom_data['basis_set'][symbol],
+            'POTENTIAL': atom_data['pseudopotential'][symbol],
+        }
+        if magnetization_tags:
+            new_atom['MAGNETIZATION'] = magnetization_tags[tag]
+        kinds.append(new_atom)
     return {'FORCE_EVAL': {'SUBSYS': {'KIND': kinds}}}
+
+
+def tags_and_magnetization(structure, magnetization_per_site):
+    """Gather the same atoms with the same magnetization into one atomic kind."""
+    if magnetization_per_site:
+        ase_structure = structure.get_ase()
+        if len(magnetization_per_site) != len(ase_structure.numbers):
+            raise ValueError('The size of `magnetization_per_site` is different from the number of atoms.')
+
+        # Combine atom type with magnetizations.
+        complex_symbols = [
+            f'{symbol}_{magn}' for symbol, magn in zip(ase_structure.get_chemical_symbols(), magnetization_per_site)
+        ]
+        # Assign a unique tag for every atom kind.
+        combined = {symbol: tag + 1 for tag, symbol in enumerate(set(complex_symbols))}
+        # Assigning correct tags to every atom.
+        tags = [combined[key] for key in complex_symbols]
+        ase_structure.set_tags(tags)
+        # Tag-magnetization correspondance.
+        tags_correspondance = {str(value): float(key.split('_')[1]) for key, value in combined.items()}
+        return StructureData(ase=ase_structure), orm.Dict(dict=tags_correspondance)
+    return structure, None
+
+
+def guess_multiplicity(structure: StructureData, magnetization_per_site: List[float] = None):
+    """Get total spin multiplicity from atomic magnetizations."""
+    spin_multiplicity = 1
+    if magnetization_per_site:
+        pymatgen_structure = structure.get_pymatgen_molecule()
+        num_electrons = pymatgen_structure.nelectrons
+        total_spin_guess = 0.5 * np.abs(np.sum(magnetization_per_site))
+        multiplicity_guess = 2 * total_spin_guess + 1
+
+        # In case of even/odd electrons, find closest odd/even multiplicity
+        if num_electrons % 2 == 0:
+            # round guess to nearest odd integer
+            spin_multiplicity = int(np.round((multiplicity_guess - 1) / 2) * 2 + 1)
+        else:
+            # round guess to nearest even integer; 0 goes to 2
+            spin_multiplicity = max([int(np.round(multiplicity_guess / 2) * 2), 2])
+    return spin_multiplicity
 
 
 def get_file_section():
@@ -159,14 +206,6 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
         # The builder.
         builder = self.process_class.get_builder()
 
-        # Switch on the resubmit_unconverged_geometry which is disabled by default.
-        builder.handler_overrides = orm.Dict(dict={'resubmit_unconverged_geometry': True})
-
-        builder.cp2k.file = get_file_section()
-
-        # Input structure.
-        builder.cp2k.structure = structure
-
         # Input parameters.
         parameters = self.get_protocol(protocol)
 
@@ -177,8 +216,7 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
         ## Removing description.
         _ = parameters.pop('description')
 
-        kinds_section = get_kinds_section(builder.cp2k.structure)
-        dict_merge(parameters, kinds_section)
+        magnetization_tags = None
 
         ## Metal or insulator.
         if electronic_type == ElectronicType.METAL:
@@ -192,8 +230,19 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
         ## Magnetic calculation
         if spin_type == SpinType.NONE:
             parameters['FORCE_EVAL']['DFT']['UKS'] = False
+            if magnetization_per_site is not None:
+                import warnings
+                warnings.warn('`magnetization_per_site` will be ignored as `spin_type` is set to SpinType.NONE')
+
         elif spin_type == SpinType.COLLINEAR:
             parameters['FORCE_EVAL']['DFT']['UKS'] = True
+            print()
+            structure, magnetization_tags = tags_and_magnetization(structure, magnetization_per_site)
+            parameters['FORCE_EVAL']['DFT']['MULTIPLICITY'] = guess_multiplicity(structure, magnetization_per_site)
+
+        ## Starting magnetization.
+        kinds_section = get_kinds_section(structure, magnetization_tags)
+        dict_merge(parameters, kinds_section)
 
         ## Relaxation type.
         if relax_type == RelaxType.ATOMS:
@@ -212,6 +261,15 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
         if threshold_stress is not None:
             parameters['MOTION']['CELL_OPT']['PRESSURE_TOLERANCE'] = f'[GPa] {threshold_stress * EV_A3_TO_GPA}'
         builder.cp2k.parameters = orm.Dict(dict=parameters)
+
+        # Switch on the resubmit_unconverged_geometry which is disabled by default.
+        builder.handler_overrides = orm.Dict(dict={'resubmit_unconverged_geometry': True})
+
+        # Files.
+        builder.cp2k.file = get_file_section()
+
+        # Input structure.
+        builder.cp2k.structure = structure
 
         # Additional files to be retrieved.
         builder.cp2k.settings = orm.Dict(dict={'additional_retrieve_list': ['aiida-frc-1.xyz', 'aiida-1.stress']})
