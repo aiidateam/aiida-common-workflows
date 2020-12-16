@@ -37,9 +37,9 @@ def get_total_magnetization(parameters):
     """Return the total magnetizaton [Bohr magnetons] from the output parameters node."""
     # This is fully determined by the input multiplicity.
     # Find it from the mulliken atomic spins
-    mulliken_spins = np.array(parameters['atomspins']['mulliken'])  # in num electrons
-    tot_magnetization_au = 0.5 * np.sum(mulliken_spins)
-    return orm.Float(tot_magnetization_au)
+    mulliken_spins = np.array(parameters['atomspins']['mulliken'])
+    tot_magnetization = np.sum(mulliken_spins)
+    return orm.Float(tot_magnetization)
 
 
 class GaussianRelaxWorkChain(CommonRelaxWorkChain):
