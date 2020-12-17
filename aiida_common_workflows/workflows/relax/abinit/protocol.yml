@@ -22,8 +22,8 @@ fast:
                 dilatmx: 1.00 # don't book additional memory for basis set enlargement, Abinit default
                 # default to metallic treatment
                 occopt: 3 # Fermi-Dirac smearing
-                fband: 1.75 # increase the number of bands to > fband * natoms
-                tsmear: 0.005 # Ha
+                fband: 2.0 # increase the number of bands to > fband * natoms
+                tsmear: 0.008 # Ha
                 # default to no spin treatment
                 nspinor: 1 # no spin-orbit coupling, Abinit default
                 nsppol: 1 # no spin-polarization, Abinit default
@@ -53,8 +53,8 @@ moderate:
                 dilatmx: 1.00 # don't book additional memory for basis set enlargement, Abinit default
                 # default to metallic treatment
                 occopt: 3 # Fermi-Dirac smearing
-                fband: 1.75 # increase the number of bands to > fband * natoms
-                tsmear: 0.005 # Ha
+                fband: 2.0 # increase the number of bands to > fband * natoms
+                tsmear: 0.008 # Ha
                 # default to no spin treatment
                 nspinor: 1 # no spin-orbit coupling, Abinit default
                 nsppol: 1 # no spin-polarization, Abinit default
@@ -84,8 +84,8 @@ precise:
                 dilatmx: 1.00 # don't book additional memory for basis set enlargement, Abinit default
                 # default to metallic treatment
                 occopt: 3 # Fermi-Dirac smearing
-                fband: 1.75 # increase the number of bands to > fband * natoms
-                tsmear: 0.005 # Ha
+                fband: 2.0 # increase the number of bands to > fband * natoms
+                tsmear: 0.008 # Ha
                 # default to no spin treatment
                 nspinor: 1 # no spin-orbit coupling, Abinit default
                 nsppol: 1 # no spin-polarization, Abinit default
