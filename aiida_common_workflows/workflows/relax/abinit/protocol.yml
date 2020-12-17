@@ -65,7 +65,7 @@ precise:
     description: "Protocol to relax a structure with high precision at higher computational cost."
     pseudo_family: "PseudoDojo/1.0/PBE/SR/stringent/jthxml"
     base:
-        kpoints_distance: 0.15 
+        kpoints_distance: 0.1
         abinit:
             parameters:
                 ecut: 30.0 # Ha 
@@ -86,7 +86,7 @@ precise:
                 # default to metallic treatment
                 occopt: 3 # Fermi-Dirac smearing
                 fband: 2.0 # increase the number of bands to > fband * natoms
-                tsmear: 0.008 # Ha
+                tsmear: 0.005 # Ha
                 # default to no spin treatment
                 nspinor: 1 # no spin-orbit coupling, Abinit default
                 nsppol: 1 # no spin-polarization, Abinit default
