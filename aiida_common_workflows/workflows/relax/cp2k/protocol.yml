@@ -41,12 +41,6 @@ moderate: # main settings exploiting OT
         XC_FUNCTIONAL:
           PBE:
             PARAMETRIZATION: ORIG
-        VDW_POTENTIAL:
-           POTENTIAL_TYPE:  PAIR_POTENTIAL
-           PAIR_POTENTIAL:
-              PARAMETER_FILE_NAME:   dftd3.dat
-              TYPE:                  DFTD3(BJ)
-              REFERENCE_FUNCTIONAL:   PBE
       PRINT:
         MO_CUBES:
           WRITE_CUBE: F
@@ -162,12 +156,6 @@ precise:
         XC_FUNCTIONAL:
           PBE:
             PARAMETRIZATION: ORIG
-        VDW_POTENTIAL:
-           POTENTIAL_TYPE:  PAIR_POTENTIAL
-           PAIR_POTENTIAL:
-              PARAMETER_FILE_NAME:   dftd3.dat
-              TYPE:                  DFTD3(BJ)
-              REFERENCE_FUNCTIONAL:   PBE
       PRINT:
         MO_CUBES:
           WRITE_CUBE: F
