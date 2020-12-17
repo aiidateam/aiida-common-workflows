@@ -48,7 +48,7 @@ def get_kinds_section(structure: StructureData, magnetization_tags=None):
     }
     for symbol, tag in symbol_tag:
         new_atom = {
-            '_': symbol + tag,
+            '_': symbol if tag == '0' else symbol + tag,
             'BASIS_SET': atom_data['basis_set'][symbol],
             'POTENTIAL': atom_data['pseudopotential'][symbol],
         }
