@@ -90,3 +90,10 @@ def test_get_protocol(protocol_registry):
 
     with pytest.raises(ValueError):
         protocol_registry.get_protocol('non-existant')
+
+
+def test_get_protocol_immutable(protocol_registry):
+    """Test `ProtocolRegistry.get_protocol` returns a deepcopy."""
+    protocol = protocol_registry.get_protocol('efficiency')
+    protocol['description'] = 'changed description'
+    assert protocol_registry.get_protocol('efficiency')['description'] != 'changed description'
