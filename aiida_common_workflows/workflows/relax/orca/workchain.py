@@ -41,7 +41,7 @@ class OrcaRelaxWorkChain(CommonRelaxWorkChain):
     def convert_outputs(self):
         """Convert the outputs of the sub workchain to the common output specification."""
         if 'relaxed_structure' in self.ctx.workchain.outputs:
-            self.out('relaxed_structure', self.ctx.workchain.outputs.output_structure)
+            self.out('relaxed_structure', self.ctx.workchain.outputs.relaxed_structure)
         self.out('total_energy', get_total_energy(self.ctx.workchain.outputs.output_parameters))
         self.out('forces', get_forces(self.ctx.workchain.outputs.output_parameters))
 
