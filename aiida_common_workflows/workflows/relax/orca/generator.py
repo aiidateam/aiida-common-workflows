@@ -57,7 +57,7 @@ class OrcaRelaxInputsGenerator(RelaxInputsGenerator):
         with open(yamlpath) as handler:
             self._protocols = yaml.safe_load(handler)
 
-    def get_builder( # pylint: disable=too-many-branches
+    def get_builder( # pylint: disable=too-many-branches, too-many-statements
         self,
         structure: StructureData,
         calc_engines: Dict[str, Any],
@@ -106,7 +106,7 @@ class OrcaRelaxInputsGenerator(RelaxInputsGenerator):
         )
 
         # Checks
-        if any(structure.get_attribute_many(['pbc1','pbc2','pbc2'])):
+        if any(structure.get_attribute_many(['pbc1', 'pbc2', 'pbc2'])):
             print('Warning: PBC detected in the input structure. It is not supported and thus is ignored.')
 
         if protocol not in self.get_protocol_names():
@@ -133,17 +133,17 @@ class OrcaRelaxInputsGenerator(RelaxInputsGenerator):
         # Handle charge and multiplicity
         strc_pmg = structure.get_pymatgen_molecule()
         num_electrons = strc_pmg.nelectrons
-        
+
         if num_electrons % 2 == 1 and spin_type == SpinType.NONE:
             raise ValueError(f'Spin-restricted calculation does not support odd number of electrons ({num_electrons})')
 
         params['charge'] = int(strc_pmg.charge)
         spin_multiplicity = 1
-        
-        # Logic from Kristijan code in gaussian. 
+
+        # Logic from Kristijan code in gaussian.
         if spin_type == SpinType.COLLINEAR:
             params['input_keywords'].append('UKS')
-            
+
             if magnetization_per_site is None:
                 multiplicity_guess = 1
             else:
@@ -162,8 +162,8 @@ class OrcaRelaxInputsGenerator(RelaxInputsGenerator):
                 # round guess to nearest even integer; 0 goes to 2
                 spin_multiplicity = max([int(np.round(multiplicity_guess / 2) * 2), 2])
 
-        params['multiplicity'] = spin_multiplicity 
-        
+        params['multiplicity'] = spin_multiplicity
+
         # Handle resources
         resources = calc_engines['relax']['options']['resources']
         nproc = None
