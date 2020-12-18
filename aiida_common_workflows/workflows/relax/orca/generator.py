@@ -6,6 +6,8 @@ from typing import Any, Dict, List
 from copy import deepcopy
 import yaml
 
+import numpy as np
+
 from aiida import engine
 from aiida import orm
 from aiida.plugins import DataFactory
@@ -104,6 +106,9 @@ class OrcaRelaxInputsGenerator(RelaxInputsGenerator):
         )
 
         # Checks
+        if any(structure.get_attribute_many(['pbc1','pbc2','pbc2'])):
+            print('Warning: PBC detected in the input structure. It is not supported and thus is ignored.')
+
         if protocol not in self.get_protocol_names():
             import warnings
             warnings.warn('no protocol implemented with name {}, using default moderate'.format(protocol))
@@ -125,14 +130,40 @@ class OrcaRelaxInputsGenerator(RelaxInputsGenerator):
                     new_inp_keywords.append(item)
             params['input_keywords'] = new_inp_keywords
 
-        if spin_type == SpinType.COLLINEAR:
-            params = params['input_keywords'].append('UKS')
-
         # Handle charge and multiplicity
         strc_pmg = structure.get_pymatgen_molecule()
-        params['charge'] = int(strc_pmg.charge)
-        params['multiplicity'] = strc_pmg.spin_multiplicity
+        num_electrons = strc_pmg.nelectrons
+        
+        if num_electrons % 2 == 1 and spin_type == SpinType.NONE:
+            raise ValueError(f'Spin-restricted calculation does not support odd number of electrons ({num_electrons})')
 
+        params['charge'] = int(strc_pmg.charge)
+        spin_multiplicity = 1
+        
+        # Logic from Kristijan code in gaussian. 
+        if spin_type == SpinType.COLLINEAR:
+            params['input_keywords'].append('UKS')
+            
+            if magnetization_per_site is None:
+                multiplicity_guess = 1
+            else:
+                print(
+                    'Warning: magnetization_per_site site-resolved info is disregarded, only total spin is processed.'
+                )
+                # magnetization_per_site are in units of [Bohr magnetons] (*0.5 to get in [au])
+                total_spin_guess = 0.5 * np.abs(np.sum(magnetization_per_site))
+                multiplicity_guess = 2 * total_spin_guess + 1
+
+            # in case of even/odd electrons, find closest odd/even multiplicity
+            if num_electrons % 2 == 0:
+                # round guess to nearest odd integer
+                spin_multiplicity = int(np.round((multiplicity_guess - 1) / 2) * 2 + 1)
+            else:
+                # round guess to nearest even integer; 0 goes to 2
+                spin_multiplicity = max([int(np.round(multiplicity_guess / 2) * 2), 2])
+
+        params['multiplicity'] = spin_multiplicity 
+        
         # Handle resources
         resources = calc_engines['relax']['options']['resources']
         nproc = None
