@@ -4,7 +4,7 @@ fast:
     scf:
       convergence: Strong
   input_keywords:
-  - PBE0
+  - PBE
   - def2-SVP
   - Opt
   - LOOSEOPT
@@ -15,7 +15,7 @@ moderate:
     scf:
       convergence: Tight
   input_keywords:
-  - PBE0
+  - PBE
   - def2-TZVP
   - Opt
   - NORMALOPT
@@ -26,7 +26,7 @@ precise:
     scf:
       convergence: VeryTight
   input_keywords:
-  - PBE0
+  - PBE
   - def2-QZVP
   - Opt
   - TIGHTOPT

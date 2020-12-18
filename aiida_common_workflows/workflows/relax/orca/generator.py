@@ -116,9 +116,6 @@ class OrcaRelaxInputsGenerator(RelaxInputsGenerator):
         if 'relax' not in calc_engines:
             raise ValueError('The `calc_engines` dictionaly must contain "relaxation" as outermost key')
 
-        if magnetization_per_site is not None:
-            print('Warning: magnetization_per_site not supported, ignoring it.')
-
         params = self._get_params(protocol)
 
         # Delete optimization related keywords if it is a single point calculation
