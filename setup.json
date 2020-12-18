@@ -29,7 +29,7 @@
         "aiida-sssp~=0.1.0",
         "aiida-castep>=1.2.0a5",
         "aiida-vasp",
-        "aiida-orca
+        "aiida-orca"
     ],
     "extras_require": {
         "tests": [
