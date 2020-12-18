@@ -28,7 +28,8 @@
         "aiida-siesta~=1.1",
         "aiida-sssp~=0.1.0",
         "aiida-castep>=1.2.0a5",
-        "aiida-vasp"
+        "aiida-vasp",
+        "aiida-orca"
     ],
     "extras_require": {
         "tests": [
@@ -57,7 +58,8 @@
             "common_workflows.relax.siesta = aiida_common_workflows.workflows.relax.siesta.workchain:SiestaRelaxWorkChain",
             "common_workflows.relax.vasp = aiida_common_workflows.workflows.relax.vasp.workchain:VaspRelaxWorkChain",
             "common_workflows.relax.castep = aiida_common_workflows.workflows.relax.castep.workchain:CastepRelaxWorkChain",
-            "common_workflows.relax.abinit = aiida_common_workflows.workflows.relax.abinit.workchain:AbinitRelaxWorkChain"
+            "common_workflows.relax.abinit = aiida_common_workflows.workflows.relax.abinit.workchain:AbinitRelaxWorkChain",
+            "common_workflows.relax.orca = aiida_common_workflows.workflows.relax.orca.workchain:OrcaRelaxWorkChain"
         ]
     },
     "license": "MIT License",
