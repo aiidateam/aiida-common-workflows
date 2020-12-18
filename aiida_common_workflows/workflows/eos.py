@@ -7,14 +7,15 @@ from aiida.common import exceptions
 from aiida.engine import WorkChain, append_, calcfunction
 from aiida.plugins import WorkflowFactory
 
-from aiida_common_workflows.workflows.relax.generator import RelaxType
+from aiida_common_workflows.workflows.relax.generator import RelaxType, SpinType, ElectronicType
 from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChain
 
 
 def validate_inputs(value, _):
     """Validate the entire input namespace."""
-    if 'scale_factors' not in value and ('scale_count' not in value and 'scale_count' not in value):
-        return 'neither `scale_factors` nor the pair of `scale_count` and `scale_increment` were defined.'
+    if 'scale_factors' not in value:
+        if 'scale_count' not in value or 'scale_increment' not in value:
+            return 'neither `scale_factors` nor the pair of `scale_count` and `scale_increment` were defined.'
 
 
 def validate_sub_process_class(value, _):
@@ -46,6 +47,12 @@ def validate_scale_increment(value, _):
         return 'scale increment needs to be between 0 and 1.'
 
 
+def validate_relax_type(value, _):
+    """Validate the `generator_inputs.relax_type` input."""
+    if value not in [RelaxType.NONE, RelaxType.ATOMS, RelaxType.SHAPE, RelaxType.ATOMS_SHAPE]:
+        return '`generator_inputs.relax_type`. Equation of state and relaxation with variable volume not compatible.'
+
+
 @calcfunction
 def scale_structure(structure: orm.StructureData, scale_factor: orm.Float) -> orm.StructureData:
     """Scale the structure with the given scaling factor."""
@@ -74,8 +81,14 @@ class EquationOfStateWorkChain(WorkChain):
         spec.input('generator_inputs.calc_engines', valid_type=dict, non_db=True)
         spec.input('generator_inputs.protocol', valid_type=str, non_db=True,
             help='The protocol to use when determining the workchain inputs.')
-        spec.input('generator_inputs.relax_type', valid_type=RelaxType, non_db=True,
+        spec.input('generator_inputs.relax_type', valid_type=RelaxType, non_db=True, validator=validate_relax_type,
             help='The type of relaxation to perform.')
+        spec.input('generator_inputs.spin_type', valid_type=SpinType, required=False, non_db=True,
+            help='The type of spin for the calculation.')
+        spec.input('generator_inputs.electronic_type', valid_type=ElectronicType, required=False, non_db=True,
+            help='The type of electronics (insulator/metal) for the calculation.')
+        spec.input('generator_inputs.magnetization_per_site', valid_type=(list, tuple), required=False, non_db=True,
+            help='List containing the initial magnetization per atomic site.')
         spec.input('generator_inputs.threshold_forces', valid_type=float, required=False, non_db=True,
             help='Target threshold for the forces in eV/Å.')
         spec.input('generator_inputs.threshold_stress', valid_type=float, required=False, non_db=True,
@@ -91,7 +104,9 @@ class EquationOfStateWorkChain(WorkChain):
         spec.output_namespace('structures', valid_type=orm.StructureData,
             help='The relaxed structures at each scaling factor.')
         spec.output_namespace('total_energies', valid_type=orm.Float,
-            help='The computed total energy of the relaxed structure at each scaling factor.')
+            help='The computed total energy of the relaxed structures at each scaling factor.')
+        spec.output_namespace('total_magnetizations', valid_type=orm.Float,
+            help='The computed total magnetization of the relaxed structures at each scaling factor.')
         spec.exit_code(400, 'ERROR_SUB_PROCESS_FAILED',
             message='At least one of the `{cls}` sub processes did not finish successfully.')
 
@@ -109,10 +124,6 @@ class EquationOfStateWorkChain(WorkChain):
         structure = scale_structure(self.inputs.structure, scale_factor)
         process_class = WorkflowFactory(self.inputs.sub_process_class)
 
-        relax_type = self.inputs.generator_inputs.relax_type
-        if 'CELL' in relax_type.name or 'VOLUME' in relax_type.name:
-            raise ValueError('Equation of state and relaxation with variable volume are not compatible')
-
         builder = process_class.get_inputs_generator().get_builder(
             structure,
             previous_workchain=previous_workchain,
@@ -120,21 +131,24 @@ class EquationOfStateWorkChain(WorkChain):
         )
         builder._update(**self.inputs.get('sub_process', {}))  # pylint: disable=protected-access
 
-        return builder
+        return builder, structure
 
     def run_init(self):
         """Run the first workchain."""
         scale_factor = self.get_scale_factors()[0]
-        builder = self.get_sub_workchain_builder(scale_factor)
+        builder, structure = self.get_sub_workchain_builder(scale_factor)
         self.report(f'submitting `{builder.process_class.__name__}` for scale_factor `{scale_factor}`')
         self.ctx.previous_workchain = self.submit(builder)
+        self.ctx.structures = [structure]
         self.to_context(children=append_(self.ctx.previous_workchain))
 
     def run_eos(self):
         """Run the sub process at each scale factor to compute the structure volume and total energy."""
         for scale_factor in self.get_scale_factors()[1:]:
-            builder = self.get_sub_workchain_builder(scale_factor, previous_workchain=self.ctx.previous_workchain)
+            previous_workchain = self.ctx.previous_workchain
+            builder, structure = self.get_sub_workchain_builder(scale_factor, previous_workchain=previous_workchain)
             self.report(f'submitting `{builder.process_class.__name__}` for scale_factor `{scale_factor}`')
+            self.ctx.structures.append(structure)
             self.to_context(children=append_(self.submit(builder)))
 
     def inspect_eos(self):
@@ -143,8 +157,17 @@ class EquationOfStateWorkChain(WorkChain):
             return self.exit_codes.ERROR_SUB_PROCESS_FAILED.format(cls=self.inputs.sub_process_class)  # pylint: disable=no-member
 
         for index, child in enumerate(self.ctx.children):
-            volume = child.outputs.relaxed_structure.get_cell_volume()
-            energy = child.outputs.total_energy.value
-            self.report(f'Image {index}: volume={volume}, total energy={energy}')
-            self.out(f'structures.{index}', child.outputs.relaxed_structure)
-            self.out(f'total_energies.{index}', child.outputs.total_energy)
+            try:
+                structure = child.outputs.relaxed_structure
+            except exceptions.NotExistent:
+                structure = self.ctx.structures[index]
+
+            volume = structure.get_cell_volume()
+            energy = child.outputs.total_energy
+
+            self.report(f'Image {index}: volume={volume}, total energy={energy.value}')
+            self.out(f'structures.{index}', structure)
+            self.out(f'total_energies.{index}', energy)
+
+            if 'total_magnetization' in child.outputs:
+                self.out(f'total_magnetizations.{index}', child.outputs.total_magnetization)

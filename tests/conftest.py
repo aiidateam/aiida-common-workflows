@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=redefined-outer-name
 """Configuration and fixtures for unit test suite."""
 import click
 import pytest
@@ -73,8 +74,66 @@ def generate_code(aiida_localhost):
     """Generate a `Code` node."""
 
     def _generate_code(entry_point):
+        import random
+        import string
         from aiida.plugins import DataFactory
-        code = DataFactory('code')(input_plugin_name=entry_point, remote_computer_exec=[aiida_localhost, '/bin/bash'])
+
+        label = ''.join(random.choice(string.ascii_letters) for _ in range(16))
+        code = DataFactory('code')(
+            label=label, input_plugin_name=entry_point, remote_computer_exec=[aiida_localhost, '/bin/bash']
+        )
         return code
 
     return _generate_code
+
+
+@pytest.fixture
+def generate_eos_node(generate_structure):
+    """Generate an instance of ``EquationOfStateWorkChain``."""
+
+    def _generate_eos_node(include_magnetization=True):
+        from aiida.common import LinkType
+        from aiida.orm import Float, WorkflowNode
+
+        node = WorkflowNode(process_type='aiida.workflows:common_workflows.eos').store()
+
+        for index in range(5):
+            structure = generate_structure().store()
+            energy = Float(index).store()
+
+            structure.add_incoming(node, link_type=LinkType.RETURN, link_label=f'structures__{index}')
+            energy.add_incoming(node, link_type=LinkType.RETURN, link_label=f'total_energies__{index}')
+
+            if include_magnetization:
+                magnetization = Float(index).store()
+                magnetization.add_incoming(node, link_type=LinkType.RETURN, link_label=f'total_magnetizations__{index}')
+
+        return node
+
+    return _generate_eos_node
+
+
+@pytest.fixture
+def generate_dissociation_curve_node():
+    """Generate an instance of ``DissociationCurveWorkChain``."""
+
+    def _generate_dissociation_curve_node(include_magnetization=True):
+        from aiida.common import LinkType
+        from aiida.orm import Float, WorkflowNode
+
+        node = WorkflowNode(process_type='aiida.workflows:common_workflows.dissociation_curve').store()
+
+        for index in range(5):
+            distance = Float(index / 10).store()
+            energy = Float(index).store()
+
+            distance.add_incoming(node, link_type=LinkType.RETURN, link_label=f'distances__{index}')
+            energy.add_incoming(node, link_type=LinkType.RETURN, link_label=f'total_energies__{index}')
+
+            if include_magnetization:
+                magnetization = Float(index).store()
+                magnetization.add_incoming(node, link_type=LinkType.RETURN, link_label=f'total_magnetizations__{index}')
+
+        return node
+
+    return _generate_dissociation_curve_node

@@ -1,61 +1,92 @@
-moderate:
-    name: "moderate"
-    description: "Protocol to relax a structure with normal precision at moderate computational cost."
-    pseudo_family: 'nc-sr-04_pbe_standard_psp8'
-    base:
-        kpoints_distance: 0.20
-        abinit:
-            parameters:
-                ecut: 40.0
-                ecutsm: 0.5
-                nshiftk: 1
-                shiftk: [
-                    [0.5, 0.5, 0.5]
-                ]
-                nstep: 200
-                toldfe: 1.0e-12
-                chkprim: 0  # To allow for non-primitive unit cells
-                chksymbreak: 0  # No check on the symmetries of the k-points
-                autoparal: 1  # Run Abinit's built-in automatic parallelization
-
-
-precise:
-    name: "precise"
-    description: "Protocol to relax a structure with high precision at higher computational cost."
-    pseudo_family: 'nc-fr-04_pbe_standard_psp8'
-    base:
-        kpoints_distance: 0.15
-        abinit:
-            parameters:
-                ecut: 60.0
-                ecutsm: 0.5
-                nshiftk: 1
-                shiftk: [
-                    [0.5, 0.5, 0.5]
-                ]
-                nstep: 300
-                toldfe: 1.0e-12
-                chkprim: 0  # To allow for non-primitive unit cells
-                chksymbreak: 0  # No check on the symmetries of the k-points
-                autoparal: 1  # Run Abinit's built-in automatic parallelization
-
-
 fast:
     name: "fast"
     description: "Protocol to relax a structure with low precision at minimal computational cost for testing purposes."
-    pseudo_family: 'nc-sr-04_pbe_standard_psp8'
+    pseudo_family: "PseudoDojo/0.4/PBE/SR/standard/psp8"
     base:
         kpoints_distance: 1.0
         abinit:
             parameters:
-                ecut: 20.0
-                ecutsm: 0.5
+                ecut: 20.0 # Ha
+                ecutsm: 0.5 # Ha
                 nshiftk: 1
-                shiftk: [
-                    [0.5, 0.5, 0.5]
-                ]
+                shiftk: [[0.5, 0.5, 0.5]]
                 nstep: 100
-                toldfe: 1.0e-12
-                chkprim: 0  # To allow for non-primitive unit cells
-                chksymbreak: 0  # No check on the symmetries of the k-points
-                autoparal: 1  # Run Abinit's built-in automatic parallelization
+                # tolerances
+                tolvrs: 1.0e-7 # Ha
+                chkprim: 0 # To allow for non-primitive unit cells
+                chksymbreak: 0 # No check on the symmetries of the k-points
+                autoparal: 1 # Run Abinit's built-in automatic parallelization
+                # default to relaxing atoms only
+                optcell: 0 # do not optimize the cell, Abinit default
+                ionmov: 22 # optimize ionic positions with L-BFGS
+                dilatmx: 1.00 # don't book additional memory for basis set enlargement, Abinit default
+                # default to metallic treatment
+                occopt: 3 # Fermi-Dirac smearing
+                fband: 1.75 # increase the number of bands to > fband * natoms
+                tsmear: 0.005 # Ha
+                # default to no spin treatment
+                nspinor: 1 # no spin-orbit coupling, Abinit default
+                nsppol: 1 # no spin-polarization, Abinit default
+                nspden: 1 # no spin-magnetization, Abinit default
+
+moderate:
+    name: "moderate"
+    description: "Protocol to relax a structure with normal precision at moderate computational cost."
+    pseudo_family: "PseudoDojo/0.4/PBE/SR/standard/psp8"
+    base:
+        kpoints_distance: 0.20
+        abinit:
+            parameters:
+                ecut: 40.0 # Ha
+                ecutsm: 0.5 # Ha
+                nshiftk: 1
+                shiftk: [[0.5, 0.5, 0.5]]
+                nstep: 200
+                # tolerances
+                tolvrs: 1.0e-9 # Ha
+                chkprim: 0 # To allow for non-primitive unit cells
+                chksymbreak: 0 # No check on the symmetries of the k-points
+                autoparal: 1 # Run Abinit's built-in automatic parallelization
+                # default to relaxing atoms only
+                optcell: 0 # do not optimize the cell, Abinit default
+                ionmov: 22 # optimize ionic positions with L-BFGS
+                dilatmx: 1.00 # don't book additional memory for basis set enlargement, Abinit default
+                # default to metallic treatment
+                occopt: 3 # Fermi-Dirac smearing
+                fband: 1.75 # increase the number of bands to > fband * natoms
+                tsmear: 0.005 # Ha
+                # default to no spin treatment
+                nspinor: 1 # no spin-orbit coupling, Abinit default
+                nsppol: 1 # no spin-polarization, Abinit default
+                nspden: 1 # no spin-magnetization, Abinit default
+
+precise:
+    name: "precise"
+    description: "Protocol to relax a structure with high precision at higher computational cost."
+    pseudo_family: "PseudoDojo/0.4/PBE/FR/standard/psp8"
+    base:
+        kpoints_distance: 0.15
+        abinit:
+            parameters:
+                ecut: 60.0 # Ha
+                ecutsm: 0.5 # Ha
+                nshiftk: 1
+                shiftk: [[0.5, 0.5, 0.5]]
+                nstep: 300
+                # tolerances
+                tolvrs: 1.0e-10 # Ha
+                chkprim: 0 # To allow for non-primitive unit cells
+                chksymbreak: 0 # No check on the symmetries of the k-points
+                autoparal: 1 # Run Abinit's built-in automatic parallelization
+                # default to relaxing atoms only
+                optcell: 0 # do not optimize the cell, Abinit default
+                ionmov: 22 # optimize ionic positions with L-BFGS
+                dilatmx: 1.00 # don't book additional memory for basis set enlargement, Abinit default
+                # default to metallic treatment
+                occopt: 3 # Fermi-Dirac smearing
+                fband: 1.75 # increase the number of bands to > fband * natoms
+                tsmear: 0.005 # Ha
+                # default to no spin treatment
+                nspinor: 1 # no spin-orbit coupling, Abinit default
+                nsppol: 1 # no spin-polarization, Abinit default
+                nspden: 1 # no spin-magnetization, Abinit default

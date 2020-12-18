@@ -49,6 +49,8 @@ class CommonRelaxWorkChain(WorkChain, metaclass=ABCMeta):
             help='All cell dimensions and atomic positions are in Ångstrom.')
         spec.output('total_energy', valid_type=Float, required=False,
             help='Total energy in eV.')
+        spec.output('total_magnetization', valid_type=Float, required=False,
+            help='Total magnetization in Bohr magnetons.')
         spec.exit_code(400, 'ERROR_SUB_PROCESS_FAILED',
             message='The `{cls}` workchain failed with exit status {exit_status}.')
 
