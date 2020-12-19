@@ -211,7 +211,10 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
 
         ## Kpoints.
         kpoints_distance = parameters.pop('kpoints_distance', None)
-        builder.cp2k.kpoints = self._get_kpoints(kpoints_distance, structure, previous_workchain)
+        kpoints = self._get_kpoints(kpoints_distance, structure, previous_workchain)
+        mesh, _ = kpoints.get_kpoints_mesh()
+        if mesh != [1, 1, 1]:
+            builder.cp2k.kpoints = kpoints
 
         ## Removing description.
         _ = parameters.pop('description')
@@ -278,6 +281,9 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
 
         # Run options.
         builder.cp2k.metadata.options = calc_engines['relax']['options']
+
+        # Use advanced parser to parse more data.
+        builder.cp2k.metadata.options['parser_name'] = 'cp2k_advanced_parser'
 
         return builder
 
