@@ -104,13 +104,31 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
 
         protocol = copy.deepcopy(self.get_protocol(protocol))
         code = calc_engines['relax']['code']
+
         pseudo_family = orm.Group.objects.get(label=protocol.pop('pseudo_family'))
+        cutoff_stringency = protocol['cutoff_stringency']
+        pseudo_type = pseudo_family.pseudo_type
+        # Recommended cutoffs from `aiida-pseudo` are in eV
+        recommended_ecut_wfc, recommended_ecut_rho = pseudo_family.get_recommended_cutoffs(
+            structure=structure, stringency=cutoff_stringency
+        )
+        if pseudo_type == 'pseudo.jthxml':
+            # JTH XML are PAW; we need `pawecutdg`
+            cutoff_parameters = {
+                'ecut': recommended_ecut_wfc / units.Ha_to_eV,
+                'pawecutdg': recommended_ecut_rho / units.Ha_to_eV,
+            }
+        else:
+            # All others are NC; no need for `pawecutdg`
+            cutoff_parameters = {'ecut': recommended_ecut_wfc / units.Ha_to_eV}
+
         override = {
             'abinit': {
                 'metadata': {
                     'options': calc_engines['relax']['options']
                 },
-                'pseudos': pseudo_family.get_pseudos(structure=structure)
+                'pseudos': pseudo_family.get_pseudos(structure=structure),
+                'parameters': cutoff_parameters
             }
         }
 
@@ -226,13 +244,8 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             builder.abinit['parameters']['nspden'] = 4  # vector magnetization
             builder.abinit['parameters']['spinat'] = [[0.0, 0.0, mag] for mag in magnetization_per_site]
         elif spin_type == SpinType.SPIN_ORBIT:
-            if 'fr' not in pseudo_family.label:
-                raise ValueError(
-                    'You must use the `stringent` protocol for SPIN_ORBIT calculations because '
-                    'it provides fully-relativistic pseudopotentials (`fr` is not in the protocol\'s '
-                    '`pseudo_family` entry).'
-                )
             builder.abinit['parameters']['nspinor'] = 2  # w.f. as spinors
+            builder.abinit['parameters']['kptopt'] = 4  # no time-reversal symmetry
         else:
             raise ValueError('spin type `{}` is not supported'.format(spin_type.value))
 
