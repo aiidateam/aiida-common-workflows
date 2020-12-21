@@ -1,15 +1,12 @@
 moderate: # main settings exploiting OT
   description: 'Protocol to relax a structure with normal precision at moderate computational cost.'
+  kpoints_distance: 0.5
   GLOBAL:
     PRINT_LEVEL: MEDIUM              #default: MEDIUM. Important to have the correct parsing
   FORCE_EVAL:
     METHOD:         QUICKSTEP
     STRESS_TENSOR:  ANALYTICAL
     DFT:
-      KPOINTS:
-        SCHEME: "MONKHORST-PACK 3 3 3"
-        SYMMETRY: "OFF"
-        WAVEFUNCTIONS: "COMPLEX"
       BASIS_SET_FILE_NAME:
         - BASIS_MOLOPT
         - BASIS_MOLOPT_UCL
@@ -36,21 +33,14 @@ moderate: # main settings exploiting OT
           EPS_SCF:   1.0E-6
         DIAGONALIZATION:
           EPS_ADAPT: 0.01
-
         MIXING:
-          METHOD: DIRECT_P_MIXING
-          ALPHA:  0.4
-          BETA:   0.5
+          METHOD: BROYDEN_MIXING
+          ALPHA:  0.1
+          BETA:   1.5
       XC:
         XC_FUNCTIONAL:
           PBE:
             PARAMETRIZATION: ORIG
-        VDW_POTENTIAL:
-           POTENTIAL_TYPE:  PAIR_POTENTIAL
-           PAIR_POTENTIAL:
-              PARAMETER_FILE_NAME:   dftd3.dat
-              TYPE:                  DFTD3(BJ)
-              REFERENCE_FUNCTIONAL:   PBE
       PRINT:
         MO_CUBES:
           WRITE_CUBE: F
@@ -125,16 +115,13 @@ moderate: # main settings exploiting OT
 
 precise:
   description: 'Protocol to relax a structure with high precision at higher computational cost.'
+  kpoints_distance: 0.2
   GLOBAL:
     PRINT_LEVEL: MEDIUM              #default: MEDIUM. Important to have the correct parsing
   FORCE_EVAL:
     METHOD:         QUICKSTEP
     STRESS_TENSOR:  ANALYTICAL
     DFT:
-      KPOINTS:
-        SCHEME: "MONKHORST-PACK 3 3 3"
-        SYMMETRY: "OFF"
-        WAVEFUNCTIONS: "COMPLEX"
       BASIS_SET_FILE_NAME:
         - BASIS_MOLOPT
         - BASIS_MOLOPT_UCL
@@ -161,21 +148,14 @@ precise:
           EPS_SCF:   1.0E-6          # ROBUST: equal (or smaller for expert use) than SCF/EPS_SCF
         DIAGONALIZATION:
           EPS_ADAPT: 0.01
-
         MIXING:
-          METHOD: DIRECT_P_MIXING
-          ALPHA:  0.4 # = Default: it does not seem to contribute much
-          BETA:   0.5 # = Default: it does not seem to contribute much
+          METHOD: BROYDEN_MIXING
+          ALPHA:  0.1
+          BETA:   1.5
       XC:
         XC_FUNCTIONAL:
           PBE:
             PARAMETRIZATION: ORIG
-        VDW_POTENTIAL:
-           POTENTIAL_TYPE:  PAIR_POTENTIAL
-           PAIR_POTENTIAL:
-              PARAMETER_FILE_NAME:   dftd3.dat
-              TYPE:                  DFTD3(BJ)
-              REFERENCE_FUNCTIONAL:   PBE
       PRINT:
         MO_CUBES:
           WRITE_CUBE: F
@@ -250,6 +230,7 @@ precise:
 
 fast:  # WARNING: this protocal wasn't tested properly.
   description: 'Protocol to relax a structure with low precision at minimal computational cost for testing purposes.'
+  kpoints_distance: 1.0
   GLOBAL:
     PRINT_LEVEL: MEDIUM
   FORCE_EVAL:
