@@ -1,7 +1,8 @@
 fast:
     name: "fast"
     description: "Protocol to relax a structure with low precision at minimal computational cost for testing purposes."
-    pseudo_family: "PseudoDojo/0.4/PBE/SR/standard/psp8"
+    pseudo_family: "PseudoDojo/1.0/PBE/SR/stringent/jthxml"
+    cutoff_stringency: "low"
     base:
         kpoints_distance: 1.0
         abinit:
@@ -32,7 +33,8 @@ fast:
 moderate:
     name: "moderate"
     description: "Protocol to relax a structure with normal precision at moderate computational cost."
-    pseudo_family: "PseudoDojo/0.4/PBE/SR/standard/psp8"
+    pseudo_family: "PseudoDojo/1.0/PBE/SR/stringent/jthxml"
+    cutoff_stringency: "normal"
     base:
         kpoints_distance: 0.20
         abinit:
@@ -64,6 +66,7 @@ precise:
     name: "precise"
     description: "Protocol to relax a structure with high precision at higher computational cost."
     pseudo_family: "PseudoDojo/1.0/PBE/SR/stringent/jthxml"
+    cutoff_stringency: "high"
     base:
         kpoints_distance: 0.1
         abinit:
