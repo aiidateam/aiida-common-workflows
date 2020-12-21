@@ -170,9 +170,6 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             protocol['base']['abinit']['parameters']['toldff'] = threshold_f * 1.0e-1
             # Add a model macroscopic dielectric constant
             protocol['base']['abinit']['parameters']['diemac'] = 2.0
-            # Decrease fband and tsmear because molecules don't need many bands or high smearing
-            protocol['base']['abinit']['parameters']['fband'] = 1.20
-            protocol['base']['abinit']['parameters']['tsmear'] = 0.075
 
             inputs = generate_inputs(self.process_class._process_class, protocol, code, pbc_structure, override)  # pylint: disable=protected-access
         elif False in structure.pbc:
