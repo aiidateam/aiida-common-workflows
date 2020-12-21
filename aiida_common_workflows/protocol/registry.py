@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=unsupported-membership-test,unsubscriptable-object
 """Module with base protocol registry."""
+import copy
 import typing
 
 __all__ = ('ProtocolRegistry',)
@@ -50,6 +51,6 @@ class ProtocolRegistry:
     def get_protocol(self, name: str) -> typing.Dict:
         """Return the protocol corresponding to the given name."""
         try:
-            return self._protocols[name]
-        except KeyError:
-            raise ValueError('the protocol `{}` does not exist'.format(name))
+            return copy.deepcopy(self._protocols[name])
+        except KeyError as exception:
+            raise ValueError('the protocol `{}` does not exist'.format(name)) from exception

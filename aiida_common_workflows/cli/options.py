@@ -202,3 +202,11 @@ PRECISIONS = options.OverridableOption(
 PRINT_TABLE = options.OverridableOption(
     '-t', '--print-table', is_flag=True, help='Print the volume and energy table instead of plotting.'
 )
+
+PREVIOUS_WORKCHAIN = options.OverridableOption(
+    '-P',
+    '--previous-workchain',
+    type=types.WorkflowParamType(),
+    required=False,
+    help='An instance of a completed workchain of the same type as would be run for the given plugin.'
+)
