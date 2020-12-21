@@ -115,8 +115,8 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         if pseudo_type == 'pseudo.jthxml':
             # JTH XML are PAW; we need `pawecutdg`
             cutoff_parameters = {
-                'ecut': recommended_ecut_wfc / units.Ha_to_eV,
-                'pawecutdg': recommended_ecut_rho / units.Ha_to_eV,
+                'ecut': np.ceil(recommended_ecut_wfc / units.Ha_to_eV),
+                'pawecutdg': np.ceil(recommended_ecut_rho / units.Ha_to_eV),
             }
         else:
             # All others are NC; no need for `pawecutdg`
@@ -209,7 +209,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             pass
         elif spin_type == SpinType.COLLINEAR:
             if magnetization_per_site is None:
-                magnetization_per_site = [1.0] * len(structure.sites)
+                magnetization_per_site = get_initial_magnetization(structure)
                 warnings.warn(f'input magnetization per site was None, setting it to {magnetization_per_site}')
             magnetization_per_site = np.array(magnetization_per_site)
 
@@ -433,3 +433,67 @@ def generate_inputs_calculation(
     }
 
     return dictionary
+
+
+def get_initial_magnetization(structure: StructureData) -> List[float]:
+    """Generate a guess for initial magnetization using a magnetic moment mapping.
+
+    See the function for elements with known magnetization guesses. If a gues is not known, 0.01 is used
+    for initialization.
+
+    :param structure: structure
+    :return: scalar initial magnetization for each Site in the structure
+    """
+
+    magmom_mapping = {
+        'Ac': 5,
+        'Ce': 5,
+        'Co': 5,
+        'Co3+': 0.6,
+        'Co4+': 1,
+        'Cr': 5,
+        'Dy': 7,
+        'Er': 7,
+        'Eu': 7,
+        'Fe': 5,
+        'Gd': 5,
+        'Hf': 5,
+        'Ho': 7,
+        'Ir': 5,
+        'La': 5,
+        'Lu': 5,
+        'Mn': 5,
+        'Mn3+': 4,
+        'Mn4+': 3,
+        'Mo': 5,
+        'Nb': 5,
+        'Nd': 7,
+        'Ni': 5,
+        'Np': 5,
+        'Os': 5,
+        'Pa': 5,
+        'Pm': 7,
+        'Pr': 7,
+        'Pt': 5,
+        'Pu': 7,
+        'Re': 5,
+        'Rh': 5,
+        'Ru': 5,
+        'Sc': 5,
+        'Sm': 7,
+        'Ta': 5,
+        'Tb': 7,
+        'Tc': 5,
+        'Th': 5,
+        'Ti': 5,
+        'Tm': 7,
+        'U': 5,
+        'V': 5,
+        'W': 5,
+        'Y': 5,
+        'Zr': 5,
+    }
+
+    magnetization = [magmom_mapping.get(site.kind_name, 0.01) for site in structure.sites]
+
+    return magnetization
