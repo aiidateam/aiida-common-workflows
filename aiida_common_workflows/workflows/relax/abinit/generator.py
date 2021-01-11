@@ -165,6 +165,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             )  # Remove tolvrs; we will use force tolerance for SCF
             # Set k-points to gamma-point
             protocol['base']['kpoints'] = [1, 1, 1]
+            protocol['base']['abinit']['parameters']['shiftk'] = [[0, 0, 0]]
             protocol['base']['abinit']['parameters']['nkpt'] = 1
             # Set a force tolerance for SCF convergence
             protocol['base']['abinit']['parameters']['toldff'] = threshold_f * 1.0e-1
@@ -270,7 +271,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         if previous_workchain is not None:
             try:
                 previous_kpoints = previous_workchain.inputs.kpoints
-            except exceptions.NotExistentAttributeError:
+            except exceptions.NotExistentAttributeError as not_existent_attr_error:
                 query_builder = orm.QueryBuilder()
                 query_builder.append(orm.WorkChainNode, tag='relax', filters={'id': previous_workchain.id})
                 query_builder.append(
@@ -288,7 +289,8 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
                 query_builder.order_by({orm.KpointsData: {'ctime': 'desc'}})
                 query_builder_result = query_builder.all()
                 if query_builder_result == []:
-                    raise ValueError(f'Could not find KpointsData associated with {previous_workchain}')
+                    msg = f'Could not find KpointsData associated with {previous_workchain}'
+                    raise ValueError(msg) from not_existent_attr_error
                 previous_kpoints = query_builder_result[0][0]
 
             # ensure same k-points
@@ -346,7 +348,8 @@ def generate_inputs(
         try:
             code = orm.load_code(code)
         except (exceptions.MultipleObjectsError, exceptions.NotExistent) as exception:
-            raise ValueError('could not load the code {}: {}'.format(code, exception))
+            msg = f'could not load the code {code}'
+            raise ValueError(msg) from exception
 
     if process_class == AbinitCalculation:
         protocol = protocol['abinit']
