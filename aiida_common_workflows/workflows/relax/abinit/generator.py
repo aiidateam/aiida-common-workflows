@@ -445,8 +445,10 @@ def get_initial_magnetization(structure: StructureData) -> List[float]:
     Co3+, Co4+, Mn3+, Mn4+ taken from `abipy`:
         https://github.com/abinit/abipy/blob/master/abipy/abio/inputs.py
     All others taken from `aiida-quantumespresso` (credit to Nicolas Mounet):
-        https://github.com/aiidateam/aiida-quantumespresso/blob/develop/ ...
-            ... aiida_quantumespresso/workflows/protocols/magnetization.yaml
+        "https://github.com/aiidateam/aiida-quantumespresso/blob/develop/
+         aiida_quantumespresso/workflows/protocols/magnetization.yaml"
+        * These values seem to be obtained by taking the maximum magnetic moment for each element with partially
+            occupied d/f orbitals
 
     :param structure: structure
     :return: scalar initial magnetization for each Site in the structure
