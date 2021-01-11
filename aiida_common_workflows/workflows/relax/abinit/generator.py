@@ -442,6 +442,11 @@ def get_initial_magnetization(structure: StructureData) -> List[float]:
     for initialization.
 
     Includes values from `abipy` and `aiida-quantumespresso`.
+    Co3+, Co4+, Mn3+, Mn4+ taken from `abipy`:
+        https://github.com/abinit/abipy/blob/master/abipy/abio/inputs.py
+    All others taken from `aiida-quantumespresso` (credit to Nicolas Mounet):
+        https://github.com/aiidateam/aiida-quantumespresso/blob/develop/ ...
+            ... aiida_quantumespresso/workflows/protocols/magnetization.yaml
 
     :param structure: structure
     :return: scalar initial magnetization for each Site in the structure
