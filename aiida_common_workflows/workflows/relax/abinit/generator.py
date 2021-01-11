@@ -441,6 +441,8 @@ def get_initial_magnetization(structure: StructureData) -> List[float]:
     See the function for elements with known magnetization guesses. If a gues is not known, 0.01 is used
     for initialization.
 
+    Includes values from `abipy` and `aiida-quantumespresso`.
+
     :param structure: structure
     :return: scalar initial magnetization for each Site in the structure
     """
