@@ -209,7 +209,7 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
 
         #We fix the `mesh-sizes` to the one of previous_workchain, we need to access
         #the underline SiestaBaseWorkChain. Also we `return` as the heuristics can only
-        #the meshcutoff. THIS SHOULD BE CHECKED IF FEATURES ADDED TO ATOM HEURISTICS
+        #modify the meshcutoff. THIS SHOULD BE CHECKED IF FEATURES ADDED TO ATOM HEURISTICS
         if previous_workchain is not None:
             from aiida.orm import WorkChainNode
             siesta_base_outs = previous_workchain.get_outgoing(node_class=WorkChainNode).one().node.outputs
