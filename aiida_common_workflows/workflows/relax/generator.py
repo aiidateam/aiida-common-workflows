@@ -199,7 +199,7 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
             **kwargs
         )
 
-        return builder._inputs(prune=True)
+        return builder._inputs(prune=True)  # pylint: disable=protected-access
 
     def get_calc_types(self):
         """Return the calculation types for this input generator."""
