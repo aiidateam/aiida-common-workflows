@@ -172,6 +172,10 @@ class DissociationCurveWorkChain(WorkChain):
 
     def run_dissociation(self):
         """Run the sub process at each distance to compute the total energy."""
+        if any([not child.is_finished_ok for child in self.ctx.children]):
+            return self.exit_codes.ERROR_SUB_PROCESS_FAILED.format(cls=self.inputs.sub_process_class)  # pylint: disable=no-member
+
+
         for distance in self.get_distances()[1:]:
             previous_workchain = self.ctx.previous_workchain
             builder, distance_node = self.get_sub_workchain_builder(distance, previous_workchain=previous_workchain)

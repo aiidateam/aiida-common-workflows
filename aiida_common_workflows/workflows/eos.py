@@ -144,6 +144,10 @@ class EquationOfStateWorkChain(WorkChain):
 
     def run_eos(self):
         """Run the sub process at each scale factor to compute the structure volume and total energy."""
+        
+        if any([not child.is_finished_ok for child in self.ctx.children]):
+            return self.exit_codes.ERROR_SUB_PROCESS_FAILED.format(cls=self.inputs.sub_process_class)  # pylint: disable=no-member
+
         for scale_factor in self.get_scale_factors()[1:]:
             previous_workchain = self.ctx.previous_workchain
             builder, structure = self.get_sub_workchain_builder(scale_factor, previous_workchain=previous_workchain)
