@@ -251,6 +251,8 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
             run_type = 'GEO_OPT'
         elif relax_type == RelaxType.ATOMS_CELL:
             run_type = 'CELL_OPT'
+        elif relax_type == RelaxType.NONE:
+            run_type = 'ENERGY'
         else:
             raise ValueError(f'Relax type `{relax_type.value}` is not supported')
         parameters['GLOBAL'] = {'RUN_TYPE': run_type}
@@ -284,6 +286,10 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
 
         # Use advanced parser to parse more data.
         builder.cp2k.metadata.options['parser_name'] = 'cp2k_advanced_parser'
+
+        # Uncomment to change number of CPUs and execution time.
+        # builder.cp2k.metadata.options['resources'][ "num_mpiprocs_per_machine"]  = 8
+        # builder.cp2k.metadata.options['max_wallclock_seconds']  = 3600 * 12
 
         return builder
 
