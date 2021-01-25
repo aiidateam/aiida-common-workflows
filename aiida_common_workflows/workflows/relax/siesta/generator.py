@@ -32,15 +32,11 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         }
     }
     _relax_types = {
-        RelaxType.NONE:
-        'no relaxation performed',
-        RelaxType.ATOMS:
-        'latice shape and volume fixed, only atomic positions are relaxed',
-        RelaxType.ATOMS_CELL:
-        'lattice relaxed together with atomic coordinates. Allows '
+        RelaxType.NONE: 'no relaxation performed',
+        RelaxType.ATOMS: 'latice shape and volume fixed, only atomic positions are relaxed',
+        RelaxType.ATOMS_CELL: 'lattice relaxed together with atomic coordinates. Allows '
         'to target hydro-static pressures or arbitrary stress tensors.',
-        RelaxType.ATOMS_SHAPE:
-        'relaxation at constant volume.'
+        RelaxType.ATOMS_SHAPE: 'relaxation at constant volume.'
     }
     _spin_types = {
         SpinType.NONE: 'non magnetic calculation',
@@ -167,6 +163,7 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         if relax_type == RelaxType.ATOMS_CELL:
             parameters['md-variable-cell'] = True
         if relax_type == RelaxType.ATOMS_SHAPE:
+            parameters['md-variable-cell'] = True
             parameters['md-constant-volume'] = True
         if threshold_forces:
             parameters['md-max-force-tol'] = str(threshold_forces) + ' eV/Ang'
