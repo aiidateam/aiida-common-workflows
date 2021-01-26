@@ -243,12 +243,16 @@ class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
             inputdict['dft'].update({'nspin': 1})
         elif spin_type is SpinType.COLLINEAR:
             inputdict['dft'].update({'nspin': 2})
-
+        psp=[]
         if ortho_dict is not None:
             inputdict = BigDFTParameters.set_inputfile(
-                inputdict['dft']['hgrids'], ortho_dict, inputdict, units='angstroem'
+                inputdict['dft']['hgrids'], ortho_dict, inputdict, psp=psp, units='angstroem'
             )
         else:
+            # use HGH pseudopotentials instead of default ones from BigDFT, if the user does not specify new ones.
+            # This may be moved to the plugin if we decide to make it the default behavior.
+            for elem in pymatgen_struct.types_of_specie:
+                BigDFTParameters.set_psp(elem.name, psp)
             inputdict['kpt'] = BigDFTParameters.set_kpoints(len(builder.structure.sites))
             if pymatgen_struct.ntypesp <= 1:
                 inputdict['dft'].update(
@@ -257,8 +261,11 @@ class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
         if magnetization_per_site:
             for (i, atom) in enumerate(inputdict['posinp']['positions']):
                 atom['IGSpin'] = int(magnetization_per_site[i])
-        #inputdict.update({'perf': {'accel': 'OCLGPU', 'ocl_devices': 'Tesla K40c', 'blas': 'Yes'}})
-
+        if psp:
+            import os
+            builder.pseudos=orm.List()
+            psprel=[os.path.relpath(i) for i in psp]
+            builder.pseudos.extend(psprel)
         builder.parameters = BigDFTParameters(dict=inputdict)
         builder.code = orm.load_code(calc_engines[relaxation_schema]['code'])
         run_opts = {'options': calc_engines[relaxation_schema]['options']}
