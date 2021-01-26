@@ -14,6 +14,7 @@ __all__ = ('BigDftRelaxInputsGenerator',)
 BigDFTParameters = plugins.DataFactory('bigdft')
 StructureData = plugins.DataFactory('structure')
 
+
 @calcfunction
 def ortho_struct(input_struct):
     """Create and update a dict to pass to transform_to_orthorombic,
@@ -44,12 +45,15 @@ def ortho_struct(input_struct):
     for i in range(dico['nat']):
         site = input_struct.sites[0]
         if periodic == 1:
-            site.position = (dico[str(i + 1)][0] * dico['a'], dico[str(i + 1)][1] * dico['b'], dico[str(i + 1)][2] * dico['c'])
+            site.position = (
+                dico[str(i + 1)][0] * dico['a'], dico[str(i + 1)][1] * dico['b'], dico[str(i + 1)][2] * dico['c']
+            )
         else:
             site.position = dico[str(i + 1)]
         output.append_site(site)
     out = {'outstruct': output, 'outdict': dico}
     return out
+
 
 class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
     """Input generator for the `BigDFTRelaxWorkChain`."""
@@ -244,7 +248,7 @@ class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
             inputdict['dft'].update({'nspin': 1})
         elif spin_type is SpinType.COLLINEAR:
             inputdict['dft'].update({'nspin': 2})
-        psp=[]
+        psp = []
         if ortho_dict is not None:
             inputdict = BigDFTParameters.set_inputfile(
                 inputdict['dft']['hgrids'], ortho_dict, inputdict, psp=psp, units='angstroem'
@@ -264,8 +268,8 @@ class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
                 atom['IGSpin'] = int(magnetization_per_site[i])
         if psp:
             import os
-            builder.pseudos=orm.List()
-            psprel=[os.path.relpath(i) for i in psp]
+            builder.pseudos = orm.List()
+            psprel = [os.path.relpath(i) for i in psp]
             builder.pseudos.extend(psprel)
         builder.parameters = BigDFTParameters(dict=inputdict)
         builder.code = orm.load_code(calc_engines[relaxation_schema]['code'])
