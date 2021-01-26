@@ -11,25 +11,29 @@ __all__ = ('QuantumEspressoRelaxWorkChain',)
 
 
 @calcfunction
-def get_stress_from_trajectory(trajectory):
-    """Return the stress array from the given trajectory data."""
-    stress = orm.ArrayData()
-    stress.set_array(name='stress', array=trajectory.get_array('stress')[-1])
-    return stress
-
-
-@calcfunction
-def get_forces_from_trajectory(trajectory):
-    """Return the forces array from the given trajectory data."""
+def extract_from_trajectory(trajectory):
+    """Return the forces and stress arrays from the given trajectory data."""
     forces = orm.ArrayData()
     forces.set_array(name='forces', array=trajectory.get_array('forces')[-1])
-    return forces
+
+    stress = orm.ArrayData()
+    stress.set_array(name='stress', array=trajectory.get_array('stress')[-1])
+
+    return {'forces': forces, 'stress': stress}
 
 
 @calcfunction
-def get_total_energy(parameters):
-    """Return the total energy from the given parameters node."""
-    return orm.Float(parameters.get_attribute('energy'))
+def extract_from_parameters(parameters):
+    """Return the total energy and optionally the total magnetization from the given parameters node."""
+    total_energy = parameters.get_attribute('energy')
+    total_magnetization = parameters.get_attribute('total_magnetization', None)
+
+    results = {'total_energy': orm.Float(total_energy)}
+
+    if total_magnetization is not None:
+        results['total_magnetization'] = orm.Float(total_magnetization)
+
+    return results
 
 
 class QuantumEspressoRelaxWorkChain(CommonRelaxWorkChain):
@@ -40,7 +44,22 @@ class QuantumEspressoRelaxWorkChain(CommonRelaxWorkChain):
 
     def convert_outputs(self):
         """Convert the outputs of the sub workchain to the common output specification."""
-        self.out('relaxed_structure', self.ctx.workchain.outputs.output_structure)
-        self.out('total_energy', get_total_energy(self.ctx.workchain.outputs.output_parameters))
-        self.out('forces', get_forces_from_trajectory(self.ctx.workchain.outputs.output_trajectory))
-        self.out('stress', get_stress_from_trajectory(self.ctx.workchain.outputs.output_trajectory))
+        outputs = self.ctx.workchain.outputs
+
+        result = extract_from_parameters(outputs.output_parameters).values()
+        forces, stress = extract_from_trajectory(outputs.output_trajectory).values()
+
+        try:
+            total_energy, total_magnetization = result
+        except ValueError:
+            total_energy, total_magnetization = list(result)[0], None
+
+        if 'output_structure' in outputs:
+            self.out('relaxed_structure', outputs.output_structure)
+
+        if total_magnetization is not None:
+            self.out('total_magnetization', total_magnetization)
+
+        self.out('total_energy', total_energy)
+        self.out('forces', forces)
+        self.out('stress', stress)
