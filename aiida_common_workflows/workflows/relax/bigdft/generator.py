@@ -5,6 +5,7 @@ from typing import Any, Dict, List
 from aiida import engine
 from aiida import orm
 from aiida import plugins
+from aiida.engine import calcfunction
 
 from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
 
@@ -13,7 +14,7 @@ __all__ = ('BigDftRelaxInputsGenerator',)
 BigDFTParameters = plugins.DataFactory('bigdft')
 StructureData = plugins.DataFactory('structure')
 
-
+@calcfunction
 def ortho_struct(input_struct):
     """Create and update a dict to pass to transform_to_orthorombic,
       and then get back data to the input dict """
@@ -33,9 +34,9 @@ def ortho_struct(input_struct):
         site = input_struct.get_pymatgen().sites[i]
         if isinstance(site, pymatgen.core.sites.PeriodicSite):
             periodic = 1
-            dico[i + 1] = list(site.frac_coords)
+            dico[str(i + 1)] = list(site.frac_coords)
         else:
-            dico[i + 1] = (site.coords[0] / dico['a'], site.coords[1] / dico['b'], site.coords[2] / dico['c'])
+            dico[str(i + 1)] = (site.coords[0] / dico['a'], site.coords[1] / dico['b'], site.coords[2] / dico['c'])
     BigDFTParameters.transform_to_orthorombic(dico)
     output = input_struct.clone()
     output.clear_sites()
@@ -43,12 +44,12 @@ def ortho_struct(input_struct):
     for i in range(dico['nat']):
         site = input_struct.sites[0]
         if periodic == 1:
-            site.position = (dico[i + 1][0] * dico['a'], dico[i + 1][1] * dico['b'], dico[i + 1][2] * dico['c'])
+            site.position = (dico[str(i + 1)][0] * dico['a'], dico[str(i + 1)][1] * dico['b'], dico[str(i + 1)][2] * dico['c'])
         else:
-            site.position = dico[i + 1]
+            site.position = dico[str(i + 1)]
         output.append_site(site)
-    return output, dico
-
+    out = {'outstruct': output, 'outdict': dico}
+    return out
 
 class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
     """Input generator for the `BigDFTRelaxWorkChain`."""
@@ -198,11 +199,11 @@ class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
 
         pymatgen_struct = structure.get_pymatgen()
         ortho_dict = None
-        # for single atom computations, we should actually not perform relaxation
         if pymatgen_struct.ntypesp <= 1:
-            builder.relax.perform = orm.Bool(False)
             # pass the structure through a transform to generate orthorhombic structure if possible/needed.
-            newstruct, ortho_dict = ortho_struct(structure)
+            new = ortho_struct(structure)
+            newstruct = new.get('outstruct')
+            ortho_dict = new.get('outdict')
             newstruct.store()
             builder.structure = newstruct
         else:
