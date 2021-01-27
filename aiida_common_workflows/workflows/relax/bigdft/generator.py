@@ -64,7 +64,22 @@ class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
             'description': 'This profile should be chosen if speed is more important than accuracy.',
             'inputdict_cubic': {
                 'dft': {
+                    'ixc': 'PBE',
+                    'ncong': 2,
+                    'rmult': [10, 8],
+                    'itermax': 3,
+                    'idsx': 0,
+                    'gnrm_cv': 1e-7,
                     'hgrids': 0.45
+                },
+                'mix': {
+                    'iscf': 7,
+                    'itrpmax': 200,
+                    'rpnrm_cv': 1e-10,
+                    'tel': 1e-3,
+                    'alphamix': 0.5,
+                    'norbsempty': 1000,
+                    'alphadiis': 1.0
                 }
             },
             'inputdic_linear': {
