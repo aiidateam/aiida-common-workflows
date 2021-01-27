@@ -1,0 +1,33 @@
+fast:
+  description: 'Minimal basis set for testing purpose!'
+  input_blocks:
+    scf:
+      convergence: Strong
+  input_keywords:
+  - PBE
+  - def2-SVP
+  - Opt
+  - LOOSEOPT
+  extra_input_keywords: []
+moderate:
+  description: 'Moderate size basis set'
+  input_blocks:
+    scf:
+      convergence: Tight
+  input_keywords:
+  - PBE
+  - def2-TZVP
+  - Opt
+  - NORMALOPT
+  extra_input_keywords: []
+precise:
+  description: 'Slightly larger basis set for more accurate results?!'
+  input_blocks:
+    scf:
+      convergence: VeryTight
+  input_keywords:
+  - PBE
+  - def2-QZVP
+  - Opt
+  - TIGHTOPT
+  extra_input_keywords: []

@@ -23,12 +23,11 @@
         "aiida-cp2k~=1.1",
         "aiida-fleur~=1.1",
         "aiida-gaussian",
-        "aiida-pseudo",
-        "aiida-quantumespresso~=3.2",
-        "aiida-siesta",
-        "aiida-sssp~=0.1.0",
-        "aiida-castep>=1.2.0a2",
-        "aiida-vasp"
+        "aiida-quantumespresso~=3.3",
+        "aiida-siesta~=1.1",
+        "aiida-castep>=1.2.0a5",
+        "aiida-vasp",
+        "aiida-orca"
     ],
     "extras_require": {
         "tests": [
@@ -48,6 +47,7 @@
         ],
         "aiida.workflows": [
             "common_workflows.eos = aiida_common_workflows.workflows.eos:EquationOfStateWorkChain",
+            "common_workflows.dissociation_curve = aiida_common_workflows.workflows.dissociation:DissociationCurveWorkChain",
             "common_workflows.relax.bigdft = aiida_common_workflows.workflows.relax.bigdft.workchain:BigDftRelaxWorkChain",
             "common_workflows.relax.cp2k = aiida_common_workflows.workflows.relax.cp2k.workchain:Cp2kRelaxWorkChain",
             "common_workflows.relax.fleur = aiida_common_workflows.workflows.relax.fleur.workchain:FleurRelaxWorkChain",
@@ -56,7 +56,8 @@
             "common_workflows.relax.siesta = aiida_common_workflows.workflows.relax.siesta.workchain:SiestaRelaxWorkChain",
             "common_workflows.relax.vasp = aiida_common_workflows.workflows.relax.vasp.workchain:VaspRelaxWorkChain",
             "common_workflows.relax.castep = aiida_common_workflows.workflows.relax.castep.workchain:CastepRelaxWorkChain",
-            "common_workflows.relax.abinit = aiida_common_workflows.workflows.relax.abinit.workchain:AbinitRelaxWorkChain"
+            "common_workflows.relax.abinit = aiida_common_workflows.workflows.relax.abinit.workchain:AbinitRelaxWorkChain",
+            "common_workflows.relax.orca = aiida_common_workflows.workflows.relax.orca.workchain:OrcaRelaxWorkChain"
         ]
     },
     "license": "MIT License",

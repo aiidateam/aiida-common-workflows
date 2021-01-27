@@ -41,6 +41,27 @@ def test_validate_sub_process_class_plugins(ctx, common_relax_workchain):
 
 
 @pytest.mark.usefixtures('with_database')
+def test_validate_inputs(ctx):
+    """Test the `validate_inputs` validator."""
+    value = {}
+    assert eos.validate_inputs(
+        value, ctx
+    ) == 'neither `scale_factors` nor the pair of `scale_count` and `scale_increment` were defined.'
+    value = {'scale_count': 2}
+    assert eos.validate_inputs(
+        value, ctx
+    ) == 'neither `scale_factors` nor the pair of `scale_count` and `scale_increment` were defined.'
+    value = {'scale_increment': 2}
+    assert eos.validate_inputs(
+        value, ctx
+    ) == 'neither `scale_factors` nor the pair of `scale_count` and `scale_increment` were defined.'
+    value = {'scale_count': 2, 'scale_increment': 0.2}
+    assert eos.validate_inputs(value, ctx) is None
+    value = {'scale_factors': []}
+    assert eos.validate_inputs(value, ctx) is None
+
+
+@pytest.mark.usefixtures('with_database')
 def test_validate_scale_factors(ctx):
     """Test the `validate_scale_factors` validator."""
     assert eos.validate_scale_factors(None, ctx) is None

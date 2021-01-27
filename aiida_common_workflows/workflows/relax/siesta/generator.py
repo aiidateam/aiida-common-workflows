@@ -157,7 +157,7 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
         kpoints_mesh = self._get_kpoints(protocol, structure, previous_workchain)
 
         # Parameters, including scf ...
-        parameters = self._get_param(protocol, structure)
+        parameters = self._get_param(protocol, structure, previous_workchain)
         #... relax options ...
         if relax_type != RelaxType.NONE:
             parameters['md-type-of-run'] = 'cg'
@@ -200,12 +200,26 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
 
         return builder
 
-    def _get_param(self, key, structure):  # pylint: disable=too-many-branches
+    def _get_param(self, key, structure, previous_workchain):  # pylint: disable=too-many-branches
         """
         Method to construct the `parameters` input. Heuristics are applied, a dictionary
         with the parameters is returned.
         """
         parameters = self._protocols[key]['parameters'].copy()
+
+        #We fix the `mesh-sizes` to the one of previous_workchain, we need to access
+        #the underline SiestaBaseWorkChain. Also we `return` as the heuristics can only
+        #modify the meshcutoff. THIS SHOULD BE CHECKED IF FEATURES ADDED TO ATOM HEURISTICS
+        if previous_workchain is not None:
+            from aiida.orm import WorkChainNode
+            siesta_base_outs = previous_workchain.get_outgoing(node_class=WorkChainNode).one().node.outputs
+            mesh = siesta_base_outs.output_parameters.attributes['mesh']
+            parameters['mesh-sizes'] = f'[{mesh[0]} {mesh[1]} {mesh[2]}]'
+            try:
+                parameters.pop('mesh-cutoff')
+            except KeyError:
+                pass
+            return parameters
 
         if 'atomic_heuristics' in self._protocols[key]:  # pylint: disable=too-many-nested-blocks
             atomic_heuristics = self._protocols[key]['atomic_heuristics']
@@ -233,7 +247,7 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
                                 'Wrong `mesh-cutoff` value for heuristc '
                                 '{0} of protocol {1}'.format(kind.symbol, key)
                             )
-                        if meshcut_glob:
+                        if meshcut_glob is not None:
                             if cust_meshcut > float(meshcut_glob):
                                 meshcut_glob = cust_meshcut
                         else:
@@ -246,12 +260,12 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
                                     '{0} of protocol {1}'.format(kind.symbol, key)
                                 )
 
-            if meshcut_glob:
+            if meshcut_glob is not None:
                 parameters['mesh-cutoff'] = '{0} {1}'.format(meshcut_glob, meshcut_units)
 
         return parameters
 
-    def _get_basis(self, key, structure):
+    def _get_basis(self, key, structure):  #pylint: disable=too-many-branches
         """
         Method to construct the `basis` input.
         Heuristics are applied, a dictionary with the basis is returned.
@@ -263,6 +277,7 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
 
             pol_dict = {}
             size_dict = {}
+            pao_block_dict = {}
 
             # Run through all the heuristics
             for kind in structure.kinds:
@@ -279,19 +294,29 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
                         pol_dict[kind.name] = cust_basis['polarization']
                     if 'size' in cust_basis:
                         size_dict[kind.name] = cust_basis['size']
+                    if 'pao-block' in cust_basis:
+                        pao_block_dict[kind.name] = cust_basis['pao-block']
+                        if kind.name != kind.symbol:
+                            pao_block_dict[kind.name] = pao_block_dict[kind.name].replace(kind.symbol, kind.name)
 
             if pol_dict:
                 card = '\n'
-                for k, v in pol_dict.items():  # pylint: disable=invalid-name
-                    card = card + '  {0}  {1} \n'.format(k, v)
+                for k, value in pol_dict.items():
+                    card = card + f'  {k}  {value} \n'
                 card = card + '%endblock paopolarizationscheme'
                 basis['%block pao-polarization-scheme'] = card
             if size_dict:
                 card = '\n'
-                for k, v in size_dict.items():  # pylint: disable=invalid-name
-                    card = card + '  {0}  {1} \n'.format(k, v)
-                card = card + '%endblock paobasessizes'
-                basis['%block pao-bases-sizes'] = card
+                for k, value in size_dict.items():
+                    card = card + f'  {k}  {value} \n'
+                card = card + '%endblock paobasissizes'
+                basis['%block pao-basis-sizes'] = card
+            if pao_block_dict:
+                card = '\n'
+                for k, value in pao_block_dict.items():
+                    card = card + f'{value} \n'
+                card = card + '%endblock pao-basis'
+                basis['%block pao-basis'] = card
 
         return basis
 

@@ -245,7 +245,6 @@ class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
             inputdict['dft']['hgrids'] = hgrids[0] * builder.structure.cell_lengths[0] / \
                 previous_workchain.inputs.structure.cell_lengths[0]
 
-
 #       Soon : Use inputActions
         if electronic_type is ElectronicType.METAL:
             if 'mix' not in inputdict:

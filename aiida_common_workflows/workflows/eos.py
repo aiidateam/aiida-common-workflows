@@ -13,8 +13,9 @@ from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChai
 
 def validate_inputs(value, _):
     """Validate the entire input namespace."""
-    if 'scale_factors' not in value and ('scale_count' not in value and 'scale_count' not in value):
-        return 'neither `scale_factors` nor the pair of `scale_count` and `scale_increment` were defined.'
+    if 'scale_factors' not in value:
+        if 'scale_count' not in value or 'scale_increment' not in value:
+            return 'neither `scale_factors` nor the pair of `scale_count` and `scale_increment` were defined.'
 
 
 def validate_sub_process_class(value, _):
@@ -97,6 +98,7 @@ class EquationOfStateWorkChain(WorkChain):
         spec.inputs.validator = validate_inputs
         spec.outline(
             cls.run_init,
+            cls.inspect_init,
             cls.run_eos,
             cls.inspect_eos,
         )
@@ -140,6 +142,12 @@ class EquationOfStateWorkChain(WorkChain):
         self.ctx.previous_workchain = self.submit(builder)
         self.ctx.structures = [structure]
         self.to_context(children=append_(self.ctx.previous_workchain))
+
+    def inspect_init(self):
+        """Check that the first workchain finished successfully or abort the workchain."""
+        if not self.ctx.children[0].is_finished_ok:
+            self.report('Initial sub process did not finish successful so aborting the workchain.')
+            return self.exit_codes.ERROR_SUB_PROCESS_FAILED.format(cls=self.inputs.sub_process_class)  # pylint: disable=no-member
 
     def run_eos(self):
         """Run the sub process at each scale factor to compute the structure volume and total energy."""

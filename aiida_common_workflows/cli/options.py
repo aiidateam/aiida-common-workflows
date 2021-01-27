@@ -189,3 +189,24 @@ MAGNETIZATION_PER_SITE = options.OverridableOption(
     required=False,
     help='Optional list containing the initial spin polarization per site in units of electrons.'
 )
+
+PRECISIONS = options.OverridableOption(
+    '-p',
+    '--precisions',
+    cls=options.MultipleValueOption,
+    type=click.INT,
+    required=False,
+    help='Specify the precision of floats used when printing them to stdout with the `--print-table` option.'
+)
+
+PRINT_TABLE = options.OverridableOption(
+    '-t', '--print-table', is_flag=True, help='Print the volume and energy table instead of plotting.'
+)
+
+PREVIOUS_WORKCHAIN = options.OverridableOption(
+    '-P',
+    '--previous-workchain',
+    type=types.WorkflowParamType(),
+    required=False,
+    help='An instance of a completed workchain of the same type as would be run for the given plugin.'
+)

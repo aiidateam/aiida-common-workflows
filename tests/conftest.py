@@ -111,3 +111,29 @@ def generate_eos_node(generate_structure):
         return node
 
     return _generate_eos_node
+
+
+@pytest.fixture
+def generate_dissociation_curve_node():
+    """Generate an instance of ``DissociationCurveWorkChain``."""
+
+    def _generate_dissociation_curve_node(include_magnetization=True):
+        from aiida.common import LinkType
+        from aiida.orm import Float, WorkflowNode
+
+        node = WorkflowNode(process_type='aiida.workflows:common_workflows.dissociation_curve').store()
+
+        for index in range(5):
+            distance = Float(index / 10).store()
+            energy = Float(index).store()
+
+            distance.add_incoming(node, link_type=LinkType.RETURN, link_label=f'distances__{index}')
+            energy.add_incoming(node, link_type=LinkType.RETURN, link_label=f'total_energies__{index}')
+
+            if include_magnetization:
+                magnetization = Float(index).store()
+                magnetization.add_incoming(node, link_type=LinkType.RETURN, link_label=f'total_magnetizations__{index}')
+
+        return node
+
+    return _generate_dissociation_curve_node
