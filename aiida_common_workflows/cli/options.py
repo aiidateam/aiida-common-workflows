@@ -168,7 +168,7 @@ WALLCLOCK_SECONDS = options.OverridableOption(
     '-w',
     '--wallclock-seconds',
     cls=options.MultipleValueOption,
-    type=click.FLOAT,
+    type=click.INT,
     metavar='VALUES',
     required=False,
     help='Define the wallclock seconds to request for each engine step.'
