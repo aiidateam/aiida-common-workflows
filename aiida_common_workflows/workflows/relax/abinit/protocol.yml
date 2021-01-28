@@ -66,7 +66,7 @@ precise:
     pseudo_family: "PseudoDojo/1.0/PBE/SR/standard/jthxml"
     cutoff_stringency: "high"
     base:
-        kpoints_distance: 0.15
+        kpoints_distance: 0.1
         abinit:
             parameters:
                 ecutsm: 0.5 # Ha
