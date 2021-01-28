@@ -123,6 +123,7 @@ class DissociationCurveWorkChain(WorkChain):
         spec.inputs.validator = validate_inputs
         spec.outline(
             cls.run_init,
+            cls.inspect_init,
             cls.run_dissociation,
             cls.inspect_results,
         )
@@ -169,6 +170,12 @@ class DissociationCurveWorkChain(WorkChain):
         self.report(f'submitting `{builder.process_class.__name__}` for distance `{distance.value}`')
         self.ctx.previous_workchain = self.submit(builder)
         self.to_context(children=append_(self.ctx.previous_workchain))
+
+    def inspect_init(self):
+        """Check that the first workchain finished successfully or abort the workchain."""
+        if not self.ctx.children[0].is_finished_ok:
+            self.report('Initial sub process did not finish successful so aborting the workchain.')
+            return self.exit_codes.ERROR_SUB_PROCESS_FAILED.format(cls=self.inputs.sub_process_class)  # pylint: disable=no-member
 
     def run_dissociation(self):
         """Run the sub process at each distance to compute the total energy."""

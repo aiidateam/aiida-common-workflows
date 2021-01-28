@@ -104,13 +104,31 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
 
         protocol = copy.deepcopy(self.get_protocol(protocol))
         code = calc_engines['relax']['code']
+
         pseudo_family = orm.Group.objects.get(label=protocol.pop('pseudo_family'))
+        cutoff_stringency = protocol['cutoff_stringency']
+        pseudo_type = pseudo_family.pseudo_type
+        # Recommended cutoffs from `aiida-pseudo` are in eV
+        recommended_ecut_wfc, recommended_ecut_rho = pseudo_family.get_recommended_cutoffs(
+            structure=structure, stringency=cutoff_stringency
+        )
+        if pseudo_type == 'pseudo.jthxml':
+            # JTH XML are PAW; we need `pawecutdg`
+            cutoff_parameters = {
+                'ecut': np.ceil(recommended_ecut_wfc / units.Ha_to_eV),
+                'pawecutdg': np.ceil(recommended_ecut_rho / units.Ha_to_eV),
+            }
+        else:
+            # All others are NC; no need for `pawecutdg`
+            cutoff_parameters = {'ecut': recommended_ecut_wfc / units.Ha_to_eV}
+
         override = {
             'abinit': {
                 'metadata': {
                     'options': calc_engines['relax']['options']
                 },
-                'pseudos': pseudo_family.get_pseudos(structure=structure)
+                'pseudos': pseudo_family.get_pseudos(structure=structure),
+                'parameters': cutoff_parameters
             }
         }
 
@@ -147,14 +165,12 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             )  # Remove tolvrs; we will use force tolerance for SCF
             # Set k-points to gamma-point
             protocol['base']['kpoints'] = [1, 1, 1]
+            protocol['base']['abinit']['parameters']['shiftk'] = [[0, 0, 0]]
             protocol['base']['abinit']['parameters']['nkpt'] = 1
             # Set a force tolerance for SCF convergence
             protocol['base']['abinit']['parameters']['toldff'] = threshold_f * 1.0e-1
             # Add a model macroscopic dielectric constant
             protocol['base']['abinit']['parameters']['diemac'] = 2.0
-            # Decrease fband and tsmear because molecules don't need many bands or high smearing
-            protocol['base']['abinit']['parameters']['fband'] = 1.20
-            protocol['base']['abinit']['parameters']['tsmear'] = 0.075
 
             inputs = generate_inputs(self.process_class._process_class, protocol, code, pbc_structure, override)  # pylint: disable=protected-access
         elif False in structure.pbc:
@@ -191,7 +207,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             pass
         elif spin_type == SpinType.COLLINEAR:
             if magnetization_per_site is None:
-                magnetization_per_site = [1.0] * len(structure.sites)
+                magnetization_per_site = get_initial_magnetization(structure)
                 warnings.warn(f'input magnetization per site was None, setting it to {magnetization_per_site}')
             magnetization_per_site = np.array(magnetization_per_site)
 
@@ -226,13 +242,8 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             builder.abinit['parameters']['nspden'] = 4  # vector magnetization
             builder.abinit['parameters']['spinat'] = [[0.0, 0.0, mag] for mag in magnetization_per_site]
         elif spin_type == SpinType.SPIN_ORBIT:
-            if 'fr' not in pseudo_family.label:
-                raise ValueError(
-                    'You must use the `stringent` protocol for SPIN_ORBIT calculations because '
-                    'it provides fully-relativistic pseudopotentials (`fr` is not in the protocol\'s '
-                    '`pseudo_family` entry).'
-                )
             builder.abinit['parameters']['nspinor'] = 2  # w.f. as spinors
+            builder.abinit['parameters']['kptopt'] = 4  # no time-reversal symmetry
         else:
             raise ValueError('spin type `{}` is not supported'.format(spin_type.value))
 
@@ -260,7 +271,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         if previous_workchain is not None:
             try:
                 previous_kpoints = previous_workchain.inputs.kpoints
-            except exceptions.NotExistentAttributeError:
+            except exceptions.NotExistentAttributeError as not_existent_attr_error:
                 query_builder = orm.QueryBuilder()
                 query_builder.append(orm.WorkChainNode, tag='relax', filters={'id': previous_workchain.id})
                 query_builder.append(
@@ -278,7 +289,8 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
                 query_builder.order_by({orm.KpointsData: {'ctime': 'desc'}})
                 query_builder_result = query_builder.all()
                 if query_builder_result == []:
-                    raise ValueError(f'Could not find KpointsData associated with {previous_workchain}')
+                    msg = f'Could not find KpointsData associated with {previous_workchain}'
+                    raise ValueError(msg) from not_existent_attr_error
                 previous_kpoints = query_builder_result[0][0]
 
             # ensure same k-points
@@ -336,7 +348,8 @@ def generate_inputs(
         try:
             code = orm.load_code(code)
         except (exceptions.MultipleObjectsError, exceptions.NotExistent) as exception:
-            raise ValueError('could not load the code {}: {}'.format(code, exception))
+            msg = f'could not load the code {code}'
+            raise ValueError(msg) from exception
 
     if process_class == AbinitCalculation:
         protocol = protocol['abinit']
@@ -420,3 +433,76 @@ def generate_inputs_calculation(
     }
 
     return dictionary
+
+
+def get_initial_magnetization(structure: StructureData) -> List[float]:
+    """Generate a guess for initial magnetization using a magnetic moment mapping.
+
+    See the function for elements with known magnetization guesses. If a gues is not known, 0.01 is used
+    for initialization.
+
+    Includes values from `abipy` and `aiida-quantumespresso`.
+    Co3+, Co4+, Mn3+, Mn4+ taken from `abipy`:
+        https://github.com/abinit/abipy/blob/master/abipy/abio/inputs.py
+    All others taken from `aiida-quantumespresso` (credit to Nicolas Mounet):
+        "https://github.com/aiidateam/aiida-quantumespresso/blob/develop/
+         aiida_quantumespresso/workflows/protocols/magnetization.yaml"
+        * These values seem to be obtained by taking the maximum magnetic moment for each element with partially
+            occupied d/f orbitals
+
+    :param structure: structure
+    :return: scalar initial magnetization for each Site in the structure
+    """
+
+    magmom_mapping = {
+        'Ac': 5,
+        'Ce': 5,
+        'Co': 5,
+        'Co3+': 0.6,
+        'Co4+': 1,
+        'Cr': 5,
+        'Dy': 7,
+        'Er': 7,
+        'Eu': 7,
+        'Fe': 5,
+        'Gd': 5,
+        'Hf': 5,
+        'Ho': 7,
+        'Ir': 5,
+        'La': 5,
+        'Lu': 5,
+        'Mn': 5,
+        'Mn3+': 4,
+        'Mn4+': 3,
+        'Mo': 5,
+        'Nb': 5,
+        'Nd': 7,
+        'Ni': 5,
+        'Np': 5,
+        'Os': 5,
+        'Pa': 5,
+        'Pm': 7,
+        'Pr': 7,
+        'Pt': 5,
+        'Pu': 7,
+        'Re': 5,
+        'Rh': 5,
+        'Ru': 5,
+        'Sc': 5,
+        'Sm': 7,
+        'Ta': 5,
+        'Tb': 7,
+        'Tc': 5,
+        'Th': 5,
+        'Ti': 5,
+        'Tm': 7,
+        'U': 5,
+        'V': 5,
+        'W': 5,
+        'Y': 5,
+        'Zr': 5,
+    }
+
+    magnetization = [magmom_mapping.get(site.kind_name, 0.01) for site in structure.sites]
+
+    return magnetization

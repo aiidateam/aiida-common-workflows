@@ -1,15 +1,10 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for Quantum ESPRESSO."""
-import collections
-import pathlib
 from typing import Any, Dict, List
-import yaml
 
 from aiida import engine
 from aiida import orm
 from aiida import plugins
-from aiida.common import exceptions
-from aiida_sssp.groups import SsspFamily
 
 from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
 
@@ -21,24 +16,31 @@ StructureData = plugins.DataFactory('structure')
 class QuantumEspressoRelaxInputsGenerator(RelaxInputsGenerator):
     """Input generator for the `QuantumEspressoRelaxWorkChain`."""
 
-    _default_protocol = 'moderate'
     _calc_types = {'relax': {'code_plugin': 'quantumespresso.pw', 'description': 'The code to perform the relaxation.'}}
-    _relax_types = {
-        RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
-        RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell.'
+    _relax_types = {relax_type: '...' for relax_type in RelaxType}
+    _spin_types = {
+        SpinType.NONE: 'Treat the system without spin polarization.',
+        SpinType.COLLINEAR: 'Treat the system with spin polarization.'
     }
-    _spin_types = {SpinType.NONE: '....', SpinType.COLLINEAR: '....'}
-    _electronic_types = {ElectronicType.METAL: '....', ElectronicType.INSULATOR: '....'}
+    _electronic_types = {
+        ElectronicType.METAL: 'Treat the system as a metal with smeared occupations.',
+        ElectronicType.INSULATOR: 'Treat the system as an insulator with fixed occupations.'
+    }
 
     def __init__(self, *args, **kwargs):
         """Construct an instance of the inputs generator, validating the class attributes."""
-        self._initialize_protocols()
+        process_class = kwargs.get('process_class', None)
+
+        if process_class is not None:
+            self._default_protocol = process_class._process_class.get_default_protocol()
+            self._protocols = process_class._process_class.get_available_protocols()
+
         super().__init__(*args, **kwargs)
 
     def _initialize_protocols(self):
         """Initialize the protocols class attribute by parsing them from the configuration file."""
-        with open(str(pathlib.Path(__file__).parent / 'protocol.yml')) as handle:
-            self._protocols = yaml.safe_load(handle)
+        self._default_protocol = self.process_class.get_default_protocol()
+        self._protocols = self.process_class.get_available_protocols()
 
     def get_builder(
         self,
@@ -73,6 +75,9 @@ class QuantumEspressoRelaxInputsGenerator(RelaxInputsGenerator):
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
         # pylint: disable=too-many-locals
+        from aiida_quantumespresso.common import types
+        from qe_tools import CONSTANTS
+
         protocol = protocol or self.get_default_protocol_name()
 
         super().get_builder(
@@ -89,24 +94,40 @@ class QuantumEspressoRelaxInputsGenerator(RelaxInputsGenerator):
             **kwargs
         )
 
-        from qe_tools import CONSTANTS
+        if magnetization_per_site:
+            kind_to_magnetization = zip([site.kind_name for site in structure.sites], magnetization_per_site)
 
-        protocol = self.get_protocol(protocol)
-        code = calc_engines['relax']['code']
-        override = {'base': {'pw': {'metadata': {'options': calc_engines['relax']['options']}}}}
+            if len(structure.kinds) != len(set(kind_to_magnetization)):
+                raise ValueError(
+                    'the provided `magnetization_per_site` requires the structure to have different kinds, which would '
+                    'require changing the structure, which is not yet supported. Either manually adapt the structure '
+                    'to support the required kinds or adapt the `magnetization_per_site`. The sites of each kind need '
+                    'to start with the exact same magnetization. There is no threshold to compare float numbers, i.e., '
+                    'starting magnetizations 0.1 and 0.0999999999 are considered different.'
+                )
 
-        builder = self.process_class.get_builder()
-        inputs = generate_inputs(self.process_class._process_class, protocol, code, structure, override)  # pylint: disable=protected-access
-        builder._update(inputs)  # pylint: disable=protected-access
-
-        if relax_type == RelaxType.ATOMS:
-            relaxation_schema = 'relax'
-        elif relax_type == RelaxType.ATOMS_CELL:
-            relaxation_schema = 'vc-relax'
+            initial_magnetic_moments = dict(kind_to_magnetization)
         else:
-            raise ValueError('relaxation type `{}` is not supported'.format(relax_type.value))
+            initial_magnetic_moments = None
 
-        builder.relaxation_scheme = orm.Str(relaxation_schema)
+        builder = self.process_class._process_class.get_builder_from_protocol(  # pylint: disable=protected-access
+            calc_engines['relax']['code'],
+            structure,
+            protocol=protocol,
+            overrides={
+                'base': {
+                    'pw': {
+                        'metadata': {
+                            'options': calc_engines['relax']['options']
+                        }
+                    }
+                },
+            },
+            relax_type=types.RelaxType(relax_type.value),
+            electronic_type=types.ElectronicType(electronic_type.value),
+            spin_type=types.SpinType(spin_type.value),
+            initial_magnetic_moments=initial_magnetic_moments,
+        )
 
         if threshold_forces is not None:
             threshold = threshold_forces * CONSTANTS.bohr_to_ang / CONSTANTS.ry_to_ev
@@ -120,186 +141,22 @@ class QuantumEspressoRelaxInputsGenerator(RelaxInputsGenerator):
             parameters.setdefault('CELL', {})['press_conv_thr'] = threshold
             builder.base.pw['parameters'] = orm.Dict(dict=parameters)
 
+        if previous_workchain:
+            relax = previous_workchain.get_outgoing(node_class=orm.WorkChainNode).one().node
+            base = sorted(relax.called, key=lambda x: x.ctime)[-1]
+            calc = sorted(base.called, key=lambda x: x.ctime)[-1]
+            kpoints = calc.inputs.kpoints
+
+            builder.base.pop('kpoints_distance', None)
+            builder.base.pop('kpoints_force_parity', None)
+            builder.base_final_scf.pop('kpoints_distance', None)
+            builder.base_final_scf.pop('kpoints_force_parity', None)
+
+            builder.base['kpoints'] = kpoints
+            builder.base_final_scf['kpoints'] = kpoints
+
+        # Currently the builder is set for the `PwRelaxWorkChain`, but we should return one for the wrapper workchain
+        # `QuantumEspressoRelaxWorkChain` for which this inputs generator is built
+        builder._process_class = self.process_class  # pylint: disable=protected-access
+
         return builder
-
-
-def recursive_merge(left: Dict[str, Any], right: Dict[str, Any]) -> Dict[str, Any]:
-    """Recursively merge two dictionaries into a single dictionary.
-
-    :param left: first dictionary.
-    :param right: second dictionary.
-    :return: the recursively merged dictionary.
-    """
-    for key, value in left.items():
-        if key in right:
-            if isinstance(value, collections.Mapping) and isinstance(right[key], collections.Mapping):
-                right[key] = recursive_merge(value, right[key])
-
-    merged = left.copy()
-    merged.update(right)
-
-    return merged
-
-
-def generate_inputs(
-    process_class: engine.Process,
-    protocol: Dict,
-    code: orm.Code,
-    structure: StructureData,
-    override: Dict[str, Any] = None
-) -> Dict[str, Any]:
-    """Generate the input parameters for the given workchain type for a given code, structure and pseudo family.
-
-    The override argument can be used to pass a dictionary with values for specific inputs that should override the
-    defaults. This dictionary should have the same nested structure as the final input dictionary would have for the
-    workchain submission. For example if one wanted to generate the inputs for a PwBandsWorkChain and override the
-    ecutwfc parameter for the PwBaseWorkChain of the PwRelaxWorkChains, one would have to pass:
-
-        override = {'relax': {'base': {'ecutwfc': 400}}}
-
-    :param process_class: process class, either calculation or workchain, i.e. ``PwCalculation`` or ``PwBaseWorkChain``
-    :param protocol: the protocol based on which to choose input parameters
-    :param code: the code or code name to use
-    :param structure: the structure
-    :param override: a dictionary to override specific inputs
-    :return: input dictionary
-    """
-    # pylint: disable=too-many-arguments,unused-argument
-    from aiida.common.lang import type_check
-
-    try:
-        sssp_family = SsspFamily.objects.get(label=protocol['pseudo_family'])
-    except exceptions.NotExistent:
-        raise ValueError(
-            'protocol `{}` requires the `{}` `SsspFamily` but could not be found.'.format(
-                protocol['name'], protocol['pseudo_family']
-            )
-        )
-
-    PwCalculation = plugins.CalculationFactory('quantumespresso.pw')  # pylint: disable=invalid-name
-    PwBaseWorkChain = plugins.WorkflowFactory('quantumespresso.pw.base')  # pylint: disable=invalid-name
-    PwRelaxWorkChain = plugins.WorkflowFactory('quantumespresso.pw.relax')  # pylint: disable=invalid-name
-
-    type_check(structure, orm.StructureData)
-
-    if not isinstance(code, orm.Code):
-        try:
-            code = orm.load_code(code)
-        except (exceptions.MultipleObjectsError, exceptions.NotExistent) as exception:
-            raise ValueError('could not load the code {}: {}'.format(code, exception))
-
-    if process_class == PwCalculation:
-        protocol = protocol['relax']['base']['pw']
-        dictionary = generate_inputs_calculation(protocol, code, structure, sssp_family, override)
-    elif process_class == PwBaseWorkChain:
-        protocol = protocol['relax']['base']
-        dictionary = generate_inputs_base(protocol, code, structure, sssp_family, override)
-    elif process_class == PwRelaxWorkChain:
-        protocol = protocol['relax']
-        dictionary = generate_inputs_relax(protocol, code, structure, sssp_family, override)
-    else:
-        raise NotImplementedError('process class {} is not supported'.format(process_class))
-
-    return dictionary
-
-
-def generate_inputs_relax(
-    protocol: Dict,
-    code: orm.Code,
-    structure: StructureData,
-    sssp_family: SsspFamily,
-    override: Dict[str, Any] = None
-) -> Dict[str, Any]:
-    """Generate the inputs for the `PwRelaxWorkChain` for a given code, structure and pseudo potential family.
-
-    :param protocol: the dictionary with protocol inputs.
-    :param code: the code to use.
-    :param structure: the input structure.
-    :param sssp_family: the pseudo potential family.
-    :param override: a dictionary to override specific inputs.
-    :return: the fully defined input dictionary.
-    """
-    protocol['base'] = generate_inputs_base(protocol['base'], code, structure, sssp_family, override.get('base', {}))
-    merged = recursive_merge(protocol, override)
-
-    # Remove inputs that should not be passed top-level
-    merged['base']['pw'].pop('structure', None)
-
-    dictionary = {
-        'base': merged['base'],
-        'structure': structure,
-        'final_scf': orm.Bool(merged['final_scf']),
-        'max_meta_convergence_iterations': orm.Int(merged['max_meta_convergence_iterations']),
-        'meta_convergence': orm.Bool(merged['meta_convergence']),
-        'volume_convergence': orm.Float(merged['volume_convergence']),
-    }
-
-    return dictionary
-
-
-def generate_inputs_base(
-    protocol: Dict,
-    code: orm.Code,
-    structure: StructureData,
-    sssp_family: SsspFamily,
-    override: Dict[str, Any] = None
-) -> Dict[str, Any]:
-    """Generate the inputs for the `PwBaseWorkChain` for a given code, structure and pseudo potential family.
-
-    :param protocol: the dictionary with protocol inputs.
-    :param code: the code to use.
-    :param structure: the input structure.
-    :param sssp_family: the pseudo potential family.
-    :param override: a dictionary to override specific inputs.
-    :return: the fully defined input dictionary.
-    """
-    protocol['pw'] = generate_inputs_calculation(protocol['pw'], code, structure, sssp_family, override.get('pw', {}))
-    merged = recursive_merge(protocol, override or {})
-
-    dictionary = {
-        'pw': merged['pw'],
-        'kpoints_distance': orm.Float(merged['kpoints_distance']),
-        'kpoints_force_parity': orm.Bool(merged['kpoints_force_parity']),
-    }
-
-    return dictionary
-
-
-def generate_inputs_calculation(
-    protocol: Dict,
-    code: orm.Code,
-    structure: StructureData,
-    sssp_family: SsspFamily,
-    override: Dict[str, Any] = None
-) -> Dict[str, Any]:
-    """Generate the inputs for the `PwCalculation` for a given code, structure and pseudo potential family.
-
-    :param protocol: the dictionary with protocol inputs.
-    :param code: the code to use.
-    :param structure: the input structure.
-    :param sssp_family: the pseudo potential family.
-    :param override: a dictionary to override specific inputs.
-    :return: the fully defined input dictionary.
-    """
-    natoms = len(structure.sites)
-    cutoffs = sssp_family.get_cutoffs(structure=structure)
-
-    etot_conv_thr_per_atom = protocol.pop('etot_conv_thr_per_atom')
-    conv_thr_per_atom = protocol.pop('conv_thr_per_atom')
-
-    protocol['parameters']['CONTROL']['etot_conv_thr'] = natoms * etot_conv_thr_per_atom
-    protocol['parameters']['ELECTRONS']['conv_thr'] = natoms * conv_thr_per_atom
-    protocol['parameters']['SYSTEM']['ecutwfc'] = cutoffs[0]
-    protocol['parameters']['SYSTEM']['ecutrho'] = cutoffs[1]
-
-    merged = recursive_merge(protocol, override or {})
-
-    dictionary = {
-        'code': code,
-        'structure': structure,
-        'parameters': orm.Dict(dict=merged['parameters']),
-        'pseudos': sssp_family.get_pseudos(structure=structure),
-        'metadata': merged.get('metadata', {})
-    }
-
-    return dictionary

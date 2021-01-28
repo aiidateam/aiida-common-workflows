@@ -32,7 +32,10 @@ class CastepRelaxInputGenerator(RelaxInputsGenerator):
         RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell.',
         RelaxType.ATOMS_SHAPE: 'Relax both atomic positions and the shape of the cell, keeping the volume fixed.',
         RelaxType.ATOMS_VOLUME: 'Relax both atomic positions and the volume of the cell, keeping the cell shape fixed.',
-        RelaxType.NONE: 'Do not do any relaxation.'
+        RelaxType.NONE: 'Do not do any relaxation.',
+        RelaxType.CELL: 'Only relax the cell with the scaled positions of atoms are kept fixed.',
+        RelaxType.SHAPE: 'Only relax the shape of the cell.',
+        RelaxType.VOLUME: 'Only relax the volume of the cell.',
     }
     _spin_types = {
         SpinType.NONE: 'No spin polarisation',
@@ -142,6 +145,14 @@ class CastepRelaxInputGenerator(RelaxInputsGenerator):
             param['task'] = 'singlepoint'
             # Activate the bypass mode
             override['relax_options'] = {'bypass': True}
+        elif relax_type == RelaxType.CELL:
+            param['fix_all_ions'] = True
+        elif relax_type == RelaxType.SHAPE:
+            param['fix_all_ions'] = True
+            param['fix_vol'] = True
+        elif relax_type == RelaxType.VOLUME:
+            param['fix_all_ions'] = True
+            param['cell_constraints'] = ['1 1 1', '0 0 0']
         else:
             raise ValueError('relaxation type `{}` is not supported'.format(relax_type.value))
 
