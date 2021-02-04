@@ -53,7 +53,8 @@ class OrcaRelaxWorkChain(CommonRelaxWorkChain):
         if 'relaxed_structure' in self.ctx.workchain.outputs:
             self.out('relaxed_structure', self.ctx.workchain.outputs.relaxed_structure)
         self.out('total_energy', get_total_energy(self.ctx.workchain.outputs.output_parameters))
-        self.out('forces', get_forces(self.ctx.workchain.outputs.output_parameters))
+        if 'grads' in self.ctx.workchain.outputs.output_parameters.get_dict():
+            self.out('forces', get_forces(self.ctx.workchain.outputs.output_parameters))
         if 'atomspins' in dict(self.ctx.workchain.outputs.output_parameters):
             self.out('total_magnetization', get_total_magnetization(self.ctx.workchain.outputs.output_parameters))
 
