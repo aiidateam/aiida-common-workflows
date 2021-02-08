@@ -2,7 +2,10 @@
 """Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for NWChem."""
 from typing import Any, Dict, List
 import pathlib
+import warnings
 import yaml
+
+import numpy as np
 
 from aiida import engine
 from aiida import orm
@@ -79,7 +82,7 @@ class NwchemRelaxInputsGenerator(RelaxInputsGenerator):
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
-        # pylint: disable=too-many-locals, too-many-branches
+        # pylint: disable=too-many-locals, too-many-branches, too-many-statements
         protocol = protocol or self.get_default_protocol_name()
 
         super().get_builder(
@@ -100,6 +103,12 @@ class NwchemRelaxInputsGenerator(RelaxInputsGenerator):
         parameters = self.get_protocol(protocol)
         _ = parameters.pop('description')
         _ = parameters.pop('name')
+
+        # kpoints
+        target_spacing = parameters.pop('kpoint_spacing')
+        reciprocal_axes_lengths = np.linalg.norm(np.linalg.inv(structure.cell_matrix), axis=1)
+        kpoints = np.ceil(reciprocal_axes_lengths / target_spacing).astype(int).tolist()
+        parameters['nwpw']['monkhorst-pack'] = '{} {} {}'.format(*kpoints)
 
         # Relaxation type
         if relax_type == RelaxType.ATOMS:
@@ -136,6 +145,12 @@ class NwchemRelaxInputsGenerator(RelaxInputsGenerator):
         # Not implemented yet - one has to specify the site, spin AND angular momentum
         if magnetization_per_site:
             raise ValueError('magnetization per site not yet supported')
+
+        # Special case of a molecule in "open boundary conditions"
+        if structure.pbc == (False, False, False):
+            warnings.warn('PBCs set to false in input structure: assuming this is a molecular calculation')
+            parameters['nwpw']['monkhorst-pack'] = '1 1 1'  # Gamma only
+            parameters['nwpw']['cutoff'] = 250
 
         # Forces threshold.
         if threshold_forces is not None:

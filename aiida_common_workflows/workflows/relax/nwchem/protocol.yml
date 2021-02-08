@@ -1,9 +1,9 @@
 moderate:
     name: 'moderate'
     description: 'Protocol to relax a structure with normal precision at moderate computational cost.'
+    kpoint_spacing: 0.2
     nwpw:
         tolerances: 1.0e-7
-        monkhorst-pack: '3 3 3'
         lmbfgs: ''
         xc: 'pbe96'
         ewald_rcut: 3.0
@@ -15,23 +15,23 @@ moderate:
 precise:
     name: 'precise'
     description: 'Protocol to relax a structure with high precision at higher computational cost.'
+    kpoint_spacing: 0.1
     nwpw:
         tolerances: 1.0e-9
-        monkhorst-pack: '5 5 5'
         lmbfgs: ''
         xc: 'pbe96'
         ewald_rcut: 3.0
         ewald_ncut: 8
     driver:
-        default: ''
+        tight: ''
         maxiter: '2000'
 
 fast:
     name: 'fast'
     description: 'Protocol to relax a structure with low precision at minimal computational cost for testing purposes.'
+    kpoint_spacing: 1.0
     nwpw:
         tolerances: 1.0e-5
-        monkhorst-pack: '1 1 1' # Gamma only
         lmbfgs: ''
         xc: 'pbe96'
         ewald_rcut: 3.0
