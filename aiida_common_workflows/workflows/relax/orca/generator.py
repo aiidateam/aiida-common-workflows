@@ -125,6 +125,7 @@ class OrcaRelaxInputsGenerator(RelaxInputsGenerator):
             for item in inp_keywords:
                 if 'opt' not in item.lower():
                     new_inp_keywords.append(item)
+            new_inp_keywords.append('EnGrad')
             params['input_keywords'] = new_inp_keywords
 
         # Handle charge and multiplicity
@@ -158,6 +159,11 @@ class OrcaRelaxInputsGenerator(RelaxInputsGenerator):
             else:
                 # round guess to nearest even integer; 0 goes to 2
                 spin_multiplicity = max([int(np.round(multiplicity_guess / 2) * 2), 2])
+
+            if spin_multiplicity == 1:
+                params['input_blocks']['scf']['STABPerform'] = True
+                if 'EnGrad' in params['input_keywords']:
+                    params['input_keywords'].remove('EnGrad')
 
         params['multiplicity'] = spin_multiplicity
 
