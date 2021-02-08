@@ -5,6 +5,7 @@ from typing import Any, Dict, List
 from aiida import engine
 from aiida import orm
 from aiida import plugins
+from aiida.engine import calcfunction
 
 from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
 
@@ -12,6 +13,46 @@ __all__ = ('BigDftRelaxInputsGenerator',)
 
 BigDFTParameters = plugins.DataFactory('bigdft')
 StructureData = plugins.DataFactory('structure')
+
+
+@calcfunction
+def ortho_struct(input_struct):
+    """Create and update a dict to pass to transform_to_orthorombic,
+      and then get back data to the input dict """
+    dico = dict()
+    dico['name'] = input_struct.sites[0].kind_name
+    dico['a'] = round(input_struct.cell_lengths[0], 6)
+    dico['alpha'] = round(input_struct.cell_angles[0], 6)
+    dico['b'] = round(input_struct.cell_lengths[1], 6)
+    dico['beta'] = round(input_struct.cell_angles[1], 6)
+    dico['c'] = round(input_struct.cell_lengths[2], 6)
+    dico['gamma'] = round(input_struct.cell_angles[2], 6)
+    dico['nat'] = len(input_struct.sites)
+    # use abc coordinates
+    import pymatgen
+    periodic = 0
+    for i in range(dico['nat']):
+        site = input_struct.get_pymatgen().sites[i]
+        if isinstance(site, pymatgen.core.sites.PeriodicSite):
+            periodic = 1
+            dico[str(i + 1)] = list(site.frac_coords)
+        else:
+            dico[str(i + 1)] = (site.coords[0] / dico['a'], site.coords[1] / dico['b'], site.coords[2] / dico['c'])
+    BigDFTParameters.transform_to_orthorombic(dico)
+    output = input_struct.clone()
+    output.clear_sites()
+    output.cell = [[dico['a'], 0, 0], [0, dico['b'], 0], [0, 0, dico['c']]]
+    for i in range(dico['nat']):
+        site = input_struct.sites[0]
+        if periodic == 1:
+            site.position = (
+                dico[str(i + 1)][0] * dico['a'], dico[str(i + 1)][1] * dico['b'], dico[str(i + 1)][2] * dico['c']
+            )
+        else:
+            site.position = dico[str(i + 1)]
+        output.append_site(site)
+    out = {'outstruct': output, 'outdict': dico}
+    return out
 
 
 class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
@@ -23,41 +64,98 @@ class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
             'description': 'This profile should be chosen if speed is more important than accuracy.',
             'inputdict_cubic': {
                 'dft': {
+                    'ixc': 'PBE',
+                    'ncong': 2,
+                    'rmult': [10, 8],
+                    'itermax': 3,
+                    'idsx': 0,
+                    'gnrm_cv': 1e-7,
                     'hgrids': 0.45
+                },
+                'mix': {
+                    'iscf': 7,
+                    'itrpmax': 200,
+                    'rpnrm_cv': 1e-10,
+                    'tel': 1e-3,
+                    'alphamix': 0.5,
+                    'norbsempty': 1000,
+                    'alphadiis': 1.0
                 }
             },
             'inputdic_linear': {
                 'import': 'linear_fast'
-            }
+            },
+            'kpoints_distance': 100
         },
         'moderate': {
             'description': 'This profile should be chosen if accurate forces are required, but there is no need for '
             'extremely accurate energies.',
-            'inputdict_cubic': {},
+            'inputdict_cubic': {
+                'logfile': 'Yes',
+                'dft': {
+                    'ixc': 'PBE',
+                    'ncong': 2,
+                    'rmult': [10, 8],
+                    'itermax': 3,
+                    'idsx': 0,
+                    'gnrm_cv': 1e-8,
+                    'hgrids': 0.3
+                },
+                'mix': {
+                    'iscf': 7,
+                    'itrpmax': 200,
+                    'rpnrm_cv': 1e-12,
+                    'tel': 1e-3,
+                    'alphamix': 0.5,
+                    'norbsempty': 1000,
+                    'alphadiis': 1.0
+                }
+            },
             'inputdict_linear': {
                 'import': 'linear'
-            }
+            },
+            'kpoints_distance': 40
         },
         'precise': {
             'description': 'This profile should be chosen if highly accurate energy differences are required.',
             'inputdict_cubic': {
                 'dft': {
+                    'ixc': 'PBE',
+                    'ncong': 2,
+                    'rmult': [10, 8],
+                    'itermax': 3,
+                    'idsx': 0,
+                    'gnrm_cv': 1e-8,
                     'hgrids': 0.15
+                },
+                'mix': {
+                    'iscf': 7,
+                    'itrpmax': 200,
+                    'rpnrm_cv': 1e-12,
+                    'tel': 1e-3,
+                    'alphamix': 0.5,
+                    'norbsempty': 1000,
+                    'alphadiis': 1.0
                 }
             },
             'inputdict_linear': {
                 'import': 'linear_accurate'
-            }
+            },
+            'kpoints_distance': 20
         }
     }
 
-    _calc_types = {'relax': {'code_plugin': 'bigdft.bigdft', 'description': 'The code to perform the relaxation.'}}
+    _calc_types = {'relax': {'code_plugin': 'bigdft', 'description': 'The code to perform the relaxation.'}}
 
     _relax_types = {
         RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
+        RelaxType.NONE: 'No relaxation'
     }
-    _spin_types = {SpinType.NONE: '....', SpinType.COLLINEAR: '....'}
-    _electronic_types = {ElectronicType.METAL: '....', ElectronicType.INSULATOR: '....'}
+    _spin_types = {SpinType.NONE: 'nspin : 1', SpinType.COLLINEAR: 'nspin: 2'}
+    _electronic_types = {
+        ElectronicType.METAL: 'using specific mixing inputs',
+        ElectronicType.INSULATOR: 'using default mixing inputs'
+    }
 
     def get_builder(
         self,
@@ -91,7 +189,7 @@ class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
-        # pylint: disable=too-many-locals
+        # pylint: disable=too-many-locals, too-many-branches, too-many-statements
         protocol = protocol or self.get_default_protocol_name()
 
         super().get_builder(
@@ -108,22 +206,86 @@ class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
             **kwargs
         )
 
+        builder = self.process_class.get_builder()
+
         if relax_type == RelaxType.ATOMS:
             relaxation_schema = 'relax'
+        elif relax_type == RelaxType.NONE:
+            relaxation_schema = 'relax'
+            builder.relax.perform = orm.Bool(False)
         else:
             raise ValueError('relaxation type `{}` is not supported'.format(relax_type.value))
 
-        builder = self.process_class.get_builder()
-        builder.structure = structure
-
-        # Will be implemented in the bigdft plugin
-        # inputdict = BigDFTParameters.get_input_dict(protocol, structure, 'relax')
-        # for now apply simple stupid heuristic : atoms < 200 -> cubic, else -> linear.
-        if len(structure.sites) <= 200:
-            inputdict = self.get_protocol(protocol)['inputdict_cubic']
+        pymatgen_struct = structure.get_pymatgen()
+        ortho_dict = None
+        if pymatgen_struct.ntypesp <= 1:
+            # pass the structure through a transform to generate orthorhombic structure if possible/needed.
+            new = ortho_struct(structure)
+            newstruct = new.get('outstruct')
+            ortho_dict = new.get('outdict')
+            newstruct.store()
+            builder.structure = newstruct
         else:
-            inputdict = self.get_protocol(protocol)['inputdict_linear']
+            builder.structure = structure
 
+        # for now apply simple stupid heuristic : atoms < 200 -> cubic, else -> linear.
+        import copy
+        if len(builder.structure.sites) <= 200:
+            inputdict = copy.deepcopy(self.get_protocol(protocol)['inputdict_cubic'])
+        else:
+            inputdict = copy.deepcopy(self.get_protocol(protocol)['inputdict_linear'])
+
+        # adapt hgrid to the strain
+        if previous_workchain is not None and previous_workchain.is_finished_ok:
+            logfile = previous_workchain.outputs.bigdft_logfile.logfile
+            if isinstance(logfile, list):
+                hgrids = logfile[0].get('dft').get('hgrids')
+            else:
+                hgrids = logfile.get('dft').get('hgrids')
+            inputdict['dft']['hgrids'] = hgrids[0] * builder.structure.cell_lengths[0] / \
+                previous_workchain.inputs.structure.cell_lengths[0]
+
+
+#       Soon : Use inputActions
+        if electronic_type is ElectronicType.METAL:
+            if 'mix' not in inputdict:
+                inputdict['mix'] = {}
+            inputdict['mix'].update({
+                'iscf': 17,
+                'itrpmax': 200,
+                'rpnrm_cv': 1.E-12,
+                'norbsempty': 120,
+                'tel': 0.01,
+                'alphamix': 0.8,
+                'alphadiis': 1.0
+            })
+        if spin_type is SpinType.NONE:
+            inputdict['dft'].update({'nspin': 1})
+        elif spin_type is SpinType.COLLINEAR:
+            inputdict['dft'].update({'nspin': 2})
+        psp = []
+        if ortho_dict is not None:
+            inputdict = BigDFTParameters.set_inputfile(
+                inputdict['dft']['hgrids'], ortho_dict, inputdict, psp=psp, units='angstroem'
+            )
+        else:
+            # use HGH pseudopotentials instead of default ones from BigDFT, if the user does not specify new ones.
+            # This may be moved to the plugin if we decide to make it the default behavior.
+            for elem in pymatgen_struct.types_of_specie:
+                BigDFTParameters.set_psp(elem.name, psp)
+            inputdict['kpt'] = BigDFTParameters.set_kpoints(len(builder.structure.sites))
+            if pymatgen_struct.ntypesp <= 1:
+                inputdict['dft'].update(
+                    BigDFTParameters.set_spin(builder.structure.sites[0].kind_name, len(builder.structure.sites))
+                )
+        if magnetization_per_site:
+            for (i, atom) in enumerate(inputdict['posinp']['positions']):
+                atom['IGSpin'] = int(magnetization_per_site[i])
+        if psp:
+            import os
+            builder.pseudos = orm.List()
+            psprel = [os.path.relpath(i) for i in psp]
+            builder.pseudos.extend(psprel)
         builder.parameters = BigDFTParameters(dict=inputdict)
         builder.code = orm.load_code(calc_engines[relaxation_schema]['code'])
         run_opts = {'options': calc_engines[relaxation_schema]['options']}
