@@ -168,6 +168,7 @@ WALLCLOCK_SECONDS = options.OverridableOption(
     '-w',
     '--wallclock-seconds',
     cls=options.MultipleValueOption,
+    type=click.INT,
     metavar='VALUES',
     required=False,
     help='Define the wallclock seconds to request for each engine step.'
@@ -177,6 +178,7 @@ NUMBER_MACHINES = options.OverridableOption(
     '-m',
     '--number-machines',
     cls=options.MultipleValueOption,
+    type=click.INT,
     metavar='VALUES',
     required=False,
     help='Define the number of machines to request for each engine step.'

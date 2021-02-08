@@ -21,7 +21,7 @@
         "aiida-core[atomic_tools]~=1.2",
         "aiida-bigdft>=0.2.4",
         "aiida-cp2k~=1.1",
-        "aiida-fleur~=1.1",
+        "aiida-fleur>=1.1.3",
         "aiida-gaussian",
         "aiida-quantumespresso~=3.3",
         "aiida-siesta~=1.1",

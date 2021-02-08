@@ -41,7 +41,7 @@ class CommonRelaxWorkChain(WorkChain, metaclass=ABCMeta):
         )
         spec.output('relaxed_structure', valid_type=StructureData, required=False,
             help='All cell dimensions and atomic positions are in Ångstrom.')
-        spec.output('forces', valid_type=ArrayData,
+        spec.output('forces', valid_type=ArrayData, required=False,
             help='The final forces on all atoms in eV/Å.')
         spec.output('stress', valid_type=ArrayData, required=False,
             help='The final stress tensor in eV/Å^3.')
