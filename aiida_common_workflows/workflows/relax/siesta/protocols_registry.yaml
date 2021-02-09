@@ -91,6 +91,9 @@ precise:
     distance: 0.1 #0.062
     offset: [0., 0., 0.]
   atomic_heuristics:
+    H:
+      basis:
+        pao-block: "H 1\n  n=1  0  2  P 1 \n 6.0473 \t 2.5529"
     Li:
       basis:
         size: 'DZDP'
