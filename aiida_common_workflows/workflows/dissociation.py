@@ -139,7 +139,7 @@ class DissociationCurveWorkChain(WorkChain):
     def get_distances(self):
         """Return the list of scale factors."""
         if 'distances' in self.inputs:
-            return self.inputs.distances
+            return [orm.Float(i) for i in self.inputs.distances]
 
         count = self.inputs.distances_count.value
         maximum = self.inputs.distance_max.value
