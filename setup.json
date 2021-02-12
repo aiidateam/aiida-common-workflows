@@ -16,7 +16,7 @@
     "python_requires": ">=3.6",
     "install_requires": [
         "abipy",
-        "aiida-abinit",
+        "aiida-abinit~=0.2.0a0",
         "ase==3.19",
         "aiida-core[atomic_tools]~=1.2",
         "aiida-bigdft>=0.2.4",
