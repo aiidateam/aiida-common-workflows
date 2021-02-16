@@ -127,7 +127,8 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
             inpgen_code = orm.load_code(inpgen_code)
         if not isinstance(fleur_code, orm.Code):
             fleur_code = orm.load_code(fleur_code)
-
+        options = calc_engines['relax'].get('options', {})
+        options_scf = orm.Dict(dict=options)
         # Checks if protocol exists
         if protocol not in self.get_protocol_names():
             import warnings
@@ -209,7 +210,7 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         kmax = protocol_scf_para.pop('k_max_cutoff', None)
 
         if molecule:  # We want to use only one kpoint, can be overwritten by user input
-            protocol_scf_para['kpoints_distance'] = 10000
+            protocol_scf_para['kpoints_distance'] = 100000000
             # In addition we might want to use a different basis APW+LO?
 
         wf_para_scf_dict = recursive_merge(default_scf, protocol_scf_para)
@@ -222,7 +223,8 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         if 'calc_parameters' in kwargs.keys():
             parameters = kwargs.pop('calc_parameters')
 
-        parameters, structure = prepare_calc_parameters(parameters, spin_type, magnetization_per_site, structure, kmax)
+        parameters, structure = prepare_calc_parameters(parameters, spin_type,
+magnetization_per_site, structure, kmax, molecule)
 
         inputs = {
             'scf': {
@@ -230,7 +232,7 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
                 'structure': structure,
                 'calc_parameters': parameters,
                 'settings_inpgen': settings,
-                # 'options': options_scf,
+                'options': options_scf,
                 # options do not matter on QM, in general they do...
                 'inpgen': inpgen_code,
                 'fleur': fleur_code
@@ -243,7 +245,8 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         return builder
 
 
-def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, structure, kmax):
+def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, structure, kmax,
+molecule):
     """Prepare a calc_parameter node for a inpgen jobcalc
 
     Depending on the imports merge information
@@ -269,7 +272,6 @@ def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, struc
 
     if kmax is not None:  # add kmax from protocol
         add_parameter_dict = recursive_merge(add_parameter_dict, {'comp': {'kmax': kmax}})
-
     if parameters is not None:
         add_parameter_dict = recursive_merge(add_parameter_dict, parameters.get_dict())
         # In general better use aiida-fleur merge methods for calc parameters...
@@ -312,9 +314,6 @@ def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, struc
             add_parameter_dict = recursive_merge(add_parameter_dict, mag_dict)
             #structure, parameters_b = break_symmetry(structure, parameterdata=orm.Dict(dict=add_parameter_dict))
 
-    #if parameters_b is not None:
-    #    new_parameters = parameters_b
-    #else:
     new_parameters = orm.Dict(dict=add_parameter_dict)
 
     return new_parameters, structure
