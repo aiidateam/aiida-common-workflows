@@ -223,8 +223,7 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         if 'calc_parameters' in kwargs.keys():
             parameters = kwargs.pop('calc_parameters')
 
-        parameters, structure = prepare_calc_parameters(parameters, spin_type,
-magnetization_per_site, structure, kmax, molecule)
+        parameters, structure = prepare_calc_parameters(parameters, spin_type, magnetization_per_site, structure, kmax)
 
         inputs = {
             'scf': {
@@ -245,8 +244,7 @@ magnetization_per_site, structure, kmax, molecule)
         return builder
 
 
-def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, structure, kmax,
-molecule):
+def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, structure, kmax):
     """Prepare a calc_parameter node for a inpgen jobcalc
 
     Depending on the imports merge information
