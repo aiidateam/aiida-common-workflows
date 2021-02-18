@@ -3,6 +3,7 @@
 import collections
 import copy
 import pathlib
+from math import pi
 from typing import Any, Dict, List
 import yaml
 
@@ -387,7 +388,8 @@ def generate_inputs_base(
     calc_dictionary.pop('kpoints', None)
 
     dictionary = {
-        'kpoints_spacing': orm.Float(merged['kpoints_spacing']),
+        # Convert to CASTEP convention - no 2pi factor for real/reciprocal space conversion
+        'kpoints_spacing': orm.Float(merged['kpoints_spacing'] / 2 / pi),
         'max_iterations': orm.Int(merged['max_iterations']),
         'pseudos_family': orm.Str(otfg_family.label),
         'calc': calc_dictionary
