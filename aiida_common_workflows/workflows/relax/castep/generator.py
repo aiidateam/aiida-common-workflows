@@ -4,7 +4,6 @@ import collections
 import copy
 import pathlib
 from typing import Any, Dict, List
-from math import pi
 import yaml
 
 from aiida import engine
@@ -194,13 +193,14 @@ class CastepRelaxInputGenerator(RelaxInputsGenerator):
         # Process electronic type
         # for plane-wave DFT density mixing is most efficient for both metal and insulators
         # these days. Here we stick to the default of CASTEP and do nothing here.
-        if electronic_type == ElectronicType.METAL:
-            # Use fine kpoints grid for all metallic calculations
-            override['base']['kpoints_spacing'] = 0.03
-        elif electronic_type in (ElectronicType.INSULATOR, ElectronicType.AUTOMATIC):
-            pass
-        else:
-            raise ValueError('Unsupported `electronic_type` {}.'.format(electronic_type))
+        #if electronic_type == ElectronicType.METAL:
+        #    # Use fine kpoints grid for all metallic calculations
+        # No need to do this since the default is spacing is sufficiently fine
+        #    override['base']['kpoints_spacing'] = 0.03
+        #elif electronic_type in (ElectronicType.INSULATOR, ElectronicType.AUTOMATIC):
+        #    pass
+        #else:
+        #    raise ValueError('Unsupported `electronic_type` {}.'.format(electronic_type))
 
         # Raise the cut off energy for very soft pseudopotentials
         # this is because the small basis set will give rise to errors in EOS / variable volume
@@ -419,7 +419,7 @@ def generate_inputs_calculation(
 
     kpoints = orm.KpointsData()
     kpoints.set_cell_from_structure(structure)
-    kpoints.set_kpoints_mesh_from_density(protocol['kpoints_spacing'] * pi * 2)
+    kpoints.set_kpoints_mesh_from_density(protocol['kpoints_spacing'])
 
     # For bare calculation level, we need to make sure the dictionary is not "flat"
     param = merged_calc['parameters']

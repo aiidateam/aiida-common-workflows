@@ -6,7 +6,7 @@ moderate:
             max_meta_iterations: 5
 
         base:
-            kpoints_spacing: 0.04
+            kpoints_spacing: 0.15   # Note that is equivalent to kpoints_mp_spacing  : 0.023873
             pseudos_family: 'C19'
             max_iterations: 5
             calc:
@@ -35,7 +35,7 @@ precise:
             max_meta_iterations: 5
 
         base:
-            kpoints_spacing: 0.03
+            kpoints_spacing: 0.1   # Equivalent to  `kpoints_mp_spacing : 0.015915`
             pseudos_family: 'C19'
             max_iterations: 5
             calc:
@@ -65,7 +65,7 @@ fast:
             max_meta_iterations: 5
 
         base:
-            kpoints_spacing: 0.07
+            kpoints_spacing: 0.5    # Equivalent to `kpoints_mp_spacing : 0.079577`
             pseudos_family: 'QC5'
             max_iterations: 5
             calc:
