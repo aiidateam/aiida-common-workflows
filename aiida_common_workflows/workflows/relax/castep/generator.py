@@ -3,8 +3,8 @@
 import collections
 import copy
 import pathlib
-from typing import Any, Dict, List
 from math import pi
+from typing import Any, Dict, List
 import yaml
 
 from aiida import engine
@@ -194,13 +194,14 @@ class CastepRelaxInputGenerator(RelaxInputsGenerator):
         # Process electronic type
         # for plane-wave DFT density mixing is most efficient for both metal and insulators
         # these days. Here we stick to the default of CASTEP and do nothing here.
-        if electronic_type == ElectronicType.METAL:
-            # Use fine kpoints grid for all metallic calculations
-            override['base']['kpoints_spacing'] = 0.03
-        elif electronic_type in (ElectronicType.INSULATOR, ElectronicType.AUTOMATIC):
-            pass
-        else:
-            raise ValueError('Unsupported `electronic_type` {}.'.format(electronic_type))
+        #if electronic_type == ElectronicType.METAL:
+        #    # Use fine kpoints grid for all metallic calculations
+        # No need to do this since the default is spacing is sufficiently fine
+        #    override['base']['kpoints_spacing'] = 0.03
+        #elif electronic_type in (ElectronicType.INSULATOR, ElectronicType.AUTOMATIC):
+        #    pass
+        #else:
+        #    raise ValueError('Unsupported `electronic_type` {}.'.format(electronic_type))
 
         # Raise the cut off energy for very soft pseudopotentials
         # this is because the small basis set will give rise to errors in EOS / variable volume
@@ -387,7 +388,9 @@ def generate_inputs_base(
     calc_dictionary.pop('kpoints', None)
 
     dictionary = {
-        'kpoints_spacing': orm.Float(merged['kpoints_spacing']),
+        # Convert to CASTEP convention - no 2pi factor for real/reciprocal space conversion
+        # This is the convention that CastepBaseWorkChain uses
+        'kpoints_spacing': orm.Float(merged['kpoints_spacing'] / 2 / pi),
         'max_iterations': orm.Int(merged['max_iterations']),
         'pseudos_family': orm.Str(otfg_family.label),
         'calc': calc_dictionary
@@ -417,9 +420,11 @@ def generate_inputs_calculation(
     # This merge perserves the merged `parameters` in the override
     merged_calc = recursive_merge(protocol['calc'], override)
 
+    # Create KpointData for CastepCalculation, the kpoints_spacing passed is
+    # already in the AiiDA convention, e.g. with 2pi factor built into it.
     kpoints = orm.KpointsData()
     kpoints.set_cell_from_structure(structure)
-    kpoints.set_kpoints_mesh_from_density(protocol['kpoints_spacing'] * pi * 2)
+    kpoints.set_kpoints_mesh_from_density(protocol['kpoints_spacing'])
 
     # For bare calculation level, we need to make sure the dictionary is not "flat"
     param = merged_calc['parameters']

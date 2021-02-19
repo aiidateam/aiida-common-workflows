@@ -5,9 +5,9 @@ Tests from the generator
 # pylint: disable=abstract-method,arguments-differ,redefined-outer-name,unused-argument
 import copy
 import pytest
-from ase.build.bulk import bulk
 from aiida.orm import StructureData
 from aiida.plugins import WorkflowFactory
+from ase.build.bulk import bulk
 from aiida_castep.data.otfg import OTFGGroup
 
 from aiida_common_workflows.workflows.relax.castep.workchain import CastepRelaxWorkChain
@@ -145,7 +145,7 @@ def test_input_generator(castep_code, nacl, si):  # pylint: disable=invalid-name
     builder = gen.get_builder(si, calc_engines, protocol='moderate')
     param = builder.calc.parameters.get_dict()
     assert param['cut_off_energy'] == 326
-    assert builder.base.kpoints_spacing == 0.03
+    assert builder.base.kpoints_spacing == pytest.approx(0.023873, abs=1e-6)
 
     builder = gen.get_builder(si, calc_engines, protocol='moderate', relax_type=RelaxType.ATOMS)
     assert 'fix_all_cell' in builder.calc.parameters.get_dict()
@@ -161,4 +161,4 @@ def test_input_generator(castep_code, nacl, si):  # pylint: disable=invalid-name
 
     builder = gen.get_builder(si, calc_engines, protocol='moderate', electronic_type=ElectronicType.INSULATOR)
     assert builder.calc.settings is None
-    assert builder.base.kpoints_spacing == 0.04
+    assert builder.base.kpoints_spacing == pytest.approx(0.023873, abs=1e-6)
