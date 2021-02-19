@@ -65,7 +65,7 @@ fast:
             max_meta_iterations: 5
 
         base:
-            kpoints_spacing: 0.5    # Equivalent to `kpoints_mp_spacing : 0.079577`
+            kpoints_spacing: 0.25    # Equivalent to `kpoints_mp_spacing : 0.039789`
             pseudos_family: 'QC5'
             max_iterations: 5
             calc:
