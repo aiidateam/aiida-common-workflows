@@ -23,12 +23,16 @@ class VaspRelaxInputsGenerator(RelaxInputsGenerator):
     _default_protocol = 'moderate'
     _calc_types = {'relax': {'code_plugin': 'vasp.vasp', 'description': 'The code to perform the relaxation.'}}
     _relax_types = {
-        RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell (shape and volume) fixed.',
-        RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell (shape and volume).',
-        RelaxType.CELL: 'Relax only the cell (shape and volume).'
+        RelaxType.NONE: 'Do not perform relaxation',
+        RelaxType.ATOMS: 'Relax only the atomic positions.',
+        RelaxType.CELL: 'Relax only the cell (shape and volume).',
+        RelaxType.SHAPE: 'Relax only the cell shape.',
+        RelaxType.VOLUME: 'Relax only the cell volume.',
+        RelaxType.ATOMS_SHAPE: 'Relax both atomic positions and the cell shape.',
+        RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell (shape and volume), meaning everything.'
     }
-    _spin_types = {SpinType.NONE: '....', SpinType.COLLINEAR: '....'}
-    _electronic_types = {ElectronicType.METAL: '....', ElectronicType.INSULATOR: '....'}
+    _spin_types = {SpinType.NONE: 'Non spin polarized.', SpinType.COLLINEAR: 'Spin polarized (collinear).'}
+    _electronic_types = {ElectronicType.METAL: 'Not used.', ElectronicType.INSULATOR: 'Not used.'}
 
     def __init__(self, *args, **kwargs):
         """Construct an instance of the inputs generator, validating the class attributes."""
@@ -78,7 +82,7 @@ class VaspRelaxInputsGenerator(RelaxInputsGenerator):
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
-        # pylint: disable=too-many-locals
+        # pylint: disable=too-many-locals, too-many-branches, too-many-statements
         protocol = protocol or self.get_default_protocol_name()
 
         super().get_builder(
@@ -113,16 +117,50 @@ class VaspRelaxInputsGenerator(RelaxInputsGenerator):
         builder.options = plugins.DataFactory('dict')(dict=calc_engines['relax']['options'])
 
         # Set settings
-        # Make sure we add forces and stress for the VASP parser
+        # Make sure the VASP parser is configured for the problem
         settings = AttributeDict()
-        settings.update({'parser_settings': {'add_forces': True, 'add_stress': True}})
+        settings.update({
+            'parser_settings': {
+                'add_energies': True,
+                'add_forces': True,
+                'add_stress': True,
+                'add_misc': {
+                    'type':
+                    'dict',
+                    'quantities': [
+                        'total_energies', 'maximum_stress', 'maximum_force', 'magnetization', 'notifications',
+                        'run_status', 'run_stats', 'version'
+                    ],
+                    'link_name':
+                    'misc'
+                }
+            }
+        })
         builder.settings = plugins.DataFactory('dict')(dict=settings)
 
         # Set workchain related inputs, in this case, give more explicit output to report
         builder.verbose = plugins.DataFactory('bool')(True)
 
-        # Set parameters
-        builder.parameters = plugins.DataFactory('dict')(dict=protocol['parameters'])
+        # Fetch initial parameters from the protocol file.
+        # Here we set the protocols fast, moderate and precise. These currently have no formal meaning.
+        # After a while these will be set in the VASP workchain entrypoints using the convergence workchain etc.
+        # However, for now we rely on plane wave cutoffs and a set k-point density for the chosen protocol.
+        # Please consult the protocols.yml file for details.
+        parameters_dict = protocol['parameters']
+
+        # Set spin related parameters
+        if spin_type == SpinType.NONE:
+            parameters_dict['ispin'] = 1
+        elif spin_type == SpinType.COLLINEAR:
+            parameters_dict['ispin'] = 2
+
+        # Set the magnetization
+        if magnetization_per_site is not None:
+            parameters_dict['magmom'] = list(magnetization_per_site)
+
+        # Set the parameters on the builder, put it in the code namespace to pass through
+        # to the code inputs
+        builder.parameters = plugins.DataFactory('dict')(dict={'incar': parameters_dict})
 
         # Set potentials and their mapping
         builder.potential_family = plugins.DataFactory('str')(protocol['potential_family'])
@@ -132,33 +170,48 @@ class VaspRelaxInputsGenerator(RelaxInputsGenerator):
 
         # Set the kpoint grid from the density in the protocol
         kpoints = plugins.DataFactory('array.kpoints')()
-        kpoints.set_kpoints_mesh([1, 1, 1])
         kpoints.set_cell_from_structure(structure)
-        rec_cell = kpoints.reciprocal_cell
-        kpoints.set_kpoints_mesh(fetch_k_grid(rec_cell, protocol['kpoint_distance']))
+        if previous_workchain:
+            previous_kpoints = previous_workchain.inputs.kpoints
+            kpoints.set_kpoints_mesh(previous_kpoints.get_attribute('mesh'), previous_kpoints.get_attribute('offset'))
+        else:
+            kpoints.set_kpoints_mesh_from_density(protocol['kpoint_distance'])
         builder.kpoints = kpoints
 
-        # Here we set the protocols fast, moderate and precise. These currently have no formal meaning.
-        # After a while these will be set in the VASP workchain entrypoints using the convergence workchain etc.
-        # However, for now we rely on defaults plane wave cutoffs and a set k-point density for the chosen protocol.
+        # Set the relax parameters
         relax = AttributeDict()
-        relax.perform = plugins.DataFactory('bool')(True)
-        relax.algo = plugins.DataFactory('str')(protocol['relax']['algo'])
-
-        if relax_type == RelaxType.ATOMS:
-            relax.positions = plugins.DataFactory('bool')(True)
-            relax.shape = plugins.DataFactory('bool')(False)
-            relax.volume = plugins.DataFactory('bool')(False)
-        elif relax_type == RelaxType.CELL:
-            relax.positions = plugins.DataFactory('bool')(False)
-            relax.shape = plugins.DataFactory('bool')(True)
-            relax.volume = plugins.DataFactory('bool')(True)
-        elif relax_type == RelaxType.ATOMS_CELL:
-            relax.positions = plugins.DataFactory('bool')(True)
-            relax.shape = plugins.DataFactory('bool')(True)
-            relax.volume = plugins.DataFactory('bool')(True)
+        if relax_type != RelaxType.NONE:
+            # Perform relaxation of cell or positions
+            relax.perform = plugins.DataFactory('bool')(True)
+            relax.algo = plugins.DataFactory('str')(protocol['relax']['algo'])
+            relax.steps = plugins.DataFactory('int')(protocol['relax']['steps'])
+            if relax_type == RelaxType.ATOMS:
+                relax.positions = plugins.DataFactory('bool')(True)
+                relax.shape = plugins.DataFactory('bool')(False)
+                relax.volume = plugins.DataFactory('bool')(False)
+            elif relax_type == RelaxType.CELL:
+                relax.positions = plugins.DataFactory('bool')(False)
+                relax.shape = plugins.DataFactory('bool')(True)
+                relax.volume = plugins.DataFactory('bool')(True)
+            elif relax_type == RelaxType.VOLUME:
+                relax.positions = plugins.DataFactory('bool')(False)
+                relax.shape = plugins.DataFactory('bool')(False)
+                relax.volume = plugins.DataFactory('bool')(True)
+            elif relax_type == RelaxType.SHAPE:
+                relax.positions = plugins.DataFactory('bool')(False)
+                relax.shape = plugins.DataFactory('bool')(True)
+                relax.volume = plugins.DataFactory('bool')(False)
+            elif relax_type == RelaxType.ATOMS_CELL:
+                relax.positions = plugins.DataFactory('bool')(True)
+                relax.shape = plugins.DataFactory('bool')(True)
+                relax.volume = plugins.DataFactory('bool')(True)
+            elif relax_type == RelaxType.ATOMS_SHAPE:
+                relax.positions = plugins.DataFactory('bool')(True)
+                relax.shape = plugins.DataFactory('bool')(True)
+                relax.volume = plugins.DataFactory('bool')(False)
         else:
-            raise ValueError('relaxation type `{}` is not supported'.format(relax_type.value))
+            # Do not perform any relaxation
+            relax.perform = plugins.DataFactory('bool')(False)
 
         if threshold_forces is not None:
             threshold = threshold_forces
@@ -172,24 +225,3 @@ class VaspRelaxInputsGenerator(RelaxInputsGenerator):
         builder.relax = relax
 
         return builder
-
-
-def fetch_k_grid(rec_cell, k_distance):
-    """
-    Suggest a sensible k-point sampling based on a supplied distance.
-
-    :param rec_cell: A two dimensional ndarray of floats defining the reciprocal lattice with each vector as rows.
-    :param k_distance: The k-point distance.
-
-    :return kgrid: The k-point grid given the supplied `rec_cell` and `k_distance`
-
-    This is usable for instance when performing
-    plane wave cutoff convergence tests without a base k-point grid.
-
-    """
-    import numpy as np
-
-    rec_cell_lenghts = np.linalg.norm(rec_cell, axis=1)
-    kgrid = np.ceil(rec_cell_lenghts / np.float(k_distance))
-
-    return kgrid.astype('int').tolist()
