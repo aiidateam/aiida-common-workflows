@@ -389,6 +389,7 @@ def generate_inputs_base(
 
     dictionary = {
         # Convert to CASTEP convention - no 2pi factor for real/reciprocal space conversion
+        # This is the convention that CastepBaseWorkChain uses
         'kpoints_spacing': orm.Float(merged['kpoints_spacing'] / 2 / pi),
         'max_iterations': orm.Int(merged['max_iterations']),
         'pseudos_family': orm.Str(otfg_family.label),
@@ -419,6 +420,8 @@ def generate_inputs_calculation(
     # This merge perserves the merged `parameters` in the override
     merged_calc = recursive_merge(protocol['calc'], override)
 
+    # Create KpointData for CastepCalculation, the kpoints_spacing passed is
+    # already in the AiiDA convention, e.g. with 2pi factor built into it.
     kpoints = orm.KpointsData()
     kpoints.set_cell_from_structure(structure)
     kpoints.set_kpoints_mesh_from_density(protocol['kpoints_spacing'])
