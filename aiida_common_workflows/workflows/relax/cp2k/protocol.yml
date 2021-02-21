@@ -113,7 +113,7 @@ moderate:
 
 precise:
   description: 'Protocol to relax a structure with high precision at higher computational cost.'
-  kpoints_distance: 0.6
+  kpoints_distance: 0.1
   GLOBAL:
     PRINT_LEVEL: MEDIUM              #default: MEDIUM. Important to have the correct parsing
   FORCE_EVAL:
