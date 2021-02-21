@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for CP2K."""
+import re
 import numpy as np
 from aiida import orm
 from aiida.engine import calcfunction
@@ -24,17 +25,27 @@ def get_total_energy(parameters):
 
 
 @calcfunction
-def get_forces_output_folder(folder):
+def get_forces_output_folder(folder, structure):
     """Return the forces array from the retrieved output files."""
+    natoms = len(structure.sites)
+    # Open files and extract the lines with forces.
     try:
-        string_content = folder.get_object_content('aiida-frc-1.xyz')
+        content = folder.get_object_content('aiida-frc-1.xyz')
+        lines = content.splitlines()[-natoms:]
+        forces_position = 1
     except FileNotFoundError:
-        return None
-    lines = string_content.splitlines()
-    natoms = int(lines[0])
+        try:
+            content = folder.get_object_content('aiida-requested-forces-1_0.xyz')
+            lines = re.search('Atom   Kind   Element(.*?)SUM OF ATOMIC FORCES', content,
+                              flags=re.S).group(1).splitlines()[1:-1]
+            forces_position = 3
+        except FileNotFoundError:
+            return None
+
+    # Extract forces.
     forces_array = np.empty((natoms, 3))
-    for i, line in enumerate(lines[-natoms:]):
-        forces_array[i] = [float(s) for s in line.split()[1:]]
+    for i, line in enumerate(lines):
+        forces_array[i] = [float(s) for s in line.split()[forces_position:forces_position + 3]]
     forces = orm.ArrayData()
     forces.set_array(name='forces', array=forces_array * HA_BOHR_TO_EV_A)
     return forces
@@ -64,7 +75,7 @@ class Cp2kRelaxWorkChain(CommonRelaxWorkChain):
         if 'output_structure' in self.ctx.workchain.outputs:
             self.out('relaxed_structure', self.ctx.workchain.outputs.output_structure)
         self.out('total_energy', get_total_energy(self.ctx.workchain.outputs.output_parameters))
-        forces = get_forces_output_folder(self.ctx.workchain.outputs.retrieved)
+        forces = get_forces_output_folder(self.ctx.workchain.outputs.retrieved, self.inputs.cp2k.structure)
         if forces:
             self.out('forces', forces)
         stress = get_stress_output_folder(self.ctx.workchain.outputs.retrieved)
