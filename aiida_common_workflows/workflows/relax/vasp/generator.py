@@ -62,7 +62,7 @@ class VaspRelaxInputsGenerator(RelaxInputsGenerator):
         magnetization_per_site: List[float] = None,
         threshold_forces: float = None,
         threshold_stress: float = None,
-        previous_workchain=None,
+        reference_workchain=None,
         **kwargs
     ) -> engine.ProcessBuilder:
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
@@ -78,7 +78,7 @@ class VaspRelaxInputsGenerator(RelaxInputsGenerator):
             only if `spin_type != SpinType.NONE`.
         :param threshold_forces: target threshold for the forces in eV/Å.
         :param threshold_stress: target threshold for the stress in eV/Å^3.
-        :param previous_workchain: a <Code>RelaxWorkChain node.
+        :param reference_workchain: a <Code>RelaxWorkChain node.
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
@@ -95,7 +95,7 @@ class VaspRelaxInputsGenerator(RelaxInputsGenerator):
             magnetization_per_site=magnetization_per_site,
             threshold_forces=threshold_forces,
             threshold_stress=threshold_stress,
-            previous_workchain=previous_workchain,
+            reference_workchain=reference_workchain,
             **kwargs
         )
 
@@ -171,8 +171,8 @@ class VaspRelaxInputsGenerator(RelaxInputsGenerator):
         # Set the kpoint grid from the density in the protocol
         kpoints = plugins.DataFactory('array.kpoints')()
         kpoints.set_cell_from_structure(structure)
-        if previous_workchain:
-            previous_kpoints = previous_workchain.inputs.kpoints
+        if reference_workchain:
+            previous_kpoints = reference_workchain.inputs.kpoints
             kpoints.set_kpoints_mesh(previous_kpoints.get_attribute('mesh'), previous_kpoints.get_attribute('offset'))
         else:
             kpoints.set_kpoints_mesh_from_density(protocol['kpoint_distance'])

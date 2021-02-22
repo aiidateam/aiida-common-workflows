@@ -81,7 +81,7 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         magnetization_per_site: List[float] = None,
         threshold_forces: float = None,
         threshold_stress: float = None,
-        previous_workchain=None,
+        reference_workchain=None,
         **kwargs
     ) -> engine.ProcessBuilder:
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
@@ -97,7 +97,7 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
             only if `spin_type != SpinType.NONE`.
         :param threshold_forces: target threshold for the forces in eV/Å.
         :param threshold_stress: target threshold for the stress in eV/Å^3.
-        :param previous_workchain: a <Code>RelaxWorkChain node.
+        :param reference_workchain: a <Code>RelaxWorkChain node.
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
@@ -116,7 +116,7 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
             magnetization_per_site=magnetization_per_site,
             threshold_forces=threshold_forces,
             threshold_stress=threshold_stress,
-            previous_workchain=previous_workchain,
+            reference_workchain=reference_workchain,
             **kwargs
         )
         # pylint: disable=too-many-locals
@@ -216,8 +216,8 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
         wf_para_scf_dict = recursive_merge(default_scf, protocol_scf_para)
         wf_para_scf = orm.Dict(dict=wf_para_scf_dict)
 
-        if previous_workchain is not None:
-            parameters = get_parameters(previous_workchain)
+        if reference_workchain is not None:
+            parameters = get_parameters(reference_workchain)
 
         # User specification overrides previous workchain!
         if 'calc_parameters' in kwargs.keys():
@@ -317,12 +317,12 @@ def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, struc
     return new_parameters, structure
 
 
-def get_parameters(previous_workchain):
+def get_parameters(reference_workchain):
     """
     Extracts the FLAPW parameter for inpgen from a given previous workchain
     It finds the last Fleur Calcjob or Inpgen calc and extracts the
     parameters from its fleurinpdata node
-    :param previous_workchain: Some workchain which contains at least one
+    :param reference_workchain: Some workchain which contains at least one
                                Fleur CalcJob or Inpgen CalcJob.
     :return: Dict node of parameters ready to use, or None
     """
@@ -333,7 +333,7 @@ def get_parameters(previous_workchain):
     fleur_scf_wc = WorkflowFactory('fleur.scf')
     # Find Fleurinp
     try:
-        last_base_relax = find_last_submitted_workchain(previous_workchain)
+        last_base_relax = find_last_submitted_workchain(reference_workchain)
         last_relax = find_last_submitted_workchain(orm.load_node(last_base_relax))
         last_scf = find_last_submitted_workchain(orm.load_node(last_relax))
         last_scf = orm.load_node(last_scf)

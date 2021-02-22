@@ -65,7 +65,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
         magnetization_per_site: List[float] = None,
         threshold_forces: float = None,
         threshold_stress: float = None,
-        previous_workchain=None,
+        reference_workchain=None,
         **kwargs
     ) -> engine.ProcessBuilder:
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
@@ -81,7 +81,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             only if `spin_type != SpinType.NONE`.
         :param threshold_forces: target threshold for the forces in eV/Å.
         :param threshold_stress: target threshold for the stress in eV/Å^3.
-        :param previous_workchain: a <Code>RelaxWorkChain node.
+        :param reference_workchain: a <Code>RelaxWorkChain node.
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
@@ -98,7 +98,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             magnetization_per_site=magnetization_per_site,
             threshold_forces=threshold_forces,
             threshold_stress=threshold_stress,
-            previous_workchain=previous_workchain,
+            reference_workchain=reference_workchain,
             **kwargs
         )
 
@@ -268,12 +268,12 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             builder.abinit['parameters']['strfact'] = strfact
 
         # previous workchain
-        if previous_workchain is not None:
+        if reference_workchain is not None:
             try:
-                previous_kpoints = previous_workchain.inputs.kpoints
+                previous_kpoints = reference_workchain.inputs.kpoints
             except exceptions.NotExistentAttributeError as not_existent_attr_error:
                 query_builder = orm.QueryBuilder()
-                query_builder.append(orm.WorkChainNode, tag='relax', filters={'id': previous_workchain.id})
+                query_builder.append(orm.WorkChainNode, tag='relax', filters={'id': reference_workchain.id})
                 query_builder.append(
                     orm.WorkChainNode,
                     tag='base',
@@ -289,7 +289,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
                 query_builder.order_by({orm.KpointsData: {'ctime': 'desc'}})
                 query_builder_result = query_builder.all()
                 if query_builder_result == []:
-                    msg = f'Could not find KpointsData associated with {previous_workchain}'
+                    msg = f'Could not find KpointsData associated with {reference_workchain}'
                     raise ValueError(msg) from not_existent_attr_error
                 previous_kpoints = query_builder_result[0][0]
 
@@ -301,11 +301,11 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
             builder.kpoints = new_kpoints
 
             # ensure same k-points shift
-            shiftk = previous_workchain.inputs.abinit__parameters.get_dict().get('shiftk', None)
+            shiftk = reference_workchain.inputs.abinit__parameters.get_dict().get('shiftk', None)
             if shiftk is not None:
                 builder.abinit['parameters']['shiftk'] = shiftk
 
-            nshiftk = previous_workchain.inputs.abinit__parameters.get_dict().get('nshiftk', None)
+            nshiftk = reference_workchain.inputs.abinit__parameters.get_dict().get('nshiftk', None)
             if nshiftk is not None:
                 builder.abinit['parameters']['nshiftk'] = nshiftk
 

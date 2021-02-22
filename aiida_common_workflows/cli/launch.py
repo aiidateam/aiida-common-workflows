@@ -30,11 +30,11 @@ def cmd_launch():
 @options.WALLCLOCK_SECONDS()
 @options.DAEMON()
 @options.MAGNETIZATION_PER_SITE()
-@options.PREVIOUS_WORKCHAIN()
+@options.REFERENCE_WORKCHAIN()
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
 def cmd_relax(
     plugin, structure, codes, protocol, relax_type, spin_type, threshold_forces, threshold_stress, number_machines,
-    wallclock_seconds, daemon, magnetization_per_site, previous_workchain, show_engines
+    wallclock_seconds, daemon, magnetization_per_site, reference_workchain, show_engines
 ):
     """Relax a crystal structure using the common relax workflow for one of the existing plugin implementations.
 
@@ -115,7 +115,7 @@ def cmd_relax(
         threshold_stress=threshold_stress,
         spin_type=spin_type,
         magnetization_per_site=magnetization_per_site,
-        previous_workchain=previous_workchain,
+        reference_workchain=reference_workchain,
     )
     utils.launch_process(builder, daemon)
 

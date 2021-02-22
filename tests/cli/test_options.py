@@ -81,13 +81,13 @@ class TestStructureDataParamType:
         assert result.get_formula() == formula
 
 
-def test_previous_workchain(run_cli_command):
-    """Test the ``options.PREVIOUS_WORKCHAIN`` option."""
+def test_reference_workchain(run_cli_command):
+    """Test the ``options.REFERENCE_WORKCHAIN`` option."""
     node = orm.WorkflowNode().store()
 
     @click.command()
-    @options.PREVIOUS_WORKCHAIN()
-    def command(previous_workchain):
-        assert previous_workchain.pk == node.pk
+    @options.REFERENCE_WORKCHAIN()
+    def command(reference_workchain):
+        assert reference_workchain.pk == node.pk
 
-    run_cli_command(command, ['--previous-workchain', str(node.pk)])
+    run_cli_command(command, ['--reference-workchain', str(node.pk)])

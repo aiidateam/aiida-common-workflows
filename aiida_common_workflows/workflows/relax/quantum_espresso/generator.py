@@ -54,7 +54,7 @@ class QuantumEspressoRelaxInputsGenerator(RelaxInputsGenerator):
         magnetization_per_site: List[float] = None,
         threshold_forces: float = None,
         threshold_stress: float = None,
-        previous_workchain=None,
+        reference_workchain=None,
         **kwargs
     ) -> engine.ProcessBuilder:
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
@@ -70,7 +70,7 @@ class QuantumEspressoRelaxInputsGenerator(RelaxInputsGenerator):
             only if `spin_type != SpinType.NONE`.
         :param threshold_forces: target threshold for the forces in eV/Å.
         :param threshold_stress: target threshold for the stress in eV/Å^3.
-        :param previous_workchain: a <Code>RelaxWorkChain node.
+        :param reference_workchain: a <Code>RelaxWorkChain node.
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
@@ -90,7 +90,7 @@ class QuantumEspressoRelaxInputsGenerator(RelaxInputsGenerator):
             magnetization_per_site=magnetization_per_site,
             threshold_forces=threshold_forces,
             threshold_stress=threshold_stress,
-            previous_workchain=previous_workchain,
+            reference_workchain=reference_workchain,
             **kwargs
         )
 
@@ -141,8 +141,8 @@ class QuantumEspressoRelaxInputsGenerator(RelaxInputsGenerator):
             parameters.setdefault('CELL', {})['press_conv_thr'] = threshold
             builder.base.pw['parameters'] = orm.Dict(dict=parameters)
 
-        if previous_workchain:
-            relax = previous_workchain.get_outgoing(node_class=orm.WorkChainNode).one().node
+        if reference_workchain:
+            relax = reference_workchain.get_outgoing(node_class=orm.WorkChainNode).one().node
             base = sorted(relax.called, key=lambda x: x.ctime)[-1]
             calc = sorted(base.called, key=lambda x: x.ctime)[-1]
             kpoints = calc.inputs.kpoints

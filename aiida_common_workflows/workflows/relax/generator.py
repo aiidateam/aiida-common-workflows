@@ -108,7 +108,7 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
         magnetization_per_site: Union[List[float], Tuple[float]] = None,
         threshold_forces: float = None,
         threshold_stress: float = None,
-        previous_workchain=None,
+        reference_workchain=None,
         **kwargs
     ) -> engine.ProcessBuilder:
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
@@ -124,17 +124,17 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
             and only if `spin_type != SpinType.NONE`.
         :param threshold_forces: target threshold for the forces in eV/Å.
         :param threshold_stress: target threshold for the stress in eV/Å^3.
-        :param previous_workchain: a <Code>RelaxWorkChain node.
+        :param reference_workchain: a <Code>RelaxWorkChain node.
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
-        if previous_workchain is not None:
+        if reference_workchain is not None:
             try:
-                prev_wc_class = previous_workchain.process_class
+                prev_wc_class = reference_workchain.process_class
                 if prev_wc_class not in [self.process_class, self.process_class._process_class]:  # pylint: disable=protected-access
-                    raise ValueError('The "previous_workchain" must be a node of {}'.format(self.process_class))
+                    raise ValueError('The "reference_workchain" must be a node of {}'.format(self.process_class))
             except AttributeError:
-                raise ValueError('The "previous_workchain" must be a node of {}'.format(self.process_class))
+                raise ValueError('The "reference_workchain" must be a node of {}'.format(self.process_class))
 
         if relax_type not in self._relax_types:
             raise ValueError('relax type `{}` is not supported'.format(relax_type))
