@@ -101,11 +101,14 @@ def guess_multiplicity(structure: StructureData, magnetization_per_site: List[fl
 
 def get_file_section():
     """Provide necessary parameter files such as pseudopotientials, basis sets, etc."""
+    with open(pathlib.Path(__file__).parent / 'GTH_BASIS_SETS', 'rb') as handle:
+        basis_gth = orm.SinglefileData(file=handle)
+
     with open(pathlib.Path(__file__).parent / 'BASIS_MOLOPT', 'rb') as handle:
-        basis = orm.SinglefileData(file=handle)
+        basis_molopt = orm.SinglefileData(file=handle)
 
     with open(pathlib.Path(__file__).parent / 'BASIS_MOLOPT_UCL', 'rb') as handle:
-        basis_ucl = orm.SinglefileData(file=handle)
+        basis_molopt_ucl = orm.SinglefileData(file=handle)
 
     with open(pathlib.Path(__file__).parent / 'GTH_POTENTIALS', 'rb') as handle:
         potential = orm.SinglefileData(file=handle)
@@ -117,8 +120,9 @@ def get_file_section():
         xtb_params = orm.SinglefileData(file=handle)
 
     return {
-        'basis': basis,
-        'basis_ucl': basis_ucl,
+        'basis_gth': basis_gth,
+        'basis_molopt': basis_molopt,
+        'basis_molopt_ucl': basis_molopt_ucl,
         'potential': potential,
         'dftd3_params': dftd3_params,
         'xtb_dat': xtb_params,
@@ -209,28 +213,44 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
         # Input parameters.
         parameters = self.get_protocol(protocol)
 
-        ## Kpoints.
+        # Kpoints.
         kpoints_distance = parameters.pop('kpoints_distance', None)
         kpoints = self._get_kpoints(kpoints_distance, structure, previous_workchain)
         mesh, _ = kpoints.get_kpoints_mesh()
         if mesh != [1, 1, 1]:
             builder.cp2k.kpoints = kpoints
 
-        ## Removing description.
+        # Removing description.
         _ = parameters.pop('description')
 
         magnetization_tags = None
 
-        ## Metal or insulator.
+        # Metal or insulator.
+        ## If metal then add smearing, unoccupied orbitals, and employ diagonalization.
         if electronic_type == ElectronicType.METAL:
             parameters['FORCE_EVAL']['DFT']['SCF']['SMEAR'] = {
                 '_': 'ON',
                 'METHOD': 'FERMI_DIRAC',
                 'ELECTRONIC_TEMPERATURE': '[K] 300'
             }
+            parameters['FORCE_EVAL']['DFT']['SCF']['DIAGONALIZATION'] = {
+                'EPS_ADAPT': '1',
+            }
+            parameters['FORCE_EVAL']['DFT']['SCF']['MIXING'] = {
+                'METHOD': 'BROYDEN_MIXING',
+                'ALPHA': '0.1',
+                'BETA': '1.5',
+            }
             parameters['FORCE_EVAL']['DFT']['SCF']['ADDED_MOS'] = 100
 
-        ## Magnetic calculation
+        ## If insulator then employ OT.
+        elif electronic_type == ElectronicType.INSULATOR:
+            parameters['FORCE_EVAL']['DFT']['SCF']['OT'] = {
+                'PRECONDITIONER': 'FULL_SINGLE_INVERSE',
+                'MINIMIZER': 'CG',
+            }
+
+        ## Magnetic calculation.
         if spin_type == SpinType.NONE:
             parameters['FORCE_EVAL']['DFT']['UKS'] = False
             if magnetization_per_site is not None:
@@ -243,14 +263,15 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
             parameters['FORCE_EVAL']['DFT']['MULTIPLICITY'] = guess_multiplicity(structure, magnetization_per_site)
 
         ## Starting magnetization.
-        kinds_section = get_kinds_section(structure, magnetization_tags)
-        dict_merge(parameters, kinds_section)
+        dict_merge(parameters, get_kinds_section(structure, magnetization_tags))
 
         ## Relaxation type.
         if relax_type == RelaxType.ATOMS:
             run_type = 'GEO_OPT'
         elif relax_type == RelaxType.ATOMS_CELL:
             run_type = 'CELL_OPT'
+        elif relax_type == RelaxType.NONE:
+            run_type = 'ENERGY_FORCE'
         else:
             raise ValueError(f'Relax type `{relax_type.value}` is not supported')
         parameters['GLOBAL'] = {'RUN_TYPE': run_type}
@@ -274,7 +295,9 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
         builder.cp2k.structure = structure
 
         # Additional files to be retrieved.
-        builder.cp2k.settings = orm.Dict(dict={'additional_retrieve_list': ['aiida-frc-1.xyz', 'aiida-1.stress']})
+        builder.cp2k.settings = orm.Dict(
+            dict={'additional_retrieve_list': ['aiida-frc-1.xyz', 'aiida-1.stress', 'aiida-requested-forces-1_0.xyz']}
+        )
 
         # CP2K code.
         builder.cp2k.code = orm.load_code(calc_engines['relax']['code'])
@@ -285,11 +308,15 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
         # Use advanced parser to parse more data.
         builder.cp2k.metadata.options['parser_name'] = 'cp2k_advanced_parser'
 
+        # Uncomment to change number of CPUs and execution time.
+        # builder.cp2k.metadata.options['resources'][ "num_mpiprocs_per_machine"]  = 12
+        # builder.cp2k.metadata.options['max_wallclock_seconds']  = 3600 * 24
+
         return builder
 
     @staticmethod
     def _get_kpoints(kpoints_distance, structure, previous_workchain):
-        if previous_workchain:
+        if previous_workchain and 'cp2k__kpoints' in previous_workchain.inputs:
             kpoints_mesh = KpointsData()
             kpoints_mesh.set_cell_from_structure(structure)
             kpoints_mesh.set_kpoints_mesh(previous_workchain.inputs.cp2k__kpoints.get_attribute('mesh'))

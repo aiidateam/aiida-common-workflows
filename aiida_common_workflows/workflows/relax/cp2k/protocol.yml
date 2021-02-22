@@ -1,4 +1,4 @@
-moderate: # main settings exploiting OT
+moderate:
   description: 'Protocol to relax a structure with normal precision at moderate computational cost.'
   kpoints_distance: 0.5
   GLOBAL:
@@ -6,22 +6,26 @@ moderate: # main settings exploiting OT
   FORCE_EVAL:
     METHOD:         QUICKSTEP
     STRESS_TENSOR:  ANALYTICAL
+    PRINT:
+      FORCES:
+        FILENAME: requested-forces
+        ADD_LAST: SYMBOLIC
     DFT:
       BASIS_SET_FILE_NAME:
+        - GTH_BASIS_SETS
         - BASIS_MOLOPT
         - BASIS_MOLOPT_UCL
       POTENTIAL_FILE_NAME:
         -  GTH_POTENTIALS
       UKS:          False
       CHARGE:       0
-      MULTIPLICITY: 0
       MGRID:
         CUTOFF:      600
-        REL_CUTOFF:  50
+        REL_CUTOFF:  40
         NGRIDS:      4
       QS:
         METHOD: GPW
-        EPS_DEFAULT:   1.0E-10
+        EPS_DEFAULT:   1.0E-12
         EXTRAPOLATION: ASPC
 
       SCF:
@@ -31,12 +35,6 @@ moderate: # main settings exploiting OT
         OUTER_SCF:
           MAX_SCF:   30
           EPS_SCF:   1.0E-6
-        DIAGONALIZATION:
-          EPS_ADAPT: 0.01
-        MIXING:
-          METHOD: BROYDEN_MIXING
-          ALPHA:  0.1
-          BETA:   1.5
       XC:
         XC_FUNCTIONAL:
           PBE:
@@ -80,7 +78,7 @@ moderate: # main settings exploiting OT
       PRESSURE_TOLERANCE: "[bar] 100"         #default: 100
       KEEP_ANGLES:   False
       KEEP_SYMMETRY: False
-      OPTIMIZER: LBFGS                        #default: BFGS
+      OPTIMIZER: BFGS                        #default: BFGS
       MAX_ITER:  1000                         #default: 200
       MAX_DR:    "[bohr] 0.0030"              #default: [bohr] 0.0030
       RMS_DR:    "[bohr] 0.0015"              #default: [bohr] 0.0015
@@ -115,43 +113,41 @@ moderate: # main settings exploiting OT
 
 precise:
   description: 'Protocol to relax a structure with high precision at higher computational cost.'
-  kpoints_distance: 0.2
+  kpoints_distance: 0.1
   GLOBAL:
     PRINT_LEVEL: MEDIUM              #default: MEDIUM. Important to have the correct parsing
   FORCE_EVAL:
     METHOD:         QUICKSTEP
     STRESS_TENSOR:  ANALYTICAL
+    PRINT:
+      FORCES:
+        FILENAME: requested-forces
+        ADD_LAST: SYMBOLIC
     DFT:
       BASIS_SET_FILE_NAME:
+        - GTH_BASIS_SETS
         - BASIS_MOLOPT
         - BASIS_MOLOPT_UCL
       POTENTIAL_FILE_NAME:
         -  GTH_POTENTIALS
       UKS:          False
       CHARGE:       0
-      MULTIPLICITY: 0
       MGRID:
         CUTOFF:      600
         REL_CUTOFF:  50
-        NGRIDS:      4
+        NGRIDS:      3               # Set to 1 for an extremely precise grid
       QS:
         METHOD: GPW
-        EPS_DEFAULT:   1.0E-10
+        EPS_DEFAULT:   1.0E-16
         EXTRAPOLATION: ASPC
-
+        # MAP_CONSISTENT: ".TRUE."   # Enable this for an extremely precise grid
       SCF:
         MAX_SCF:       300           # ROBUST: optimum compromise
-        EPS_SCF:       1.0E-6        # ROBUST: Looser than the standard protocol for an easy convergence
+        EPS_SCF:       1.0E-7
         MAX_ITER_LUMO: 10000         # for computing the Band gap
         OUTER_SCF:
           MAX_SCF:   10              # ROBUST: more than the Standard protocol
-          EPS_SCF:   1.0E-6          # ROBUST: equal (or smaller for expert use) than SCF/EPS_SCF
-        DIAGONALIZATION:
-          EPS_ADAPT: 0.01
-        MIXING:
-          METHOD: BROYDEN_MIXING
-          ALPHA:  0.1
-          BETA:   1.5
+          EPS_SCF:   1.0E-7
       XC:
         XC_FUNCTIONAL:
           PBE:
@@ -219,7 +215,7 @@ precise:
       PRESSURE_TOLERANCE: "[bar] 100"         #default: 100
       KEEP_ANGLES:   False
       KEEP_SYMMETRY: False
-      OPTIMIZER: LBFGS                        #default: BFGS
+      OPTIMIZER: BFGS                         #default: BFGS
       MAX_ITER:  1000                         #default: 200
       MAX_DR:    "[bohr] 0.0030"              #default: [bohr] 0.0030
       RMS_DR:    "[bohr] 0.0015"              #default: [bohr] 0.0015
@@ -236,6 +232,10 @@ fast:  # WARNING: this protocal wasn't tested properly.
   FORCE_EVAL:
     METHOD:         QUICKSTEP
     STRESS_TENSOR:  ANALYTICAL
+    PRINT:
+      FORCES:
+        FILENAME: requested-forces
+        ADD_LAST: SYMBOLIC
     DFT:
       QS:
         METHOD: xTB
@@ -299,7 +299,7 @@ fast:  # WARNING: this protocal wasn't tested properly.
       PRESSURE_TOLERANCE: "[bar] 100"         #default: 100
       KEEP_ANGLES:   False
       KEEP_SYMMETRY: False
-      OPTIMIZER: LBFGS                        #default: BFGS
+      OPTIMIZER: BFGS                         #default: BFGS
       MAX_ITER:  1000                         #default: 200
       MAX_DR:    "[bohr] 0.0030"              #default: [bohr] 0.0030
       RMS_DR:    "[bohr] 0.0015"              #default: [bohr] 0.0015
