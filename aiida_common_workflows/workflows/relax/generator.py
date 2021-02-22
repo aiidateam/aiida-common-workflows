@@ -99,7 +99,7 @@ class RelaxInputGenerator(ProtocolRegistry, metaclass=ABCMeta):
     def get_builder(
         self,
         structure: StructureData,
-        calc_engines: Dict[str, Any],
+        engines: Dict[str, Any],
         *,
         protocol: str = None,
         relax_type: RelaxType = RelaxType.ATOMS,
@@ -114,7 +114,7 @@ class RelaxInputGenerator(ProtocolRegistry, metaclass=ABCMeta):
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
 
         :param structure: the structure to be relaxed.
-        :param calc_engines: a dictionary containing the computational resources for the relaxation.
+        :param engines: a dictionary containing the computational resources for the relaxation.
         :param protocol: the protocol to use when determining the workchain inputs.
         :param relax_type: the type of relaxation to perform.
         :param electronic_type: the electronic character that is to be used for the structure.

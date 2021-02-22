@@ -161,7 +161,7 @@ class Cp2kRelaxInputGenerator(RelaxInputGenerator):
     def get_builder(
         self,
         structure: StructureData,
-        calc_engines: Dict[str, Any],
+        engines: Dict[str, Any],
         *,
         protocol: str = None,
         relax_type: RelaxType = RelaxType.ATOMS,
@@ -176,7 +176,7 @@ class Cp2kRelaxInputGenerator(RelaxInputGenerator):
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
 
         :param structure: the structure to be relaxed.
-        :param calc_engines: a dictionary containing the computational resources for the relaxation.
+        :param engines: a dictionary containing the computational resources for the relaxation.
         :param protocol: the protocol to use when determining the workchain inputs.
         :param relax_type: the type of relaxation to perform.
         :param electronic_type: the electronic character that is to be used for the structure.
@@ -195,7 +195,7 @@ class Cp2kRelaxInputGenerator(RelaxInputGenerator):
 
         super().get_builder(
             structure,
-            calc_engines,
+            engines,
             protocol=protocol,
             relax_type=relax_type,
             electronic_type=electronic_type,
@@ -300,10 +300,10 @@ class Cp2kRelaxInputGenerator(RelaxInputGenerator):
         )
 
         # CP2K code.
-        builder.cp2k.code = orm.load_code(calc_engines['relax']['code'])
+        builder.cp2k.code = orm.load_code(engines['relax']['code'])
 
         # Run options.
-        builder.cp2k.metadata.options = calc_engines['relax']['options']
+        builder.cp2k.metadata.options = engines['relax']['options']
 
         # Use advanced parser to parse more data.
         builder.cp2k.metadata.options['parser_name'] = 'cp2k_advanced_parser'

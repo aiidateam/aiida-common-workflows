@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for Orca."""
-
 import os
 from typing import Any, Dict, List
 from copy import deepcopy
-import yaml
+import warnings
 
 import numpy as np
+import yaml
 
 from aiida import engine
 from aiida import orm
@@ -60,7 +60,7 @@ class OrcaRelaxInputGenerator(RelaxInputGenerator):
     def get_builder( # pylint: disable=too-many-branches, too-many-statements
         self,
         structure: StructureData,
-        calc_engines: Dict[str, Any],
+        engines: Dict[str, Any],
         *,
         protocol: str = None,
         relax_type: RelaxType = RelaxType.ATOMS,
@@ -74,7 +74,7 @@ class OrcaRelaxInputGenerator(RelaxInputGenerator):
     ) -> engine.ProcessBuilder:
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
         :param structure: the structure to be relaxed.
-        :param calc_engines: a dictionary containing the computational resources for the relaxation.
+        :param engines: a dictionary containing the computational resources for the relaxation.
         :param protocol: the protocol to use when determining the workchain inputs.
         :param relax_type: the type of relaxation to perform.
         :param electronic_type: the electronic character that is to be used for the structure.
@@ -93,7 +93,7 @@ class OrcaRelaxInputGenerator(RelaxInputGenerator):
 
         super().get_builder(
             structure,
-            calc_engines,
+            engines,
             protocol=protocol,
             relax_type=relax_type,
             electronic_type=electronic_type,
@@ -107,14 +107,13 @@ class OrcaRelaxInputGenerator(RelaxInputGenerator):
 
         # Checks
         if any(structure.get_attribute_many(['pbc1', 'pbc2', 'pbc2'])):
-            print('Warning: PBC detected in the input structure. It is not supported and thus is ignored.')
+            warnings.warn('Warning: PBC detected in the input structure. It is not supported and thus is ignored.')
 
         if protocol not in self.get_protocol_names():
-            import warnings
             warnings.warn('no protocol implemented with name {}, using default moderate'.format(protocol))
             protocol = self.get_default_protocol_name()
-        if 'relax' not in calc_engines:
-            raise ValueError('The `calc_engines` dictionaly must contain "relaxation" as outermost key')
+        if 'relax' not in engines:
+            raise ValueError('The `engines` dictionaly must contain "relax" as outermost key')
 
         params = self._get_params(protocol)
 
@@ -145,7 +144,7 @@ class OrcaRelaxInputGenerator(RelaxInputGenerator):
             if magnetization_per_site is None:
                 multiplicity_guess = 1
             else:
-                print(
+                warnings.warn(
                     'Warning: magnetization_per_site site-resolved info is disregarded, only total spin is processed.'
                 )
                 # magnetization_per_site are in units of [Bohr magnetons] (*0.5 to get in [au])
@@ -168,7 +167,7 @@ class OrcaRelaxInputGenerator(RelaxInputGenerator):
         params['multiplicity'] = spin_multiplicity
 
         # Handle resources
-        resources = calc_engines['relax']['options']['resources']
+        resources = engines['relax']['options']['resources']
         nproc = None
         if 'tot_num_mpiprocs' in resources:
             nproc = resources['tot_num_mpiprocs']
@@ -176,7 +175,7 @@ class OrcaRelaxInputGenerator(RelaxInputGenerator):
             if 'num_mpiprocs_per_machine' in resources:
                 nproc = resources['num_machines'] * resources['num_mpiprocs_per_machine']
             else:
-                code = orm.load_code(calc_engines['relax']['code'])
+                code = orm.load_code(engines['relax']['code'])
                 default_mpiprocs = code.computer.get_default_mpiprocs_per_machine()
                 if default_mpiprocs is not None:
                     nproc = resources['num_machines'] * default_mpiprocs
@@ -187,12 +186,9 @@ class OrcaRelaxInputGenerator(RelaxInputGenerator):
         builder = self.process_class.get_builder()
         builder.orca.structure = structure
         builder.orca.parameters = orm.Dict(dict=params)
-        builder.orca.code = orm.load_code(calc_engines['relax']['code'])
-        builder.orca.metadata.options = calc_engines['relax']['options']
+        builder.orca.code = orm.load_code(engines['relax']['code'])
+        builder.orca.metadata.options = engines['relax']['options']
         return builder
 
     def _get_params(self, key):
         return self._protocols[key]
-
-
-#EOF

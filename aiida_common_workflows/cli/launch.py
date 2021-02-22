@@ -213,7 +213,7 @@ def cmd_eos(
     inputs = {
         'structure': structure,
         'generator_inputs': {
-            'calc_engines': engines,
+            'engines': engines,
             'protocol': protocol,
             'relax_type': relax_type,
             'spin_type': spin_type,
@@ -328,7 +328,7 @@ def cmd_dissociation_curve(
     inputs = {
         'molecule': structure,
         'generator_inputs': {
-            'calc_engines': engines,
+            'engines': engines,
             'protocol': protocol,
             'relax_type': RelaxType.NONE,
             'spin_type': spin_type,

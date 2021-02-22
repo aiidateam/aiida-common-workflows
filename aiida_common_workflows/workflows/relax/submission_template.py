@@ -20,11 +20,11 @@ from aiida_common_workflows.workflows.relax.<code>.workchain import <Code>RelaxW
 # and the same resources. We call them `calc_types`. The same code might be used by multiple calc_types (see
 # e.g. example below) if the resources needed are very different.
 # Multiple calculations might use the same calc_type, e.g. restarts in the same part of the WorkChain.
-# The keys of the following calc_engines are the allowed calc_types; the values define the
+# The keys of the following engines are the allowed calc_types; the values define the
 # concrete values for each of these calc_types.
-#The schema of calc_engines is code dependent, therefore there is a method to explore it,
+#The schema of engines is code dependent, therefore there is a method to explore it,
 #see next call
-calc_engines = {
+engines = {
     'relax': {
         'code': '<code>@localhost',
         'options': {
@@ -105,7 +105,7 @@ rel_inp_gen = InpGen()
 # with unstored nodes (unless they are taken from the DB, e.g. pseudos)
 builder = rel_inp_gen.get_builder(
     structure=structure,
-    calc_engines=calc_engines,
+    engines=engines,
     protocol=protocol,
     relax_type=relax_type,
     threshold_forces=threshold_forces,

@@ -141,24 +141,24 @@ def test_generate_inputs(castep_code, nacl, si):  # pylint: disable=invalid-name
 def test_input_generator(castep_code, nacl, si):  # pylint: disable=invalid-name
     """Test for the input generator"""
     gen = CastepRelaxInputGenerator(process_class=CastepRelaxWorkChain)
-    calc_engines = {'relax': {'code': castep_code, 'options': {}}}
-    builder = gen.get_builder(si, calc_engines, protocol='moderate')
+    engines = {'relax': {'code': castep_code, 'options': {}}}
+    builder = gen.get_builder(si, engines, protocol='moderate')
     param = builder.calc.parameters.get_dict()
     assert param['cut_off_energy'] == 326
     assert builder.base.kpoints_spacing == pytest.approx(0.023873, abs=1e-6)
 
-    builder = gen.get_builder(si, calc_engines, protocol='moderate', relax_type=RelaxType.ATOMS)
+    builder = gen.get_builder(si, engines, protocol='moderate', relax_type=RelaxType.ATOMS)
     assert 'fix_all_cell' in builder.calc.parameters.get_dict()
 
-    builder = gen.get_builder(si, calc_engines, protocol='moderate', relax_type=RelaxType.ATOMS_SHAPE)
+    builder = gen.get_builder(si, engines, protocol='moderate', relax_type=RelaxType.ATOMS_SHAPE)
     assert 'fix_vol' in builder.calc.parameters.get_dict()
 
-    builder = gen.get_builder(si, calc_engines, protocol='moderate', spin_type=SpinType.COLLINEAR)
+    builder = gen.get_builder(si, engines, protocol='moderate', spin_type=SpinType.COLLINEAR)
     assert 'SPINS' in builder.calc.settings.get_dict()
 
-    builder = gen.get_builder(si, calc_engines, protocol='moderate', spin_type=SpinType.NON_COLLINEAR)
+    builder = gen.get_builder(si, engines, protocol='moderate', spin_type=SpinType.NON_COLLINEAR)
     assert builder.calc.settings['SPINS'][0] == [1.0, 1.0, 1.0]
 
-    builder = gen.get_builder(si, calc_engines, protocol='moderate', electronic_type=ElectronicType.INSULATOR)
+    builder = gen.get_builder(si, engines, protocol='moderate', electronic_type=ElectronicType.INSULATOR)
     assert builder.calc.settings is None
     assert builder.base.kpoints_spacing == pytest.approx(0.023873, abs=1e-6)
