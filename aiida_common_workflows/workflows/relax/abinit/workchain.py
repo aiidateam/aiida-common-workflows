@@ -8,7 +8,7 @@ from aiida.common import exceptions
 from aiida_abinit.workflows.base import AbinitBaseWorkChain
 
 from ..workchain import CommonRelaxWorkChain
-from .generator import AbinitRelaxInputsGenerator
+from .generator import AbinitRelaxInputGenerator
 
 __all__ = ('AbinitRelaxWorkChain',)
 
@@ -45,7 +45,7 @@ class AbinitRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for Abinit."""
 
     _process_class = AbinitBaseWorkChain
-    _generator_class = AbinitRelaxInputsGenerator
+    _generator_class = AbinitRelaxInputGenerator
 
     def convert_outputs(self):
         """Convert the outputs of the sub workchain to the common output specification."""

@@ -7,9 +7,9 @@ from aiida import orm
 from aiida import plugins
 from aiida.engine import calcfunction
 
-from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
+from ..generator import RelaxInputGenerator, RelaxType, SpinType, ElectronicType
 
-__all__ = ('BigDftRelaxInputsGenerator',)
+__all__ = ('BigDftRelaxInputGenerator',)
 
 BigDFTParameters = plugins.DataFactory('bigdft')
 StructureData = plugins.DataFactory('structure')
@@ -55,7 +55,7 @@ def ortho_struct(input_struct):
     return out
 
 
-class BigDftRelaxInputsGenerator(RelaxInputsGenerator):
+class BigDftRelaxInputGenerator(RelaxInputGenerator):
     """Input generator for the `BigDFTRelaxWorkChain`."""
 
     _default_protocol = 'moderate'

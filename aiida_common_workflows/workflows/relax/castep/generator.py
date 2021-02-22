@@ -14,7 +14,7 @@ from aiida.common import exceptions
 from aiida_castep.data import get_pseudos_from_structure
 from aiida_castep.data.otfg import OTFGGroup
 
-from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
+from ..generator import RelaxInputGenerator, RelaxType, SpinType, ElectronicType
 # pylint: disable=import-outside-toplevel, too-many-branches, too-many-statements
 
 __all__ = ('CastepRelaxInputGenerator',)
@@ -22,7 +22,7 @@ __all__ = ('CastepRelaxInputGenerator',)
 StructureData = plugins.DataFactory('structure')  # pylint: disable=invalid-name
 
 
-class CastepRelaxInputGenerator(RelaxInputsGenerator):
+class CastepRelaxInputGenerator(RelaxInputGenerator):
     """Input generator for the `CastepRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
@@ -54,7 +54,7 @@ class CastepRelaxInputGenerator(RelaxInputsGenerator):
     }
 
     def __init__(self, *args, **kwargs):
-        """Construct an instance of the inputs generator, validating the class attributes."""
+        """Construct an instance of the input generator, validating the class attributes."""
         self._initialize_protocols()
         super().__init__(*args, **kwargs)
 

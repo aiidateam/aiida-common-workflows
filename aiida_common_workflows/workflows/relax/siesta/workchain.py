@@ -5,7 +5,7 @@ from aiida.engine import calcfunction
 from aiida.plugins import WorkflowFactory
 
 from ..workchain import CommonRelaxWorkChain
-from .generator import SiestaRelaxInputsGenerator
+from .generator import SiestaRelaxInputGenerator
 
 __all__ = ('SiestaRelaxWorkChain',)
 
@@ -36,7 +36,7 @@ class SiestaRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for SIESTA."""
 
     _process_class = WorkflowFactory('siesta.base')
-    _generator_class = SiestaRelaxInputsGenerator
+    _generator_class = SiestaRelaxInputGenerator
 
     def convert_outputs(self):
         """Convert the outputs of the sub workchain to the common output specification."""

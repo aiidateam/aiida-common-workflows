@@ -77,7 +77,7 @@ class EquationOfStateWorkChain(WorkChain):
             validator=validate_scale_increment,
             help='The relative difference between consecutive scaling factors.')
         spec.input_namespace('generator_inputs', dynamic=True,
-            help='The inputs that will be passed to the inputs generator of the specified `sub_process`.')
+            help='The inputs that will be passed to the input generator of the specified `sub_process`.')
         spec.input('generator_inputs.calc_engines', valid_type=dict, non_db=True)
         spec.input('generator_inputs.protocol', valid_type=str, non_db=True,
             help='The protocol to use when determining the workchain inputs.')
@@ -125,7 +125,7 @@ class EquationOfStateWorkChain(WorkChain):
         structure = scale_structure(self.inputs.structure, scale_factor)
         process_class = WorkflowFactory(self.inputs.sub_process_class)
 
-        builder = process_class.get_inputs_generator().get_builder(
+        builder = process_class.get_input_generator().get_builder(
             structure,
             previous_workchain=previous_workchain,
             **self.inputs.generator_inputs

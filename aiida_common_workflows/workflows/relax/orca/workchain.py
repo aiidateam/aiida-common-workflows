@@ -6,7 +6,7 @@ from aiida.engine import calcfunction
 from aiida.plugins import WorkflowFactory
 
 from ..workchain import CommonRelaxWorkChain
-from .generator import OrcaRelaxInputsGenerator
+from .generator import OrcaRelaxInputGenerator
 
 __all__ = ('OrcaRelaxWorkChain',)
 
@@ -46,7 +46,7 @@ class OrcaRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for Orca."""
 
     _process_class = OrcaBaseWorkChain
-    _generator_class = OrcaRelaxInputsGenerator
+    _generator_class = OrcaRelaxInputGenerator
 
     def convert_outputs(self):
         """Convert the outputs of the sub workchain to the common output specification."""

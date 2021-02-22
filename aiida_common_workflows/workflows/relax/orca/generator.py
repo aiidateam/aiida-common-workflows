@@ -12,14 +12,14 @@ from aiida import engine
 from aiida import orm
 from aiida.plugins import DataFactory
 
-from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
+from ..generator import RelaxInputGenerator, RelaxType, SpinType, ElectronicType
 
-__all__ = ('OrcaRelaxInputsGenerator',)
+__all__ = ('OrcaRelaxInputGenerator',)
 
 StructureData = DataFactory('structure')
 
 
-class OrcaRelaxInputsGenerator(RelaxInputsGenerator):
+class OrcaRelaxInputGenerator(RelaxInputGenerator):
     """Input generator for the `OrcaRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
@@ -36,7 +36,7 @@ class OrcaRelaxInputsGenerator(RelaxInputsGenerator):
     _electronic_types = {ElectronicType.METAL: 'ignored', ElectronicType.INSULATOR: 'ignored'}
 
     def __init__(self, *args, **kwargs):
-        """Construct an instance of the inputs generator, validating the class attributes."""
+        """Construct an instance of the input generator, validating the class attributes."""
 
         self._initialize_protocols()
 
