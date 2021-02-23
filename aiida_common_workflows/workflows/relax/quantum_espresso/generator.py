@@ -16,7 +16,12 @@ StructureData = plugins.DataFactory('structure')
 class QuantumEspressoRelaxInputGenerator(RelaxInputGenerator):
     """Input generator for the `QuantumEspressoRelaxWorkChain`."""
 
-    _calc_types = {'relax': {'code_plugin': 'quantumespresso.pw', 'description': 'The code to perform the relaxation.'}}
+    _engine_types = {
+        'relax': {
+            'code_plugin': 'quantumespresso.pw',
+            'description': 'The code to perform the relaxation.'
+        }
+    }
     _relax_types = {relax_type: '...' for relax_type in RelaxType}
     _spin_types = {
         SpinType.NONE: 'Treat the system without spin polarization.',

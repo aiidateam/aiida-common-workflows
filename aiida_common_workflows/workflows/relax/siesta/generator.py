@@ -21,7 +21,7 @@ class SiestaRelaxInputGenerator(RelaxInputGenerator):
 
     _default_protocol = 'moderate'
 
-    _calc_types = {
+    _engine_types = {
         'relaxation': {
             'code_plugin':
             'siesta.siesta',

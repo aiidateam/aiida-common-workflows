@@ -21,7 +21,7 @@ class VaspRelaxInputGenerator(RelaxInputGenerator):
     """Input generator for the `VASPRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
-    _calc_types = {'relax': {'code_plugin': 'vasp.vasp', 'description': 'The code to perform the relaxation.'}}
+    _engine_types = {'relax': {'code_plugin': 'vasp.vasp', 'description': 'The code to perform the relaxation.'}}
     _relax_types = {
         RelaxType.NONE: 'Do not perform relaxation',
         RelaxType.ATOMS: 'Relax only the atomic positions.',

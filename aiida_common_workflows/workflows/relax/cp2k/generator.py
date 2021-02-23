@@ -133,7 +133,7 @@ class Cp2kRelaxInputGenerator(RelaxInputGenerator):
     """Input generator for the `Cp2kRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
-    _calc_types = {'relax': {'code_plugin': 'cp2k', 'description': 'The code to perform the relaxation.'}}
+    _engine_types = {'relax': {'code_plugin': 'cp2k', 'description': 'The code to perform the relaxation.'}}
     _relax_types = {
         RelaxType.NONE: 'No relaxation performed.',
         RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',

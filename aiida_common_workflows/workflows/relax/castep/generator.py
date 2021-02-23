@@ -26,7 +26,7 @@ class CastepRelaxInputGenerator(RelaxInputGenerator):
     """Input generator for the `CastepRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
-    _calc_types = {'relax': {'code_plugin': 'castep.castep', 'description': 'The code to perform the relaxation.'}}
+    _engine_types = {'relax': {'code_plugin': 'castep.castep', 'description': 'The code to perform the relaxation.'}}
     _relax_types = {
         RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
         RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell.',

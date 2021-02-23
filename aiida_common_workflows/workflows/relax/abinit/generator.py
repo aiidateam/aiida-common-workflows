@@ -23,7 +23,7 @@ class AbinitRelaxInputGenerator(RelaxInputGenerator):
     """Input generator for the `AbinitRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
-    _calc_types = {'relax': {'code_plugin': 'abinit', 'description': 'The code to perform the relaxation.'}}
+    _engine_types = {'relax': {'code_plugin': 'abinit', 'description': 'The code to perform the relaxation.'}}
     _relax_types = {
         RelaxType.NONE: 'Fix the atomic positions, cell volume, and cell shape.',
         RelaxType.ATOMS: 'Relax the atomic positions at fixed cell volume and shape.',

@@ -33,7 +33,7 @@ class FleurRelaxInputGenerator(RelaxInputGenerator):
         }
     }
 
-    _calc_types = {
+    _engine_types = {
         'relax': {
             'code_plugin': 'fleur.fleur',
             'description': 'The code to perform the relaxation.'
