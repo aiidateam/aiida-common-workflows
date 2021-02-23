@@ -11,13 +11,13 @@ from aiida import plugins
 from aiida.common.constants import elements as PeriodicTableElements
 #from aiida_fleur.tools.StructureData_util import break_symmetry
 
-from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
-__all__ = ('FleurRelaxInputsGenerator',)
+from ..generator import RelaxInputGenerator, RelaxType, SpinType, ElectronicType
+__all__ = ('FleurRelaxInputGenerator',)
 
 StructureData = plugins.DataFactory('structure')
 
 
-class FleurRelaxInputsGenerator(RelaxInputsGenerator):
+class FleurRelaxInputGenerator(RelaxInputGenerator):
     """Generator of inputs for the `FleurRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
@@ -60,7 +60,7 @@ class FleurRelaxInputsGenerator(RelaxInputsGenerator):
     }
 
     def __init__(self, *args, **kwargs):
-        """Construct an instance of the inputs generator, validating the class attributes."""
+        """Construct an instance of the input generator, validating the class attributes."""
         self._initialize_protocols()
         super().__init__(*args, **kwargs)
 

@@ -10,14 +10,14 @@ from aiida import orm
 from aiida import plugins
 from aiida.common.extendeddicts import AttributeDict
 
-from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
+from ..generator import RelaxInputGenerator, RelaxType, SpinType, ElectronicType
 
-__all__ = ('VaspRelaxInputsGenerator',)
+__all__ = ('VaspRelaxInputGenerator',)
 
 StructureData = plugins.DataFactory('structure')
 
 
-class VaspRelaxInputsGenerator(RelaxInputsGenerator):
+class VaspRelaxInputGenerator(RelaxInputGenerator):
     """Input generator for the `VASPRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
@@ -35,7 +35,7 @@ class VaspRelaxInputsGenerator(RelaxInputsGenerator):
     _electronic_types = {ElectronicType.METAL: 'Not used.', ElectronicType.INSULATOR: 'Not used.'}
 
     def __init__(self, *args, **kwargs):
-        """Construct an instance of the inputs generator, validating the class attributes."""
+        """Construct an instance of the input generator, validating the class attributes."""
         self._initialize_protocols()
         self._initialize_potential_mapping()
         super().__init__(*args, **kwargs)

@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 """
 Reference file showcasing how the submission of a `<Code>RelaxWorkChain` would work, when using
-inputs generated through the method `get_builder` of a class `<Code>RelaxInputsGenerator`.
+inputs generated through the method `get_builder` of a class `<Code>RelaxInputGenerator`.
 Moreover this example shows the required outputs of `<Code>RelaxWorkChain`, including the units specifications.
 """
 
 from aiida.orm import StructureData, Dict, Float, ArrayData
 import time
 from aiida.engine import submit
-from aiida_common_workflows.workflows.relax.<code>.generator import <Code>RelaxInputsGenerator as InpGen
+from aiida_common_workflows.workflows.relax.<code>.generator import <Code>RelaxInputGenerator as InpGen
 from aiida_common_workflows.workflows.relax.<code>.workchain import <Code>RelaxWorkChain as RelWC
 
 # This dictionary is the place where the user specifies the code and (optionally) resources

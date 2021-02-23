@@ -45,7 +45,7 @@ def cmd_relax(
     """
     # pylint: disable=too-many-locals
     process_class = load_workflow_entry_point('relax', plugin)
-    generator = process_class.get_inputs_generator()
+    generator = process_class.get_input_generator()
 
     number_engines = len(generator.get_calc_types())
 
@@ -150,7 +150,7 @@ def cmd_eos(
     from aiida_common_workflows.workflows.eos import EquationOfStateWorkChain
 
     process_class = load_workflow_entry_point('relax', plugin)
-    generator = process_class.get_inputs_generator()
+    generator = process_class.get_input_generator()
 
     number_engines = len(generator.get_calc_types())
 
@@ -264,7 +264,7 @@ def cmd_dissociation_curve(
     from aiida_common_workflows.workflows.relax.generator import RelaxType
 
     process_class = load_workflow_entry_point('relax', plugin)
-    generator = process_class.get_inputs_generator()
+    generator = process_class.get_input_generator()
 
     number_engines = len(generator.get_calc_types())
 

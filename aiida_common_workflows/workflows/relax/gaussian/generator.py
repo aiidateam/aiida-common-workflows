@@ -11,9 +11,9 @@ from aiida import plugins
 
 from aiida.orm import load_code
 
-from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
+from ..generator import RelaxInputGenerator, RelaxType, SpinType, ElectronicType
 
-__all__ = ('GaussianRelaxInputsGenerator',)
+__all__ = ('GaussianRelaxInputGenerator',)
 
 StructureData = plugins.DataFactory('structure')
 
@@ -21,7 +21,7 @@ EV_TO_EH = 0.03674930814
 ANG_TO_BOHR = 1.88972687
 
 
-class GaussianRelaxInputsGenerator(RelaxInputsGenerator):
+class GaussianRelaxInputGenerator(RelaxInputGenerator):
     """Input generator for the `GaussianRelaxWorkChain`."""
 
     _default_protocol = 'moderate'

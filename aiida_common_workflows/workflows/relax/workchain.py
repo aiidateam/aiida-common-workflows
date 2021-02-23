@@ -5,7 +5,7 @@ from abc import ABCMeta, abstractmethod
 from aiida.engine import WorkChain, ToContext
 from aiida.orm import StructureData, ArrayData, TrajectoryData, Float
 
-from .generator import RelaxInputsGenerator
+from .generator import RelaxInputGenerator
 
 __all__ = ('CommonRelaxWorkChain',)
 
@@ -22,10 +22,10 @@ class CommonRelaxWorkChain(WorkChain, metaclass=ABCMeta):
     _generator_class = None
 
     @classmethod
-    def get_inputs_generator(cls) -> RelaxInputsGenerator:
-        """Return an instance of the inputs generator for this work chain.
+    def get_input_generator(cls) -> RelaxInputGenerator:
+        """Return an instance of the input generator for this work chain.
 
-        :return: inputs generator
+        :return: input generator
         """
         return cls._generator_class(process_class=cls)  # pylint: disable=not-callable
 

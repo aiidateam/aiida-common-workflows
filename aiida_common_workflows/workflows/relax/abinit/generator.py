@@ -12,14 +12,14 @@ import numpy as np
 
 from aiida import engine, orm, plugins
 from aiida.common import exceptions
-from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
+from ..generator import RelaxInputGenerator, RelaxType, SpinType, ElectronicType
 
-__all__ = ('AbinitRelaxInputsGenerator',)
+__all__ = ('AbinitRelaxInputGenerator',)
 
 StructureData = plugins.DataFactory('structure')
 
 
-class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
+class AbinitRelaxInputGenerator(RelaxInputGenerator):
     """Input generator for the `AbinitRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
@@ -44,7 +44,7 @@ class AbinitRelaxInputsGenerator(RelaxInputsGenerator):
     }
 
     def __init__(self, *args, **kwargs):
-        """Construct an instance of the inputs generator, validating the class attributes."""
+        """Construct an instance of the input generator, validating the class attributes."""
         self._initialize_protocols()
         super().__init__(*args, **kwargs)
 
