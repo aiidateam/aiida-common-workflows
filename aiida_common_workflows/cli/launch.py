@@ -47,7 +47,7 @@ def cmd_relax(
     process_class = load_workflow_entry_point('relax', plugin)
     generator = process_class.get_input_generator()
 
-    number_engines = len(generator.get_calc_types())
+    number_engines = len(generator.get_engine_types())
 
     if number_machines is None:
         number_machines = [1] * number_engines
@@ -74,8 +74,8 @@ def cmd_relax(
         raise click.BadParameter(message, param_hint='protocol')
 
     if show_engines:
-        for engine in generator.get_calc_types():
-            schema = generator.get_calc_type_schema(engine)
+        for engine in generator.get_engine_types():
+            schema = generator.get_engine_type_schema(engine)
             click.secho(engine, fg='red', bold=True)
             click.echo('Required code plugin: {}'.format(schema['code_plugin']))
             click.echo('Engine description:   {}'.format(schema['description']))
@@ -84,8 +84,8 @@ def cmd_relax(
 
     engines = {}
 
-    for index, engine in enumerate(generator.get_calc_types()):
-        schema = generator.get_calc_type_schema(engine)
+    for index, engine in enumerate(generator.get_engine_types()):
+        schema = generator.get_engine_type_schema(engine)
         code_plugin = schema['code_plugin']
 
         code = utils.get_code_from_list_or_database(codes or [], code_plugin)
@@ -152,7 +152,7 @@ def cmd_eos(
     process_class = load_workflow_entry_point('relax', plugin)
     generator = process_class.get_input_generator()
 
-    number_engines = len(generator.get_calc_types())
+    number_engines = len(generator.get_engine_types())
 
     if number_machines is None:
         number_machines = [1] * number_engines
@@ -179,8 +179,8 @@ def cmd_eos(
         raise click.BadParameter(message, param_hint='protocol')
 
     if show_engines:
-        for engine in generator.get_calc_types():
-            schema = generator.get_calc_type_schema(engine)
+        for engine in generator.get_engine_types():
+            schema = generator.get_engine_type_schema(engine)
             click.secho(engine, fg='red', bold=True)
             click.echo('Required code plugin: {}'.format(schema['code_plugin']))
             click.echo('Engine description:   {}'.format(schema['description']))
@@ -189,8 +189,8 @@ def cmd_eos(
 
     engines = {}
 
-    for index, engine in enumerate(generator.get_calc_types()):
-        schema = generator.get_calc_type_schema(engine)
+    for index, engine in enumerate(generator.get_engine_types()):
+        schema = generator.get_engine_type_schema(engine)
         code_plugin = schema['code_plugin']
         code = utils.get_code_from_list_or_database(codes or [], code_plugin)
 
@@ -213,7 +213,7 @@ def cmd_eos(
     inputs = {
         'structure': structure,
         'generator_inputs': {
-            'calc_engines': engines,
+            'engines': engines,
             'protocol': protocol,
             'relax_type': relax_type,
             'spin_type': spin_type,
@@ -266,7 +266,7 @@ def cmd_dissociation_curve(
     process_class = load_workflow_entry_point('relax', plugin)
     generator = process_class.get_input_generator()
 
-    number_engines = len(generator.get_calc_types())
+    number_engines = len(generator.get_engine_types())
 
     if number_machines is None:
         number_machines = [1] * number_engines
@@ -293,8 +293,8 @@ def cmd_dissociation_curve(
         raise click.BadParameter(message, param_hint='protocol')
 
     if show_engines:
-        for engine in generator.get_calc_types():
-            schema = generator.get_calc_type_schema(engine)
+        for engine in generator.get_engine_types():
+            schema = generator.get_engine_type_schema(engine)
             click.secho(engine, fg='red', bold=True)
             click.echo('Required code plugin: {}'.format(schema['code_plugin']))
             click.echo('Engine description:   {}'.format(schema['description']))
@@ -303,8 +303,8 @@ def cmd_dissociation_curve(
 
     engines = {}
 
-    for index, engine in enumerate(generator.get_calc_types()):
-        schema = generator.get_calc_type_schema(engine)
+    for index, engine in enumerate(generator.get_engine_types()):
+        schema = generator.get_engine_type_schema(engine)
         code_plugin = schema['code_plugin']
 
         code = utils.get_code_from_list_or_database(codes or [], code_plugin)
@@ -328,7 +328,7 @@ def cmd_dissociation_curve(
     inputs = {
         'molecule': structure,
         'generator_inputs': {
-            'calc_engines': engines,
+            'engines': engines,
             'protocol': protocol,
             'relax_type': RelaxType.NONE,
             'spin_type': spin_type,

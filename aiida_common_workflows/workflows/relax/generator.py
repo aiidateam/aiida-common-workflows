@@ -46,12 +46,12 @@ class ElectronicType(Enum):
 class RelaxInputGenerator(ProtocolRegistry, metaclass=ABCMeta):
     """Input generator for the common structure relax workchains.
 
-    Subclasses should define the `_calc_types`, `_spin_types`, `_electronic_types` and `_relax_types` class attributes,
+    Subclasses should define the `_engine_types`, `_spin_types`, `_electronic_types` and `_relax_types` class attributes
     as well as the `get_builder` method.
     """
 
     _spin_types = None
-    _calc_types = None
+    _engine_types = None
     _relax_types = None
     _process_class = None
     _electronic_types = None
@@ -69,8 +69,8 @@ class RelaxInputGenerator(ProtocolRegistry, metaclass=ABCMeta):
 
         super().__init__(*args, **kwargs)
 
-        if self._calc_types is None:
-            raise_invalid('does not define `_calc_types`.')
+        if self._engine_types is None:
+            raise_invalid('does not define `_engine_types`.')
 
         if self._relax_types is None:
             raise_invalid('does not define `_relax_types`.')
@@ -99,7 +99,7 @@ class RelaxInputGenerator(ProtocolRegistry, metaclass=ABCMeta):
     def get_builder(
         self,
         structure: StructureData,
-        calc_engines: Dict[str, Any],
+        engines: Dict[str, Any],
         *,
         protocol: str = None,
         relax_type: RelaxType = RelaxType.ATOMS,
@@ -114,7 +114,7 @@ class RelaxInputGenerator(ProtocolRegistry, metaclass=ABCMeta):
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
 
         :param structure: the structure to be relaxed.
-        :param calc_engines: a dictionary containing the computational resources for the relaxation.
+        :param engines: a dictionary containing the computational resources for the relaxation.
         :param protocol: the protocol to use when determining the workchain inputs.
         :param relax_type: the type of relaxation to perform.
         :param electronic_type: the electronic character that is to be used for the structure.
@@ -151,14 +151,14 @@ class RelaxInputGenerator(ProtocolRegistry, metaclass=ABCMeta):
             if len(magnetization_per_site) != len(structure.sites):
                 raise ValueError('An initial magnetization must be defined for each site of `structure`')
 
-    def get_calc_types(self):
+    def get_engine_types(self):
         """Return the calculation types for this input generator."""
-        return list(self._calc_types.keys())
+        return list(self._engine_types.keys())
 
-    def get_calc_type_schema(self, key):
+    def get_engine_type_schema(self, key):
         """Return the schema of a particular calculation type for this input generator."""
         try:
-            return self._calc_types[key]
+            return self._engine_types[key]
         except KeyError:
             raise ValueError('the calculation type `{}` does not exist'.format(key))
 

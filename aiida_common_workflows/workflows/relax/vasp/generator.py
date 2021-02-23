@@ -21,7 +21,7 @@ class VaspRelaxInputGenerator(RelaxInputGenerator):
     """Input generator for the `VASPRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
-    _calc_types = {'relax': {'code_plugin': 'vasp.vasp', 'description': 'The code to perform the relaxation.'}}
+    _engine_types = {'relax': {'code_plugin': 'vasp.vasp', 'description': 'The code to perform the relaxation.'}}
     _relax_types = {
         RelaxType.NONE: 'Do not perform relaxation',
         RelaxType.ATOMS: 'Relax only the atomic positions.',
@@ -53,7 +53,7 @@ class VaspRelaxInputGenerator(RelaxInputGenerator):
     def get_builder(
         self,
         structure: StructureData,
-        calc_engines: Dict[str, Any],
+        engines: Dict[str, Any],
         *,
         protocol: str = None,
         relax_type: RelaxType = RelaxType.ATOMS,
@@ -68,7 +68,7 @@ class VaspRelaxInputGenerator(RelaxInputGenerator):
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
 
         :param structure: the structure to be relaxed.
-        :param calc_engines: a dictionary containing the computational resources for the relaxation.
+        :param engines: a dictionary containing the computational resources for the relaxation.
         :param protocol: the protocol to use when determining the workchain inputs.
         :param relax_type: the type of relaxation to perform.
         :param electronic_type: the electronic character that is to be used for the structure.
@@ -87,7 +87,7 @@ class VaspRelaxInputGenerator(RelaxInputGenerator):
 
         super().get_builder(
             structure,
-            calc_engines,
+            engines,
             protocol=protocol,
             relax_type=relax_type,
             electronic_type=electronic_type,
@@ -108,13 +108,13 @@ class VaspRelaxInputGenerator(RelaxInputGenerator):
         builder = self.process_class.get_builder()
 
         # Set code
-        builder.code = orm.load_code(calc_engines['relax']['code'])
+        builder.code = orm.load_code(engines['relax']['code'])
 
         # Set structure
         builder.structure = structure
 
         # Set options
-        builder.options = plugins.DataFactory('dict')(dict=calc_engines['relax']['options'])
+        builder.options = plugins.DataFactory('dict')(dict=engines['relax']['options'])
 
         # Set settings
         # Make sure the VASP parser is configured for the problem

@@ -26,7 +26,7 @@ class CastepRelaxInputGenerator(RelaxInputGenerator):
     """Input generator for the `CastepRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
-    _calc_types = {'relax': {'code_plugin': 'castep.castep', 'description': 'The code to perform the relaxation.'}}
+    _engine_types = {'relax': {'code_plugin': 'castep.castep', 'description': 'The code to perform the relaxation.'}}
     _relax_types = {
         RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
         RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell.',
@@ -66,7 +66,7 @@ class CastepRelaxInputGenerator(RelaxInputGenerator):
     def get_builder(
         self,
         structure: StructureData,
-        calc_engines: Dict[str, Any],
+        engines: Dict[str, Any],
         *,
         protocol: str = None,
         relax_type: RelaxType = RelaxType.ATOMS,
@@ -81,7 +81,7 @@ class CastepRelaxInputGenerator(RelaxInputGenerator):
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
 
         :param structure: the structure to be relaxed.
-        :param calc_engines: a dictionary containing the computational resources for the relaxation.
+        :param engines: a dictionary containing the computational resources for the relaxation.
         :param protocol: the protocol to use when determining the workchain inputs.
         :param relax_type: the type of relaxation to perform.
         :param electronic_type: the electronic character that is to be used for the structure.
@@ -100,7 +100,7 @@ class CastepRelaxInputGenerator(RelaxInputGenerator):
 
         super().get_builder(
             structure,
-            calc_engines,
+            engines,
             protocol=protocol,
             relax_type=relax_type,
             electronic_type=electronic_type,
@@ -119,9 +119,9 @@ class CastepRelaxInputGenerator(RelaxInputGenerator):
         # Because the subsequent generators may modify this dictionary and convert things
         # to AiiDA types, here we make a full copy of the original protocol
         protocol = copy.deepcopy(self.get_protocol(protocol))
-        code = calc_engines['relax']['code']
+        code = engines['relax']['code']
 
-        override = {'base': {'calc': {'metadata': {'options': calc_engines['relax']['options']}}}}
+        override = {'base': {'calc': {'metadata': {'options': engines['relax']['options']}}}}
         param = {}
         if threshold_forces is not None:
             param['geom_force_tol'] = threshold_forces

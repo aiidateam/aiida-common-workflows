@@ -16,7 +16,12 @@ StructureData = plugins.DataFactory('structure')
 class QuantumEspressoRelaxInputGenerator(RelaxInputGenerator):
     """Input generator for the `QuantumEspressoRelaxWorkChain`."""
 
-    _calc_types = {'relax': {'code_plugin': 'quantumespresso.pw', 'description': 'The code to perform the relaxation.'}}
+    _engine_types = {
+        'relax': {
+            'code_plugin': 'quantumespresso.pw',
+            'description': 'The code to perform the relaxation.'
+        }
+    }
     _relax_types = {relax_type: '...' for relax_type in RelaxType}
     _spin_types = {
         SpinType.NONE: 'Treat the system without spin polarization.',
@@ -45,7 +50,7 @@ class QuantumEspressoRelaxInputGenerator(RelaxInputGenerator):
     def get_builder(
         self,
         structure: StructureData,
-        calc_engines: Dict[str, Any],
+        engines: Dict[str, Any],
         *,
         protocol: str = None,
         relax_type: RelaxType = RelaxType.ATOMS,
@@ -60,7 +65,7 @@ class QuantumEspressoRelaxInputGenerator(RelaxInputGenerator):
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
 
         :param structure: the structure to be relaxed.
-        :param calc_engines: a dictionary containing the computational resources for the relaxation.
+        :param engines: a dictionary containing the computational resources for the relaxation.
         :param protocol: the protocol to use when determining the workchain inputs.
         :param relax_type: the type of relaxation to perform.
         :param electronic_type: the electronic character that is to be used for the structure.
@@ -82,7 +87,7 @@ class QuantumEspressoRelaxInputGenerator(RelaxInputGenerator):
 
         super().get_builder(
             structure,
-            calc_engines,
+            engines,
             protocol=protocol,
             relax_type=relax_type,
             electronic_type=electronic_type,
@@ -111,14 +116,14 @@ class QuantumEspressoRelaxInputGenerator(RelaxInputGenerator):
             initial_magnetic_moments = None
 
         builder = self.process_class._process_class.get_builder_from_protocol(  # pylint: disable=protected-access
-            calc_engines['relax']['code'],
+            engines['relax']['code'],
             structure,
             protocol=protocol,
             overrides={
                 'base': {
                     'pw': {
                         'metadata': {
-                            'options': calc_engines['relax']['options']
+                            'options': engines['relax']['options']
                         }
                     }
                 },

@@ -28,7 +28,7 @@ def inputs_generator(protocol_registry) -> RelaxInputGenerator:
     class InputGenerator(protocol_registry, RelaxInputGenerator):
         """Valid input generator implementation."""
 
-        _calc_types = {'relax': {'code_plugin': 'entry.point', 'description': 'test'}}
+        _engine_types = {'relax': {'code_plugin': 'entry.point', 'description': 'test'}}
 
         _relax_types = {
             RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
@@ -53,7 +53,7 @@ def test_validation(protocol_registry):
     class InputGenerator(protocol_registry, RelaxInputGenerator):
         """Invalid input generator implementation: no ``get_builder``"""
 
-        _calc_types = None
+        _engine_types = None
         _relax_types = None
         _spin_types = None
         _electronic_types = None
@@ -65,7 +65,7 @@ def test_validation(protocol_registry):
     class InputGenerator(protocol_registry, RelaxInputGenerator):
         """Invalid input generator implementation: no process class passed."""
 
-        _calc_types = {'relax': {}}
+        _engine_types = {'relax': {}}
         _relax_types = {RelaxType.ATOMS: 'description'}
 
         def get_builder(self):
@@ -77,7 +77,7 @@ def test_validation(protocol_registry):
     class InputGenerator(protocol_registry, RelaxInputGenerator):
         """Invalid input generator implementation: no ``_relax_types``"""
 
-        _calc_types = {'relax': {}}
+        _engine_types = {'relax': {}}
         _relax_types = None
         _spin_types = {SpinType.NONE: '...', SpinType.COLLINEAR: '...'}
         _electronic_types = {ElectronicType.INSULATOR: '...', ElectronicType.METAL: '...'}
@@ -89,9 +89,9 @@ def test_validation(protocol_registry):
         InputGenerator(process_class=CommonRelaxWorkChain)
 
     class InputGenerator(protocol_registry, RelaxInputGenerator):
-        """Invalid input generator implementation: no ``_calc_types``"""
+        """Invalid input generator implementation: no ``_engine_types``"""
 
-        _calc_types = None
+        _engine_types = None
         _relax_types = {RelaxType.ATOMS: 'description'}
         _spin_types = {SpinType.NONE: '...', SpinType.COLLINEAR: '...'}
         _electronic_types = {ElectronicType.INSULATOR: '...', ElectronicType.METAL: '...'}
@@ -105,7 +105,7 @@ def test_validation(protocol_registry):
     class InputGenerator(protocol_registry, RelaxInputGenerator):
         """Invalid input generator implementation: no ``_spin_types``"""
 
-        _calc_types = {'relax': {}}
+        _engine_types = {'relax': {}}
         _relax_types = {RelaxType.ATOMS: 'description'}
         _spin_types = None
         _electronic_types = {ElectronicType.INSULATOR: '...', ElectronicType.METAL: '...'}
@@ -119,7 +119,7 @@ def test_validation(protocol_registry):
     class InputGenerator(protocol_registry, RelaxInputGenerator):
         """Invalid input generator implementation: no ``_electronic_types``"""
 
-        _calc_types = {'relax': {}}
+        _engine_types = {'relax': {}}
         _relax_types = {RelaxType.ATOMS: 'description'}
         _spin_types = {SpinType.NONE: '...', SpinType.COLLINEAR: '...'}
         _electronic_types = None
@@ -133,7 +133,7 @@ def test_validation(protocol_registry):
     class InputGenerator(protocol_registry, RelaxInputGenerator):
         """Invalid input generator implementation: invalid ``_relax_types``"""
 
-        _calc_types = {'relax': {}}
+        _engine_types = {'relax': {}}
         _relax_types = {'invalid-type': 'description'}
         _spin_types = {SpinType.NONE: '...', SpinType.COLLINEAR: '...'}
         _electronic_types = {ElectronicType.INSULATOR: '...', ElectronicType.METAL: '...'}
@@ -147,7 +147,7 @@ def test_validation(protocol_registry):
     class InputGenerator(protocol_registry, RelaxInputGenerator):
         """Invalid input generator implementation: invalid ``_spin_types``"""
 
-        _calc_types = {'relax': {}}
+        _engine_types = {'relax': {}}
         _relax_types = {RelaxType.ATOMS: 'description'}
         _spin_types = {'invalid-type': 'description'}
         _electronic_types = {ElectronicType.INSULATOR: '...', ElectronicType.METAL: '...'}
@@ -161,7 +161,7 @@ def test_validation(protocol_registry):
     class InputGenerator(protocol_registry, RelaxInputGenerator):
         """Invalid input generator implementation: invalid ``_electronic_types``"""
 
-        _calc_types = {'relax': {}}
+        _engine_types = {'relax': {}}
         _relax_types = {RelaxType.ATOMS: 'description'}
         _spin_types = {SpinType.NONE: '...', SpinType.COLLINEAR: '...'}
         _electronic_types = {'invalid_type': '...'}
@@ -173,14 +173,14 @@ def test_validation(protocol_registry):
         InputGenerator(process_class=CommonRelaxWorkChain)
 
 
-def test_get_calc_types(inputs_generator):
-    """Test `RelaxInputGenerator.get_calc_types`."""
-    assert inputs_generator.get_calc_types() == ['relax']
+def test_get_engine_types(inputs_generator):
+    """Test `RelaxInputGenerator.get_engine_types`."""
+    assert inputs_generator.get_engine_types() == ['relax']
 
 
-def test_get_calc_type_schema(inputs_generator):
-    """Test `RelaxInputGenerator.get_calc_type_schema`."""
-    assert inputs_generator.get_calc_type_schema('relax') == {'code_plugin': 'entry.point', 'description': 'test'}
+def test_get_engine_type_schema(inputs_generator):
+    """Test `RelaxInputGenerator.get_engine_type_schema`."""
+    assert inputs_generator.get_engine_type_schema('relax') == {'code_plugin': 'entry.point', 'description': 'test'}
 
 
 def test_get_relax_types(inputs_generator):

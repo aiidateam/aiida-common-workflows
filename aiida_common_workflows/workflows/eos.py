@@ -78,7 +78,7 @@ class EquationOfStateWorkChain(WorkChain):
             help='The relative difference between consecutive scaling factors.')
         spec.input_namespace('generator_inputs', dynamic=True,
             help='The inputs that will be passed to the input generator of the specified `sub_process`.')
-        spec.input('generator_inputs.calc_engines', valid_type=dict, non_db=True)
+        spec.input('generator_inputs.engines', valid_type=dict, non_db=True)
         spec.input('generator_inputs.protocol', valid_type=str, non_db=True,
             help='The protocol to use when determining the workchain inputs.')
         spec.input('generator_inputs.relax_type', valid_type=RelaxType, non_db=True, validator=validate_relax_type,

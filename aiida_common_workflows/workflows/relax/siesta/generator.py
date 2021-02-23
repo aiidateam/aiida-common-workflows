@@ -21,13 +21,13 @@ class SiestaRelaxInputGenerator(RelaxInputGenerator):
 
     _default_protocol = 'moderate'
 
-    _calc_types = {
+    _engine_types = {
         'relaxation': {
             'code_plugin':
             'siesta.siesta',
             'description':
             'These are calculations used for the main and '
-            'only run of the code, computing the relaxation, in calc_engines the user must '
+            'only run of the code, computing the relaxation, in engines the user must '
             'define a code and options compatibles with plugin siesta.siesta'
         }
     }
@@ -87,7 +87,7 @@ class SiestaRelaxInputGenerator(RelaxInputGenerator):
     def get_builder(  # pylint: disable=too-many-branches, too-many-locals
         self,
         structure: StructureData,
-        calc_engines: Dict[str, Any],
+        engines: Dict[str, Any],
         *,
         protocol: str = None,
         relax_type: RelaxType = RelaxType.ATOMS,
@@ -103,7 +103,7 @@ class SiestaRelaxInputGenerator(RelaxInputGenerator):
         Return a process builder for the corresponding workchain class with inputs set according to the protocol.
 
         :param structure: the structure to be relaxed.
-        :param calc_engines: a dictionary containing the computational resources for the relaxation.
+        :param engines: a dictionary containing the computational resources for the relaxation.
         :param protocol: the protocol to use when determining the workchain inputs.
         :param relax_type: the type of relaxation to perform.
         :param electronic_type: the electronic character that is to be used for the structure.
@@ -122,7 +122,7 @@ class SiestaRelaxInputGenerator(RelaxInputGenerator):
 
         super().get_builder(
             structure,
-            calc_engines,
+            engines,
             protocol=protocol,
             relax_type=relax_type,
             electronic_type=electronic_type,
@@ -139,8 +139,8 @@ class SiestaRelaxInputGenerator(RelaxInputGenerator):
             import warnings
             warnings.warn('no protocol implemented with name {}, using default moderate'.format(protocol))
             protocol = self.get_default_protocol_name()
-        if 'relaxation' not in calc_engines:
-            raise ValueError('The `calc_engines` dictionaly must contain "relaxation" as outermost key')
+        if 'relaxation' not in engines:
+            raise ValueError('The `engines` dictionaly must contain "relaxation" as outermost key')
 
         pseudo_family = self._protocols[protocol]['pseudo_family']
         try:
@@ -196,8 +196,8 @@ class SiestaRelaxInputGenerator(RelaxInputGenerator):
         if kpoints_mesh:
             builder.kpoints = kpoints_mesh
         builder.pseudo_family = pseudo_family
-        builder.options = orm.Dict(dict=calc_engines['relaxation']['options'])
-        builder.code = orm.load_code(calc_engines['relaxation']['code'])
+        builder.options = orm.Dict(dict=engines['relaxation']['options'])
+        builder.code = orm.load_code(engines['relaxation']['code'])
 
         return builder
 

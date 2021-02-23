@@ -20,11 +20,11 @@ from aiida_common_workflows.workflows.relax.<code>.workchain import <Code>RelaxW
 # and the same resources. We call them `calc_types`. The same code might be used by multiple calc_types (see
 # e.g. example below) if the resources needed are very different.
 # Multiple calculations might use the same calc_type, e.g. restarts in the same part of the WorkChain.
-# The keys of the following calc_engines are the allowed calc_types; the values define the
+# The keys of the following engines are the allowed calc_types; the values define the
 # concrete values for each of these calc_types.
-#The schema of calc_engines is code dependent, therefore there is a method to explore it,
+#The schema of engines is code dependent, therefore there is a method to explore it,
 #see next call
-calc_engines = {
+engines = {
     'relax': {
         'code': '<code>@localhost',
         'options': {
@@ -51,17 +51,17 @@ calc_engines = {
 
 # The class InpGen must be aware of the calc_types
 # of the RelWC, therefore it can get programmatically all valid calc_types
-# through the method get_calc_types()
-assert set(InpGen.get_calc_types()) == set(['relax', 'final_scf'])
+# through the method get_engine_types()
+assert set(InpGen.get_engine_types()) == set(['relax', 'final_scf'])
 
 # Also, it returns programmatically the schema of each calc_type (including the plugin for the code,
 # that can be used e.g. to show a dropdown list in a GUI of all existing valid codes;
 # and a human-readable decription of what the calc_type does)
-assert InpGen.get_calc_type_schema('relax') == {
+assert InpGen.get_engine_type_schema('relax') == {
     'code_plugin': 'siesta.siesta',
     'description': 'These are calculations used for the main run of the code, computing the relaxation'
 }
-assert InpGen.get_calc_type_schema('final_scf') == {
+assert InpGen.get_engine_type_schema('final_scf') == {
     'code_plugin': 'siesta.siesta',
     'description':
     'This is the final SCF calculation that is always performed after a successful relaxation. '
@@ -105,7 +105,7 @@ rel_inp_gen = InpGen()
 # with unstored nodes (unless they are taken from the DB, e.g. pseudos)
 builder = rel_inp_gen.get_builder(
     structure=structure,
-    calc_engines=calc_engines,
+    engines=engines,
     protocol=protocol,
     relax_type=relax_type,
     threshold_forces=threshold_forces,

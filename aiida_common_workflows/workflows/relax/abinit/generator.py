@@ -23,7 +23,7 @@ class AbinitRelaxInputGenerator(RelaxInputGenerator):
     """Input generator for the `AbinitRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
-    _calc_types = {'relax': {'code_plugin': 'abinit', 'description': 'The code to perform the relaxation.'}}
+    _engine_types = {'relax': {'code_plugin': 'abinit', 'description': 'The code to perform the relaxation.'}}
     _relax_types = {
         RelaxType.NONE: 'Fix the atomic positions, cell volume, and cell shape.',
         RelaxType.ATOMS: 'Relax the atomic positions at fixed cell volume and shape.',
@@ -56,7 +56,7 @@ class AbinitRelaxInputGenerator(RelaxInputGenerator):
     def get_builder(
         self,
         structure: StructureData,
-        calc_engines: Dict[str, Any],
+        engines: Dict[str, Any],
         *,
         protocol: str = None,
         relax_type: RelaxType = RelaxType.ATOMS,
@@ -71,7 +71,7 @@ class AbinitRelaxInputGenerator(RelaxInputGenerator):
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
 
         :param structure: the structure to be relaxed.
-        :param calc_engines: a dictionary containing the computational resources for the relaxation.
+        :param engines: a dictionary containing the computational resources for the relaxation.
         :param protocol: the protocol to use when determining the workchain inputs.
         :param relax_type: the type of relaxation to perform.
         :param electronic_type: the electronic character that is to be used for the structure.
@@ -90,7 +90,7 @@ class AbinitRelaxInputGenerator(RelaxInputGenerator):
 
         super().get_builder(
             structure,
-            calc_engines,
+            engines,
             protocol=protocol,
             relax_type=relax_type,
             electronic_type=electronic_type,
@@ -103,7 +103,7 @@ class AbinitRelaxInputGenerator(RelaxInputGenerator):
         )
 
         protocol = copy.deepcopy(self.get_protocol(protocol))
-        code = calc_engines['relax']['code']
+        code = engines['relax']['code']
 
         pseudo_family = orm.Group.objects.get(label=protocol.pop('pseudo_family'))
         cutoff_stringency = protocol['cutoff_stringency']
@@ -125,7 +125,7 @@ class AbinitRelaxInputGenerator(RelaxInputGenerator):
         override = {
             'abinit': {
                 'metadata': {
-                    'options': calc_engines['relax']['options']
+                    'options': engines['relax']['options']
                 },
                 'pseudos': pseudo_family.get_pseudos(structure=structure),
                 'parameters': cutoff_parameters

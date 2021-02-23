@@ -57,7 +57,7 @@ class GaussianRelaxInputGenerator(RelaxInputGenerator):
         }
     }
 
-    _calc_types = {'relax': {'code_plugin': 'gaussian', 'description': 'The code to perform the relaxation.'}}
+    _engine_types = {'relax': {'code_plugin': 'gaussian', 'description': 'The code to perform the relaxation.'}}
     _relax_types = {
         RelaxType.NONE: 'Single point calculation.',
         RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
@@ -71,7 +71,7 @@ class GaussianRelaxInputGenerator(RelaxInputGenerator):
     def get_builder(
         self,
         structure: StructureData,
-        calc_engines: Dict[str, Any],
+        engines: Dict[str, Any],
         *,
         protocol: str = None,
         relax_type: RelaxType = RelaxType.ATOMS,
@@ -86,7 +86,7 @@ class GaussianRelaxInputGenerator(RelaxInputGenerator):
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
 
         :param structure: the structure to be relaxed.
-        :param calc_engines: a dictionary containing the computational resources for the relaxation.
+        :param engines: a dictionary containing the computational resources for the relaxation.
         :param protocol: the protocol to use when determining the workchain inputs.
         :param relax_type: the type of relaxation to perform.
         :param electronic_type: the electronic character that is to be used for the structure.
@@ -105,7 +105,7 @@ class GaussianRelaxInputGenerator(RelaxInputGenerator):
 
         super().get_builder(
             structure,
-            calc_engines,
+            engines,
             protocol=protocol,
             relax_type=relax_type,
             electronic_type=electronic_type,
@@ -121,11 +121,11 @@ class GaussianRelaxInputGenerator(RelaxInputGenerator):
             print('Warning: PBC detected in input structure. It is not supported and thus ignored.')
 
         # -----------------------------------------------------------------
-        # Set the link0 memory and n_proc based on the calc_engines options dict
+        # Set the link0 memory and n_proc based on the engines options dict
 
         link0_parameters = {'%chk': 'aiida.chk'}
 
-        options = calc_engines['relax']['options']
+        options = engines['relax']['options']
         res = options['resources']
 
         if 'max_memory_kb' not in options:
@@ -143,7 +143,7 @@ class GaussianRelaxInputGenerator(RelaxInputGenerator):
             if 'num_mpiprocs_per_machine' in res:
                 n_proc = res['num_machines'] * res['num_mpiprocs_per_machine']
             else:
-                code = load_code(calc_engines['relax']['code'])
+                code = load_code(engines['relax']['code'])
                 def_mppm = code.computer.get_default_mpiprocs_per_machine()
                 if def_mppm is not None:
                     n_proc = res['num_machines'] * def_mppm
@@ -223,7 +223,7 @@ class GaussianRelaxInputGenerator(RelaxInputGenerator):
         builder = self.process_class.get_builder()
         builder.gaussian.structure = structure
         builder.gaussian.parameters = orm.Dict(dict=params)
-        builder.gaussian.code = orm.load_code(calc_engines['relax']['code'])
-        builder.gaussian.metadata.options = calc_engines['relax']['options']
+        builder.gaussian.code = orm.load_code(engines['relax']['code'])
+        builder.gaussian.metadata.options = engines['relax']['options']
 
         return builder

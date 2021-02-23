@@ -145,7 +145,7 @@ class BigDftRelaxInputGenerator(RelaxInputGenerator):
         }
     }
 
-    _calc_types = {'relax': {'code_plugin': 'bigdft', 'description': 'The code to perform the relaxation.'}}
+    _engine_types = {'relax': {'code_plugin': 'bigdft', 'description': 'The code to perform the relaxation.'}}
 
     _relax_types = {
         RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
@@ -160,7 +160,7 @@ class BigDftRelaxInputGenerator(RelaxInputGenerator):
     def get_builder(
         self,
         structure: StructureData,
-        calc_engines: Dict[str, Any],
+        engines: Dict[str, Any],
         *,
         protocol: str = None,
         relax_type: RelaxType = RelaxType.ATOMS,
@@ -175,7 +175,7 @@ class BigDftRelaxInputGenerator(RelaxInputGenerator):
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
 
         :param structure: the structure to be relaxed.
-        :param calc_engines: a dictionary containing the computational resources for the relaxation.
+        :param engines: a dictionary containing the computational resources for the relaxation.
         :param protocol: the protocol to use when determining the workchain inputs.
         :param relax_type: the type of relaxation to perform.
         :param electronic_type: the electronic character that is to be used for the structure.
@@ -194,7 +194,7 @@ class BigDftRelaxInputGenerator(RelaxInputGenerator):
 
         super().get_builder(
             structure,
-            calc_engines,
+            engines,
             protocol=protocol,
             relax_type=relax_type,
             electronic_type=electronic_type,
@@ -287,8 +287,8 @@ class BigDftRelaxInputGenerator(RelaxInputGenerator):
             psprel = [os.path.relpath(i) for i in psp]
             builder.pseudos.extend(psprel)
         builder.parameters = BigDFTParameters(dict=inputdict)
-        builder.code = orm.load_code(calc_engines[relaxation_schema]['code'])
-        run_opts = {'options': calc_engines[relaxation_schema]['options']}
+        builder.code = orm.load_code(engines[relaxation_schema]['code'])
+        run_opts = {'options': engines[relaxation_schema]['options']}
         builder.run_opts = orm.Dict(dict=run_opts)
 
         if threshold_forces is not None:
