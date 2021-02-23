@@ -96,7 +96,7 @@ class SiestaRelaxInputGenerator(RelaxInputGenerator):
         magnetization_per_site: List[float] = None,
         threshold_forces: float = None,
         threshold_stress: float = None,
-        previous_workchain=None,
+        reference_workchain=None,
         **kwargs
     ) -> engine.ProcessBuilder:
         """
@@ -113,7 +113,7 @@ class SiestaRelaxInputGenerator(RelaxInputGenerator):
             only if `spin_type != SpinType.NONE`.
         :param threshold_forces: target threshold for the forces in eV/Å.
         :param threshold_stress: target threshold for the stress in eV/Å^3.
-        :param previous_workchain: a <Code>RelaxWorkChain node.
+        :param reference_workchain: a <Code>RelaxWorkChain node.
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
@@ -130,7 +130,7 @@ class SiestaRelaxInputGenerator(RelaxInputGenerator):
             magnetization_per_site=magnetization_per_site,
             threshold_forces=threshold_forces,
             threshold_stress=threshold_stress,
-            previous_workchain=previous_workchain,
+            reference_workchain=reference_workchain,
             **kwargs
         )
 
@@ -152,10 +152,10 @@ class SiestaRelaxInputGenerator(RelaxInputGenerator):
             )
 
         # K points
-        kpoints_mesh = self._get_kpoints(protocol, structure, previous_workchain)
+        kpoints_mesh = self._get_kpoints(protocol, structure, reference_workchain)
 
         # Parameters, including scf ...
-        parameters = self._get_param(protocol, structure, previous_workchain)
+        parameters = self._get_param(protocol, structure, reference_workchain)
         #... relax options ...
         if relax_type != RelaxType.NONE:
             parameters['md-type-of-run'] = 'cg'
@@ -201,19 +201,19 @@ class SiestaRelaxInputGenerator(RelaxInputGenerator):
 
         return builder
 
-    def _get_param(self, key, structure, previous_workchain):  # pylint: disable=too-many-branches
+    def _get_param(self, key, structure, reference_workchain):  # pylint: disable=too-many-branches
         """
         Method to construct the `parameters` input. Heuristics are applied, a dictionary
         with the parameters is returned.
         """
         parameters = self._protocols[key]['parameters'].copy()
 
-        #We fix the `mesh-sizes` to the one of previous_workchain, we need to access
+        #We fix the `mesh-sizes` to the one of reference_workchain, we need to access
         #the underline SiestaBaseWorkChain. Also we `return` as the heuristics can only
         #modify the meshcutoff. THIS SHOULD BE CHECKED IF FEATURES ADDED TO ATOM HEURISTICS
-        if previous_workchain is not None:
+        if reference_workchain is not None:
             from aiida.orm import WorkChainNode
-            siesta_base_outs = previous_workchain.get_outgoing(node_class=WorkChainNode).one().node.outputs
+            siesta_base_outs = reference_workchain.get_outgoing(node_class=WorkChainNode).one().node.outputs
             mesh = siesta_base_outs.output_parameters.attributes['mesh']
             parameters['mesh-sizes'] = f'[{mesh[0]} {mesh[1]} {mesh[2]}]'
             try:
@@ -321,12 +321,12 @@ class SiestaRelaxInputGenerator(RelaxInputGenerator):
 
         return basis
 
-    def _get_kpoints(self, key, structure, previous_workchain):
+    def _get_kpoints(self, key, structure, reference_workchain):
         from aiida.orm import KpointsData
-        if previous_workchain:
+        if reference_workchain:
             kpoints_mesh = KpointsData()
             kpoints_mesh.set_cell_from_structure(structure)
-            previous_wc_kp = previous_workchain.inputs.kpoints
+            previous_wc_kp = reference_workchain.inputs.kpoints
             kpoints_mesh.set_kpoints_mesh(previous_wc_kp.get_attribute('mesh'), previous_wc_kp.get_attribute('offset'))
             return kpoints_mesh
 

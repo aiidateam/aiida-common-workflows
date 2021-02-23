@@ -169,7 +169,7 @@ class BigDftRelaxInputGenerator(RelaxInputGenerator):
         magnetization_per_site: List[float] = None,
         threshold_forces: float = None,
         threshold_stress: float = None,
-        previous_workchain=None,
+        reference_workchain=None,
         **kwargs
     ) -> engine.ProcessBuilder:
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
@@ -185,7 +185,7 @@ class BigDftRelaxInputGenerator(RelaxInputGenerator):
             only if `spin_type != SpinType.NONE`.
         :param threshold_forces: target threshold for the forces in eV/Å.
         :param threshold_stress: target threshold for the stress in eV/Å^3.
-        :param previous_workchain: a <Code>RelaxWorkChain node.
+        :param reference_workchain: a <Code>RelaxWorkChain node.
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
@@ -202,7 +202,7 @@ class BigDftRelaxInputGenerator(RelaxInputGenerator):
             magnetization_per_site=magnetization_per_site,
             threshold_forces=threshold_forces,
             threshold_stress=threshold_stress,
-            previous_workchain=previous_workchain,
+            reference_workchain=reference_workchain,
             **kwargs
         )
 
@@ -236,14 +236,14 @@ class BigDftRelaxInputGenerator(RelaxInputGenerator):
             inputdict = copy.deepcopy(self.get_protocol(protocol)['inputdict_linear'])
 
         # adapt hgrid to the strain
-        if previous_workchain is not None and previous_workchain.is_finished_ok:
-            logfile = previous_workchain.outputs.bigdft_logfile.logfile
+        if reference_workchain is not None and reference_workchain.is_finished_ok:
+            logfile = reference_workchain.outputs.bigdft_logfile.logfile
             if isinstance(logfile, list):
                 hgrids = logfile[0].get('dft').get('hgrids')
             else:
                 hgrids = logfile.get('dft').get('hgrids')
             inputdict['dft']['hgrids'] = hgrids[0] * builder.structure.cell_lengths[0] / \
-                previous_workchain.inputs.structure.cell_lengths[0]
+                reference_workchain.inputs.structure.cell_lengths[0]
 
 
 #       Soon : Use inputActions

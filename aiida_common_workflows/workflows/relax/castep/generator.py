@@ -75,7 +75,7 @@ class CastepRelaxInputGenerator(RelaxInputGenerator):
         magnetization_per_site: List[float] = None,
         threshold_forces: float = None,
         threshold_stress: float = None,
-        previous_workchain=None,
+        reference_workchain=None,
         **kwargs
     ) -> engine.ProcessBuilder:
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
@@ -91,7 +91,7 @@ class CastepRelaxInputGenerator(RelaxInputGenerator):
             only if `spin_type != SpinType.NONE`.
         :param threshold_forces: target threshold for the forces in eV/Å.
         :param threshold_stress: target threshold for the stress in eV/Å^3.
-        :param previous_workchain: a <Code>RelaxWorkChain node.
+        :param reference_workchain: a <Code>RelaxWorkChain node.
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
@@ -108,7 +108,7 @@ class CastepRelaxInputGenerator(RelaxInputGenerator):
             magnetization_per_site=magnetization_per_site,
             threshold_forces=threshold_forces,
             threshold_stress=threshold_stress,
-            previous_workchain=previous_workchain,
+            reference_workchain=reference_workchain,
             **kwargs
         )
 
@@ -224,8 +224,8 @@ class CastepRelaxInputGenerator(RelaxInputGenerator):
         inputs = generate_inputs(self.process_class._process_class, protocol, code, structure, override)  # pylint: disable=protected-access
 
         # Finally, apply the logic for previous workchain
-        if previous_workchain:
-            previous_energy = previous_workchain.outputs.total_energy
+        if reference_workchain:
+            previous_energy = reference_workchain.outputs.total_energy
             query = orm.QueryBuilder()
             query.append(orm.Node, filters={'id': previous_energy.pk}, tag='eng')
             query.append(orm.CalcFunctionNode, with_outgoing='eng', tag='calcf')

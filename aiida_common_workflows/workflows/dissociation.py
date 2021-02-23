@@ -146,14 +146,14 @@ class DissociationCurveWorkChain(WorkChain):
         minimum = self.inputs.distance_min.value
         return [orm.Float(minimum + i * (maximum-minimum) / (count-1)) for i in range(count)]
 
-    def get_sub_workchain_builder(self, distance, previous_workchain=None):
+    def get_sub_workchain_builder(self, distance, reference_workchain=None):
         """Return the builder for the relax workchain."""
         molecule = set_distance(self.inputs.molecule, distance)
         process_class = WorkflowFactory(self.inputs.sub_process_class)
 
         builder = process_class.get_input_generator().get_builder(
             molecule,
-            previous_workchain=previous_workchain,
+            reference_workchain=reference_workchain,
             **self.inputs.generator_inputs
         )
         builder._update(**self.inputs.get('sub_process', {}))  # pylint: disable=protected-access
@@ -168,8 +168,8 @@ class DissociationCurveWorkChain(WorkChain):
         builder, distance_node = self.get_sub_workchain_builder(distance)
         self.ctx.distance_nodes = [distance_node]
         self.report(f'submitting `{builder.process_class.__name__}` for distance `{distance.value}`')
-        self.ctx.previous_workchain = self.submit(builder)
-        self.to_context(children=append_(self.ctx.previous_workchain))
+        self.ctx.reference_workchain = self.submit(builder)
+        self.to_context(children=append_(self.ctx.reference_workchain))
 
     def inspect_init(self):
         """Check that the first workchain finished successfully or abort the workchain."""
@@ -180,8 +180,8 @@ class DissociationCurveWorkChain(WorkChain):
     def run_dissociation(self):
         """Run the sub process at each distance to compute the total energy."""
         for distance in self.get_distances()[1:]:
-            previous_workchain = self.ctx.previous_workchain
-            builder, distance_node = self.get_sub_workchain_builder(distance, previous_workchain=previous_workchain)
+            reference_workchain = self.ctx.reference_workchain
+            builder, distance_node = self.get_sub_workchain_builder(distance, reference_workchain=reference_workchain)
             self.ctx.distance_nodes.append(distance_node)
             self.report(f'submitting `{builder.process_class.__name__}` for dinstance `{distance.value}`')
             self.to_context(children=append_(self.submit(builder)))

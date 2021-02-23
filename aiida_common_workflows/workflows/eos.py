@@ -120,14 +120,14 @@ class EquationOfStateWorkChain(WorkChain):
         increment = self.inputs.scale_increment.value
         return [orm.Float(1 + i * increment - (count - 1) * increment / 2) for i in range(count)]
 
-    def get_sub_workchain_builder(self, scale_factor, previous_workchain=None):
+    def get_sub_workchain_builder(self, scale_factor, reference_workchain=None):
         """Return the builder for the relax workchain."""
         structure = scale_structure(self.inputs.structure, scale_factor)
         process_class = WorkflowFactory(self.inputs.sub_process_class)
 
         builder = process_class.get_input_generator().get_builder(
             structure,
-            previous_workchain=previous_workchain,
+            reference_workchain=reference_workchain,
             **self.inputs.generator_inputs
         )
         builder._update(**self.inputs.get('sub_process', {}))  # pylint: disable=protected-access
@@ -139,9 +139,9 @@ class EquationOfStateWorkChain(WorkChain):
         scale_factor = self.get_scale_factors()[0]
         builder, structure = self.get_sub_workchain_builder(scale_factor)
         self.report(f'submitting `{builder.process_class.__name__}` for scale_factor `{scale_factor}`')
-        self.ctx.previous_workchain = self.submit(builder)
+        self.ctx.reference_workchain = self.submit(builder)
         self.ctx.structures = [structure]
-        self.to_context(children=append_(self.ctx.previous_workchain))
+        self.to_context(children=append_(self.ctx.reference_workchain))
 
     def inspect_init(self):
         """Check that the first workchain finished successfully or abort the workchain."""
@@ -152,8 +152,8 @@ class EquationOfStateWorkChain(WorkChain):
     def run_eos(self):
         """Run the sub process at each scale factor to compute the structure volume and total energy."""
         for scale_factor in self.get_scale_factors()[1:]:
-            previous_workchain = self.ctx.previous_workchain
-            builder, structure = self.get_sub_workchain_builder(scale_factor, previous_workchain=previous_workchain)
+            reference_workchain = self.ctx.reference_workchain
+            builder, structure = self.get_sub_workchain_builder(scale_factor, reference_workchain=reference_workchain)
             self.report(f'submitting `{builder.process_class.__name__}` for scale_factor `{scale_factor}`')
             self.ctx.structures.append(structure)
             self.to_context(children=append_(self.submit(builder)))

@@ -170,7 +170,7 @@ class Cp2kRelaxInputGenerator(RelaxInputGenerator):
         magnetization_per_site: List[float] = None,
         threshold_forces: float = None,
         threshold_stress: float = None,
-        previous_workchain=None,
+        reference_workchain=None,
         **kwargs
     ) -> engine.ProcessBuilder:
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
@@ -186,7 +186,7 @@ class Cp2kRelaxInputGenerator(RelaxInputGenerator):
             only if `spin_type != SpinType.NONE`.
         :param threshold_forces: target threshold for the forces in eV/Å.
         :param threshold_stress: target threshold for the stress in eV/Å^3.
-        :param previous_workchain: a <Code>RelaxWorkChain node.
+        :param reference_workchain: a <Code>RelaxWorkChain node.
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
@@ -203,7 +203,7 @@ class Cp2kRelaxInputGenerator(RelaxInputGenerator):
             magnetization_per_site=magnetization_per_site,
             threshold_forces=threshold_forces,
             threshold_stress=threshold_stress,
-            previous_workchain=previous_workchain,
+            reference_workchain=reference_workchain,
             **kwargs
         )
 
@@ -215,7 +215,7 @@ class Cp2kRelaxInputGenerator(RelaxInputGenerator):
 
         # Kpoints.
         kpoints_distance = parameters.pop('kpoints_distance', None)
-        kpoints = self._get_kpoints(kpoints_distance, structure, previous_workchain)
+        kpoints = self._get_kpoints(kpoints_distance, structure, reference_workchain)
         mesh, _ = kpoints.get_kpoints_mesh()
         if mesh != [1, 1, 1]:
             builder.cp2k.kpoints = kpoints
@@ -315,11 +315,11 @@ class Cp2kRelaxInputGenerator(RelaxInputGenerator):
         return builder
 
     @staticmethod
-    def _get_kpoints(kpoints_distance, structure, previous_workchain):
-        if previous_workchain and 'cp2k__kpoints' in previous_workchain.inputs:
+    def _get_kpoints(kpoints_distance, structure, reference_workchain):
+        if reference_workchain and 'cp2k__kpoints' in reference_workchain.inputs:
             kpoints_mesh = KpointsData()
             kpoints_mesh.set_cell_from_structure(structure)
-            kpoints_mesh.set_kpoints_mesh(previous_workchain.inputs.cp2k__kpoints.get_attribute('mesh'))
+            kpoints_mesh.set_kpoints_mesh(reference_workchain.inputs.cp2k__kpoints.get_attribute('mesh'))
             return kpoints_mesh
 
         if kpoints_distance:
