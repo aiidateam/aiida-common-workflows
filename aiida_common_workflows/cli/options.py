@@ -6,7 +6,7 @@ import click
 
 from aiida.cmdline.params import options, types
 from aiida.cmdline.utils.decorators import with_dbenv
-from aiida_common_workflows.workflows.relax import RelaxType, SpinType
+from aiida_common_workflows.common import RelaxType, SpinType
 
 DEFAULT_STRUCTURES_MAPPING = {
     'Al': 'Al.cif',

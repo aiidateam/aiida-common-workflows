@@ -12,7 +12,8 @@ from aiida import engine
 from aiida import orm
 from aiida.plugins import DataFactory
 
-from ..generator import RelaxInputGenerator, RelaxType, SpinType, ElectronicType
+from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
+from ..generator import RelaxInputGenerator
 
 __all__ = ('OrcaRelaxInputGenerator',)
 
