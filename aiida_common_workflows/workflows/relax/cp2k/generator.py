@@ -136,8 +136,8 @@ class Cp2kRelaxInputGenerator(RelaxInputGenerator):
     _engine_types = {'relax': {'code_plugin': 'cp2k', 'description': 'The code to perform the relaxation.'}}
     _relax_types = {
         RelaxType.NONE: 'No relaxation performed.',
-        RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
-        RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell.'
+        RelaxType.POSITIONS: 'Relax only the atomic positions while keeping the cell fixed.',
+        RelaxType.POSITIONS_CELL: 'Relax both atomic positions and the cell.'
     }
     _spin_types = {
         SpinType.NONE: 'Non magnetic calculation.',
@@ -164,7 +164,7 @@ class Cp2kRelaxInputGenerator(RelaxInputGenerator):
         engines: Dict[str, Any],
         *,
         protocol: str = None,
-        relax_type: RelaxType = RelaxType.ATOMS,
+        relax_type: RelaxType = RelaxType.POSITIONS,
         electronic_type: ElectronicType = ElectronicType.METAL,
         spin_type: SpinType = SpinType.NONE,
         magnetization_per_site: List[float] = None,
@@ -266,9 +266,9 @@ class Cp2kRelaxInputGenerator(RelaxInputGenerator):
         dict_merge(parameters, get_kinds_section(structure, magnetization_tags))
 
         ## Relaxation type.
-        if relax_type == RelaxType.ATOMS:
+        if relax_type == RelaxType.POSITIONS:
             run_type = 'GEO_OPT'
-        elif relax_type == RelaxType.ATOMS_CELL:
+        elif relax_type == RelaxType.POSITIONS_CELL:
             run_type = 'CELL_OPT'
         elif relax_type == RelaxType.NONE:
             run_type = 'ENERGY_FORCE'

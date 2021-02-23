@@ -46,8 +46,8 @@ class FleurRelaxInputGenerator(RelaxInputGenerator):
 
     _relax_types = {
         RelaxType.NONE: 'Do not relax forces, just run a SCF workchain.',
-        RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.'
-        # RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell.'
+        RelaxType.POSITIONS: 'Relax only the atomic positions while keeping the cell fixed.'
+        # RelaxType.POSITIONS_CELL: 'Relax both atomic positions and the cell.'
         # currently not supported by Fleur
     }
     _spin_types = {
@@ -75,7 +75,7 @@ class FleurRelaxInputGenerator(RelaxInputGenerator):
         engines: Dict[str, Any],
         *,
         protocol: str = None,
-        relax_type: RelaxType = RelaxType.ATOMS,
+        relax_type: RelaxType = RelaxType.POSITIONS,
         electronic_type: ElectronicType = ElectronicType.METAL,
         spin_type: SpinType = SpinType.NONE,
         magnetization_per_site: List[float] = None,
@@ -178,7 +178,7 @@ class FleurRelaxInputGenerator(RelaxInputGenerator):
         parameters = None
 
         # Relax type options
-        if relax_type == RelaxType.ATOMS:
+        if relax_type == RelaxType.POSITIONS:
             relaxation_mode = 'force'
         elif relax_type == RelaxType.NONE:
             relaxation_mode = 'force'

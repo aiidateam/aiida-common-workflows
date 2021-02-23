@@ -28,10 +28,11 @@ class CastepRelaxInputGenerator(RelaxInputGenerator):
     _default_protocol = 'moderate'
     _engine_types = {'relax': {'code_plugin': 'castep.castep', 'description': 'The code to perform the relaxation.'}}
     _relax_types = {
-        RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
-        RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell.',
-        RelaxType.ATOMS_SHAPE: 'Relax both atomic positions and the shape of the cell, keeping the volume fixed.',
-        RelaxType.ATOMS_VOLUME: 'Relax both atomic positions and the volume of the cell, keeping the cell shape fixed.',
+        RelaxType.POSITIONS: 'Relax only the atomic positions while keeping the cell fixed.',
+        RelaxType.POSITIONS_CELL: 'Relax both atomic positions and the cell.',
+        RelaxType.POSITIONS_SHAPE: 'Relax both atomic positions and the shape of the cell, keeping the volume fixed.',
+        RelaxType.POSITIONS_VOLUME:
+        'Relax both atomic positions and the volume of the cell, keeping the cell shape fixed.',
         RelaxType.NONE: 'Do not do any relaxation.',
         RelaxType.CELL: 'Only relax the cell with the scaled positions of atoms are kept fixed.',
         RelaxType.SHAPE: 'Only relax the shape of the cell.',
@@ -69,7 +70,7 @@ class CastepRelaxInputGenerator(RelaxInputGenerator):
         engines: Dict[str, Any],
         *,
         protocol: str = None,
-        relax_type: RelaxType = RelaxType.ATOMS,
+        relax_type: RelaxType = RelaxType.POSITIONS,
         electronic_type: ElectronicType = ElectronicType.METAL,
         spin_type: SpinType = SpinType.NONE,
         magnetization_per_site: List[float] = None,
@@ -129,14 +130,14 @@ class CastepRelaxInputGenerator(RelaxInputGenerator):
             param['geom_stress_tol'] = threshold_stress * ev_to_gpa
 
         # Assign relaxation types
-        if relax_type == RelaxType.ATOMS:
+        if relax_type == RelaxType.POSITIONS:
             param['fix_all_cell'] = True
-        elif relax_type == RelaxType.ATOMS_CELL:
+        elif relax_type == RelaxType.POSITIONS_CELL:
             pass
-        elif relax_type == RelaxType.ATOMS_VOLUME:
+        elif relax_type == RelaxType.POSITIONS_VOLUME:
             # Use cell constraints to tie the lattice parameters fix angles
             param['cell_constraints'] = ['1 1 1', '0 0 0']
-        elif relax_type == RelaxType.ATOMS_SHAPE:
+        elif relax_type == RelaxType.POSITIONS_SHAPE:
             param['fix_vol'] = True
             # Use TPSD optimiser since LBFGS typically has slow convergence when
             # cell constraint is applied

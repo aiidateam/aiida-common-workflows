@@ -26,10 +26,10 @@ class AbinitRelaxInputGenerator(RelaxInputGenerator):
     _engine_types = {'relax': {'code_plugin': 'abinit', 'description': 'The code to perform the relaxation.'}}
     _relax_types = {
         RelaxType.NONE: 'Fix the atomic positions, cell volume, and cell shape.',
-        RelaxType.ATOMS: 'Relax the atomic positions at fixed cell volume and shape.',
-        RelaxType.ATOMS_CELL: 'Relax the atomic positions, cell volume, and cell shape.',
-        RelaxType.ATOMS_VOLUME: 'Relax the atomic positions and cell volume at fixed cell shape.',
-        RelaxType.ATOMS_SHAPE: 'Relax the atomic positions and cell shape at fixed cell volume.'
+        RelaxType.POSITIONS: 'Relax the atomic positions at fixed cell volume and shape.',
+        RelaxType.POSITIONS_CELL: 'Relax the atomic positions, cell volume, and cell shape.',
+        RelaxType.POSITIONS_VOLUME: 'Relax the atomic positions and cell volume at fixed cell shape.',
+        RelaxType.POSITIONS_SHAPE: 'Relax the atomic positions and cell shape at fixed cell volume.'
     }
     _spin_types = {
         SpinType.NONE: 'Do not enable any magnetization or spin-orbit coupling.',
@@ -59,7 +59,7 @@ class AbinitRelaxInputGenerator(RelaxInputGenerator):
         engines: Dict[str, Any],
         *,
         protocol: str = None,
-        relax_type: RelaxType = RelaxType.ATOMS,
+        relax_type: RelaxType = RelaxType.POSITIONS,
         electronic_type: ElectronicType = ElectronicType.METAL,
         spin_type: SpinType = SpinType.NONE,
         magnetization_per_site: List[float] = None,
@@ -186,16 +186,16 @@ class AbinitRelaxInputGenerator(RelaxInputGenerator):
         # RelaxType
         if relax_type == RelaxType.NONE:
             builder.abinit['parameters']['ionmov'] = 0  # do not move the ions, Abinit default
-        elif relax_type == RelaxType.ATOMS:
-            # protocol defaults to ATOMS
+        elif relax_type == RelaxType.POSITIONS:
+            # protocol defaults to POSITIONS
             pass
-        elif relax_type == RelaxType.ATOMS_CELL:
+        elif relax_type == RelaxType.POSITIONS_CELL:
             builder.abinit['parameters']['optcell'] = 2  # fully optimize the cell geometry
             builder.abinit['parameters']['dilatmx'] = 1.15  # book additional mem. for p.w. basis exp.
-        elif relax_type == RelaxType.ATOMS_VOLUME:
+        elif relax_type == RelaxType.POSITIONS_VOLUME:
             builder.abinit['parameters']['optcell'] = 1  # optimize volume only
             builder.abinit['parameters']['dilatmx'] = 1.15  # book additional mem. for p.w. basis exp.
-        elif relax_type == RelaxType.ATOMS_SHAPE:
+        elif relax_type == RelaxType.POSITIONS_SHAPE:
             builder.abinit['parameters']['optcell'] = 3  # constant-volume optimization of cell geometry
             builder.abinit['parameters']['dilatmx'] = 1.05  # book additional mem. for p.w. basis exp.
         else:

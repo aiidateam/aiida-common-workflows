@@ -147,10 +147,10 @@ def test_input_generator(castep_code, nacl, si):  # pylint: disable=invalid-name
     assert param['cut_off_energy'] == 326
     assert builder.base.kpoints_spacing == pytest.approx(0.023873, abs=1e-6)
 
-    builder = gen.get_builder(si, engines, protocol='moderate', relax_type=RelaxType.ATOMS)
+    builder = gen.get_builder(si, engines, protocol='moderate', relax_type=RelaxType.POSITIONS)
     assert 'fix_all_cell' in builder.calc.parameters.get_dict()
 
-    builder = gen.get_builder(si, engines, protocol='moderate', relax_type=RelaxType.ATOMS_SHAPE)
+    builder = gen.get_builder(si, engines, protocol='moderate', relax_type=RelaxType.POSITIONS_SHAPE)
     assert 'fix_vol' in builder.calc.parameters.get_dict()
 
     builder = gen.get_builder(si, engines, protocol='moderate', spin_type=SpinType.COLLINEAR)

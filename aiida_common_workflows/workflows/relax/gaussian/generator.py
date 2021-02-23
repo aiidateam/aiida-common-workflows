@@ -60,7 +60,7 @@ class GaussianRelaxInputGenerator(RelaxInputGenerator):
     _engine_types = {'relax': {'code_plugin': 'gaussian', 'description': 'The code to perform the relaxation.'}}
     _relax_types = {
         RelaxType.NONE: 'Single point calculation.',
-        RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
+        RelaxType.POSITIONS: 'Relax only the atomic positions while keeping the cell fixed.',
     }
     _spin_types = {
         SpinType.NONE: 'Restricted Kohn-Sham calculation',
@@ -74,7 +74,7 @@ class GaussianRelaxInputGenerator(RelaxInputGenerator):
         engines: Dict[str, Any],
         *,
         protocol: str = None,
-        relax_type: RelaxType = RelaxType.ATOMS,
+        relax_type: RelaxType = RelaxType.POSITIONS,
         electronic_type: ElectronicType = ElectronicType.METAL,
         spin_type: SpinType = SpinType.NONE,
         magnetization_per_site: List[float] = None,

@@ -49,7 +49,7 @@ def validate_scale_increment(value, _):
 
 def validate_relax_type(value, _):
     """Validate the `generator_inputs.relax_type` input."""
-    if value not in [RelaxType.NONE, RelaxType.ATOMS, RelaxType.SHAPE, RelaxType.ATOMS_SHAPE]:
+    if value not in [RelaxType.NONE, RelaxType.POSITIONS, RelaxType.SHAPE, RelaxType.POSITIONS_SHAPE]:
         return '`generator_inputs.relax_type`. Equation of state and relaxation with variable volume not compatible.'
 
 

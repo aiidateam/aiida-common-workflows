@@ -33,10 +33,10 @@ class SiestaRelaxInputGenerator(RelaxInputGenerator):
     }
     _relax_types = {
         RelaxType.NONE: 'no relaxation performed',
-        RelaxType.ATOMS: 'latice shape and volume fixed, only atomic positions are relaxed',
-        RelaxType.ATOMS_CELL: 'lattice relaxed together with atomic coordinates. Allows '
+        RelaxType.POSITIONS: 'latice shape and volume fixed, only atomic positions are relaxed',
+        RelaxType.POSITIONS_CELL: 'lattice relaxed together with atomic coordinates. Allows '
         'to target hydro-static pressures or arbitrary stress tensors.',
-        RelaxType.ATOMS_SHAPE: 'relaxation at constant volume.'
+        RelaxType.POSITIONS_SHAPE: 'relaxation at constant volume.'
     }
     _spin_types = {
         SpinType.NONE: 'non magnetic calculation',
@@ -90,7 +90,7 @@ class SiestaRelaxInputGenerator(RelaxInputGenerator):
         engines: Dict[str, Any],
         *,
         protocol: str = None,
-        relax_type: RelaxType = RelaxType.ATOMS,
+        relax_type: RelaxType = RelaxType.POSITIONS,
         electronic_type: ElectronicType = ElectronicType.METAL,
         spin_type: SpinType = SpinType.NONE,
         magnetization_per_site: List[float] = None,
@@ -160,9 +160,9 @@ class SiestaRelaxInputGenerator(RelaxInputGenerator):
         if relax_type != RelaxType.NONE:
             parameters['md-type-of-run'] = 'cg'
             parameters['md-num-cg-steps'] = 100
-        if relax_type == RelaxType.ATOMS_CELL:
+        if relax_type == RelaxType.POSITIONS_CELL:
             parameters['md-variable-cell'] = True
-        if relax_type == RelaxType.ATOMS_SHAPE:
+        if relax_type == RelaxType.POSITIONS_SHAPE:
             parameters['md-variable-cell'] = True
             parameters['md-constant-volume'] = True
         if threshold_forces:

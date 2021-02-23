@@ -126,7 +126,7 @@ RELAX_TYPE = options.OverridableOption(
     '-r',
     '--relax-type',
     type=types.LazyChoice(get_relax_types),
-    default='atoms',
+    default='positions',
     show_default=True,
     callback=lambda ctx, param, value: RelaxType(value),
     help='Select the relax type with which the workflow should be run.'

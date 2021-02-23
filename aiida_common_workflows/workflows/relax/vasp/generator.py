@@ -24,12 +24,12 @@ class VaspRelaxInputGenerator(RelaxInputGenerator):
     _engine_types = {'relax': {'code_plugin': 'vasp.vasp', 'description': 'The code to perform the relaxation.'}}
     _relax_types = {
         RelaxType.NONE: 'Do not perform relaxation',
-        RelaxType.ATOMS: 'Relax only the atomic positions.',
+        RelaxType.POSITIONS: 'Relax only the atomic positions.',
         RelaxType.CELL: 'Relax only the cell (shape and volume).',
         RelaxType.SHAPE: 'Relax only the cell shape.',
         RelaxType.VOLUME: 'Relax only the cell volume.',
-        RelaxType.ATOMS_SHAPE: 'Relax both atomic positions and the cell shape.',
-        RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell (shape and volume), meaning everything.'
+        RelaxType.POSITIONS_SHAPE: 'Relax both atomic positions and the cell shape.',
+        RelaxType.POSITIONS_CELL: 'Relax both atomic positions and the cell (shape and volume), meaning everything.'
     }
     _spin_types = {SpinType.NONE: 'Non spin polarized.', SpinType.COLLINEAR: 'Spin polarized (collinear).'}
     _electronic_types = {ElectronicType.METAL: 'Not used.', ElectronicType.INSULATOR: 'Not used.'}
@@ -56,7 +56,7 @@ class VaspRelaxInputGenerator(RelaxInputGenerator):
         engines: Dict[str, Any],
         *,
         protocol: str = None,
-        relax_type: RelaxType = RelaxType.ATOMS,
+        relax_type: RelaxType = RelaxType.POSITIONS,
         electronic_type: ElectronicType = ElectronicType.METAL,
         spin_type: SpinType = SpinType.NONE,
         magnetization_per_site: List[float] = None,
@@ -185,7 +185,7 @@ class VaspRelaxInputGenerator(RelaxInputGenerator):
             relax.perform = plugins.DataFactory('bool')(True)
             relax.algo = plugins.DataFactory('str')(protocol['relax']['algo'])
             relax.steps = plugins.DataFactory('int')(protocol['relax']['steps'])
-            if relax_type == RelaxType.ATOMS:
+            if relax_type == RelaxType.POSITIONS:
                 relax.positions = plugins.DataFactory('bool')(True)
                 relax.shape = plugins.DataFactory('bool')(False)
                 relax.volume = plugins.DataFactory('bool')(False)
@@ -201,11 +201,11 @@ class VaspRelaxInputGenerator(RelaxInputGenerator):
                 relax.positions = plugins.DataFactory('bool')(False)
                 relax.shape = plugins.DataFactory('bool')(True)
                 relax.volume = plugins.DataFactory('bool')(False)
-            elif relax_type == RelaxType.ATOMS_CELL:
+            elif relax_type == RelaxType.POSITIONS_CELL:
                 relax.positions = plugins.DataFactory('bool')(True)
                 relax.shape = plugins.DataFactory('bool')(True)
                 relax.volume = plugins.DataFactory('bool')(True)
-            elif relax_type == RelaxType.ATOMS_SHAPE:
+            elif relax_type == RelaxType.POSITIONS_SHAPE:
                 relax.positions = plugins.DataFactory('bool')(True)
                 relax.shape = plugins.DataFactory('bool')(True)
                 relax.volume = plugins.DataFactory('bool')(False)

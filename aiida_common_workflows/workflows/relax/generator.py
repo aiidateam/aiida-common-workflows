@@ -17,13 +17,13 @@ class RelaxType(Enum):
     """Enumeration of known relax types."""
 
     NONE = 'none'
-    ATOMS = 'atoms'
+    POSITIONS = 'positions'
     VOLUME = 'volume'
     SHAPE = 'shape'
     CELL = 'cell'
-    ATOMS_CELL = 'atoms_cell'
-    ATOMS_VOLUME = 'atoms_volume'
-    ATOMS_SHAPE = 'atoms_shape'
+    POSITIONS_CELL = 'positions_cell'
+    POSITIONS_VOLUME = 'positions_volume'
+    POSITIONS_SHAPE = 'positions_shape'
 
 
 class SpinType(Enum):
@@ -102,7 +102,7 @@ class RelaxInputGenerator(ProtocolRegistry, metaclass=ABCMeta):
         engines: Dict[str, Any],
         *,
         protocol: str = None,
-        relax_type: RelaxType = RelaxType.ATOMS,
+        relax_type: RelaxType = RelaxType.POSITIONS,
         electronic_type: ElectronicType = ElectronicType.METAL,
         spin_type: SpinType = SpinType.NONE,
         magnetization_per_site: Union[List[float], Tuple[float]] = None,

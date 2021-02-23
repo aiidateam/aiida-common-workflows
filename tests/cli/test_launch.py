@@ -96,7 +96,7 @@ def test_eos_relax_types(run_cli_command, generate_structure, generate_code):
     options = ['-S', str(structure.pk), '-r', 'cell', 'quantum_espresso']
     result = run_cli_command(launch.cmd_eos, options, raises=click.BadParameter)
     assert "Error: Invalid value for '-r' / '--relax-type': invalid choice: cell. " \
-            '(choose from none, atoms, shape, atoms_shape)' in result.output_lines
+            '(choose from none, positions, shape, positions_shape)' in result.output_lines
 
 
 @pytest.mark.usefixtures('aiida_profile')
