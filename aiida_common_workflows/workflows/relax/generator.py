@@ -8,7 +8,7 @@ from aiida import engine
 from aiida import plugins
 from aiida_common_workflows.protocol import ProtocolRegistry
 
-__all__ = ('ElectronicType', 'SpinType', 'RelaxType', 'RelaxInputsGenerator')
+__all__ = ('ElectronicType', 'SpinType', 'RelaxType', 'RelaxInputGenerator')
 
 StructureData = plugins.DataFactory('structure')
 
@@ -43,7 +43,7 @@ class ElectronicType(Enum):
     INSULATOR = 'insulator'
 
 
-class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
+class RelaxInputGenerator(ProtocolRegistry, metaclass=ABCMeta):
     """Input generator for the common structure relax workchains.
 
     Subclasses should define the `_calc_types`, `_spin_types`, `_electronic_types` and `_relax_types` class attributes,
@@ -57,10 +57,10 @@ class RelaxInputsGenerator(ProtocolRegistry, metaclass=ABCMeta):
     _electronic_types = None
 
     def __init__(self, *args, **kwargs):
-        """Construct an instance of the inputs generator, validating the class attributes."""
+        """Construct an instance of the input generator, validating the class attributes."""
 
         def raise_invalid(message):
-            raise RuntimeError('invalid inputs generator `{}`: {}'.format(self.__class__.__name__, message))
+            raise RuntimeError('invalid input generator `{}`: {}'.format(self.__class__.__name__, message))
 
         try:
             self._process_class = kwargs.pop('process_class')

@@ -4,7 +4,7 @@
 import pytest
 
 from aiida_common_workflows.protocol import ProtocolRegistry
-from aiida_common_workflows.workflows.relax import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
+from aiida_common_workflows.workflows.relax import RelaxInputGenerator, RelaxType, SpinType, ElectronicType
 from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChain
 
 
@@ -22,11 +22,11 @@ def protocol_registry() -> ProtocolRegistry:
 
 
 @pytest.fixture
-def inputs_generator(protocol_registry) -> RelaxInputsGenerator:
-    """Return an instance of a relax inputs generator implementation."""
+def inputs_generator(protocol_registry) -> RelaxInputGenerator:
+    """Return an instance of a relax input generator implementation."""
 
-    class InputsGenerator(protocol_registry, RelaxInputsGenerator):
-        """Valid inputs generator implementation."""
+    class InputGenerator(protocol_registry, RelaxInputGenerator):
+        """Valid input generator implementation."""
 
         _calc_types = {'relax': {'code_plugin': 'entry.point', 'description': 'test'}}
 
@@ -42,7 +42,7 @@ def inputs_generator(protocol_registry) -> RelaxInputsGenerator:
         def get_builder(self):
             pass
 
-    return InputsGenerator(process_class=CommonRelaxWorkChain)
+    return InputGenerator(process_class=CommonRelaxWorkChain)
 
 
 def test_validation(protocol_registry):
@@ -50,8 +50,8 @@ def test_validation(protocol_registry):
 
     # pylint: disable=abstract-class-instantiated,function-redefined,too-many-statements
 
-    class InputsGenerator(protocol_registry, RelaxInputsGenerator):
-        """Invalid inputs generator implementation: no ``get_builder``"""
+    class InputGenerator(protocol_registry, RelaxInputGenerator):
+        """Invalid input generator implementation: no ``get_builder``"""
 
         _calc_types = None
         _relax_types = None
@@ -60,10 +60,10 @@ def test_validation(protocol_registry):
 
     # Abstract `get_builder` method so should raise `TypeError`
     with pytest.raises(TypeError):
-        InputsGenerator()
+        InputGenerator()
 
-    class InputsGenerator(protocol_registry, RelaxInputsGenerator):
-        """Invalid inputs generator implementation: no process class passed."""
+    class InputGenerator(protocol_registry, RelaxInputGenerator):
+        """Invalid input generator implementation: no process class passed."""
 
         _calc_types = {'relax': {}}
         _relax_types = {RelaxType.ATOMS: 'description'}
@@ -72,10 +72,10 @@ def test_validation(protocol_registry):
             pass
 
     with pytest.raises(RuntimeError):
-        InputsGenerator()
+        InputGenerator()
 
-    class InputsGenerator(protocol_registry, RelaxInputsGenerator):
-        """Invalid inputs generator implementation: no ``_relax_types``"""
+    class InputGenerator(protocol_registry, RelaxInputGenerator):
+        """Invalid input generator implementation: no ``_relax_types``"""
 
         _calc_types = {'relax': {}}
         _relax_types = None
@@ -86,10 +86,10 @@ def test_validation(protocol_registry):
             pass
 
     with pytest.raises(RuntimeError):
-        InputsGenerator(process_class=CommonRelaxWorkChain)
+        InputGenerator(process_class=CommonRelaxWorkChain)
 
-    class InputsGenerator(protocol_registry, RelaxInputsGenerator):
-        """Invalid inputs generator implementation: no ``_calc_types``"""
+    class InputGenerator(protocol_registry, RelaxInputGenerator):
+        """Invalid input generator implementation: no ``_calc_types``"""
 
         _calc_types = None
         _relax_types = {RelaxType.ATOMS: 'description'}
@@ -100,10 +100,10 @@ def test_validation(protocol_registry):
             pass
 
     with pytest.raises(RuntimeError):
-        InputsGenerator(process_class=CommonRelaxWorkChain)
+        InputGenerator(process_class=CommonRelaxWorkChain)
 
-    class InputsGenerator(protocol_registry, RelaxInputsGenerator):
-        """Invalid inputs generator implementation: no ``_spin_types``"""
+    class InputGenerator(protocol_registry, RelaxInputGenerator):
+        """Invalid input generator implementation: no ``_spin_types``"""
 
         _calc_types = {'relax': {}}
         _relax_types = {RelaxType.ATOMS: 'description'}
@@ -114,10 +114,10 @@ def test_validation(protocol_registry):
             pass
 
     with pytest.raises(RuntimeError):
-        InputsGenerator(process_class=CommonRelaxWorkChain)
+        InputGenerator(process_class=CommonRelaxWorkChain)
 
-    class InputsGenerator(protocol_registry, RelaxInputsGenerator):
-        """Invalid inputs generator implementation: no ``_electronic_types``"""
+    class InputGenerator(protocol_registry, RelaxInputGenerator):
+        """Invalid input generator implementation: no ``_electronic_types``"""
 
         _calc_types = {'relax': {}}
         _relax_types = {RelaxType.ATOMS: 'description'}
@@ -128,10 +128,10 @@ def test_validation(protocol_registry):
             pass
 
     with pytest.raises(RuntimeError):
-        InputsGenerator(process_class=CommonRelaxWorkChain)
+        InputGenerator(process_class=CommonRelaxWorkChain)
 
-    class InputsGenerator(protocol_registry, RelaxInputsGenerator):
-        """Invalid inputs generator implementation: invalid ``_relax_types``"""
+    class InputGenerator(protocol_registry, RelaxInputGenerator):
+        """Invalid input generator implementation: invalid ``_relax_types``"""
 
         _calc_types = {'relax': {}}
         _relax_types = {'invalid-type': 'description'}
@@ -142,10 +142,10 @@ def test_validation(protocol_registry):
             pass
 
     with pytest.raises(RuntimeError):
-        InputsGenerator(process_class=CommonRelaxWorkChain)
+        InputGenerator(process_class=CommonRelaxWorkChain)
 
-    class InputsGenerator(protocol_registry, RelaxInputsGenerator):
-        """Invalid inputs generator implementation: invalid ``_spin_types``"""
+    class InputGenerator(protocol_registry, RelaxInputGenerator):
+        """Invalid input generator implementation: invalid ``_spin_types``"""
 
         _calc_types = {'relax': {}}
         _relax_types = {RelaxType.ATOMS: 'description'}
@@ -156,10 +156,10 @@ def test_validation(protocol_registry):
             pass
 
     with pytest.raises(RuntimeError):
-        InputsGenerator(process_class=CommonRelaxWorkChain)
+        InputGenerator(process_class=CommonRelaxWorkChain)
 
-    class InputsGenerator(protocol_registry, RelaxInputsGenerator):
-        """Invalid inputs generator implementation: invalid ``_electronic_types``"""
+    class InputGenerator(protocol_registry, RelaxInputGenerator):
+        """Invalid input generator implementation: invalid ``_electronic_types``"""
 
         _calc_types = {'relax': {}}
         _relax_types = {RelaxType.ATOMS: 'description'}
@@ -170,29 +170,29 @@ def test_validation(protocol_registry):
             pass
 
     with pytest.raises(RuntimeError):
-        InputsGenerator(process_class=CommonRelaxWorkChain)
+        InputGenerator(process_class=CommonRelaxWorkChain)
 
 
 def test_get_calc_types(inputs_generator):
-    """Test `RelaxInputsGenerator.get_calc_types`."""
+    """Test `RelaxInputGenerator.get_calc_types`."""
     assert inputs_generator.get_calc_types() == ['relax']
 
 
 def test_get_calc_type_schema(inputs_generator):
-    """Test `RelaxInputsGenerator.get_calc_type_schema`."""
+    """Test `RelaxInputGenerator.get_calc_type_schema`."""
     assert inputs_generator.get_calc_type_schema('relax') == {'code_plugin': 'entry.point', 'description': 'test'}
 
 
 def test_get_relax_types(inputs_generator):
-    """Test `RelaxInputsGenerator.get_relax_types`."""
+    """Test `RelaxInputGenerator.get_relax_types`."""
     assert set(inputs_generator.get_relax_types()) == {RelaxType.ATOMS, RelaxType.ATOMS_CELL}
 
 
 def test_get_spin_types(inputs_generator):
-    """Test `RelaxInputsGenerator.get_spin_types`."""
+    """Test `RelaxInputGenerator.get_spin_types`."""
     assert set(inputs_generator.get_spin_types()) == {SpinType.NONE, SpinType.COLLINEAR}
 
 
 def test_get_electronic_types(inputs_generator):
-    """Test `RelaxInputsGenerator.get_electronic_types`."""
+    """Test `RelaxInputGenerator.get_electronic_types`."""
     assert set(inputs_generator.get_electronic_types()) == {ElectronicType.INSULATOR, ElectronicType.METAL}

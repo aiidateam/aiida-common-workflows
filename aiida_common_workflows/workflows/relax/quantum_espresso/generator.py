@@ -6,14 +6,14 @@ from aiida import engine
 from aiida import orm
 from aiida import plugins
 
-from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
+from ..generator import RelaxInputGenerator, RelaxType, SpinType, ElectronicType
 
-__all__ = ('QuantumEspressoRelaxInputsGenerator',)
+__all__ = ('QuantumEspressoRelaxInputGenerator',)
 
 StructureData = plugins.DataFactory('structure')
 
 
-class QuantumEspressoRelaxInputsGenerator(RelaxInputsGenerator):
+class QuantumEspressoRelaxInputGenerator(RelaxInputGenerator):
     """Input generator for the `QuantumEspressoRelaxWorkChain`."""
 
     _calc_types = {'relax': {'code_plugin': 'quantumespresso.pw', 'description': 'The code to perform the relaxation.'}}
@@ -28,7 +28,7 @@ class QuantumEspressoRelaxInputsGenerator(RelaxInputsGenerator):
     }
 
     def __init__(self, *args, **kwargs):
-        """Construct an instance of the inputs generator, validating the class attributes."""
+        """Construct an instance of the input generator, validating the class attributes."""
         process_class = kwargs.get('process_class', None)
 
         if process_class is not None:
@@ -156,7 +156,7 @@ class QuantumEspressoRelaxInputsGenerator(RelaxInputsGenerator):
             builder.base_final_scf['kpoints'] = kpoints
 
         # Currently the builder is set for the `PwRelaxWorkChain`, but we should return one for the wrapper workchain
-        # `QuantumEspressoRelaxWorkChain` for which this inputs generator is built
+        # `QuantumEspressoRelaxWorkChain` for which this input generator is built
         builder._process_class = self.process_class  # pylint: disable=protected-access
 
         return builder

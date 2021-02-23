@@ -6,7 +6,7 @@ from aiida.plugins import WorkflowFactory
 from aiida.common.exceptions import NotExistentAttributeError
 
 from ..workchain import CommonRelaxWorkChain
-from .generator import VaspRelaxInputsGenerator
+from .generator import VaspRelaxInputGenerator
 
 __all__ = ('VaspRelaxWorkChain',)
 
@@ -57,7 +57,7 @@ class VaspRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for VASP."""
 
     _process_class = WorkflowFactory('vasp.relax')
-    _generator_class = VaspRelaxInputsGenerator
+    _generator_class = VaspRelaxInputGenerator
 
     def convert_outputs(self):
         """Convert the outputs of the sub workchain to the common output specification."""

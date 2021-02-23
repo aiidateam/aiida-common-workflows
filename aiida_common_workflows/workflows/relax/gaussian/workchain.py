@@ -6,7 +6,7 @@ from aiida.engine import calcfunction
 from aiida.plugins import WorkflowFactory
 
 from ..workchain import CommonRelaxWorkChain
-from .generator import GaussianRelaxInputsGenerator
+from .generator import GaussianRelaxInputGenerator
 
 __all__ = ('GaussianRelaxWorkChain',)
 
@@ -46,7 +46,7 @@ class GaussianRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for Gaussian."""
 
     _process_class = GaussianBaseWorkChain
-    _generator_class = GaussianRelaxInputsGenerator
+    _generator_class = GaussianRelaxInputGenerator
 
     def convert_outputs(self):
         """Convert the outputs of the sub workchain to the common output specification."""

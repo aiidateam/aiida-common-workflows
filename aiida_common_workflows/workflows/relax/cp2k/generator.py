@@ -10,9 +10,9 @@ from aiida import engine
 from aiida import orm
 from aiida import plugins
 
-from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
+from ..generator import RelaxInputGenerator, RelaxType, SpinType, ElectronicType
 
-__all__ = ('Cp2kRelaxInputsGenerator',)
+__all__ = ('Cp2kRelaxInputGenerator',)
 
 StructureData = plugins.DataFactory('structure')  # pylint: disable=invalid-name
 KpointsData = plugins.DataFactory('array.kpoints')  # pylint: disable=invalid-name
@@ -129,7 +129,7 @@ def get_file_section():
     }
 
 
-class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
+class Cp2kRelaxInputGenerator(RelaxInputGenerator):
     """Input generator for the `Cp2kRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
@@ -149,7 +149,7 @@ class Cp2kRelaxInputsGenerator(RelaxInputsGenerator):
     }
 
     def __init__(self, *args, **kwargs):
-        """Construct an instance of the inputs generator, validating the class attributes."""
+        """Construct an instance of the input generator, validating the class attributes."""
         self._initialize_protocols()
         super().__init__(*args, **kwargs)
 

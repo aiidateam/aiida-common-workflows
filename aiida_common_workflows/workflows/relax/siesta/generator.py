@@ -9,14 +9,14 @@ from aiida import engine
 from aiida import orm
 from aiida import plugins
 from aiida.common import exceptions
-from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
+from ..generator import RelaxInputGenerator, RelaxType, SpinType, ElectronicType
 
-__all__ = ('SiestaRelaxInputsGenerator',)
+__all__ = ('SiestaRelaxInputGenerator',)
 
 StructureData = plugins.DataFactory('structure')
 
 
-class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
+class SiestaRelaxInputGenerator(RelaxInputGenerator):
     """Generator of inputs for the SiestaRelaxWorkChain"""
 
     _default_protocol = 'moderate'
@@ -48,7 +48,7 @@ class SiestaRelaxInputsGenerator(RelaxInputsGenerator):
     }
 
     def __init__(self, *args, **kwargs):
-        """Construct an instance of the inputs generator, validating the class attributes."""
+        """Construct an instance of the input generator, validating the class attributes."""
 
         self._initialize_protocols()
 
