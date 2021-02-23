@@ -12,7 +12,9 @@ import numpy as np
 
 from aiida import engine, orm, plugins
 from aiida.common import exceptions
-from ..generator import RelaxInputGenerator, RelaxType, SpinType, ElectronicType
+
+from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
+from ..generator import RelaxInputGenerator
 
 __all__ = ('AbinitRelaxInputGenerator',)
 

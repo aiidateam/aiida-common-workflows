@@ -1,46 +1,16 @@
 # -*- coding: utf-8 -*-
 """Module with base input generator for the common structure relax workchains."""
 from abc import ABCMeta, abstractmethod
-from enum import Enum
 from typing import Any, Dict, List, Tuple, Union
 
 from aiida import engine
 from aiida import plugins
+from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.protocol import ProtocolRegistry
 
-__all__ = ('ElectronicType', 'SpinType', 'RelaxType', 'RelaxInputGenerator')
+__all__ = ('RelaxInputGenerator',)
 
 StructureData = plugins.DataFactory('structure')
-
-
-class RelaxType(Enum):
-    """Enumeration of known relax types."""
-
-    NONE = 'none'
-    POSITIONS = 'positions'
-    VOLUME = 'volume'
-    SHAPE = 'shape'
-    CELL = 'cell'
-    POSITIONS_CELL = 'positions_cell'
-    POSITIONS_VOLUME = 'positions_volume'
-    POSITIONS_SHAPE = 'positions_shape'
-
-
-class SpinType(Enum):
-    """Enumeration of known spin types."""
-
-    NONE = 'none'
-    COLLINEAR = 'collinear'
-    NON_COLLINEAR = 'non_collinear'
-    SPIN_ORBIT = 'spin_orbit'
-
-
-class ElectronicType(Enum):
-    """Enumeration of known electronic types."""
-
-    AUTOMATIC = 'automatic'
-    METAL = 'metal'
-    INSULATOR = 'insulator'
 
 
 class RelaxInputGenerator(ProtocolRegistry, metaclass=ABCMeta):
