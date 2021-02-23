@@ -1,4 +1,3 @@
 recursive-include aiida_common_workflows/common/data/*.cif
 recursive-include aiida_common_workflows/common/data/*.xyz
 recursive-include aiida_common_workflows/workflows/relax/siesta *.yaml
-recursive-include aiida_common_workflows/workflows/relax/examples/data *

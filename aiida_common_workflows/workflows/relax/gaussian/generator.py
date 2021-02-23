@@ -11,7 +11,8 @@ from aiida import plugins
 
 from aiida.orm import load_code
 
-from ..generator import RelaxInputGenerator, RelaxType, SpinType, ElectronicType
+from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
+from ..generator import RelaxInputGenerator
 
 __all__ = ('GaussianRelaxInputGenerator',)
 

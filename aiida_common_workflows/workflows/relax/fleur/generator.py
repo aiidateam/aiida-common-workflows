@@ -9,9 +9,10 @@ from aiida import engine
 from aiida import orm
 from aiida import plugins
 from aiida.common.constants import elements as PeriodicTableElements
-#from aiida_fleur.tools.StructureData_util import break_symmetry
 
-from ..generator import RelaxInputGenerator, RelaxType, SpinType, ElectronicType
+from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
+from ..generator import RelaxInputGenerator
+
 __all__ = ('FleurRelaxInputGenerator',)
 
 StructureData = plugins.DataFactory('structure')
