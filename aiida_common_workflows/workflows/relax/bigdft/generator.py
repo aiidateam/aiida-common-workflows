@@ -148,7 +148,7 @@ class BigDftRelaxInputGenerator(RelaxInputGenerator):
     _engine_types = {'relax': {'code_plugin': 'bigdft', 'description': 'The code to perform the relaxation.'}}
 
     _relax_types = {
-        RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
+        RelaxType.POSITIONS: 'Relax only the atomic positions while keeping the cell fixed.',
         RelaxType.NONE: 'No relaxation'
     }
     _spin_types = {SpinType.NONE: 'nspin : 1', SpinType.COLLINEAR: 'nspin: 2'}
@@ -163,7 +163,7 @@ class BigDftRelaxInputGenerator(RelaxInputGenerator):
         engines: Dict[str, Any],
         *,
         protocol: str = None,
-        relax_type: RelaxType = RelaxType.ATOMS,
+        relax_type: RelaxType = RelaxType.POSITIONS,
         electronic_type: ElectronicType = ElectronicType.METAL,
         spin_type: SpinType = SpinType.NONE,
         magnetization_per_site: List[float] = None,
@@ -208,7 +208,7 @@ class BigDftRelaxInputGenerator(RelaxInputGenerator):
 
         builder = self.process_class.get_builder()
 
-        if relax_type == RelaxType.ATOMS:
+        if relax_type == RelaxType.POSITIONS:
             relaxation_schema = 'relax'
         elif relax_type == RelaxType.NONE:
             relaxation_schema = 'relax'

@@ -27,7 +27,7 @@ class OrcaRelaxInputGenerator(RelaxInputGenerator):
     _engine_types = {'relax': {'code_plugin': 'orca_main', 'description': 'The code to perform the relaxation.'}}
     _relax_types = {
         RelaxType.NONE: 'Single Point Calculation',
-        RelaxType.ATOMS: 'Relaxing the geometry of molecule',
+        RelaxType.POSITIONS: 'Relaxing the geometry of molecule',
     }
     _spin_types = {
         SpinType.NONE: 'Restricted Kohn-Sham Calculation',
@@ -63,7 +63,7 @@ class OrcaRelaxInputGenerator(RelaxInputGenerator):
         engines: Dict[str, Any],
         *,
         protocol: str = None,
-        relax_type: RelaxType = RelaxType.ATOMS,
+        relax_type: RelaxType = RelaxType.POSITIONS,
         electronic_type: ElectronicType = ElectronicType.METAL,
         spin_type: SpinType = SpinType.NONE,
         magnetization_per_site: List[float] = None,
