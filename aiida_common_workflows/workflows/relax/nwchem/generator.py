@@ -29,7 +29,8 @@ class NwchemRelaxInputsGenerator(RelaxInputsGenerator):
     _relax_types = {
         RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
         RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell.',
-        RelaxType.CELL: 'Relax only the cell.'
+        RelaxType.CELL: 'Relax only the cell.',
+        RelaxType.NONE: 'An SCF calculation'
     }
     _spin_types = {
         SpinType.NONE: 'non-magnetic calculation',
@@ -106,7 +107,7 @@ class NwchemRelaxInputsGenerator(RelaxInputsGenerator):
 
         # kpoints
         target_spacing = parameters.pop('kpoint_spacing')
-        reciprocal_axes_lengths = np.linalg.norm(np.linalg.inv(structure.cell_matrix), axis=1)
+        reciprocal_axes_lengths = np.linalg.norm(np.linalg.inv(structure.cell), axis=1)
         kpoints = np.ceil(reciprocal_axes_lengths / target_spacing).astype(int).tolist()
         parameters['nwpw']['monkhorst-pack'] = '{} {} {}'.format(*kpoints)
 
@@ -119,6 +120,9 @@ class NwchemRelaxInputsGenerator(RelaxInputsGenerator):
         elif relax_type == RelaxType.CELL:
             parameters['task'] = 'band optimize'
             parameters['set'] = {'includestress': '.true.', 'nwpw:zero_forces': '.true.'}
+        elif relax_type == RelaxType.NONE:
+            parameters['task'] = 'band gradient'
+            _ = parameters.pop('driver')
         else:
             raise ValueError('relax_type `{}` is not supported'.format(relax_type.value))
 
