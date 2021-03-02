@@ -113,7 +113,7 @@ moderate:
 
 precise:
   description: 'Protocol to relax a structure with high precision at higher computational cost.'
-  kpoints_distance: 0.1
+  kpoints_distance: 0.5
   GLOBAL:
     PRINT_LEVEL: MEDIUM              #default: MEDIUM. Important to have the correct parsing
   FORCE_EVAL:
@@ -133,7 +133,7 @@ precise:
       UKS:          False
       CHARGE:       0
       MGRID:
-        CUTOFF:      600
+        CUTOFF:      1000
         REL_CUTOFF:  50
         NGRIDS:      3               # Set to 1 for an extremely precise grid
       QS:
