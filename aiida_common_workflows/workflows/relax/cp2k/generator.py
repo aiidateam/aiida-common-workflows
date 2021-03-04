@@ -243,7 +243,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 'ALPHA': '0.1',
                 'BETA': '1.5',
             }
-            parameters['FORCE_EVAL']['DFT']['SCF']['ADDED_MOS'] = 100
+            parameters['FORCE_EVAL']['DFT']['SCF']['ADDED_MOS'] = 20
 
         ## If insulator then employ OT.
         elif electronic_type == ElectronicType.INSULATOR:
@@ -312,7 +312,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         # Uncomment to change number of CPUs and execution time.
         builder.cp2k.metadata.options['resources']['num_mpiprocs_per_machine'] = 16
-        # builder.cp2k.metadata.options['max_wallclock_seconds']  = 3600 * 24
+        builder.cp2k.metadata.options['max_wallclock_seconds'] = 3600 * 72
 
         return builder
 
