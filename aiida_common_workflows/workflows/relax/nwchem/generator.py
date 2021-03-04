@@ -11,24 +11,25 @@ from aiida import engine
 from aiida import orm
 from aiida import plugins
 
-from ..generator import RelaxInputsGenerator, RelaxType, SpinType, ElectronicType
+from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
+from ..generator import RelaxInputGenerator
 
-__all__ = ('NwchemRelaxInputsGenerator',)
+__all__ = ('NwchemRelaxInputGenerator',)
 
 StructureData = plugins.DataFactory('structure')
 
 HA_BOHR_TO_EV_A = 51.42208619083232
 
 
-class NwchemRelaxInputsGenerator(RelaxInputsGenerator):
+class NwchemRelaxInputGenerator(RelaxInputGenerator):
     """Input generator for the `NwchemRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
 
     _calc_types = {'relax': {'code_plugin': 'nwchem.nwchem', 'description': 'The code to perform the relaxation.'}}
     _relax_types = {
-        RelaxType.ATOMS: 'Relax only the atomic positions while keeping the cell fixed.',
-        RelaxType.ATOMS_CELL: 'Relax both atomic positions and the cell.',
+        RelaxType.POSITIONS: 'Relax only the atomic positions while keeping the cell fixed.',
+        RelaxType.POSITIONS_CELL: 'Relax both atomic positions and the cell.',
         RelaxType.CELL: 'Relax only the cell.',
         RelaxType.NONE: 'An SCF calculation'
     }
@@ -42,7 +43,7 @@ class NwchemRelaxInputsGenerator(RelaxInputsGenerator):
     }
 
     def __init__(self, *args, **kwargs):
-        """Construct an instance of the inputs generator, validating the class attributes."""
+        """Construct an instance of the input generator, validating the class attributes."""
         self._initialize_protocols()
         super().__init__(*args, **kwargs)
 
@@ -54,22 +55,22 @@ class NwchemRelaxInputsGenerator(RelaxInputsGenerator):
     def get_builder(
         self,
         structure: StructureData,
-        calc_engines: Dict[str, Any],
+        engines: Dict[str, Any],
         *,
         protocol: str = None,
-        relax_type: RelaxType = RelaxType.ATOMS,
+        relax_type: RelaxType = RelaxType.POSITIONS,
         electronic_type: ElectronicType = ElectronicType.METAL,
         spin_type: SpinType = SpinType.NONE,
         magnetization_per_site: List[float] = None,
         threshold_forces: float = None,
         threshold_stress: float = None,
-        previous_workchain=None,
+        reference_workchain=None,
         **kwargs
     ) -> engine.ProcessBuilder:
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
 
         :param structure: the structure to be relaxed.
-        :param calc_engines: a dictionary containing the computational resources for the relaxation.
+        :param engines: a dictionary containing the computational resources for the relaxation.
         :param protocol: the protocol to use when determining the workchain inputs.
         :param relax_type: the type of relaxation to perform.
         :param electronic_type: the electronic character that is to be used for the structure.
@@ -79,7 +80,7 @@ class NwchemRelaxInputsGenerator(RelaxInputsGenerator):
             only if `spin_type != SpinType.NONE`.
         :param threshold_forces: target threshold for the forces in eV/Å.
         :param threshold_stress: target threshold for the stress in eV/Å^3.
-        :param previous_workchain: a <Code>RelaxWorkChain node.
+        :param reference_workchain: a <Code>RelaxWorkChain node.
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
@@ -88,7 +89,7 @@ class NwchemRelaxInputsGenerator(RelaxInputsGenerator):
 
         super().get_builder(
             structure,
-            calc_engines,
+            engines,
             protocol=protocol,
             relax_type=relax_type,
             electronic_type=electronic_type,
@@ -96,9 +97,11 @@ class NwchemRelaxInputsGenerator(RelaxInputsGenerator):
             magnetization_per_site=magnetization_per_site,
             threshold_forces=threshold_forces,
             threshold_stress=threshold_stress,
-            previous_workchain=previous_workchain,
+            reference_workchain=reference_workchain,
             **kwargs
         )
+        print('DEBUG: Reference workchain')
+        print(reference_workchain)
 
         # Protocol
         parameters = self.get_protocol(protocol)
@@ -112,9 +115,9 @@ class NwchemRelaxInputsGenerator(RelaxInputsGenerator):
         parameters['nwpw']['monkhorst-pack'] = '{} {} {}'.format(*kpoints)
 
         # Relaxation type
-        if relax_type == RelaxType.ATOMS:
+        if relax_type == RelaxType.POSITIONS:
             parameters['task'] = 'band optimize'
-        elif relax_type == RelaxType.ATOMS_CELL:
+        elif relax_type == RelaxType.POSITIONS_CELL:
             parameters['task'] = 'band optimize'
             parameters['set'] = {'includestress': '.true.'}
         elif relax_type == RelaxType.CELL:
@@ -167,8 +170,8 @@ class NwchemRelaxInputsGenerator(RelaxInputsGenerator):
         # Prepare builder
         builder = self.process_class.get_builder()
 
-        builder.nwchem.code = orm.load_code(calc_engines['relax']['code'])
-        builder.nwchem.metadata.options = calc_engines['relax']['options']
+        builder.nwchem.code = orm.load_code(engines['relax']['code'])
+        builder.nwchem.metadata.options = engines['relax']['options']
         builder.nwchem.parameters = orm.Dict(dict=parameters)
         builder.nwchem.add_cell = orm.Bool(True)
         builder.nwchem.structure = structure

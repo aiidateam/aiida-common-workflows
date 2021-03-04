@@ -7,7 +7,7 @@ from aiida.engine import calcfunction
 from aiida.plugins import WorkflowFactory
 
 from ..workchain import CommonRelaxWorkChain
-from .generator import NwchemRelaxInputsGenerator
+from .generator import NwchemRelaxInputGenerator
 
 __all__ = ('NwchemRelaxWorkChain',)
 
@@ -42,7 +42,7 @@ class NwchemRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for NWChem."""
 
     _process_class = NwchemBaseWorkChain
-    _generator_class = NwchemRelaxInputsGenerator
+    _generator_class = NwchemRelaxInputGenerator
 
     def convert_outputs(self):
         """Convert the outputs of the sub workchain to the common output specification."""
