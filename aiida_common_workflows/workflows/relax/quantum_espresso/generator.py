@@ -101,9 +101,9 @@ class QuantumEspressoRelaxInputGenerator(RelaxInputGenerator):
         )
 
         if magnetization_per_site:
-            kind_to_magnetization = zip([site.kind_name for site in structure.sites], magnetization_per_site)
+            kind_to_magnetization = set(zip([site.kind_name for site in structure.sites], magnetization_per_site))
 
-            if len(structure.kinds) != len(set(kind_to_magnetization)):
+            if len(structure.kinds) != len(kind_to_magnetization):
                 raise ValueError(
                     'the provided `magnetization_per_site` requires the structure to have different kinds, which would '
                     'require changing the structure, which is not yet supported. Either manually adapt the structure '
