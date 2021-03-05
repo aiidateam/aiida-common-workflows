@@ -26,7 +26,7 @@ class NwchemRelaxInputGenerator(RelaxInputGenerator):
 
     _default_protocol = 'moderate'
 
-    _calc_types = {'relax': {'code_plugin': 'nwchem.nwchem', 'description': 'The code to perform the relaxation.'}}
+    _engine_types = {'relax': {'code_plugin': 'nwchem.nwchem', 'description': 'The code to perform the relaxation.'}}
     _relax_types = {
         RelaxType.POSITIONS: 'Relax only the atomic positions while keeping the cell fixed.',
         RelaxType.POSITIONS_CELL: 'Relax both atomic positions and the cell.',
@@ -100,19 +100,21 @@ class NwchemRelaxInputGenerator(RelaxInputGenerator):
             reference_workchain=reference_workchain,
             **kwargs
         )
-        print('DEBUG: Reference workchain')
-        print(reference_workchain)
 
         # Protocol
         parameters = self.get_protocol(protocol)
         _ = parameters.pop('description')
         _ = parameters.pop('name')
 
-        # kpoints
+        # # kpoints
         target_spacing = parameters.pop('kpoint_spacing')
-        reciprocal_axes_lengths = np.linalg.norm(np.linalg.inv(structure.cell), axis=1)
-        kpoints = np.ceil(reciprocal_axes_lengths / target_spacing).astype(int).tolist()
-        parameters['nwpw']['monkhorst-pack'] = '{} {} {}'.format(*kpoints)
+        if reference_workchain:
+            ref_kpoints = reference_workchain.inputs.nwchem__parameters['nwpw']['monkhorst-pack']
+            parameters['nwpw']['monkhorst-pack'] = ref_kpoints
+        else:
+            reciprocal_axes_lengths = np.linalg.norm(np.linalg.inv(structure.cell), axis=1)
+            kpoints = np.ceil(reciprocal_axes_lengths / target_spacing).astype(int).tolist()
+            parameters['nwpw']['monkhorst-pack'] = '{} {} {}'.format(*kpoints)
 
         # Relaxation type
         if relax_type == RelaxType.POSITIONS:
