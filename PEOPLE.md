@@ -5,6 +5,7 @@ Reference person for each plugin developement:
 * Espen Flage-Larsen - aiida_vasp
 * Emanuele Bosoni - aiida_siesta
 * Augustine Degomme - aiida_bigdft
+* Conrad Johnston - aiida_nwchem
 
 Reference person from aiida_team:
 * Giovanni Pizzi
