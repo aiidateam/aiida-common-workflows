@@ -14,6 +14,32 @@ __all__ = ('QuantumEspressoCommonRelaxInputGenerator',)
 StructureData = plugins.DataFactory('structure')
 
 
+def create_magnetic_allotrope(structure, magnetization_per_site):
+    """Create new structure with the correct magnetic kinds based on the magnetization per site
+
+    :param structure: StructureData for which to create the new kinds.
+    :param magnetization_per_site: List of magnetizations (defined as magnetic moments) for each site in the provided
+        `structure`.
+    """
+    ase_structure = structure.get_ase()
+    if len(magnetization_per_site) != len(ase_structure.numbers):
+        raise ValueError('The size of `magnetization_per_site` is different from the number of atoms.')
+
+    # Combine atom type with magnetizations.
+    complex_symbols = [
+        f'{symbol}_{magn}' for symbol, magn in zip(ase_structure.get_chemical_symbols(), magnetization_per_site)
+    ]
+    # Assign a unique tag for every atom kind.
+    combined = {symbol: tag + 1 for tag, symbol in enumerate(set(complex_symbols))}
+    # Assigning correct tags to every atom.
+    tags = [combined[key] for key in complex_symbols]
+    ase_structure.set_tags(tags)
+
+    magnetic_moments = {f'{key.split("_")[0]}{value}': float(key.split('_')[1]) for key, value in combined.items()}
+
+    return StructureData(ase=ase_structure), magnetic_moments
+
+
 class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
     """Input generator for the `QuantumEspressoCommonRelaxWorkChain`."""
 
@@ -108,15 +134,9 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             kind_to_magnetization = set(zip([site.kind_name for site in structure.sites], magnetization_per_site))
 
             if len(structure.kinds) != len(kind_to_magnetization):
-                raise ValueError(
-                    'the provided `magnetization_per_site` requires the structure to have different kinds, which would '
-                    'require changing the structure, which is not yet supported. Either manually adapt the structure '
-                    'to support the required kinds or adapt the `magnetization_per_site`. The sites of each kind need '
-                    'to start with the exact same magnetization. There is no threshold to compare float numbers, i.e., '
-                    'starting magnetizations 0.1 and 0.0999999999 are considered different.'
-                )
-
-            initial_magnetic_moments = dict(kind_to_magnetization)
+                structure, initial_magnetic_moments = create_magnetic_allotrope(structure, magnetization_per_site)
+            else:
+                initial_magnetic_moments = dict(kind_to_magnetization)
         else:
             initial_magnetic_moments = None
 
