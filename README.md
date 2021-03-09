@@ -38,7 +38,7 @@ To launch a common workflow, there are two main methods:
 The first option is the simplest option to get started, however, it is not necessarily available for all common workflows and it does not expose the full functionality.
 For example, if you want to optimize the geometry of a crystal structure using the CLI, you can run the following command:
 
-    aiida-common-workflows launch relax -S <STRUCTURE> -X <CODE> <ENGINE>
+    aiida-common-workflows launch relax -S <STRUCTURE> -X <CODE>  -- <ENGINE>
 
 Here, the `<STRUCTURE>` should be replaced with the [AiiDA identifier](https://aiida-core.readthedocs.io/en/latest/topics/cli.html#topics-cli-identifiers) of the [`StructureData`](https://aiida-core.readthedocs.io/en/latest/topics/data_types.html#structuredata) that needs to be optimized, `<CODE>` with the identifier of the [`Code`](https://aiida-core.readthedocs.io/en/latest/howto/run_codes.html#how-to-setup-a-code) that should be used and `<ENGINE>` the entry point name of the quantum engine whose workflow implementation should be employed.
 To determine what engine implementations are available, run the command with the `--help` flag:
