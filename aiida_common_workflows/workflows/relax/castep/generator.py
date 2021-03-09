@@ -14,7 +14,8 @@ from aiida.common import exceptions
 from aiida_castep.data import get_pseudos_from_structure
 from aiida_castep.data.otfg import OTFGGroup
 
-from ..generator import RelaxInputGenerator, RelaxType, SpinType, ElectronicType
+from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
+from ..generator import RelaxInputGenerator
 # pylint: disable=import-outside-toplevel, too-many-branches, too-many-statements
 
 __all__ = ('CastepRelaxInputGenerator',)

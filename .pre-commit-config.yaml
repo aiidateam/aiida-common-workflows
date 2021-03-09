@@ -15,12 +15,6 @@ repos:
         name: yapf
         types: [python]
         args: ['-i']
-        exclude: &exclude_files >
-            (?x)^(
-                aiida_common_workflows/workflows/relax/submission_template.py|
-                aiida_common_workflows/workflows/relax/examples/eos_silicon.py|
-                aiida_common_workflows/workflows/relax/examples/eos_silicon_siesta.py|
-            )$
 
 -   repo: local
     hooks:
@@ -29,7 +23,6 @@ repos:
         entry: pylint
         types: [python]
         language: system
-        exclude: *exclude_files
         args: [
             '--max-line-length=120',
             '--disable=import-outside-toplevel,inconsistent-return-statements,too-many-arguments,bad-continuation,duplicate-code,no-member'

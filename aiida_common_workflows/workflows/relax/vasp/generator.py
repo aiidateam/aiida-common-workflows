@@ -10,7 +10,8 @@ from aiida import orm
 from aiida import plugins
 from aiida.common.extendeddicts import AttributeDict
 
-from ..generator import RelaxInputGenerator, RelaxType, SpinType, ElectronicType
+from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
+from ..generator import RelaxInputGenerator
 
 __all__ = ('VaspRelaxInputGenerator',)
 

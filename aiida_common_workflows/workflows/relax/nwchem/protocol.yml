@@ -1,0 +1,41 @@
+moderate:
+    name: 'moderate'
+    description: 'Protocol to relax a structure with normal precision at moderate computational cost.'
+    kpoint_spacing: 0.2
+    nwpw:
+        tolerances: 1.0e-7
+        lmbfgs: ''
+        xc: 'pbe96'
+        ewald_rcut: 3.0
+        ewald_ncut: 8
+    driver:
+        default: ''
+        maxiter: '2000'
+
+precise:
+    name: 'precise'
+    description: 'Protocol to relax a structure with high precision at higher computational cost.'
+    kpoint_spacing: 0.1
+    nwpw:
+        tolerances: 1.0e-9
+        lmbfgs: ''
+        xc: 'pbe96'
+        ewald_rcut: 3.0
+        ewald_ncut: 8
+    driver:
+        tight: ''
+        maxiter: '2000'
+
+fast:
+    name: 'fast'
+    description: 'Protocol to relax a structure with low precision at minimal computational cost for testing purposes.'
+    kpoint_spacing: 1.0
+    nwpw:
+        tolerances: 1.0e-5
+        lmbfgs: ''
+        xc: 'pbe96'
+        ewald_rcut: 3.0
+        ewald_ncut: 8
+    driver:
+        default: ''
+        maxiter: '2000'
