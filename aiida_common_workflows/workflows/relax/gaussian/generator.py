@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for Gaussian."""
+"""Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for Gaussian."""
 import copy
 from typing import Any, Dict, List
 
@@ -12,9 +12,9 @@ from aiida import plugins
 from aiida.orm import load_code
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
-from ..generator import RelaxInputGenerator
+from ..generator import CommonRelaxInputGenerator
 
-__all__ = ('GaussianRelaxInputGenerator',)
+__all__ = ('GaussianCommonRelaxInputGenerator',)
 
 StructureData = plugins.DataFactory('structure')
 
@@ -22,7 +22,7 @@ EV_TO_EH = 0.03674930814
 ANG_TO_BOHR = 1.88972687
 
 
-class GaussianRelaxInputGenerator(RelaxInputGenerator):
+class GaussianCommonRelaxInputGenerator(CommonRelaxInputGenerator):
     """Input generator for the `GaussianCommonRelaxWorkChain`."""
 
     _default_protocol = 'moderate'

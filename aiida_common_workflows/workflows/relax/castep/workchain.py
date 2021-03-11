@@ -5,7 +5,7 @@ from aiida.engine import calcfunction
 from aiida.plugins import WorkflowFactory
 
 from ..workchain import CommonRelaxWorkChain
-from .generator import CastepRelaxInputGenerator
+from .generator import CastepCommonRelaxInputGenerator
 
 __all__ = ('CastepCommonRelaxWorkChain',)
 
@@ -69,7 +69,7 @@ class CastepCommonRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for CASTEP"""
 
     _process_class = WorkflowFactory('castep.relax')
-    _generator_class = CastepRelaxInputGenerator
+    _generator_class = CastepCommonRelaxInputGenerator
 
     def convert_outputs(self):
         """Convert the outputs of the sub workchain to the common output specification."""

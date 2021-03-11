@@ -7,7 +7,7 @@ from aiida.engine import calcfunction
 from aiida.plugins import WorkflowFactory
 
 from ..workchain import CommonRelaxWorkChain
-from .generator import Cp2kRelaxInputGenerator
+from .generator import Cp2kCommonRelaxInputGenerator
 
 __all__ = ('Cp2kCommonRelaxWorkChain',)
 
@@ -68,7 +68,7 @@ class Cp2kCommonRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for CP2K."""
 
     _process_class = Cp2kBaseWorkChain
-    _generator_class = Cp2kRelaxInputGenerator
+    _generator_class = Cp2kCommonRelaxInputGenerator
 
     def convert_outputs(self):
         """Convert the outputs of the sub workchain to the common output specification."""

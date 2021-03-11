@@ -8,12 +8,12 @@ from aiida import plugins
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.protocol import ProtocolRegistry
 
-__all__ = ('RelaxInputGenerator',)
+__all__ = ('CommonRelaxInputGenerator',)
 
 StructureData = plugins.DataFactory('structure')
 
 
-class RelaxInputGenerator(ProtocolRegistry, metaclass=ABCMeta):
+class CommonRelaxInputGenerator(ProtocolRegistry, metaclass=ABCMeta):
     """Input generator for the common structure relax workchains.
 
     Subclasses should define the `_engine_types`, `_spin_types`, `_electronic_types` and `_relax_types` class attributes
@@ -103,8 +103,8 @@ class RelaxInputGenerator(ProtocolRegistry, metaclass=ABCMeta):
                 prev_wc_class = reference_workchain.process_class
                 if prev_wc_class not in [self.process_class, self.process_class._process_class]:  # pylint: disable=protected-access
                     raise ValueError('The "reference_workchain" must be a node of {}'.format(self.process_class))
-            except AttributeError:
-                raise ValueError('The "reference_workchain" must be a node of {}'.format(self.process_class))
+            except AttributeError as exc:
+                raise ValueError('The "reference_workchain" must be a node of {}'.format(self.process_class)) from exc
 
         if relax_type not in self._relax_types:
             raise ValueError('relax type `{}` is not supported'.format(relax_type))
@@ -129,8 +129,8 @@ class RelaxInputGenerator(ProtocolRegistry, metaclass=ABCMeta):
         """Return the schema of a particular calculation type for this input generator."""
         try:
             return self._engine_types[key]
-        except KeyError:
-            raise ValueError('the calculation type `{}` does not exist'.format(key))
+        except KeyError as exc:
+            raise ValueError('the calculation type `{}` does not exist'.format(key)) from exc
 
     def get_relax_types(self):
         """Return the available relax types for this input generator."""

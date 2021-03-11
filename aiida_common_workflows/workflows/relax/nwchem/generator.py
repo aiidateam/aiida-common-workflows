@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for NWChem."""
+"""Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for NWChem."""
 from typing import Any, Dict, List
 import pathlib
 import warnings
@@ -12,16 +12,16 @@ from aiida import orm
 from aiida import plugins
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
-from ..generator import RelaxInputGenerator
+from ..generator import CommonRelaxInputGenerator
 
-__all__ = ('NwchemRelaxInputGenerator',)
+__all__ = ('NwchemCommonRelaxInputGenerator',)
 
 StructureData = plugins.DataFactory('structure')
 
 HA_BOHR_TO_EV_A = 51.42208619083232
 
 
-class NwchemRelaxInputGenerator(RelaxInputGenerator):
+class NwchemCommonRelaxInputGenerator(CommonRelaxInputGenerator):
     """Input generator for the `NwchemCommonRelaxWorkChain`."""
 
     _default_protocol = 'moderate'

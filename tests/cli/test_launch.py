@@ -113,7 +113,7 @@ def test_eos_number_mpi_procs_per_machine(run_cli_command, generate_structure, g
     options = ['-S', str(structure.pk), '-n', '10', '10', '--', 'quantum_espresso']
     result = run_cli_command(launch.cmd_eos, options, raises=click.BadParameter)
     assert 'Error: Invalid value for --number-mpi-procs-per-machine: QuantumEspressoCommonRelaxWorkChain has 1 engine '\
-           'steps, so requires 1 values' in result.output_line
+           'steps, so requires 1 values' in result.output_lines
 
 
 @pytest.mark.usefixtures('aiida_profile')

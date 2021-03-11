@@ -3,7 +3,7 @@
 from aiida.plugins import WorkflowFactory
 
 from ..workchain import CommonRelaxWorkChain
-from .generator import BigDftRelaxInputGenerator
+from .generator import BigDftCommonRelaxInputGenerator
 
 __all__ = ('BigDftCommonRelaxWorkChain',)
 
@@ -12,7 +12,7 @@ class BigDftCommonRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for BigDFT."""
 
     _process_class = WorkflowFactory('bigdft.relax')
-    _generator_class = BigDftRelaxInputGenerator
+    _generator_class = BigDftCommonRelaxInputGenerator
 
     @classmethod
     def define(cls, spec):

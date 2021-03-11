@@ -12,7 +12,7 @@ from aiida_castep.data.otfg import OTFGGroup
 
 from aiida_common_workflows.workflows.relax.castep.workchain import CastepCommonRelaxWorkChain
 from aiida_common_workflows.workflows.relax.castep.generator import (
-    CastepRelaxInputGenerator, generate_inputs, generate_inputs_base, generate_inputs_calculation,
+    CastepCommonRelaxInputGenerator, generate_inputs, generate_inputs_base, generate_inputs_calculation,
     generate_inputs_relax, ensure_otfg_family, RelaxType, ElectronicType, SpinType
 )
 
@@ -93,7 +93,8 @@ def test_base_generator(castep_code, nacl, with_otfg):
 def test_relax_generator(castep_code, nacl, with_otfg):
     """Test for generating the relax namespace"""
     CastepCommonRelaxWorkChain = WorkflowFactory('castep.relax')  # pylint: disable=invalid-name
-    protocol = CastepRelaxInputGenerator(process_class=CastepCommonRelaxWorkChain).get_protocol('moderate')['relax']
+    protocol = CastepCommonRelaxInputGenerator(process_class=CastepCommonRelaxWorkChain
+                                               ).get_protocol('moderate')['relax']
     override = {
         'base': {
             'metadata': {
@@ -126,7 +127,7 @@ def test_generate_inputs(castep_code, nacl, si):  # pylint: disable=invalid-name
     """
     Test for the generator
     """
-    protocol = CastepRelaxInputGenerator(process_class=CastepCommonRelaxWorkChain).get_protocol('moderate')
+    protocol = CastepCommonRelaxInputGenerator(process_class=CastepCommonRelaxWorkChain).get_protocol('moderate')
     override = {'base': {'metadata': {'label': 'test'}, 'calc': {}}}
 
     output = generate_inputs(WorkflowFactory('castep.relax'), copy.deepcopy(protocol), castep_code, si, override)
@@ -140,7 +141,7 @@ def test_generate_inputs(castep_code, nacl, si):  # pylint: disable=invalid-name
 
 def test_input_generator(castep_code, nacl, si):  # pylint: disable=invalid-name
     """Test for the input generator"""
-    gen = CastepRelaxInputGenerator(process_class=CastepCommonRelaxWorkChain)
+    gen = CastepCommonRelaxInputGenerator(process_class=CastepCommonRelaxWorkChain)
     engines = {'relax': {'code': castep_code, 'options': {}}}
     builder = gen.get_builder(si, engines, protocol='moderate')
     param = builder.calc.parameters.get_dict()

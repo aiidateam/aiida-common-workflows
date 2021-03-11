@@ -5,7 +5,7 @@ from aiida.engine import calcfunction
 from aiida.plugins import WorkflowFactory
 
 from ..workchain import CommonRelaxWorkChain
-from .generator import FleurRelaxInputGenerator
+from .generator import FleurCommonRelaxInputGenerator
 
 __all__ = ('FleurCommonRelaxWorkChain',)
 
@@ -37,7 +37,7 @@ class FleurCommonRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for FLEUR."""
 
     _process_class = WorkflowFactory('fleur.base_relax')
-    _generator_class = FleurRelaxInputGenerator
+    _generator_class = FleurCommonRelaxInputGenerator
 
     def convert_outputs(self):
         """Convert the outputs of the sub workchain to the common output specification."""

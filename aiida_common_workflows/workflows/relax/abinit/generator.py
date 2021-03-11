@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for ABINIT."""
+"""Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for ABINIT."""
 import collections
 import copy
 import pathlib
@@ -14,14 +14,14 @@ from aiida import engine, orm, plugins
 from aiida.common import exceptions
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
-from ..generator import RelaxInputGenerator
+from ..generator import CommonRelaxInputGenerator
 
-__all__ = ('AbinitRelaxInputGenerator',)
+__all__ = ('AbinitCommonRelaxInputGenerator',)
 
 StructureData = plugins.DataFactory('structure')
 
 
-class AbinitRelaxInputGenerator(RelaxInputGenerator):
+class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
     """Input generator for the `AbinitCommonRelaxWorkChain`."""
 
     _default_protocol = 'moderate'

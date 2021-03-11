@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for VASP."""
+"""Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for VASP."""
 import pathlib
 from typing import Any, Dict, List
 
@@ -11,14 +11,14 @@ from aiida import plugins
 from aiida.common.extendeddicts import AttributeDict
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
-from ..generator import RelaxInputGenerator
+from ..generator import CommonRelaxInputGenerator
 
-__all__ = ('VaspRelaxInputGenerator',)
+__all__ = ('VaspCommonRelaxInputGenerator',)
 
 StructureData = plugins.DataFactory('structure')
 
 
-class VaspRelaxInputGenerator(RelaxInputGenerator):
+class VaspCommonRelaxInputGenerator(CommonRelaxInputGenerator):
     """Input generator for the `VaspCommonRelaxWorkChain`."""
 
     _default_protocol = 'moderate'

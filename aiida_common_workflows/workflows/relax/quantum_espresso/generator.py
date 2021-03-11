@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for Quantum ESPRESSO."""
+"""Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for Quantum ESPRESSO."""
 from typing import Any, Dict, List
 
 from aiida import engine
@@ -7,14 +7,14 @@ from aiida import orm
 from aiida import plugins
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
-from ..generator import RelaxInputGenerator
+from ..generator import CommonRelaxInputGenerator
 
-__all__ = ('QuantumEspressoRelaxInputGenerator',)
+__all__ = ('QuantumEspressoCommonRelaxInputGenerator',)
 
 StructureData = plugins.DataFactory('structure')
 
 
-class QuantumEspressoRelaxInputGenerator(RelaxInputGenerator):
+class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
     """Input generator for the `QuantumEspressoCommonRelaxWorkChain`."""
 
     _engine_types = {

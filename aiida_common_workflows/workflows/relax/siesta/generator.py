@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for SIESTA."""
+"""Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for SIESTA."""
 import os
 from typing import Any, Dict, List
 
@@ -11,14 +11,14 @@ from aiida import plugins
 from aiida.common import exceptions
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
-from ..generator import RelaxInputGenerator
+from ..generator import CommonRelaxInputGenerator
 
-__all__ = ('SiestaRelaxInputGenerator',)
+__all__ = ('SiestaCommonRelaxInputGenerator',)
 
 StructureData = plugins.DataFactory('structure')
 
 
-class SiestaRelaxInputGenerator(RelaxInputGenerator):
+class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
     """Generator of inputs for the SiestaCommonRelaxWorkChain"""
 
     _default_protocol = 'moderate'
@@ -85,7 +85,7 @@ class SiestaRelaxInputGenerator(RelaxInputGenerator):
         with open(_filepath) as _thefile:
             self._protocols = yaml.full_load(_thefile)
 
-    def get_builder(  # pylint: disable=too-many-branches, too-many-locals
+    def get_builder(  # pylint: disable=too-many-branches,too-many-locals
         self,
         structure: StructureData,
         engines: Dict[str, Any],
@@ -146,11 +146,11 @@ class SiestaRelaxInputGenerator(RelaxInputGenerator):
         pseudo_family = self._protocols[protocol]['pseudo_family']
         try:
             orm.Group.objects.get(label=pseudo_family)
-        except exceptions.NotExistent:
+        except exceptions.NotExistent as exc:
             raise ValueError(
                 'protocol `{}` requires `pseudo_family` with name {} '
                 'but no family with this name is loaded in the database'.format(protocol, pseudo_family)
-            )
+            ) from exc
 
         # K points
         kpoints_mesh = self._get_kpoints(protocol, structure, reference_workchain)
@@ -202,7 +202,7 @@ class SiestaRelaxInputGenerator(RelaxInputGenerator):
 
         return builder
 
-    def _get_param(self, key, structure, reference_workchain):  # pylint: disable=too-many-branches
+    def _get_param(self, key, structure, reference_workchain):  # pylint: disable=too-many-branches,too-many-locals
         """
         Method to construct the `parameters` input. Heuristics are applied, a dictionary
         with the parameters is returned.
@@ -244,11 +244,11 @@ class SiestaRelaxInputGenerator(RelaxInputGenerator):
                     if 'mesh-cutoff' in cust_param:
                         try:
                             cust_meshcut = float(cust_param['mesh-cutoff'].split()[0])
-                        except (ValueError, IndexError):
+                        except (ValueError, IndexError) as exc:
                             raise RuntimeError(
                                 'Wrong `mesh-cutoff` value for heuristc '
                                 '{0} of protocol {1}'.format(kind.symbol, key)
-                            )
+                            ) from exc
                         if meshcut_glob is not None:
                             if cust_meshcut > float(meshcut_glob):
                                 meshcut_glob = cust_meshcut
@@ -256,11 +256,11 @@ class SiestaRelaxInputGenerator(RelaxInputGenerator):
                             meshcut_glob = cust_meshcut
                             try:
                                 meshcut_units = cust_param['mesh-cutoff'].split()[1]
-                            except (ValueError, IndexError):
+                            except (ValueError, IndexError) as exc:
                                 raise RuntimeError(
                                     'Wrong `mesh-cutoff` units for heuristc '
                                     '{0} of protocol {1}'.format(kind.symbol, key)
-                                )
+                                ) from exc
 
             if meshcut_glob is not None:
                 parameters['mesh-cutoff'] = '{0} {1}'.format(meshcut_glob, meshcut_units)

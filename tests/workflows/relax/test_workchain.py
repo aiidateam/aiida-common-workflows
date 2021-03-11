@@ -6,7 +6,7 @@ import pytest
 from aiida.plugins import WorkflowFactory
 
 from aiida_common_workflows.plugins import get_workflow_entry_point_names
-from aiida_common_workflows.workflows.relax import RelaxInputGenerator
+from aiida_common_workflows.workflows.relax import CommonRelaxInputGenerator
 from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChain
 
 
@@ -24,5 +24,5 @@ def test_workchain_class(workchain):
 def test_get_input_generator(workchain):
     """Test that each registered common relax workchain defines the associated input generator."""
     generator = workchain.get_input_generator()
-    assert isinstance(generator, RelaxInputGenerator)
+    assert isinstance(generator, CommonRelaxInputGenerator)
     assert issubclass(generator.process_class, CommonRelaxWorkChain)

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for CASTEP"""
+"""Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for CASTEP"""
 import collections
 import copy
 import pathlib
@@ -15,15 +15,15 @@ from aiida_castep.data import get_pseudos_from_structure
 from aiida_castep.data.otfg import OTFGGroup
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
-from ..generator import RelaxInputGenerator
+from ..generator import CommonRelaxInputGenerator
 # pylint: disable=import-outside-toplevel, too-many-branches, too-many-statements
 
-__all__ = ('CastepRelaxInputGenerator',)
+__all__ = ('CastepCommonRelaxInputGenerator',)
 
 StructureData = plugins.DataFactory('structure')  # pylint: disable=invalid-name
 
 
-class CastepRelaxInputGenerator(RelaxInputGenerator):
+class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
     """Input generator for the `CastepCommonRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
@@ -294,12 +294,12 @@ def generate_inputs(
         family_name = family_name.value
     try:
         otfg_family = OTFGGroup.objects.get(label=family_name)
-    except exceptions.NotExistent:
+    except exceptions.NotExistent as exc:
         raise ValueError(
             'protocol `{}` requires the `{}` `pseudos family` but could not be found.'.format(
                 protocol['name'], protocol['relax']['base']['pseudos_family']
             )
-        )
+        ) from exc
 
     CastepCalculation = plugins.CalculationFactory('castep.castep')  # pylint: disable=invalid-name
     CastepBaseWorkChain = plugins.WorkflowFactory('castep.base')  # pylint: disable=invalid-name
@@ -311,7 +311,7 @@ def generate_inputs(
         try:
             code = orm.load_code(code)
         except (exceptions.MultipleObjectsError, exceptions.NotExistent) as exception:
-            raise ValueError('could not load the code {}: {}'.format(code, exception))
+            raise ValueError('could not load the code {}: {}'.format(code, exception)) from exception
 
     if process_class == CastepCalculation:
         protocol = protocol['relax']['base']['calc']
