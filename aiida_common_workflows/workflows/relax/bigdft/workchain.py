@@ -5,10 +5,10 @@ from aiida.plugins import WorkflowFactory
 from ..workchain import CommonRelaxWorkChain
 from .generator import BigDftRelaxInputGenerator
 
-__all__ = ('BigDftRelaxWorkChain',)
+__all__ = ('BigDftCommonRelaxWorkChain',)
 
 
-class BigDftRelaxWorkChain(CommonRelaxWorkChain):
+class BigDftCommonRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for BigDFT."""
 
     _process_class = WorkflowFactory('bigdft.relax')

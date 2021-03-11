@@ -7,7 +7,7 @@ from aiida.plugins import WorkflowFactory
 from ..workchain import CommonRelaxWorkChain
 from .generator import SiestaRelaxInputGenerator
 
-__all__ = ('SiestaRelaxWorkChain',)
+__all__ = ('SiestaCommonRelaxWorkChain',)
 
 
 @calcfunction
@@ -32,7 +32,7 @@ def get_forces_and_stress(totalarray):
     return {'forces': forces, 'stress': stress}
 
 
-class SiestaRelaxWorkChain(CommonRelaxWorkChain):
+class SiestaCommonRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for SIESTA."""
 
     _process_class = WorkflowFactory('siesta.base')

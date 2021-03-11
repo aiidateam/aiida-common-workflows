@@ -23,7 +23,7 @@ ANG_TO_BOHR = 1.88972687
 
 
 class GaussianRelaxInputGenerator(RelaxInputGenerator):
-    """Input generator for the `GaussianRelaxWorkChain`."""
+    """Input generator for the `GaussianCommonRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
     _protocols = {

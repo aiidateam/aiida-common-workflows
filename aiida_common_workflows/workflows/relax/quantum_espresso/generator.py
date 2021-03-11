@@ -15,7 +15,7 @@ StructureData = plugins.DataFactory('structure')
 
 
 class QuantumEspressoRelaxInputGenerator(RelaxInputGenerator):
-    """Input generator for the `QuantumEspressoRelaxWorkChain`."""
+    """Input generator for the `QuantumEspressoCommonRelaxWorkChain`."""
 
     _engine_types = {
         'relax': {
@@ -162,7 +162,7 @@ class QuantumEspressoRelaxInputGenerator(RelaxInputGenerator):
             builder.base_final_scf['kpoints'] = kpoints
 
         # Currently the builder is set for the `PwRelaxWorkChain`, but we should return one for the wrapper workchain
-        # `QuantumEspressoRelaxWorkChain` for which this input generator is built
+        # `QuantumEspressoCommonRelaxWorkChain` for which this input generator is built
         builder._process_class = self.process_class  # pylint: disable=protected-access
 
         return builder

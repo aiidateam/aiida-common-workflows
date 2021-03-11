@@ -7,7 +7,7 @@ from aiida.plugins import WorkflowFactory
 from ..workchain import CommonRelaxWorkChain
 from .generator import CastepRelaxInputGenerator
 
-__all__ = ('CastepRelaxWorkChain',)
+__all__ = ('CastepCommonRelaxWorkChain',)
 
 
 @calcfunction
@@ -65,7 +65,7 @@ def get_total_magnetization(parameters):
     return orm.Float(parameters.get_attribute('spin_density'))
 
 
-class CastepRelaxWorkChain(CommonRelaxWorkChain):
+class CastepCommonRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for CASTEP"""
 
     _process_class = WorkflowFactory('castep.relax')

@@ -24,7 +24,7 @@ StructureData = plugins.DataFactory('structure')  # pylint: disable=invalid-name
 
 
 class CastepRelaxInputGenerator(RelaxInputGenerator):
-    """Input generator for the `CastepRelaxWorkChain`."""
+    """Input generator for the `CastepCommonRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
     _engine_types = {'relax': {'code_plugin': 'castep.castep', 'description': 'The code to perform the relaxation.'}}
@@ -335,7 +335,7 @@ def generate_inputs_relax(
     otfg_family: OTFGGroup,
     override: Dict[str, Any] = None
 ) -> Dict[str, Any]:
-    """Generate the inputs for the `CastepRelaxWorkChain` for a given code, structure and pseudo potential family.
+    """Generate the inputs for the `CastepCommonRelaxWorkChain` for a given code, structure and pseudo potential family.
 
     :param protocol: the dictionary with protocol inputs.
     :param code: the code to use.
