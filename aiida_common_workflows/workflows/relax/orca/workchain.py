@@ -8,7 +8,7 @@ from aiida.plugins import WorkflowFactory
 from ..workchain import CommonRelaxWorkChain
 from .generator import OrcaRelaxInputGenerator
 
-__all__ = ('OrcaRelaxWorkChain',)
+__all__ = ('OrcaCommonRelaxWorkChain',)
 
 OrcaBaseWorkChain = WorkflowFactory('orca.base')
 
@@ -42,7 +42,7 @@ def get_total_magnetization(parameters):
     return Float(tot_magnetization)
 
 
-class OrcaRelaxWorkChain(CommonRelaxWorkChain):
+class OrcaCommonRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for Orca."""
 
     _process_class = OrcaBaseWorkChain

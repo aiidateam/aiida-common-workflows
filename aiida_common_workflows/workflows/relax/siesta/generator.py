@@ -19,7 +19,7 @@ StructureData = plugins.DataFactory('structure')
 
 
 class SiestaRelaxInputGenerator(RelaxInputGenerator):
-    """Generator of inputs for the SiestaRelaxWorkChain"""
+    """Generator of inputs for the SiestaCommonRelaxWorkChain"""
 
     _default_protocol = 'moderate'
 

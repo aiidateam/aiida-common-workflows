@@ -8,7 +8,7 @@ from aiida.common.exceptions import NotExistentAttributeError
 from ..workchain import CommonRelaxWorkChain
 from .generator import VaspRelaxInputGenerator
 
-__all__ = ('VaspRelaxWorkChain',)
+__all__ = ('VaspCommonRelaxWorkChain',)
 
 
 @calcfunction
@@ -53,7 +53,7 @@ def get_total_cell_magnetic_moment(misc):
     return orm.Float(magnetization)
 
 
-class VaspRelaxWorkChain(CommonRelaxWorkChain):
+class VaspCommonRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for VASP."""
 
     _process_class = WorkflowFactory('vasp.relax')

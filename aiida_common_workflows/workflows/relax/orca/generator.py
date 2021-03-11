@@ -21,7 +21,7 @@ StructureData = DataFactory('structure')
 
 
 class OrcaRelaxInputGenerator(RelaxInputGenerator):
-    """Input generator for the `OrcaRelaxWorkChain`."""
+    """Input generator for the `OrcaCommonRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
 

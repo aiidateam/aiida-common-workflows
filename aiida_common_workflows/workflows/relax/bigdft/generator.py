@@ -57,7 +57,7 @@ def ortho_struct(input_struct):
 
 
 class BigDftRelaxInputGenerator(RelaxInputGenerator):
-    """Input generator for the `BigDFTRelaxWorkChain`."""
+    """Input generator for the `BigDftCommonRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
     _protocols = {

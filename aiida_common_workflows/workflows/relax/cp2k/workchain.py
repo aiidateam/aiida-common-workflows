@@ -9,7 +9,7 @@ from aiida.plugins import WorkflowFactory
 from ..workchain import CommonRelaxWorkChain
 from .generator import Cp2kRelaxInputGenerator
 
-__all__ = ('Cp2kRelaxWorkChain',)
+__all__ = ('Cp2kCommonRelaxWorkChain',)
 
 Cp2kBaseWorkChain = WorkflowFactory('cp2k.base')  # pylint: disable=invalid-name
 
@@ -64,7 +64,7 @@ def get_stress_output_folder(folder):
     return stress
 
 
-class Cp2kRelaxWorkChain(CommonRelaxWorkChain):
+class Cp2kCommonRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for CP2K."""
 
     _process_class = Cp2kBaseWorkChain

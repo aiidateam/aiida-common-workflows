@@ -7,7 +7,7 @@ from aiida.plugins import WorkflowFactory
 from ..workchain import CommonRelaxWorkChain
 from .generator import FleurRelaxInputGenerator
 
-__all__ = ('FleurRelaxWorkChain',)
+__all__ = ('FleurCommonRelaxWorkChain',)
 
 
 @calcfunction
@@ -33,7 +33,7 @@ def get_total_magnetization(parameters):
     return orm.Float(parameters.get_attribute('total_magnetic_moment_cell'))
 
 
-class FleurRelaxWorkChain(CommonRelaxWorkChain):
+class FleurCommonRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for FLEUR."""
 
     _process_class = WorkflowFactory('fleur.base_relax')

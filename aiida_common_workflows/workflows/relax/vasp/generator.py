@@ -19,7 +19,7 @@ StructureData = plugins.DataFactory('structure')
 
 
 class VaspRelaxInputGenerator(RelaxInputGenerator):
-    """Input generator for the `VASPRelaxWorkChain`."""
+    """Input generator for the `VaspCommonRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
     _engine_types = {'relax': {'code_plugin': 'vasp.vasp', 'description': 'The code to perform the relaxation.'}}

@@ -22,7 +22,7 @@ HA_BOHR_TO_EV_A = 51.42208619083232
 
 
 class NwchemRelaxInputGenerator(RelaxInputGenerator):
-    """Input generator for the `NwchemRelaxWorkChain`."""
+    """Input generator for the `NwchemCommonRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
 

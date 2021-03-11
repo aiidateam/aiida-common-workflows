@@ -7,7 +7,7 @@ from aiida.plugins import WorkflowFactory
 from ..workchain import CommonRelaxWorkChain
 from .generator import QuantumEspressoRelaxInputGenerator
 
-__all__ = ('QuantumEspressoRelaxWorkChain',)
+__all__ = ('QuantumEspressoCommonRelaxWorkChain',)
 
 
 @calcfunction
@@ -36,7 +36,7 @@ def extract_from_parameters(parameters):
     return results
 
 
-class QuantumEspressoRelaxWorkChain(CommonRelaxWorkChain):
+class QuantumEspressoCommonRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for Quantum ESPRESSO."""
 
     _process_class = WorkflowFactory('quantumespresso.pw.relax')

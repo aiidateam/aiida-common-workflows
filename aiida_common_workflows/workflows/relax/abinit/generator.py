@@ -22,7 +22,7 @@ StructureData = plugins.DataFactory('structure')
 
 
 class AbinitRelaxInputGenerator(RelaxInputGenerator):
-    """Input generator for the `AbinitRelaxWorkChain`."""
+    """Input generator for the `AbinitCommonRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
     _engine_types = {'relax': {'code_plugin': 'abinit', 'description': 'The code to perform the relaxation.'}}
@@ -83,7 +83,7 @@ class AbinitRelaxInputGenerator(RelaxInputGenerator):
             only if `spin_type != SpinType.NONE`.
         :param threshold_forces: target threshold for the forces in eV/Å.
         :param threshold_stress: target threshold for the stress in eV/Å^3.
-        :param reference_workchain: a <Code>RelaxWorkChain node.
+        :param reference_workchain: a <Code>CommonRelaxWorkChain node.
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """

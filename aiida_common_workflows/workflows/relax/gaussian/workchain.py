@@ -8,7 +8,7 @@ from aiida.plugins import WorkflowFactory
 from ..workchain import CommonRelaxWorkChain
 from .generator import GaussianRelaxInputGenerator
 
-__all__ = ('GaussianRelaxWorkChain',)
+__all__ = ('GaussianCommonRelaxWorkChain',)
 
 GaussianBaseWorkChain = WorkflowFactory('gaussian.base')
 
@@ -42,7 +42,7 @@ def get_total_magnetization(parameters):
     return orm.Float(tot_magnetization)
 
 
-class GaussianRelaxWorkChain(CommonRelaxWorkChain):
+class GaussianCommonRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for Gaussian."""
 
     _process_class = GaussianBaseWorkChain

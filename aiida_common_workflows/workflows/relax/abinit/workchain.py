@@ -10,7 +10,7 @@ from aiida_abinit.workflows.base import AbinitBaseWorkChain
 from ..workchain import CommonRelaxWorkChain
 from .generator import AbinitRelaxInputGenerator
 
-__all__ = ('AbinitRelaxWorkChain',)
+__all__ = ('AbinitCommonRelaxWorkChain',)
 
 
 @calcfunction
@@ -41,7 +41,7 @@ def get_total_magnetization(parameters):
     return orm.Float(parameters['total_magnetization'])
 
 
-class AbinitRelaxWorkChain(CommonRelaxWorkChain):
+class AbinitCommonRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for Abinit."""
 
     _process_class = AbinitBaseWorkChain

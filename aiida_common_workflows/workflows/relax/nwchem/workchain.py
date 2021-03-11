@@ -9,7 +9,7 @@ from aiida.plugins import WorkflowFactory
 from ..workchain import CommonRelaxWorkChain
 from .generator import NwchemRelaxInputGenerator
 
-__all__ = ('NwchemRelaxWorkChain',)
+__all__ = ('NwchemCommonRelaxWorkChain',)
 
 NwchemBaseWorkChain = WorkflowFactory('nwchem.base')
 
@@ -38,7 +38,7 @@ def get_forces(parameters):
     return forces_ev
 
 
-class NwchemRelaxWorkChain(CommonRelaxWorkChain):
+class NwchemCommonRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for NWChem."""
 
     _process_class = NwchemBaseWorkChain

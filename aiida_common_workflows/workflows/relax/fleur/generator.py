@@ -19,7 +19,7 @@ StructureData = plugins.DataFactory('structure')
 
 
 class FleurRelaxInputGenerator(RelaxInputGenerator):
-    """Generator of inputs for the `FleurRelaxWorkChain`."""
+    """Generator of inputs for the `FleurCommonRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
     _protocols = {
