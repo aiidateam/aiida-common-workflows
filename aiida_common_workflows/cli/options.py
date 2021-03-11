@@ -184,6 +184,16 @@ NUMBER_MACHINES = options.OverridableOption(
     help='Define the number of machines to request for each engine step.'
 )
 
+NUMBER_MPI_PROCS_PER_MACHINE = options.OverridableOption(
+    '-n',
+    '--number-mpi-procs-per-machine',
+    cls=options.MultipleValueOption,
+    type=click.INT,
+    metavar='VALUES',
+    required=False,
+    help='Define the number of mpi processor per machines to request for each engine step.'
+)
+
 MAGNETIZATION_PER_SITE = options.OverridableOption(
     '--magnetization-per-site',
     type=click.FLOAT,
