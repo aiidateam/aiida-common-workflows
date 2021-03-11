@@ -59,8 +59,7 @@ def cmd_relax(  #pylint: disable=too-many-branches
             param_hint='--number-machines'
         )
 
-    if number_mpi_procs_per_machine is not None:
-        if len(number_mpi_procs_per_machine) != number_engines:
+    if number_mpi_procs_per_machine is not None and len(number_mpi_procs_per_machine) != number_engines:
             raise click.BadParameter(
                 f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
                 param_hint='--number-mpi-procs-per-machine'
@@ -177,8 +176,7 @@ def cmd_eos(  #pylint: disable=too-many-branches
             param_hint='--number-machines'
         )
 
-    if number_mpi_procs_per_machine is not None:
-        if len(number_mpi_procs_per_machine) != number_engines:
+    if number_mpi_procs_per_machine is not None and len(number_mpi_procs_per_machine) != number_engines:
             raise click.BadParameter(
                 f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
                 param_hint='--number-mpi-procs-per-machine'
@@ -304,8 +302,7 @@ def cmd_dissociation_curve(  #pylint: disable=too-many-branches
             param_hint='--number-machines'
         )
 
-    if number_mpi_procs_per_machine is not None:
-        if len(number_mpi_procs_per_machine) != number_engines:
+    if number_mpi_procs_per_machine is not None and len(number_mpi_procs_per_machine) != number_engines:
             raise click.BadParameter(
                 f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
                 param_hint='--number-mpi-procs-per-machine'
