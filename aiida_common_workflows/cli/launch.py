@@ -60,10 +60,10 @@ def cmd_relax(  #pylint: disable=too-many-branches
         )
 
     if number_mpi_procs_per_machine is not None and len(number_mpi_procs_per_machine) != number_engines:
-            raise click.BadParameter(
-                f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
-                param_hint='--number-mpi-procs-per-machine'
-            )
+        raise click.BadParameter(
+            f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
+            param_hint='--number-mpi-procs-per-machine'
+        )
 
     if wallclock_seconds is None:
         wallclock_seconds = [1 * 3600] * number_engines
@@ -177,10 +177,10 @@ def cmd_eos(  #pylint: disable=too-many-branches
         )
 
     if number_mpi_procs_per_machine is not None and len(number_mpi_procs_per_machine) != number_engines:
-            raise click.BadParameter(
-                f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
-                param_hint='--number-mpi-procs-per-machine'
-            )
+        raise click.BadParameter(
+            f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
+            param_hint='--number-mpi-procs-per-machine'
+        )
 
     if wallclock_seconds is None:
         wallclock_seconds = [1 * 3600] * number_engines
@@ -303,10 +303,10 @@ def cmd_dissociation_curve(  #pylint: disable=too-many-branches
         )
 
     if number_mpi_procs_per_machine is not None and len(number_mpi_procs_per_machine) != number_engines:
-            raise click.BadParameter(
-                f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
-                param_hint='--number-mpi-procs-per-machine'
-            )
+        raise click.BadParameter(
+            f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
+            param_hint='--number-mpi-procs-per-machine'
+        )
 
     if wallclock_seconds is None:
         wallclock_seconds = [1 * 3600] * number_engines
