@@ -44,8 +44,8 @@ def test_relax_number_mpi_procs_per_machine(run_cli_command, generate_structure,
     # Passing two values for `-n` should raise as only one value is required
     options = ['-S', str(structure.pk), '-n', '10', '10', '--', 'quantum_espresso']
     result = run_cli_command(launch.cmd_relax, options, raises=click.BadParameter)
-    assert 'Error: Invalid value for --number-mpi-procs-per-machine: QuantumEspressoRelaxWorkChain has 1 engine steps, so ' \
-           'requires 1 values' in result.output_lines
+    assert 'Error: Invalid value for --number-mpi-procs-per-machine: QuantumEspressoRelaxWorkChain has 1 engine ' \
+           'steps, so requires 1 values' in result.output_lines
 
 
 @pytest.mark.usefixtures('clear_database_before_test')
@@ -99,6 +99,21 @@ def test_eos_number_machines(run_cli_command, generate_structure, generate_code)
     result = run_cli_command(launch.cmd_eos, options, raises=click.BadParameter)
     assert 'Error: Invalid value for --number-machines: QuantumEspressoRelaxWorkChain has 1 engine steps, so ' \
            'requires 1 values' in result.output_lines
+
+
+@pytest.mark.usefixtures('aiida_profile')
+def test_eos_number_mpi_procs_per_machine(run_cli_command, generate_structure, generate_code):
+    """Test the `--number-mpi-procs-per-machine` option."""
+    structure = generate_structure().store()
+    code = generate_code('quantumespresso.pw')
+    code.computer.set_default_mpiprocs_per_machine(2)
+    code.store()
+
+    # Passing two values for `-n` should raise as only one value is required
+    options = ['-S', str(structure.pk), '-n', '10', '10', '--', 'quantum_espresso']
+    result = run_cli_command(launch.cmd_eos, options, raises=click.BadParameter)
+    assert 'Error: Invalid value for --number-mpi-procs-per-machine: QuantumEspressoRelaxWorkChain has 1 engine ' \
+           'steps, so requires 1 values' in result.output_lines
 
 
 @pytest.mark.usefixtures('aiida_profile')
@@ -182,6 +197,21 @@ def test_dissociation_curve_number_machines(run_cli_command, generate_structure,
     result = run_cli_command(launch.cmd_dissociation_curve, options, raises=click.BadParameter)
     assert 'Error: Invalid value for --number-machines: QuantumEspressoRelaxWorkChain has 1 engine steps, so ' \
            'requires 1 values' in result.output_lines
+
+
+@pytest.mark.usefixtures('aiida_profile')
+def test_dissociation_curve_number_mpi_procs_per_machine(run_cli_command, generate_structure, generate_code):
+    """Test the `--number-mpi-procs-per-machine` option."""
+    structure = generate_structure().store()
+    code = generate_code('quantumespresso.pw')
+    code.computer.set_default_mpiprocs_per_machine(2)
+    code.store()
+
+    # Passing two values for `-n` should raise as only one value is required
+    options = ['-S', str(structure.pk), '-n', '10', '10', '--', 'quantum_espresso']
+    result = run_cli_command(launch.cmd_dissociation_curve, options, raises=click.BadParameter)
+    assert 'Error: Invalid value for --number-mpi-procs-per-machine: QuantumEspressoRelaxWorkChain has 1 engine ' \
+           'steps, so requires 1 values' in result.output_lines
 
 
 @pytest.mark.usefixtures('aiida_profile')
