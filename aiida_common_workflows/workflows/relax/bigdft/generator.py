@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for BigDFT."""
+"""Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for BigDFT."""
 from typing import Any, Dict, List
 
 from aiida import engine
@@ -8,9 +8,9 @@ from aiida import plugins
 from aiida.engine import calcfunction
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
-from ..generator import RelaxInputGenerator
+from ..generator import CommonRelaxInputGenerator
 
-__all__ = ('BigDftRelaxInputGenerator',)
+__all__ = ('BigDftCommonRelaxInputGenerator',)
 
 BigDFTParameters = plugins.DataFactory('bigdft')
 StructureData = plugins.DataFactory('structure')
@@ -56,7 +56,7 @@ def ortho_struct(input_struct):
     return out
 
 
-class BigDftRelaxInputGenerator(RelaxInputGenerator):
+class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
     """Input generator for the `BigDftCommonRelaxWorkChain`."""
 
     _default_protocol = 'moderate'

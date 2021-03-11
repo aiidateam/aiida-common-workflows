@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for Orca."""
+"""Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for Orca."""
 import os
 from typing import Any, Dict, List
 from copy import deepcopy
@@ -13,14 +13,14 @@ from aiida import orm
 from aiida.plugins import DataFactory
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
-from ..generator import RelaxInputGenerator
+from ..generator import CommonRelaxInputGenerator
 
-__all__ = ('OrcaRelaxInputGenerator',)
+__all__ = ('OrcaCommonRelaxInputGenerator',)
 
 StructureData = DataFactory('structure')
 
 
-class OrcaRelaxInputGenerator(RelaxInputGenerator):
+class OrcaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
     """Input generator for the `OrcaCommonRelaxWorkChain`."""
 
     _default_protocol = 'moderate'

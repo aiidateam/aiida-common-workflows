@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for FLEUR."""
+"""Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for FLEUR."""
 import collections
 import pathlib
 from typing import Any, Dict, List
@@ -11,14 +11,14 @@ from aiida import plugins
 from aiida.common.constants import elements as PeriodicTableElements
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
-from ..generator import RelaxInputGenerator
+from ..generator import CommonRelaxInputGenerator
 
-__all__ = ('FleurRelaxInputGenerator',)
+__all__ = ('FleurCommonRelaxInputGenerator',)
 
 StructureData = plugins.DataFactory('structure')
 
 
-class FleurRelaxInputGenerator(RelaxInputGenerator):
+class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
     """Generator of inputs for the `FleurCommonRelaxWorkChain`."""
 
     _default_protocol = 'moderate'

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Implementation of `aiida_common_workflows.common.relax.generator.RelaxInputGenerator` for CP2K."""
+"""Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for CP2K."""
 import collections
 import pathlib
 from typing import Any, Dict, List
@@ -11,9 +11,9 @@ from aiida import orm
 from aiida import plugins
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
-from ..generator import RelaxInputGenerator
+from ..generator import CommonRelaxInputGenerator
 
-__all__ = ('Cp2kRelaxInputGenerator',)
+__all__ = ('Cp2kCommonRelaxInputGenerator',)
 
 StructureData = plugins.DataFactory('structure')  # pylint: disable=invalid-name
 KpointsData = plugins.DataFactory('array.kpoints')  # pylint: disable=invalid-name
@@ -130,7 +130,7 @@ def get_file_section():
     }
 
 
-class Cp2kRelaxInputGenerator(RelaxInputGenerator):
+class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
     """Input generator for the `Cp2kRelaxWorkChain`."""
 
     _default_protocol = 'moderate'

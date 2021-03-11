@@ -5,7 +5,7 @@ import pytest
 
 from aiida_common_workflows.protocol import ProtocolRegistry
 from aiida_common_workflows.common import RelaxType, SpinType, ElectronicType
-from aiida_common_workflows.workflows.relax import RelaxInputGenerator
+from aiida_common_workflows.workflows.relax import CommonRelaxInputGenerator
 from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChain
 
 
@@ -23,10 +23,10 @@ def protocol_registry() -> ProtocolRegistry:
 
 
 @pytest.fixture
-def inputs_generator(protocol_registry) -> RelaxInputGenerator:
+def inputs_generator(protocol_registry) -> CommonRelaxInputGenerator:
     """Return an instance of a relax input generator implementation."""
 
-    class InputGenerator(protocol_registry, RelaxInputGenerator):
+    class InputGenerator(protocol_registry, CommonRelaxInputGenerator):
         """Valid input generator implementation."""
 
         _engine_types = {'relax': {'code_plugin': 'entry.point', 'description': 'test'}}
@@ -51,7 +51,7 @@ def test_validation(protocol_registry):
 
     # pylint: disable=abstract-class-instantiated,function-redefined,too-many-statements
 
-    class InputGenerator(protocol_registry, RelaxInputGenerator):
+    class InputGenerator(protocol_registry, CommonRelaxInputGenerator):
         """Invalid input generator implementation: no ``get_builder``"""
 
         _engine_types = None
@@ -63,7 +63,7 @@ def test_validation(protocol_registry):
     with pytest.raises(TypeError):
         InputGenerator()
 
-    class InputGenerator(protocol_registry, RelaxInputGenerator):
+    class InputGenerator(protocol_registry, CommonRelaxInputGenerator):
         """Invalid input generator implementation: no process class passed."""
 
         _engine_types = {'relax': {}}
@@ -75,7 +75,7 @@ def test_validation(protocol_registry):
     with pytest.raises(RuntimeError):
         InputGenerator()
 
-    class InputGenerator(protocol_registry, RelaxInputGenerator):
+    class InputGenerator(protocol_registry, CommonRelaxInputGenerator):
         """Invalid input generator implementation: no ``_relax_types``"""
 
         _engine_types = {'relax': {}}
@@ -89,7 +89,7 @@ def test_validation(protocol_registry):
     with pytest.raises(RuntimeError):
         InputGenerator(process_class=CommonRelaxWorkChain)
 
-    class InputGenerator(protocol_registry, RelaxInputGenerator):
+    class InputGenerator(protocol_registry, CommonRelaxInputGenerator):
         """Invalid input generator implementation: no ``_engine_types``"""
 
         _engine_types = None
@@ -103,7 +103,7 @@ def test_validation(protocol_registry):
     with pytest.raises(RuntimeError):
         InputGenerator(process_class=CommonRelaxWorkChain)
 
-    class InputGenerator(protocol_registry, RelaxInputGenerator):
+    class InputGenerator(protocol_registry, CommonRelaxInputGenerator):
         """Invalid input generator implementation: no ``_spin_types``"""
 
         _engine_types = {'relax': {}}
@@ -117,7 +117,7 @@ def test_validation(protocol_registry):
     with pytest.raises(RuntimeError):
         InputGenerator(process_class=CommonRelaxWorkChain)
 
-    class InputGenerator(protocol_registry, RelaxInputGenerator):
+    class InputGenerator(protocol_registry, CommonRelaxInputGenerator):
         """Invalid input generator implementation: no ``_electronic_types``"""
 
         _engine_types = {'relax': {}}
@@ -131,7 +131,7 @@ def test_validation(protocol_registry):
     with pytest.raises(RuntimeError):
         InputGenerator(process_class=CommonRelaxWorkChain)
 
-    class InputGenerator(protocol_registry, RelaxInputGenerator):
+    class InputGenerator(protocol_registry, CommonRelaxInputGenerator):
         """Invalid input generator implementation: invalid ``_relax_types``"""
 
         _engine_types = {'relax': {}}
@@ -145,7 +145,7 @@ def test_validation(protocol_registry):
     with pytest.raises(RuntimeError):
         InputGenerator(process_class=CommonRelaxWorkChain)
 
-    class InputGenerator(protocol_registry, RelaxInputGenerator):
+    class InputGenerator(protocol_registry, CommonRelaxInputGenerator):
         """Invalid input generator implementation: invalid ``_spin_types``"""
 
         _engine_types = {'relax': {}}
@@ -159,7 +159,7 @@ def test_validation(protocol_registry):
     with pytest.raises(RuntimeError):
         InputGenerator(process_class=CommonRelaxWorkChain)
 
-    class InputGenerator(protocol_registry, RelaxInputGenerator):
+    class InputGenerator(protocol_registry, CommonRelaxInputGenerator):
         """Invalid input generator implementation: invalid ``_electronic_types``"""
 
         _engine_types = {'relax': {}}
@@ -175,25 +175,25 @@ def test_validation(protocol_registry):
 
 
 def test_get_engine_types(inputs_generator):
-    """Test `RelaxInputGenerator.get_engine_types`."""
+    """Test `CommonRelaxInputGenerator.get_engine_types`."""
     assert inputs_generator.get_engine_types() == ['relax']
 
 
 def test_get_engine_type_schema(inputs_generator):
-    """Test `RelaxInputGenerator.get_engine_type_schema`."""
+    """Test `CommonRelaxInputGenerator.get_engine_type_schema`."""
     assert inputs_generator.get_engine_type_schema('relax') == {'code_plugin': 'entry.point', 'description': 'test'}
 
 
 def test_get_relax_types(inputs_generator):
-    """Test `RelaxInputGenerator.get_relax_types`."""
+    """Test `CommonRelaxInputGenerator.get_relax_types`."""
     assert set(inputs_generator.get_relax_types()) == {RelaxType.POSITIONS, RelaxType.POSITIONS_CELL}
 
 
 def test_get_spin_types(inputs_generator):
-    """Test `RelaxInputGenerator.get_spin_types`."""
+    """Test `CommonRelaxInputGenerator.get_spin_types`."""
     assert set(inputs_generator.get_spin_types()) == {SpinType.NONE, SpinType.COLLINEAR}
 
 
 def test_get_electronic_types(inputs_generator):
-    """Test `RelaxInputGenerator.get_electronic_types`."""
+    """Test `CommonRelaxInputGenerator.get_electronic_types`."""
     assert set(inputs_generator.get_electronic_types()) == {ElectronicType.INSULATOR, ElectronicType.METAL}
