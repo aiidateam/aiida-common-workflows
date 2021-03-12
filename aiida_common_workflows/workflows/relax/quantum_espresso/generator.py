@@ -23,7 +23,11 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             'description': 'The code to perform the relaxation.'
         }
     }
-    _relax_types = {relax_type: '...' for relax_type in RelaxType}
+    _relax_types = {
+        relax_type: '...'
+        for relax_type in RelaxType
+        if relax_type not in (RelaxType.VOLUME, RelaxType.POSITIONS_VOLUME)
+    }
     _spin_types = {
         SpinType.NONE: 'Treat the system without spin polarization.',
         SpinType.COLLINEAR: 'Treat the system with spin polarization.'
@@ -137,15 +141,15 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         if threshold_forces is not None:
             threshold = threshold_forces * CONSTANTS.bohr_to_ang / CONSTANTS.ry_to_ev
-            parameters = builder.base.pw['parameters'].get_dict()
+            parameters = builder.base['pw']['parameters'].get_dict()
             parameters.setdefault('CONTROL', {})['forc_conv_thr'] = threshold
-            builder.base.pw['parameters'] = orm.Dict(dict=parameters)
+            builder.base['pw']['parameters'] = orm.Dict(dict=parameters)
 
         if threshold_stress is not None:
             threshold = threshold_stress * CONSTANTS.bohr_to_ang**3 / CONSTANTS.ry_to_ev
-            parameters = builder.base.pw['parameters'].get_dict()
+            parameters = builder.base['pw']['parameters'].get_dict()
             parameters.setdefault('CELL', {})['press_conv_thr'] = threshold
-            builder.base.pw['parameters'] = orm.Dict(dict=parameters)
+            builder.base['pw']['parameters'] = orm.Dict(dict=parameters)
 
         if reference_workchain:
             relax = reference_workchain.get_outgoing(node_class=orm.WorkChainNode).one().node
