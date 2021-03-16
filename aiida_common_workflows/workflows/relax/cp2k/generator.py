@@ -311,8 +311,8 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         builder.cp2k.metadata.options['parser_name'] = 'cp2k_advanced_parser'
 
         # Uncomment to change number of CPUs and execution time.
-        builder.cp2k.metadata.options['resources']['num_mpiprocs_per_machine'] = 16
-        builder.cp2k.metadata.options['max_wallclock_seconds'] = 3600 * 72
+        #builder.cp2k.metadata.options['resources']['num_mpiprocs_per_machine'] = 16
+        #builder.cp2k.metadata.options['max_wallclock_seconds'] = 3600 * 72
 
         return builder
 

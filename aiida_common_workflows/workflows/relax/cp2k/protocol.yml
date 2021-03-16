@@ -30,11 +30,11 @@ moderate:
 
       SCF:
         MAX_SCF:       20
-        EPS_SCF:       1.0E-6
+        EPS_SCF:       1.0E-7
         MAX_ITER_LUMO: 10000
         OUTER_SCF:
           MAX_SCF:   30
-          EPS_SCF:   1.0E-6
+          EPS_SCF:   1.0E-7
       XC:
         XC_FUNCTIONAL:
           PBE:
@@ -61,32 +61,6 @@ moderate:
         HIRSHFELD:
           _: 'OFF'
   MOTION:
-    GEO_OPT:
-      TYPE: MINIMIZATION                     #default: MINIMIZATION
-      OPTIMIZER: BFGS                        #default: BFGS
-      MAX_ITER:  1000                        #default: 200
-      MAX_DR:    "[bohr] 0.0030"             #default: [bohr] 0.0030
-      RMS_DR:    "[bohr] 0.0015"             #default: [bohr] 0.0015
-      MAX_FORCE: "[bohr^-1*hartree] 0.00045" #default: [bohr^-1*hartree] 0.00045
-      RMS_FORCE: "[bohr^-1*hartree] 0.00030" #default: [bohr^-1*hartree] 0.00030
-      BFGS:
-          TRUST_RADIUS: "[angstrom] 0.25"      #default: [angstrom] 0.25
-
-    CELL_OPT:
-      TYPE: DIRECT_CELL_OPT                   #default: DIRECT_CELL_OPT
-      EXTERNAL_PRESSURE:  "[bar] 0.0"
-      PRESSURE_TOLERANCE: "[bar] 100"         #default: 100
-      KEEP_ANGLES:   False
-      KEEP_SYMMETRY: False
-      OPTIMIZER: BFGS                        #default: BFGS
-      MAX_ITER:  1000                         #default: 200
-      MAX_DR:    "[bohr] 0.0030"              #default: [bohr] 0.0030
-      RMS_DR:    "[bohr] 0.0015"              #default: [bohr] 0.0015
-      MAX_FORCE: "[bohr^-1*hartree] 0.00045"  #default: [bohr^-1*hartree] 0.00045
-      RMS_FORCE: "[bohr^-1*hartree] 0.00030"  #default: [bohr^-1*hartree] 0.00030
-      LBFGS:
-        TRUST_RADIUS: "[angstrom] 0.5"
-
     PRINT:
       TRAJECTORY:
         FORMAT: DCD_ALIGNED_CELL
@@ -110,6 +84,32 @@ moderate:
         _: 'ON'
       STRESS:
         _: 'ON'
+    GEO_OPT:
+      TYPE: MINIMIZATION                     #default: MINIMIZATION
+      OPTIMIZER: BFGS                        #default: BFGS
+      MAX_ITER:  1000                        #default: 200
+      MAX_DR:    "[bohr] 0.0030"             #default: [bohr] 0.0030
+      RMS_DR:    "[bohr] 0.0015"             #default: [bohr] 0.0015
+      MAX_FORCE: "[bohr^-1*hartree] 0.00045" #default: [bohr^-1*hartree] 0.00045
+      RMS_FORCE: "[bohr^-1*hartree] 0.00030" #default: [bohr^-1*hartree] 0.00030
+      BFGS:
+          TRUST_RADIUS: "[angstrom] 0.25"      #default: [angstrom] 0.25
+
+    CELL_OPT:
+      TYPE: DIRECT_CELL_OPT                   #default: DIRECT_CELL_OPT
+      EXTERNAL_PRESSURE:  "[bar] 0.0"
+      PRESSURE_TOLERANCE: "[bar] 100"         #default: 100
+      KEEP_ANGLES:   False
+      KEEP_SYMMETRY: False
+      OPTIMIZER: BFGS                         #default: BFGS
+      MAX_ITER:  1000                         #default: 200
+      MAX_DR:    "[bohr] 0.0030"              #default: [bohr] 0.0030
+      RMS_DR:    "[bohr] 0.0015"              #default: [bohr] 0.0015
+      MAX_FORCE: "[bohr^-1*hartree] 0.00045"  #default: [bohr^-1*hartree] 0.00045
+      RMS_FORCE: "[bohr^-1*hartree] 0.00030"  #default: [bohr^-1*hartree] 0.00030
+      BFGS:
+        TRUST_RADIUS: "[angstrom] 0.5"
+
 
 precise:
   description: 'Protocol to relax a structure with high precision at higher computational cost.'
@@ -197,7 +197,6 @@ precise:
         _: 'ON'
       STRESS:
         _: 'ON'
-
     GEO_OPT:
       TYPE: MINIMIZATION                     #default: MINIMIZATION
       OPTIMIZER: BFGS                        #default: BFGS
@@ -208,7 +207,6 @@ precise:
       RMS_FORCE: "[bohr^-1*hartree] 0.00030" #default: [bohr^-1*hartree] 0.00030
       BFGS:
           TRUST_RADIUS: "[angstrom] 0.25"      #default: [angstrom] 0.25
-
     CELL_OPT:
       TYPE: DIRECT_CELL_OPT                   #default: DIRECT_CELL_OPT
       EXTERNAL_PRESSURE:  "[bar] 0.0"
@@ -221,14 +219,14 @@ precise:
       RMS_DR:    "[bohr] 0.0015"              #default: [bohr] 0.0015
       MAX_FORCE: "[bohr^-1*hartree] 0.00045"  #default: [bohr^-1*hartree] 0.00045
       RMS_FORCE: "[bohr^-1*hartree] 0.00030"  #default: [bohr^-1*hartree] 0.00030
-      LBFGS:
+      BFGS:
         TRUST_RADIUS: "[angstrom] 0.5"
 
-fast:  # WARNING: this protocal wasn't tested properly.
+fast:
   description: 'Protocol to relax a structure with low precision at minimal computational cost for testing purposes.'
   kpoints_distance: 1.0
   GLOBAL:
-    PRINT_LEVEL: MEDIUM
+    PRINT_LEVEL: MEDIUM              #default: MEDIUM. Important to have the correct parsing
   FORCE_EVAL:
     METHOD:         QUICKSTEP
     STRESS_TENSOR:  ANALYTICAL
@@ -237,26 +235,55 @@ fast:  # WARNING: this protocal wasn't tested properly.
         FILENAME: requested-forces
         ADD_LAST: SYMBOLIC
     DFT:
+      BASIS_SET_FILE_NAME:
+        - GTH_BASIS_SETS
+        - BASIS_MOLOPT
+        - BASIS_MOLOPT_UCL
+      POTENTIAL_FILE_NAME:
+        -  GTH_POTENTIALS
+      UKS:          False
+      CHARGE:       0
+      MGRID:
+        CUTOFF:      400
+        REL_CUTOFF:  30
+        NGRIDS:      4
       QS:
-        METHOD: xTB
+        METHOD: GPW
         EPS_DEFAULT:   1.0E-10
-        EPS_PGF_ORB:   1.0E-20
-        XTB:
-          DO_EWALD: ".TRUE."
+        EXTRAPOLATION: ASPC
+
       SCF:
-        MAX_SCF:       50
+        MAX_SCF:       20
         EPS_SCF:       1.0E-6
         MAX_ITER_LUMO: 10000
         OUTER_SCF:
-          MAX_SCF:   100
+          MAX_SCF:   30
           EPS_SCF:   1.0E-6
-        OT:
-          PRECONDITIONER: FULL_S_INVERSE
-          MINIMIZER:      DIIS
-
-      POISSON:
-        EWALD:
-          ALPHA: 1.0
+      XC:
+        XC_FUNCTIONAL:
+          PBE:
+            PARAMETRIZATION: ORIG
+      PRINT:
+        MO_CUBES:
+          WRITE_CUBE: F
+          ADD_LAST: SYMBOLIC
+          EACH:
+            CELL_OPT: 0
+            GEO_OPT: 0
+            MD: 0
+          NHOMO: 1  # all eigenvalues are dumped anyway
+          NLUMO: 1  # specified neigenvalues are dupmed
+        MULLIKEN:
+          _: 'ON'
+          ADD_LAST: SYMBOLIC
+          EACH:
+            CELL_OPT: 0
+            GEO_OPT: 0
+            MD: 0
+        LOWDIN:
+          _: 'OFF'
+        HIRSHFELD:
+          _: 'OFF'
   MOTION:
     PRINT:
       TRAJECTORY:
@@ -281,7 +308,6 @@ fast:  # WARNING: this protocal wasn't tested properly.
         _: 'ON'
       STRESS:
         _: 'ON'
-
     GEO_OPT:
       TYPE: MINIMIZATION                     #default: MINIMIZATION
       OPTIMIZER: BFGS                        #default: BFGS
@@ -305,5 +331,5 @@ fast:  # WARNING: this protocal wasn't tested properly.
       RMS_DR:    "[bohr] 0.0015"              #default: [bohr] 0.0015
       MAX_FORCE: "[bohr^-1*hartree] 0.00045"  #default: [bohr^-1*hartree] 0.00045
       RMS_FORCE: "[bohr^-1*hartree] 0.00030"  #default: [bohr^-1*hartree] 0.00030
-      LBFGS:
+      BFGS:
         TRUST_RADIUS: "[angstrom] 0.5"
