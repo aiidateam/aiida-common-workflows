@@ -15,11 +15,14 @@ StructureData = plugins.DataFactory('structure')
 
 
 def create_magnetic_allotrope(structure, magnetic_moment_per_site):
-    """Create a new magnetic allotrope from the given structure based on a list of magnetic moments per site."""
+    """Create new structure with the correct magnetic kinds based on the magnetization per site
+
+    :param structure: StructureData for which to create the new kinds.
+    :param magnetization_per_site: List of magnetizations (defined as magnetic moments) for each site in the provided
+        `structure`.
+    """
     # pylint: disable=too-many-locals,too-many-branches,too-many-statements
     import string
-    from aiida.orm import Dict, StructureData
-
     if structure.is_alloy:
         raise ValueError('Alloys are currently not supported.')
 
