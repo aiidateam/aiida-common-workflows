@@ -14,30 +14,58 @@ __all__ = ('QuantumEspressoCommonRelaxInputGenerator',)
 StructureData = plugins.DataFactory('structure')
 
 
-def create_magnetic_allotrope(structure, magnetization_per_site):
-    """Create new structure with the correct magnetic kinds based on the magnetization per site
+def create_magnetic_allotrope(structure, magnetic_moment_per_site):
+    """Create a new magnetic allotrope from the given structure based on a list of magnetic moments per site."""
+    # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+    import string
+    from aiida.orm import Dict, StructureData
 
-    :param structure: StructureData for which to create the new kinds.
-    :param magnetization_per_site: List of magnetizations (defined as magnetic moments) for each site in the provided
-        `structure`.
-    """
-    ase_structure = structure.get_ase()
-    if len(magnetization_per_site) != len(ase_structure.numbers):
-        raise ValueError('The size of `magnetization_per_site` is different from the number of atoms.')
+    if structure.is_alloy:
+        raise ValueError('Alloys are currently not supported.')
 
-    # Combine atom type with magnetizations.
-    complex_symbols = [
-        f'{symbol}_{magn}' for symbol, magn in zip(ase_structure.get_chemical_symbols(), magnetization_per_site)
-    ]
-    # Assign a unique tag for every atom kind.
-    combined = {symbol: tag + 1 for tag, symbol in enumerate(set(complex_symbols))}
-    # Assigning correct tags to every atom.
-    tags = [combined[key] for key in complex_symbols]
-    ase_structure.set_tags(tags)
+    allotrope = StructureData(cell=structure.cell, pbc=structure.pbc)
+    allotrope_magnetic_moments = {}
 
-    magnetic_moments = {f'{key.split("_")[0]}{value}': float(key.split('_')[1]) for key, value in combined.items()}
+    for element in structure.get_symbols_set():
 
-    return StructureData(ase=ase_structure), magnetic_moments
+        # Filter the sites and magnetic moments on the site element
+        element_sites, element_magnetic_moments = zip(
+            *[(site, magnetic_moment)
+              for site, magnetic_moment in zip(structure.sites, magnetic_moment_per_site)
+              if site.kind_name.rstrip(string.digits) == element]
+        )
+
+        kind_index = -1
+        kind_names = []
+        kind_sites = []
+        kind_magnetic_moments = {}
+
+        for site, magnetic_moment in zip(element_sites, element_magnetic_moments):
+
+            if not magnetic_moment in kind_magnetic_moments.values():
+                kind_index += 1
+                current_kind_name = f'{element}{kind_index}'
+                kind_magnetic_moments[current_kind_name] = magnetic_moment
+
+            kind_sites.append(site)
+            kind_names.append(current_kind_name)
+
+        # In case there is only a single kind for the element, remove the 0 kind index
+        if current_kind_name == f'{element}0':
+            kind_names = len(element_magnetic_moments) * [element]
+            kind_magnetic_moments = {element: kind_magnetic_moments[current_kind_name]}
+
+        allotrope_magnetic_moments.update(kind_magnetic_moments)
+
+        for name, site in zip(kind_names, kind_sites):
+            allotrope.append_atom(
+                name=name,
+                symbols=(element,),
+                weights=(1.0,),
+                position=site.position,
+            )
+
+    return {'allotrope': allotrope, 'magnetic_moments': allotrope_magnetic_moments}
 
 
 class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
