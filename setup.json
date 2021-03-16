@@ -25,7 +25,7 @@
         "aiida-gaussian",
         "aiida-nwchem>=2.0.0",
         "aiida-orca",
-        "aiida-quantumespresso~=3.3,>=3.3.1",
+        "aiida-quantumespresso~=3.4",
         "aiida-siesta~=1.1",
         "aiida-vasp",
         "ase==3.19"
