@@ -17,7 +17,7 @@
     "install_requires": [
         "abipy",
         "aiida-abinit~=0.2.0a1",
-        "aiida-bigdft>=0.2.4",
+        "aiida-bigdft>=0.2.6",
         "aiida-castep>=1.2.0a5",
         "aiida-core[atomic_tools]~=1.2",
         "aiida-cp2k~=1.3",
