@@ -14,7 +14,7 @@ __all__ = ('QuantumEspressoCommonRelaxInputGenerator',)
 StructureData = plugins.DataFactory('structure')
 
 
-def create_magnetic_allotrope(structure, magnetic_moment_per_site):
+def create_magnetic_allotrope(structure, magnetization_per_site):
     """Create new structure with the correct magnetic kinds based on the magnetization per site
 
     :param structure: StructureData for which to create the new kinds.
@@ -34,7 +34,7 @@ def create_magnetic_allotrope(structure, magnetic_moment_per_site):
         # Filter the sites and magnetic moments on the site element
         element_sites, element_magnetic_moments = zip(
             *[(site, magnetic_moment)
-              for site, magnetic_moment in zip(structure.sites, magnetic_moment_per_site)
+              for site, magnetic_moment in zip(structure.sites, magnetization_per_site)
               if site.kind_name.rstrip(string.digits) == element]
         )
 
@@ -68,7 +68,7 @@ def create_magnetic_allotrope(structure, magnetic_moment_per_site):
                 position=site.position,
             )
 
-    return {'allotrope': allotrope, 'magnetic_moments': allotrope_magnetic_moments}
+    return (allotrope, allotrope_magnetic_moments)
 
 
 class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
