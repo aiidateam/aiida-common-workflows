@@ -37,35 +37,28 @@ def create_magnetic_allotrope(structure, magnetization_per_site):
               for site, magnetic_moment in zip(structure.sites, magnetization_per_site)
               if site.kind_name.rstrip(string.digits) == element]
         )
-
-        kind_index = -1
-        kind_names = []
-        kind_sites = []
-        kind_magnetic_moments = {}
-
+        magnetic_moment_set = set(element_magnetic_moments)
+        if len(magnetic_moment_set) > 10:
+            raise ValueError(
+                'The requested magnetic configuration would require more than 10 different kind names for element '
+                f'{element}. This is currently not supported to due the character limit for kind names in Quantum '
+                'ESPRESSO.'
+            )
+        magnetic_moment_kinds = {
+            magmom: f'{element}{index}' for magmom, index in zip(magnetic_moment_set, string.digits)
+        }
         for site, magnetic_moment in zip(element_sites, element_magnetic_moments):
-
-            if not magnetic_moment in kind_magnetic_moments.values():
-                kind_index += 1
-                current_kind_name = f'{element}{kind_index}'
-                kind_magnetic_moments[current_kind_name] = magnetic_moment
-
-            kind_sites.append(site)
-            kind_names.append(current_kind_name)
-
-        # In case there is only a single kind for the element, remove the 0 kind index
-        if current_kind_name == f'{element}0':
-            kind_names = len(element_magnetic_moments) * [element]
-            kind_magnetic_moments = {element: kind_magnetic_moments[current_kind_name]}
-
-        allotrope_magnetic_moments.update(kind_magnetic_moments)
-
-        for name, site in zip(kind_names, kind_sites):
-            allotrope.append_atom(
-                name=name,
+           allotrope.append_atom(
+                name=magnetic_moment_kinds[magnetic_moment],
                 symbols=(element,),
                 weights=(1.0,),
                 position=site.position,
+            )
+        if len(magnetic_moment_kinds) == 1:
+            allotrope_magnetic_moments.update({element: element_magnetic_moments[0]})
+        else:
+            allotrope_magnetic_moments.update(
+                {kind_name: magmom for magmom, kind_name in magnetic_moment_kinds.items()}
             )
 
     return (allotrope, allotrope_magnetic_moments)
