@@ -44,22 +44,20 @@ def create_magnetic_allotrope(structure, magnetization_per_site):
                 f'{element}. This is currently not supported to due the character limit for kind names in Quantum '
                 'ESPRESSO.'
             )
-        elif len(magnetic_moment_set) == 1:
+        if len(magnetic_moment_set) == 1:
             magnetic_moment_kinds = {element_magnetic_moments[0]: element}
         else:
             magnetic_moment_kinds = {
                 magmom: f'{element}{index}' for magmom, index in zip(magnetic_moment_set, string.digits)
             }
         for site, magnetic_moment in zip(element_sites, element_magnetic_moments):
-           allotrope.append_atom(
+            allotrope.append_atom(
                 name=magnetic_moment_kinds[magnetic_moment],
                 symbols=(element,),
                 weights=(1.0,),
                 position=site.position,
             )
-        allotrope_magnetic_moments.update(
-            {kind_name: magmom for magmom, kind_name in magnetic_moment_kinds.items()}
-        )
+        allotrope_magnetic_moments.update({kind_name: magmom for magmom, kind_name in magnetic_moment_kinds.items()})
 
     return (allotrope, allotrope_magnetic_moments)
 
