@@ -143,11 +143,11 @@ precise:
         # MAP_CONSISTENT: ".TRUE."   # Enable this for an extremely precise grid
       SCF:
         MAX_SCF:       300           # ROBUST: optimum compromise
-        EPS_SCF:       1.0E-7
+        EPS_SCF:       1.0E-8
         MAX_ITER_LUMO: 10000         # for computing the Band gap
         OUTER_SCF:
           MAX_SCF:   10              # ROBUST: more than the Standard protocol
-          EPS_SCF:   1.0E-7
+          EPS_SCF:   1.0E-8
       XC:
         XC_FUNCTIONAL:
           PBE:
