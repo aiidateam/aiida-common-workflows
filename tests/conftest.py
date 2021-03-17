@@ -1,13 +1,18 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=redefined-outer-name
 """Configuration and fixtures for unit test suite."""
+import os
+import tempfile
+
 import click
 import pytest
+
+from aiida.common.constants import elements
 
 pytest_plugins = ['aiida.manage.tests.pytest_fixtures']  # pylint: disable=invalid-name
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 @pytest.mark.usefixtures('aiida_profile')
 def with_database():
     """Alias for the `aiida_profile` fixture from `aiida-core`."""
@@ -61,9 +66,20 @@ def run_cli_command():
 def generate_structure():
     """Generate a `StructureData` node."""
 
-    def _generate_structure():
+    def _generate_structure(symbols=None):
         from aiida.plugins import DataFactory
+
         structure = DataFactory('structure')()
+
+        valid_symbols = [value['symbol'] for value in elements.values()]
+
+        if symbols is not None:
+            for symbol in symbols:
+                if symbol not in valid_symbols:
+                    raise ValueError(f'symbol `{symbol}` is not a valid element.')
+
+                structure.append_atom(position=(0., 0., 0.), symbols=[symbol])
+
         return structure
 
     return _generate_structure
@@ -137,3 +153,56 @@ def generate_dissociation_curve_node():
         return node
 
     return _generate_dissociation_curve_node
+
+
+@pytest.fixture(scope='session')
+def generate_upf_data(tmp_path_factory):
+    """Return a `UpfData` instance for the given element a file for which should exist in `tests/fixtures/pseudos`."""
+
+    def _generate_upf_data(element):
+        """Return `UpfData` node."""
+        from aiida_pseudo.data.pseudo import UpfData
+
+        with open(tmp_path_factory.mktemp('pseudos') / f'{element}.upf', 'w+b') as handle:
+            content = f'<UPF version="2.0.1"><PP_HEADER\nelement="{element}"\nz_valence="4.0"\n/></UPF>\n'
+            handle.write(content.encode('utf-8'))
+            handle.flush()
+            return UpfData(file=handle)
+
+    return _generate_upf_data
+
+
+@pytest.fixture(scope='session')
+@pytest.mark.usefixtures('with_database')
+def sssp(generate_upf_data):
+    """Create an SSSP pseudo potential family from scratch."""
+    from qe_tools import CONSTANTS
+    from aiida.plugins import GroupFactory
+
+    SsspFamily = GroupFactory('pseudo.family.sssp')  # pylint: disable=invalid-name
+
+    cutoffs = {'standard': {}}
+
+    with tempfile.TemporaryDirectory() as dirpath:
+        for values in elements.values():
+
+            element = values['symbol']
+            upf = generate_upf_data(element)
+            filename = os.path.join(dirpath, f'{element}.upf')
+
+            with open(filename, 'w+b') as handle:
+                with upf.open(mode='rb') as source:
+                    handle.write(source.read())
+                    handle.flush()
+
+            cutoffs['standard'][element] = {
+                'cutoff_wfc': 30. * CONSTANTS.ry_to_ev,
+                'cutoff_rho': 240. * CONSTANTS.ry_to_ev
+            }
+
+        label = 'SSSP/1.1/PBE/efficiency'
+        family = SsspFamily.create_from_folder(dirpath, label)
+
+    family.set_cutoffs(cutoffs)
+
+    return family
