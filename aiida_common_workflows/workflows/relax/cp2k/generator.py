@@ -309,8 +309,6 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         # Use advanced parser to parse more data.
         builder.cp2k.metadata.options['parser_name'] = 'cp2k_advanced_parser'
 
-        # Uncomment to change number of CPUs and execution time.
-
         return builder
 
     @staticmethod
