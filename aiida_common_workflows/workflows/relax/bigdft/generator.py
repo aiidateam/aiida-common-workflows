@@ -283,10 +283,7 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 atom['IGSpin'] = int(magnetization_per_site[i])
         # correctly set kpoints from protocol fast and moderate. If precise, use the ones from set_inputfile/set_kpt
         if self.get_protocol(protocol).get('kpoints_distance'):
-            inputdict['kpt'] = {
-                'method': 'auto',
-                'kptrlen': self.get_protocol(protocol).get('kpoints_distance')
-            }
+            inputdict['kpt'] = {'method': 'auto', 'kptrlen': self.get_protocol(protocol).get('kpoints_distance')}
         if psp:
             import os
             builder.pseudos = orm.List()
