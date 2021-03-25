@@ -48,7 +48,9 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         spec.inputs['relax_type'].valid_type = ChoiceType([
             t for t in RelaxType if t not in (RelaxType.VOLUME, RelaxType.SHAPE, RelaxType.CELL)
         ])
-        spec.inputs['electronic_type'].valid_type = ChoiceType((ElectronicType.METAL, ElectronicType.INSULATOR))
+        spec.inputs['electronic_type'].valid_type = ChoiceType(
+            (ElectronicType.METAL, ElectronicType.INSULATOR, ElectronicType.UNKNOWN)
+        )
         spec.inputs['engines']['relax']['code'].valid_type = CodeType('abinit')
 
     def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:
@@ -227,14 +229,16 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             raise ValueError(f'spin type `{spin_type.value}` is not supported')
 
         # ElectronicType
-        if electronic_type == ElectronicType.METAL:
-            # protocal defaults to METAL
+        if electronic_type == ElectronicType.UNKNOWN:
+            # protocol defaults to UNKNOWN, which is metallic with Gaussian smearing
             pass
+        elif electronic_type == ElectronicType.METAL:
+            builder.abinit['parameters']['occopt'] = 5  # Marzari-Vanderbilt Cold II smearing
         elif electronic_type == ElectronicType.INSULATOR:
             # LATER: Support magnetization with insulators
             if spin_type not in [SpinType.NONE, SpinType.SPIN_ORBIT]:
                 raise ValueError(f'`spin_type` {spin_type.value} is not supported for insulating systems.')
-            builder.abinit['parameters']['occopt'] = 1  # fixed occupations, Abinit default
+            builder.abinit['parameters']['occopt'] = 1  # Fixed occupations, Abinit default
             builder.abinit['parameters']['fband'] = 0.125  # Abinit default
         else:
             raise ValueError(f'electronic type `{electronic_type.value}` is not supported')
