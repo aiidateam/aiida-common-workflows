@@ -14,8 +14,7 @@ AiiDA common workflows
 The AiiDA common workflows project provides computational workflows, implemented in `AiiDA`_, to compute various material properties using any of the quantum engines that implement it.
 The distinguishing feature is that the interfaces of the AiiDA common workflows are unique, independent of the quantum engine that is used underneath to perform the material property simulations.
 These common interfaces make it trivial to switch from quantum engine.
-In addition to the common interface, the workflows provide input generators that automatically define the required inputs for a given
-task.
+In addition to the common interface, the workflows provide input generators that automatically define the required inputs for a given task.
 
 The common workflows can be subdivided into two categories:
 
@@ -110,8 +109,7 @@ The script essentially consists of four steps:
     The suffix denotes the quantum engine that underlies the implementation.
  2. Define the required ``structure`` and ``engines`` inputs.
  3. Retrieve the workflow builder instance for the given inputs.
-    This ``get_builder`` method will return a `process builder instance`_ that has all the necessary inputs defined
-    based on the protocol (see next section) of the input generator.
+    This ``get_builder`` method will return a `process builder instance`_ that has all the necessary inputs defined based on the protocol (see next section) of the input generator.
     At this point, a user is free to change any of these default inputs.
  4. All that remains is to ``submit`` the builder to the daemon and the workflow will start to run (if the daemon is running).
 
@@ -150,10 +148,8 @@ To use a different protocol for the generation of the inputs, simply pass it as 
 
 .. note::
 
-    The inputs determined by the protocols can be modified by expert users before submission!
-    In fact, the ``builder`` allows direct access to the inputs of the ``RelaxWorkChain``.
-    These inputs are code dependent and their modificaton requires knowledge of the underline
-    qunatum engine implementation of the base common workflow.
+    The inputs determined by the protocols are set on the builder and therefore can be modified before submission.
+    These inputs are code dependent and their modification requires knowledge of the underlying quantum engine implementation of the base common workflow.
 
 
 
