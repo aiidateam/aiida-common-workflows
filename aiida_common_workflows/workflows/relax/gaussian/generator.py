@@ -33,7 +33,7 @@ class GaussianCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             'basis_set': 'Def2SVP',
             'route_parameters': {
                 'nosymm': None,
-                'opt': None,
+                'opt': 'loose',
             }
         },
         'moderate': {
@@ -43,7 +43,7 @@ class GaussianCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             'route_parameters': {
                 'int': 'ultrafine',
                 'nosymm': None,
-                'opt': 'tight',
+                'opt': None,
             }
         },
         'precise': {

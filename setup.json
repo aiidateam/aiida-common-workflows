@@ -28,7 +28,8 @@
         "aiida-quantumespresso~=3.4",
         "aiida-siesta~=1.1",
         "aiida-vasp",
-        "ase==3.19"
+        "ase==3.19",
+        "sqlalchemy<1.4"
     ],
     "extras_require": {
         "docs": [
