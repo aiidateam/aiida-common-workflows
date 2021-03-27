@@ -77,16 +77,18 @@ Only ``structure`` and ``engines`` can be specified as a positional argument, al
   The details of how each implementation translates a protocol string into a choice of parameters is code dependent, or more
   specifically, they depend on the implementation choices of the corresponding AiiDA plugin.
   However the chosen parameters respect the meaning of the corresponding string:
+
     * ``fast``: a possibly unconverged (but still meaningful) run that executes rapidly for testing.
     * ``moderate``: a safe choice for prototyping and preliminary studies.
     * ``precise``: uses parameters that might result in an computationally expensive simulation but provides well converged results.
+
   More details on the parameter choices for the eleven implementations supporting the relax common are reported in the supplementary material of (doi paper).
   Three inspections method are implemented for the protocol specifications:
 
   .. code:: python
 
         input_generator.get_protocol_names()
-        input_generator.get_protocol('fast')  #same for other protocols
+        input_generator.get_protocol('fast')  # Can replace 'fast' with any of the other available protocols
         input_generator.get_default_protocol_name()
 
 
@@ -95,7 +97,7 @@ Only ``structure`` and ``engines`` can be specified as a positional argument, al
   The complete list of supported options is: ‘none’,‘positions’, ‘volume’, ‘shape’, ‘cell’, ‘positions_cell’, ‘positions_volume’, ‘positions_shape’ (substitute with corresponding Enum).
   Each name indicates the physical quantities allowed to relax. For instance, ‘positions_shape’ corresponds to a relaxation where both the shape of the cell and the atomic coordinates are relaxed, but not the volume; in other words, this option indicates a geometric optimization at constant volume.
   On the other hand, the ‘shape’ option designates a situation when the shape of the cell is relaxed and the atomic coordinates are rescaled following the variation of the cell, not following a force minimization process.
-  The term “cell” is short-hand for the combination of ‘shape‘ and ‘volume’.
+  The term "cell" is short-hand for the combination of ‘shape‘ and ‘volume’.
   The option ‘none’ indicates the possibility to calculate the total energy of the system without optimizing the structure.
   Not all the described options are supported by each code involved in this work; only the options ‘none’ and ‘positions’ are shared by all the eleven codes.
   To explore the supported relaxation types for each implementation an inspection method is available:
