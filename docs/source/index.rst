@@ -14,7 +14,7 @@ AiiDA common workflows
 The AiiDA common workflows project provides computational workflows, implemented in `AiiDA`_, to compute various material properties using any of the quantum engines that implement it.
 The distinguishing feature is that the interfaces of the AiiDA common workflows are unique, independent of the quantum engine that is used underneath to perform the material property simulations.
 These common interfaces make it trivial to switch from quantum engine.
-In addition to the common interface, the workflows provide input generators that automatically define the required inputs for a given
+In addition to the common interface, the workflows provide input generators that automatically define the required inputs for a given task.
 
 The common workflows can be subdivided into two categories:
 
@@ -48,6 +48,8 @@ The common workflows can be subdivided into two categories:
       :text: To the composite workflows
       :classes: btn-outline-primary btn-block stretched-link
 
+
+.. _how-to-submit:
 
 *******************************
 How to use the common workflows
@@ -107,8 +109,8 @@ The script essentially consists of four steps:
     The suffix denotes the quantum engine that underlies the implementation.
  2. Define the required ``structure`` and ``engines`` inputs.
  3. Retrieve the workflow builder instance for the given inputs.
-    This ``get_builder`` method will return a `process builder instance`_ that has all the necessary inputs defined based on the protocol of the input generator.
-    At this point, you are free to change any of these default inputs.
+    This ``get_builder`` method will return a `process builder instance`_ that has all the necessary inputs defined based on the protocol (see next section) of the input generator.
+    At this point, a user is free to change any of these default inputs.
  4. All that remains is to ``submit`` the builder to the daemon and the workflow will start to run (if the daemon is running).
 
 
@@ -117,7 +119,8 @@ Input protocols
 ***************
 
 Each base common workflow provides an input generator that implements the common interface.
-The generator provides the ``get_builder`` method, which for a minimum set of required inputs, returns a process builder with all the required inputs defined and therefore is ready for submission.
+The generator provides the ``get_builder`` method, which for a minimum set of required inputs,
+returns a process builder with all the required inputs defined and therefore is ready for submission.
 The inputs are determined by a "protocol" which represents the desired precision.
 For example, the common relax workflow provides at least the three protocols ``fast``, ``moderate`` and ``precise``.
 The ``precise`` protocol will select inputs that will yield calculations of a higher precision, at a higher computational cost.
@@ -141,8 +144,12 @@ To use a different protocol for the generation of the inputs, simply pass it as 
 .. code:: python
 
     RelaxWorkChain = WorkflowFactory('common_workflows.relax.quantum_espresso')
-    RelaxWorkChain.get_input_generator().get_builder(structure=..., engines=..., protocol='precise')
+    builder = RelaxWorkChain.get_input_generator().get_builder(structure=..., engines=..., protocol='precise')
 
+.. note::
+
+    The inputs determined by the protocols are set on the builder and therefore can be modified before submission.
+    These inputs are code dependent and their modification requires knowledge of the underlying quantum engine implementation of the base common workflow.
 
 
 
