@@ -6,7 +6,7 @@ import click
 
 from aiida.cmdline.params import options, types
 from aiida.cmdline.utils.decorators import with_dbenv
-from aiida_common_workflows.common import RelaxType, SpinType
+from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 
 DEFAULT_STRUCTURES_MAPPING = {
     'Al': 'Al.cif',
@@ -36,6 +36,11 @@ def get_relax_types_eos():
 def get_relax_types():
     """Return the relaxation types available for the common relax workflow."""
     return [entry.value for entry in RelaxType]
+
+
+def get_electronic_types():
+    """Return the electronic types available for the common relax workflow."""
+    return [entry.value for entry in ElectronicType]
 
 
 def get_spin_types():
@@ -130,6 +135,16 @@ RELAX_TYPE = options.OverridableOption(
     show_default=True,
     callback=lambda ctx, param, value: RelaxType(value),
     help='Select the relax type with which the workflow should be run.'
+)
+
+ELECTRONIC_TYPE = options.OverridableOption(
+    '-e',
+    '--electronic-type',
+    type=types.LazyChoice(get_electronic_types),
+    default='metal',
+    show_default=True,
+    callback=lambda ctx, param, value: ElectronicType(value),
+    help='Select the electronic type with which the workflow should be run.'
 )
 
 SPIN_TYPE = options.OverridableOption(

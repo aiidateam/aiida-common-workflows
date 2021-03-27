@@ -23,6 +23,7 @@ def cmd_launch():
 @options.CODES()
 @options.PROTOCOL(type=click.Choice(['fast', 'moderate', 'precise']), default='fast')
 @options.RELAX_TYPE()
+@options.ELECTRONIC_TYPE()
 @options.SPIN_TYPE()
 @options.THRESHOLD_FORCES()
 @options.THRESHOLD_STRESS()
@@ -34,8 +35,9 @@ def cmd_launch():
 @options.REFERENCE_WORKCHAIN()
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
 def cmd_relax(  #pylint: disable=too-many-branches
-    plugin, structure, codes, protocol, relax_type, spin_type, threshold_forces, threshold_stress, number_machines,
-    number_mpi_procs_per_machine, wallclock_seconds, daemon, magnetization_per_site, reference_workchain, show_engines
+    plugin, structure, codes, protocol, relax_type, electronic_type, spin_type, threshold_forces, threshold_stress,
+    number_machines, number_mpi_procs_per_machine, wallclock_seconds, daemon, magnetization_per_site,
+    reference_workchain, show_engines
 ):
     """Relax a crystal structure using the common relax workflow for one of the existing plugin implementations.
 
@@ -125,6 +127,7 @@ def cmd_relax(  #pylint: disable=too-many-branches
         relax_type=relax_type,
         threshold_forces=threshold_forces,
         threshold_stress=threshold_stress,
+        electronic_type=electronic_type,
         spin_type=spin_type,
         magnetization_per_site=magnetization_per_site,
         reference_workchain=reference_workchain,
@@ -138,6 +141,7 @@ def cmd_relax(  #pylint: disable=too-many-branches
 @options.CODES()
 @options.PROTOCOL(type=click.Choice(['fast', 'moderate', 'precise']), default='fast')
 @options.RELAX_TYPE(type=types.LazyChoice(options.get_relax_types_eos))
+@options.ELECTRONIC_TYPE()
 @options.SPIN_TYPE()
 @options.THRESHOLD_FORCES()
 @options.THRESHOLD_STRESS()
@@ -148,8 +152,8 @@ def cmd_relax(  #pylint: disable=too-many-branches
 @options.MAGNETIZATION_PER_SITE()
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
 def cmd_eos(  #pylint: disable=too-many-branches
-    plugin, structure, codes, protocol, relax_type, spin_type, threshold_forces, threshold_stress, number_machines,
-    number_mpi_procs_per_machine, wallclock_seconds, daemon, magnetization_per_site, show_engines
+    plugin, structure, codes, protocol, relax_type, electronic_type, spin_type, threshold_forces, threshold_stress,
+    number_machines, number_mpi_procs_per_machine, wallclock_seconds, daemon, magnetization_per_site, show_engines
 ):
     """Compute the equation of state of a crystal structure using the common relax workflow.
 
@@ -240,6 +244,7 @@ def cmd_eos(  #pylint: disable=too-many-branches
             'engines': engines,
             'protocol': protocol,
             'relax_type': relax_type,
+            'electronic_type': electronic_type,
             'spin_type': spin_type,
         },
         'sub_process_class': get_entry_point_name_from_class(process_class).name,
@@ -262,6 +267,7 @@ def cmd_eos(  #pylint: disable=too-many-branches
 @options.STRUCTURE(default='H2')
 @options.CODES()
 @options.PROTOCOL(type=click.Choice(['fast', 'moderate', 'precise']), default='fast')
+@options.ELECTRONIC_TYPE()
 @options.SPIN_TYPE()
 @options.NUMBER_MACHINES()
 @options.NUMBER_MPI_PROCS_PER_MACHINE()
@@ -270,8 +276,8 @@ def cmd_eos(  #pylint: disable=too-many-branches
 @options.MAGNETIZATION_PER_SITE()
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
 def cmd_dissociation_curve(  #pylint: disable=too-many-branches
-    plugin, structure, codes, protocol, spin_type, number_machines, number_mpi_procs_per_machine, wallclock_seconds,
-    daemon, magnetization_per_site, show_engines
+    plugin, structure, codes, protocol, electronic_type, spin_type, number_machines, number_mpi_procs_per_machine,
+    wallclock_seconds, daemon, magnetization_per_site, show_engines
 ):
     """Compute the dissociation curve of a diatomic molecule using the common relax workflow.
 
@@ -367,6 +373,7 @@ def cmd_dissociation_curve(  #pylint: disable=too-many-branches
             'engines': engines,
             'protocol': protocol,
             'relax_type': RelaxType.NONE,
+            'electronic_type': electronic_type,
             'spin_type': spin_type,
         },
         'sub_process_class': get_entry_point_name_from_class(process_class).name,
