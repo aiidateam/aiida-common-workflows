@@ -14,6 +14,54 @@ __all__ = ('QuantumEspressoCommonRelaxInputGenerator',)
 StructureData = plugins.DataFactory('structure')
 
 
+def create_magnetic_allotrope(structure, magnetization_per_site):
+    """Create new structure with the correct magnetic kinds based on the magnetization per site
+
+    :param structure: StructureData for which to create the new kinds.
+    :param magnetization_per_site: List of magnetizations (defined as magnetic moments) for each site in the provided
+        `structure`.
+    """
+    # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+    import string
+    if structure.is_alloy:
+        raise ValueError('Alloys are currently not supported.')
+
+    allotrope = StructureData(cell=structure.cell, pbc=structure.pbc)
+    allotrope_magnetic_moments = {}
+
+    for element in structure.get_symbols_set():
+
+        # Filter the sites and magnetic moments on the site element
+        element_sites, element_magnetic_moments = zip(
+            *[(site, magnetic_moment)
+              for site, magnetic_moment in zip(structure.sites, magnetization_per_site)
+              if site.kind_name.rstrip(string.digits) == element]
+        )
+        magnetic_moment_set = set(element_magnetic_moments)
+        if len(magnetic_moment_set) > 10:
+            raise ValueError(
+                'The requested magnetic configuration would require more than 10 different kind names for element '
+                f'{element}. This is currently not supported to due the character limit for kind names in Quantum '
+                'ESPRESSO.'
+            )
+        if len(magnetic_moment_set) == 1:
+            magnetic_moment_kinds = {element_magnetic_moments[0]: element}
+        else:
+            magnetic_moment_kinds = {
+                magmom: f'{element}{index}' for magmom, index in zip(magnetic_moment_set, string.digits)
+            }
+        for site, magnetic_moment in zip(element_sites, element_magnetic_moments):
+            allotrope.append_atom(
+                name=magnetic_moment_kinds[magnetic_moment],
+                symbols=(element,),
+                weights=(1.0,),
+                position=site.position,
+            )
+        allotrope_magnetic_moments.update({kind_name: magmom for magmom, kind_name in magnetic_moment_kinds.items()})
+
+    return (allotrope, allotrope_magnetic_moments)
+
+
 class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
     """Input generator for the `QuantumEspressoCommonRelaxWorkChain`."""
 
@@ -108,15 +156,9 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             kind_to_magnetization = set(zip([site.kind_name for site in structure.sites], magnetization_per_site))
 
             if len(structure.kinds) != len(kind_to_magnetization):
-                raise ValueError(
-                    'the provided `magnetization_per_site` requires the structure to have different kinds, which would '
-                    'require changing the structure, which is not yet supported. Either manually adapt the structure '
-                    'to support the required kinds or adapt the `magnetization_per_site`. The sites of each kind need '
-                    'to start with the exact same magnetization. There is no threshold to compare float numbers, i.e., '
-                    'starting magnetizations 0.1 and 0.0999999999 are considered different.'
-                )
-
-            initial_magnetic_moments = dict(kind_to_magnetization)
+                structure, initial_magnetic_moments = create_magnetic_allotrope(structure, magnetization_per_site)
+            else:
+                initial_magnetic_moments = dict(kind_to_magnetization)
         else:
             initial_magnetic_moments = None
 
