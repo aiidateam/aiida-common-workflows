@@ -119,7 +119,9 @@ class CommonRelaxInputGenerator(ProtocolRegistry, metaclass=ABCMeta):
             if not isinstance(magnetization_per_site, (list, tuple)):
                 raise ValueError('The `initial_magnetization` must be a list or a tuple')
             if len(magnetization_per_site) != len(structure.sites):
-                raise ValueError('An initial magnetization must be defined for each site of `structure`')
+                raise ValueError(
+                    'The size of `magnetization_per_site` is different from the number of sites in `structure`.'
+                )
 
     def get_engine_types(self):
         """Return the calculation types for this input generator."""
