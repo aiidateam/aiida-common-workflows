@@ -86,7 +86,7 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             'inputdic_linear': {
                 'import': 'linear_fast'
             },
-            'kpoints_distance': 100
+            'kpoints_distance': 20
         },
         'moderate': {
             'description': 'This profile should be chosen if accurate forces are required, but there is no need for '
@@ -142,7 +142,6 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             'inputdict_linear': {
                 'import': 'linear_accurate'
             },
-            'kpoints_distance': 20
         }
     }
 
@@ -282,10 +281,13 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         if magnetization_per_site:
             for (i, atom) in enumerate(inputdict['posinp']['positions']):
                 atom['IGSpin'] = int(magnetization_per_site[i])
+        # correctly set kpoints from protocol fast and moderate. If precise, use the ones from set_inputfile/set_kpt
+        if self.get_protocol(protocol).get('kpoints_distance'):
+            inputdict['kpt'] = {'method': 'auto', 'kptrlen': self.get_protocol(protocol).get('kpoints_distance')}
         if psp:
             import os
             builder.pseudos = orm.List()
-            psprel = [os.path.relpath(i) for i in psp]
+            psprel = [os.path.normpath(os.path.relpath(i)) for i in psp]
             builder.pseudos.extend(psprel)
         builder.parameters = BigDFTParameters(dict=inputdict)
         builder.code = orm.load_code(engines[relaxation_schema]['code'])
