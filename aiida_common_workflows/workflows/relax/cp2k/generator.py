@@ -232,7 +232,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             parameters['FORCE_EVAL']['DFT']['SCF']['SMEAR'] = {
                 '_': 'ON',
                 'METHOD': 'FERMI_DIRAC',
-                'ELECTRONIC_TEMPERATURE': '[K] 300'
+                'ELECTRONIC_TEMPERATURE': '[K] 500',
             }
             parameters['FORCE_EVAL']['DFT']['SCF']['DIAGONALIZATION'] = {
                 'EPS_ADAPT': '1',
@@ -242,7 +242,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 'ALPHA': '0.1',
                 'BETA': '1.5',
             }
-            parameters['FORCE_EVAL']['DFT']['SCF']['ADDED_MOS'] = 100
+            parameters['FORCE_EVAL']['DFT']['SCF']['ADDED_MOS'] = 20
 
         ## If insulator then employ OT.
         elif electronic_type == ElectronicType.INSULATOR:
@@ -308,10 +308,6 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         # Use advanced parser to parse more data.
         builder.cp2k.metadata.options['parser_name'] = 'cp2k_advanced_parser'
-
-        # Uncomment to change number of CPUs and execution time.
-        # builder.cp2k.metadata.options['resources'][ "num_mpiprocs_per_machine"]  = 12
-        # builder.cp2k.metadata.options['max_wallclock_seconds']  = 3600 * 24
 
         return builder
 
