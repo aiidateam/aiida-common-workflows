@@ -1,13 +1,15 @@
-Common relax workflow
+Common Relax Workflow
 ---------------------
 
-he common relax workflow performs a geometric optimization of a molecule or extended system towards the most energetically favorable configuration.
+The common relax workflow performs a geometric optimization of a molecule or extended system towards the most energetically favorable configuration.
 It defines a common interface that is currently implemented by eleven quantum engines: Abinit, BigDFT, CASTEP, CP2K, FLEUR, Gaussian, NWChem, ORCA, Quantum ESPRESSO, Siesta, VASP.
 The ORCA and Gaussian implementations only support the optimization of molecules.
 
 In the initial page of this documentation the general instructions for the :ref:`submission of a common workflow <how-to-submit>` are presented, covering both the use of the built-in command line interface (CLI) and custom submission scripts.
 Since the CLI does not expose the full functionalities of the interface, this section focuses on the creation of submission scripts and explains how to have full control on the relaxation process through the common interface.
 The CLI is explained at the end of the section.
+
+.. _relax-inputs:
 
 Relaxation inputs
 .................
@@ -139,6 +141,8 @@ Only ``structure`` and ``engines`` can be specified as a positional argument, al
 
         input_generator.get_spin_types()
 
+.. _relax-ref-wc:
+
 * ``magnetization_per_site``. (Type: Python None or a Python list of floats).
   An input devoted to the initial magnetization specifications.
   It accepts a list where each entry refers to an atomic site in the structure.
@@ -146,6 +150,7 @@ Only ``structure`` and ``engines`` can be specified as a positional argument, al
   This also corresponds to the magnetization of the site in Bohr magnetons (μB).
   The default for this input is the Python value None and, in case of calculations with spin, the None value signals that the implementation should automatically decide an appropriate default initial magnetization.
   The implementation of such choice is code-dependent and described in the supplementary material of the manuscript (doi)
+
 
 * ``reference_workchain.`` (Type: a previously completed ``RelaxWorkChain``, performed with the same code as the ``RelaxWorkChain`` created by ``get_builder``).
   When this input is present, the interface returns a set of inputs which  ensure  that  results of the new ``RelaxWorkChain`` (to be run) can be directly compared to the ``reference_workchain``.
@@ -182,6 +187,8 @@ To allow direct comparison and cross-verification of the results, the outputs of
   Returned only for magnetic calculations.
   (Type: AiiDA ``Float``).
 
+
+.. _relax-cli:
 
 CLI options
 ...........

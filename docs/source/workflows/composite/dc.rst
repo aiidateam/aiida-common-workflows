@@ -1,2 +1,114 @@
-Dissociation Curve
-------------------
+Common Dissociation Curve Workflow
+--------------------------------------
+
+The Dissociation Curve (DC) workflow is designed to create dissociation curves for diatomic molecules.
+It automatically runs single-point calculations at several distances of the two atoms composing the molecule.
+The inputs for the single-point calculations can be defined in a code-agnostic way, making use of the common interface of the :ref:`common relax workflow <relax-inputs>`.
+The only available option for the ``relax_type`` is ``none``, signaling single-point calculations.
+To allow full flexibility on the inputs, code-dependent overrides can be specified through the input port ``sub_process`` (see below).
+
+
+
+DC inputs
+..........
+
+A typical script for the submission of common DC workflow could look something like the following:
+
+.. code:: python
+
+    from aiida.orm import List, Dict
+    from aiida.engine import submit
+    from aiida.plugin import WorkflowFactory
+
+    eos_wf = WorkflowFactory('common_workflows.dissociation_curve')
+
+    #Definition of molecule, engines, protocol, ...
+
+    inputs = {
+        'molecule': molecule,
+        'distances': List(list=[0.5,0.6,0.7,0.8,0.9,1.0,1.1]),  # in Ångstrom
+        'generator_inputs': {  #code-agnostic inputs for the single-point calculation
+            'engines': engines,
+            'protocol': protocol,
+            'spin_type': spin_type,
+            ...
+        },
+        'sub_process_class': 'common_workflows.relax.<implementation>',
+        'sub_process' : {  #optional code-dependent overrides
+            'parameters' : Dict(dict={...})
+            ...
+     },
+    }
+
+    submit(eos_wf, **inputs)
+
+The inputs of the DC workchain are detailed below.
+
+* ``molecule``.
+  (Type: an AiiDA `StructureData`_ instance, the common data format to specify crystal structures and molecules in AiiDA).
+  Only diatomic molecules are accepted.
+  The periodic boundary conditions should be set to ``[False,False,False]``, however, since some code plugins do not manage aperiodic structures, the simulation box should also be large enough to avoid interaction among replicas.
+  The positions of the atoms will be ignored since the workflow foces the distance between the atoms and sets the molecule to be symmetric respect to the origin of the system.
+
+* ``distances``.
+  (Type: a list of Python flot or int, wrapped in the AiiDA data type `List`_).
+  List of distances (in Ångstrom) between the two atoms for which total energy should be computed.
+  This input is optional since the "distances" can be set in an alternative way (see next input).
+
+* ``distances_count``, ``distance_max``, and ``distance_min``.
+  (Type: an AiiDA `Int`_, `Float`_, and `Float`_ respectively, the data format devoted to the specification of integers and floats in AiiDA).
+  This three inputs can be used in conjunction to set the distances for the DC.
+  The ``distances_count`` indicates the number of points to compute for the DC and the ``distance_min``/``distance_max`` define the range for the distances.
+  If the ``distances`` port is specified, these three inputs are ignored.
+  The default for ``distances_count`` is ``Int(20)``, for ``distance_min`` is ``Float(0.5)``, for ``distance_min`` is ``Float(3)``.
+
+* ``sub_process_class``.
+  (Type: valid workflow entry point for one common relax implementation).
+  The quantum engine that will be used for the relaxation is determined through the ``sub_process_class`` input, that must be a valid workflow entry point for a common relax implementation.
+  Referring to the submission template above, the ``<implementation>`` in the string ``'common_workflows.relax.<implementation>'`` should be replaced with the corresponding entry point name of a quantum engine, for instance ``common_workflows.relax.quantum_espresso``.
+  To see a list of all available entry points, call ``verdi plugin list aiida.workflows``.
+  Any entry point that starts with ``common_workflows.relax.`` can be used.
+
+* ``generator_inputs``.
+  (Type: a Python dictionary).
+  This input name-space is dedicated to the specifications of the common relax inputs.
+  A full list of the allowed inputs are described in the :ref:`dedicated section <relax-inputs>`.
+  Only the ``structure`` input is not allowed in the ``generator_inputs``, since it is selected by the workflow.
+  Also, the only ``relax_types`` accepted is ``none``.
+
+* ``sub_process``.
+  (Type: a Python dictionary).
+  This input name-space hosts code-dependent inputs that can be used to override inputs generated through the ``generator_inputs``.
+  The specified keys must be accepted input port of the corresponding ``sub_process_class`` workflow.
+
+.. note::
+  The single-point calculations at the various distances are not all performed in parallel.
+  The energy at the first distance listed in ``distances`` is calculated first.
+  Then all the other calculations are run in parallel using the first calculation as :ref:`reference_workchain input <relax-ref-wc>`.
+  This ensures to have comparable energies among the various distances.
+
+
+
+DC outputs
+...........
+
+The DC workchain simply returns an output distance and an energy for each point of the dissociation curve.
+
+
+CLI options
+...........
+
+The use of the CLI for the submission of a common workflow is reported in the :ref:`main page <how-to-submit>` of this documentation.
+For the eos workflow:
+
+.. code:: console
+
+    aiida-common-workflows launch dissociation-curve <OPTIONS>  -- <ENGINE>
+
+The available ``<ENGINE>`` and ``<OPTIONS>`` are the same of the :ref:`relaxation CLI <relax-cli>`, with the exception of the ``-P`` and ``-r`` option.
+
+
+.. _StructureData: https://aiida-core.readthedocs.io/en/latest/topics/data_types.html#structuredata
+.. _Int: https://aiida-core.readthedocs.io/en/latest/topics/data_types.html#core-data-types
+.. _Float: https://aiida-core.readthedocs.io/en/latest/topics/data_types.html#core-data-types
+.. _List: https://aiida-core.readthedocs.io/en/latest/topics/data_types.html#core-data-types
