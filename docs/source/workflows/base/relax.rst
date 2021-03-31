@@ -94,9 +94,9 @@ Only ``structure`` and ``engines`` can be specified as a positional argument, al
         input_generator.get_default_protocol_name()
 
 
-* ``relax_type``. (Type: members of RelaxType Enum (link)).
+* ``relax_type``. (Type: a Python string).
   The type of relaxation to perform, ranging from the relaxation of only atomic coordinates to the full cell relaxation for extended systems.
-  The complete list of supported options is: ‘none’,‘positions’, ‘volume’, ‘shape’, ‘cell’, ‘positions_cell’, ‘positions_volume’, ‘positions_shape’ (substitute with corresponding Enum).
+  The complete list of supported options is: ‘none’,‘positions’, ‘volume’, ‘shape’, ‘cell’, ‘positions_cell’, ‘positions_volume’, ‘positions_shape’.
   Each name indicates the physical quantities allowed to relax. For instance, ‘positions_shape’ corresponds to a relaxation where both the shape of the cell and the atomic coordinates are relaxed, but not the volume; in other words, this option indicates a geometric optimization at constant volume.
   On the other hand, the ‘shape’ option designates a situation when the shape of the cell is relaxed and the atomic coordinates are rescaled following the variation of the cell, not following a force minimization process.
   The term "cell" is short-hand for the combination of ‘shape‘ and ‘volume’.
@@ -109,17 +109,17 @@ Only ``structure`` and ``engines`` can be specified as a positional argument, al
         input_generator.get_relax_types()
 
 
-* ``threshold_forces``. (Type: Python float).
+* ``threshold_forces``. (Type: a Python float).
   A real positive number indicating the target threshold for the forces in eV/Å.
   If not specified, the protocol specification will select an appropriate value.
 
-* ``threshold_stress``. (Type: Python float).
+* ``threshold_stress``. (Type: a Python float).
   A real positive number indicating the target threshold for the stress in eV/Å^3.
   If not specified, the protocol specification will select an appropriate value.
 
-* ``electronic_type``.   (Type: members of ElectronicType Enum (link)).
+* ``electronic_type``.   (Type: a Python string).
   An optional string to signal whether to perform the simulation for a metallic or an insulating system.
-  It accepts only the ‘insulator’ and ‘metal’ values (or Enums).
+  It accepts only the ‘insulator’ and ‘metal’ values.
   This input is relevant only for calculations on extended systems.
   In case such option is not specified, the calculation is assumed to be metallic which is the safest assumption.
   An exact understanding of the difference between ‘insulator’ and ‘metal’ calculations for each supported quantum engine can be achieved reading the supplementary material of (doi paper).
@@ -131,7 +131,7 @@ Only ``structure`` and ``engines`` can be specified as a positional argument, al
         input_generator.get_electronic_types()
 
 
-* ``spin_type``. (Type: members of ElectronicType Enum (link)).
+* ``spin_type``. (Type: a python string).
   An optional string to specify the spin degree of freedom for the calculation.
   It accepts the values ‘none’ or ‘collinear’. These will be extended in the future to include, for instance, non-collinear magnetism and spin-orbit coupling.
   The default is to run the calculation without spin polarization.
