@@ -72,9 +72,9 @@ class CommonRelaxInputGenerator(ProtocolRegistry, metaclass=ABCMeta):
         engines: Dict[str, Any],
         *,
         protocol: str = None,
-        relax_type: RelaxType = RelaxType.POSITIONS,
-        electronic_type: ElectronicType = ElectronicType.METAL,
-        spin_type: SpinType = SpinType.NONE,
+        relax_type: Union[RelaxType, str] = RelaxType.POSITIONS,
+        electronic_type: Union[ElectronicType, str] = ElectronicType.METAL,
+        spin_type: Union[SpinType, str] = SpinType.NONE,
         magnetization_per_site: Union[List[float], Tuple[float]] = None,
         threshold_forces: float = None,
         threshold_stress: float = None,
@@ -98,6 +98,7 @@ class CommonRelaxInputGenerator(ProtocolRegistry, metaclass=ABCMeta):
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
+        # pylint: disable=too-many-locals,unused-argument,too-many-branches
         if reference_workchain is not None:
             try:
                 prev_wc_class = reference_workchain.process_class
@@ -105,6 +106,20 @@ class CommonRelaxInputGenerator(ProtocolRegistry, metaclass=ABCMeta):
                     raise ValueError('The "reference_workchain" must be a node of {}'.format(self.process_class))
             except AttributeError as exc:
                 raise ValueError('The "reference_workchain" must be a node of {}'.format(self.process_class)) from exc
+
+        for arg, valid_enum in [(relax_type, RelaxType), (electronic_type, ElectronicType), (spin_type, SpinType)]:
+            if not isinstance(arg, (str, valid_enum)):
+                raise TypeError(f'{arg} is neither a string nor a {valid_enum}.')
+
+        # Convert the various type arguments to its Enum counterpart if a string is passed
+        if isinstance(relax_type, str):
+            relax_type = RelaxType(relax_type)
+
+        if isinstance(electronic_type, str):
+            electronic_type = ElectronicType(electronic_type)
+
+        if isinstance(spin_type, str):
+            spin_type = SpinType(spin_type)
 
         if relax_type not in self._relax_types:
             raise ValueError('relax type `{}` is not supported'.format(relax_type))
