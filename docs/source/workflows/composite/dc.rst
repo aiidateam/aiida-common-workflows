@@ -9,8 +9,8 @@ To allow full flexibility on the inputs, code-dependent overrides can be specifi
 
 
 
-DC inputs
-..........
+Inputs
+......
 
 A typical script for the submission of common DC workflow could look something like the following:
 
@@ -27,7 +27,7 @@ A typical script for the submission of common DC workflow could look something l
     inputs = {
         'molecule': molecule,
         'distances': List(list=[0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1]),  # Atomic distance in Ångstrom
-        'generator_inputs': {  #code-agnostic inputs for the single-point calculation
+        'generator_inputs': {  # code-agnostic inputs for the single-point calculations
             'engines': engines,
             'protocol': protocol,
             'spin_type': spin_type,
@@ -89,14 +89,15 @@ The inputs of the DC workchain are detailed below.
 
 
 
-DC outputs
-...........
+Outputs
+.......
 
-The DC workchain simply returns an output distance and an energy for each point of the dissociation curve.
+The DC workchain simply returns for each point of the dissociation curve a distance (in Ångstrom, as AiiDA `Float`_ under the namespace ``distances``) and an energy (in eV, as AiiDA `Float`_ and under the namespace ``total_energies``).
+If returned by the underline common relax workflow, also the total magnetization for each point of the dissociation curve is returned (in μB, as `Float`_ and under the namespace ``total_magnetizations``).
 
 
-CLI options
-...........
+CLI
+...
 
 The use of the CLI for the submission of a common workflow is reported in the :ref:`main page <how-to-submit>` of this documentation.
 For the DC workflow:

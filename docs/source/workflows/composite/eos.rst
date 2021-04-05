@@ -9,7 +9,7 @@ To allow full flexibility on the inputs, code-dependent overrides can be specifi
 
 
 Inputs
-..........
+......
 
 A typical script for the submission of common EoS workflow could look something like the following:
 
@@ -90,13 +90,13 @@ The inputs of the EoS workchain are detailed below.
 
 
 Outputs
-...........
+.......
 
-The EoS workchain simply returns an output structure and an energy for each relaxation run.
+The EoS workchain simply returns for each relaxation run a structure (as AiiDA `StructureData`_ under the namespace ``structures``) and an energy (in eV, as AiiDA `Float`_ and under the namespace ``total_energies``).
+If returned by the underline common relax workflow, also the total magnetization for each relaxation is returned (in μB, as `Float`_ and under the namespace ``total_magnetizations``).
 
-
-CLI options
-...........
+CLI
+...
 
 The use of the CLI for the submission of a common workflow is reported in the :ref:`main page <how-to-submit>` of this documentation.
 For the eos workflow:
