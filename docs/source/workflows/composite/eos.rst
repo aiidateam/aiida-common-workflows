@@ -1,14 +1,14 @@
 Common Equation of State Workflow
 ---------------------------------
 
-The Equation of State (EoS) workflow automatically runs relaxation workflows at several volumes, returning the final total energy at each volume.
+The Equation of State (EoS) workflow automatically runs relaxation workflows at several volumes, computing the final total energy at each volume.
 The inputs for the relaxation can be defined in a code-agnostic way, making use of the common interface of the :ref:`common relax workflow <relax-inputs>`.
 Relaxation types with variable volume are forbidden.
 To allow full flexibility on the inputs, code-dependent overrides can be specified through the input port ``sub_process`` (see below).
 
 
 
-EoS inputs
+Inputs
 ..........
 
 A typical script for the submission of common EoS workflow could look something like the following:
@@ -19,27 +19,27 @@ A typical script for the submission of common EoS workflow could look something 
     from aiida.engine import submit
     from aiida.plugin import WorkflowFactory
 
-    eos_wf = WorkflowFactory('common_workflows.eos')
+    cls = WorkflowFactory('common_workflows.eos')
 
     #Definition of structure, engines, protocol, ...
 
     inputs = {
         'structure': structure,
-        'scale_factors': List(list=[0.90,0.94,0.96,1,1.04,1.06,1.08]),
-        'generator_inputs': {  #code-agnostic inputs for the relaxation
+        'scale_factors': List(list=[0.90, 0.94, 0.96, 1, 1.04, 1.06, 1.08]),
+        'generator_inputs': {  # code-agnostic inputs for the relaxation
             'engines': engines,
             'protocol': protocol,
             'relax_type': relax_type,
             ...
         },
         'sub_process_class': 'common_workflows.relax.<implementation>',
-        'sub_process' : {  #optional code-dependent overrides
+        'sub_process' : {  # optional code-dependent overrides
             'parameters' : Dict(dict={...})
             ...
      },
     }
 
-    submit(eos_wf, **inputs)
+    submit(cls, **inputs)
 
 The inputs of the EoS workchain are detailed below.
 
@@ -49,13 +49,13 @@ The inputs of the EoS workchain are detailed below.
   A relaxation is performed on each re-scaled structure in order to create the EoS.
 
 * ``scale_factors``.
-  (Type: a list of Python flot or int, wrapped in the AiiDA data type `List`_).
+  (Type: a list of Python float or int values, wrapped in the AiiDA `List`_ data type).
   The scale factors at which the volume and total energy of the structure should be computed.
   This input is optional since the scale factors can be set in an alternative way (see next input).
 
 * ``scale_count`` and ``scale_increment``.
   (Type: an AiiDA `Int`_ and `Float`_ respectively, the data format devoted to the specification of integers and floats in AiiDA).
-  This two inputs can be used in conjunction to set the scaling factors for the EoS.
+  These two inputs can be used together to set the scaling factors for the EoS.
   The ``scale_count`` indicates the number of points to compute for the EoS and the ``scale_increment`` sets the relative difference between consecutive scaling factors.
   The scaling factors will always be centered around ``1``.
   If the ``scale_factors`` port is specified, these two inputs are ignored.
@@ -70,7 +70,7 @@ The inputs of the EoS workchain are detailed below.
 
 * ``generator_inputs``.
   (Type: a Python dictionary).
-  This input name-space is dedicated to the specifications of the common relax inputs.
+  This input namespace is dedicated to the specifications of the common relax inputs.
   A full list of the allowed inputs are described in the :ref:`dedicated section <relax-inputs>`.
   Only the ``structure`` input is not allowed in the ``generator_inputs``, since it is selected for each volume by the workflow.
   Also, the ``relax_types`` are limited to the options with fixed volume.
@@ -89,7 +89,7 @@ The inputs of the EoS workchain are detailed below.
 
 
 
-EoS outputs
+Outputs
 ...........
 
 The EoS workchain simply returns an output structure and an energy for each relaxation run.
