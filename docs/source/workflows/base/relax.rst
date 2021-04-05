@@ -11,8 +11,8 @@ The CLI is explained at the end of the section.
 
 .. _relax-inputs:
 
-Relaxation inputs
-.................
+Inputs
+...........
 
 A typical script for the submission of common relax workflow could look something like the following:
 
@@ -158,8 +158,8 @@ Only ``structure`` and ``engines`` can be specified as a positional argument, al
 
 
 
-Relaxation outputs
-..................
+Outputs
+...........
 
 To allow direct comparison and cross-verification of the results, the outputs of ``RelaxWorkChain`` are standardized for all implementations and are defined as follows:
 
@@ -190,8 +190,8 @@ To allow direct comparison and cross-verification of the results, the outputs of
 
 .. _relax-cli:
 
-CLI options
-...........
+CLI
+...
 
 The use of the CLI for the submission of a common workflow is reported in the :ref:`main page <how-to-submit>` of this documentation.
 For the relaxation workflow:
