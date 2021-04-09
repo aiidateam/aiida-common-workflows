@@ -11,8 +11,8 @@ The CLI is explained at the end of the section.
 
 .. _relax-inputs:
 
-Inputs
-...........
+Submission script template
+..........................
 
 A typical script for the submission of common relax workflow could look something like the following:
 
@@ -34,6 +34,10 @@ The quantum engine that will be used for the relaxation is determined by the ent
 To select a particular quantum engine, you should replace ``<implementation>`` in the string ``'common_workflows.relax.<implementation>'`` with the corresponding entry point name of the quantum engine.
 To see a list of all available entry points, call ``verdi plugin list aiida.workflows``.
 Any entry point that starts with ``common_workflows.relax.`` can be used, for example ``common_workflows.relax.quantum_espresso`` corresponds to the implementation using Quantum ESPRESSO.
+
+Inputs
+...........
+
 
 The ``RelaxWorkChain.get_input_generator().get_builder`` method takes a number of required and optional arguments (referenced as ``<RELAXATION INPUTS>`` in the example submission script), which are listed below.
 Only ``structure`` and ``engines`` can be specified as a positional argument, all others have to be defined as a keyword argument.
@@ -141,7 +145,6 @@ Only ``structure`` and ``engines`` can be specified as a positional argument, al
 
         input_generator.get_spin_types()
 
-.. _relax-ref-wc:
 
 * ``magnetization_per_site``. (Type: Python None or a Python list of floats).
   An input devoted to the initial magnetization specifications.
@@ -151,6 +154,7 @@ Only ``structure`` and ``engines`` can be specified as a positional argument, al
   The default for this input is the Python value None and, in case of calculations with spin, the None value signals that the implementation should automatically decide an appropriate default initial magnetization.
   The implementation of such choice is code-dependent and described in the supplementary material of the manuscript (doi)
 
+.. _relax-ref-wc:
 
 * ``reference_workchain.`` (Type: a previously completed ``RelaxWorkChain``, performed with the same code as the ``RelaxWorkChain`` created by ``get_builder``).
   When this input is present, the interface returns a set of inputs which  ensure  that  results of the new ``RelaxWorkChain`` (to be run) can be directly compared to the ``reference_workchain``.

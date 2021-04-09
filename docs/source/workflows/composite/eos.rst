@@ -7,9 +7,8 @@ Relaxation types with variable volume are forbidden.
 To allow full flexibility on the inputs, code-dependent overrides can be specified through the input port ``sub_process`` (see below).
 
 
-
-Inputs
-......
+Submission script template
+..........................
 
 A typical script for the submission of common EoS workflow could look something like the following:
 
@@ -20,8 +19,6 @@ A typical script for the submission of common EoS workflow could look something 
     from aiida.plugin import WorkflowFactory
 
     cls = WorkflowFactory('common_workflows.eos')
-
-    #Definition of structure, engines, protocol, ...
 
     inputs = {
         'structure': structure,
@@ -42,6 +39,10 @@ A typical script for the submission of common EoS workflow could look something 
     submit(cls, **inputs)
 
 The inputs of the EoS workchain are detailed below.
+
+
+Inputs
+......
 
 * ``structure``.
   (Type: an AiiDA `StructureData`_ instance, the common data format to specify crystal structures and molecules in AiiDA).
@@ -94,6 +95,29 @@ Outputs
 
 The EoS workchain simply returns for each relaxation run a structure (as AiiDA `StructureData`_ under the namespace ``structures``) and an energy (in eV, as AiiDA `Float`_ and under the namespace ``total_energies``).
 If returned by the underline common relax workflow, also the total magnetization for each relaxation is returned (in μB, as `Float`_ and under the namespace ``total_magnetizations``).
+
+A template script to retrieve the results follows:
+
+.. code:: python
+
+        from aiida.common import LinkType
+
+        node = load_node(<IDN>) # <IDN> is an identifier (PK, uuid, ..) of a completed EoS workchain
+
+        outputs = node.get_outgoing(link_type=LinkType.RETURN).nested()
+
+        volumes = []
+        energies = []
+        magnetizations = []
+
+        for index in outputs['total_energies'].keys():
+            volumes.append(outputs['structures'][index].get_cell_volume())
+            energies.append(outputs['total_energies'][index].value)
+            try:
+                total_magnetization = outputs['total_magnetizations'][index].value
+            except KeyError:
+                total_magnetization = None
+            magnetizations.append(total_magnetization)
 
 CLI
 ...

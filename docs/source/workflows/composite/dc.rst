@@ -9,8 +9,9 @@ To allow full flexibility on the inputs, code-dependent overrides can be specifi
 
 
 
-Inputs
-......
+Submission script template
+..........................
+
 
 A typical script for the submission of common DC workflow could look something like the following:
 
@@ -21,8 +22,6 @@ A typical script for the submission of common DC workflow could look something l
     from aiida.plugin import WorkflowFactory
 
     cls = WorkflowFactory('common_workflows.dissociation_curve')
-
-    #Definition of molecule, engines, protocol, ...
 
     inputs = {
         'molecule': molecule,
@@ -43,6 +42,9 @@ A typical script for the submission of common DC workflow could look something l
     submit(cls, **inputs)
 
 The inputs of the DC workchain are detailed below.
+
+Inputs
+......
 
 * ``molecule``.
   (Type: an AiiDA `StructureData`_ instance, the common data format to specify crystal structures and molecules in AiiDA).
@@ -94,6 +96,30 @@ Outputs
 
 The DC workchain simply returns for each point of the dissociation curve a distance (in Ångstrom, as AiiDA `Float`_ under the namespace ``distances``) and an energy (in eV, as AiiDA `Float`_ and under the namespace ``total_energies``).
 If returned by the underline common relax workflow, also the total magnetization for each point of the dissociation curve is returned (in μB, as `Float`_ and under the namespace ``total_magnetizations``).
+
+A template script to retrieve the results follows:
+
+.. code:: python
+
+        from aiida.common import LinkType
+
+        node = load_node(<IDN>) # <IDN> is an identifier (PK, uuid, ..) of a completed DC workchain
+
+        outputs = node.get_outgoing(link_type=LinkType.RETURN).nested()
+
+        distances = []
+        energies = []
+        magnetizations = []
+
+        for index in outputs['total_energies'].keys():
+            distances.append(outputs['distances'][index].value)
+            energies.append(outputs['total_energies'][index].value)
+            try:
+                total_magnetization = outputs['total_magnetizations'][index].value
+            except KeyError:
+                total_magnetization = None
+            magnetizations.append(total_magnetization)
+
 
 
 CLI
