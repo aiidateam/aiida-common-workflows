@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=abstract-method,arguments-differ,redefined-outer-name
 """Tests for the :mod:`aiida_common_workflows.workflows.relax.generator` module."""
+from typing import Any, Dict, List, Tuple, Union
+
 import pytest
 
 from aiida_common_workflows.protocol import ProtocolRegistry
@@ -23,7 +25,7 @@ def protocol_registry() -> ProtocolRegistry:
 
 
 @pytest.fixture
-def inputs_generator(protocol_registry) -> CommonRelaxInputGenerator:
+def input_generator(protocol_registry) -> CommonRelaxInputGenerator:
     """Return an instance of a relax input generator implementation."""
 
     class InputGenerator(protocol_registry, CommonRelaxInputGenerator):
@@ -40,8 +42,34 @@ def inputs_generator(protocol_registry) -> CommonRelaxInputGenerator:
 
         _electronic_types = {ElectronicType.INSULATOR: '...', ElectronicType.METAL: '...'}
 
-        def get_builder(self):
-            pass
+        def get_builder(
+            self,
+            structure,
+            engines: Dict[str, Any],
+            *,
+            protocol: str = None,
+            relax_type: Union[RelaxType, str] = RelaxType.POSITIONS,
+            electronic_type: Union[ElectronicType, str] = ElectronicType.METAL,
+            spin_type: Union[SpinType, str] = SpinType.NONE,
+            magnetization_per_site: Union[List[float], Tuple[float]] = None,
+            threshold_forces: float = None,
+            threshold_stress: float = None,
+            reference_workchain=None,
+            **kwargs
+        ):
+            return super().get_builder(
+                structure,
+                engines,
+                protocol=protocol,
+                relax_type=relax_type,
+                electronic_type=electronic_type,
+                spin_type=spin_type,
+                magnetization_per_site=magnetization_per_site,
+                threshold_forces=threshold_forces,
+                threshold_stress=threshold_stress,
+                reference_workchain=reference_workchain,
+                **kwargs
+            )
 
     return InputGenerator(process_class=CommonRelaxWorkChain)
 
@@ -174,26 +202,65 @@ def test_validation(protocol_registry):
         InputGenerator(process_class=CommonRelaxWorkChain)
 
 
-def test_get_engine_types(inputs_generator):
+def test_type_validation(input_generator, generate_structure):
+    """Test the validation of the type arguments in ``CommonRelaxInputGenerator.get_builder_from_protocol``."""
+    structure = generate_structure()
+    engines = {}
+
+    with pytest.raises(TypeError, match=r'.* is neither a string nor a .*'):
+        input_generator.get_builder(structure, engines, electronic_type=[])
+
+    with pytest.raises(ValueError, match=r'.* is not a valid ElectronicType'):
+        input_generator.get_builder(structure, engines, electronic_type='test')
+
+    with pytest.raises(ValueError, match=r'electronic type `.*` is not supported'):
+        input_generator.get_builder(structure, engines, electronic_type='automatic')
+
+    input_generator.get_builder(structure, engines, electronic_type='metal')
+
+    with pytest.raises(TypeError, match=r'.* is neither a string nor a .*'):
+        input_generator.get_builder(structure, engines, relax_type=[])
+
+    with pytest.raises(ValueError, match=r'.* is not a valid RelaxType'):
+        input_generator.get_builder(structure, engines, relax_type='test')
+
+    with pytest.raises(ValueError, match=r'relax type `.*` is not supported'):
+        input_generator.get_builder(structure, engines, relax_type='volume')
+
+    input_generator.get_builder(structure, engines, relax_type='positions')
+
+    with pytest.raises(TypeError, match=r'.* is neither a string nor a .*'):
+        input_generator.get_builder(structure, engines, spin_type=[])
+
+    with pytest.raises(ValueError, match=r'.* is not a valid SpinType'):
+        input_generator.get_builder(structure, engines, spin_type='test')
+
+    with pytest.raises(ValueError, match=r'spin type `.*` is not supported'):
+        input_generator.get_builder(structure, engines, spin_type='spin_orbit')
+
+    input_generator.get_builder(structure, engines, spin_type='collinear')
+
+
+def test_get_engine_types(input_generator):
     """Test `CommonRelaxInputGenerator.get_engine_types`."""
-    assert inputs_generator.get_engine_types() == ['relax']
+    assert input_generator.get_engine_types() == ['relax']
 
 
-def test_get_engine_type_schema(inputs_generator):
+def test_get_engine_type_schema(input_generator):
     """Test `CommonRelaxInputGenerator.get_engine_type_schema`."""
-    assert inputs_generator.get_engine_type_schema('relax') == {'code_plugin': 'entry.point', 'description': 'test'}
+    assert input_generator.get_engine_type_schema('relax') == {'code_plugin': 'entry.point', 'description': 'test'}
 
 
-def test_get_relax_types(inputs_generator):
+def test_get_relax_types(input_generator):
     """Test `CommonRelaxInputGenerator.get_relax_types`."""
-    assert set(inputs_generator.get_relax_types()) == {RelaxType.POSITIONS, RelaxType.POSITIONS_CELL}
+    assert set(input_generator.get_relax_types()) == {RelaxType.POSITIONS, RelaxType.POSITIONS_CELL}
 
 
-def test_get_spin_types(inputs_generator):
+def test_get_spin_types(input_generator):
     """Test `CommonRelaxInputGenerator.get_spin_types`."""
-    assert set(inputs_generator.get_spin_types()) == {SpinType.NONE, SpinType.COLLINEAR}
+    assert set(input_generator.get_spin_types()) == {SpinType.NONE, SpinType.COLLINEAR}
 
 
-def test_get_electronic_types(inputs_generator):
+def test_get_electronic_types(input_generator):
     """Test `CommonRelaxInputGenerator.get_electronic_types`."""
-    assert set(inputs_generator.get_electronic_types()) == {ElectronicType.INSULATOR, ElectronicType.METAL}
+    assert set(input_generator.get_electronic_types()) == {ElectronicType.INSULATOR, ElectronicType.METAL}

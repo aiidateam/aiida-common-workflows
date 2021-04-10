@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for BigDFT."""
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple, Union
 
 from aiida import engine
 from aiida import orm
@@ -86,7 +86,7 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             'inputdic_linear': {
                 'import': 'linear_fast'
             },
-            'kpoints_distance': 100
+            'kpoints_distance': 20
         },
         'moderate': {
             'description': 'This profile should be chosen if accurate forces are required, but there is no need for '
@@ -142,7 +142,6 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             'inputdict_linear': {
                 'import': 'linear_accurate'
             },
-            'kpoints_distance': 20
         }
     }
 
@@ -164,10 +163,10 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         engines: Dict[str, Any],
         *,
         protocol: str = None,
-        relax_type: RelaxType = RelaxType.POSITIONS,
-        electronic_type: ElectronicType = ElectronicType.METAL,
-        spin_type: SpinType = SpinType.NONE,
-        magnetization_per_site: List[float] = None,
+        relax_type: Union[RelaxType, str] = RelaxType.POSITIONS,
+        electronic_type: Union[ElectronicType, str] = ElectronicType.METAL,
+        spin_type: Union[SpinType, str] = SpinType.NONE,
+        magnetization_per_site: Union[List[float], Tuple[float]] = None,
         threshold_forces: float = None,
         threshold_stress: float = None,
         reference_workchain=None,
@@ -206,6 +205,15 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             reference_workchain=reference_workchain,
             **kwargs
         )
+
+        if isinstance(electronic_type, str):
+            electronic_type = ElectronicType(electronic_type)
+
+        if isinstance(relax_type, str):
+            relax_type = RelaxType(relax_type)
+
+        if isinstance(spin_type, str):
+            spin_type = SpinType(spin_type)
 
         builder = self.process_class.get_builder()
 
@@ -282,10 +290,13 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         if magnetization_per_site:
             for (i, atom) in enumerate(inputdict['posinp']['positions']):
                 atom['IGSpin'] = int(magnetization_per_site[i])
+        # correctly set kpoints from protocol fast and moderate. If precise, use the ones from set_inputfile/set_kpt
+        if self.get_protocol(protocol).get('kpoints_distance'):
+            inputdict['kpt'] = {'method': 'auto', 'kptrlen': self.get_protocol(protocol).get('kpoints_distance')}
         if psp:
             import os
             builder.pseudos = orm.List()
-            psprel = [os.path.relpath(i) for i in psp]
+            psprel = [os.path.normpath(os.path.relpath(i)) for i in psp]
             builder.pseudos.extend(psprel)
         builder.parameters = BigDFTParameters(dict=inputdict)
         builder.code = orm.load_code(engines[relaxation_schema]['code'])

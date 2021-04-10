@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for SIESTA."""
 import os
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple, Union
 
 import yaml
 
@@ -85,16 +85,16 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         with open(_filepath) as _thefile:
             self._protocols = yaml.full_load(_thefile)
 
-    def get_builder(  # pylint: disable=too-many-branches,too-many-locals
+    def get_builder(  # pylint: disable=too-many-branches,too-many-locals,too-many-statements
         self,
         structure: StructureData,
         engines: Dict[str, Any],
         *,
         protocol: str = None,
-        relax_type: RelaxType = RelaxType.POSITIONS,
-        electronic_type: ElectronicType = ElectronicType.METAL,
-        spin_type: SpinType = SpinType.NONE,
-        magnetization_per_site: List[float] = None,
+        relax_type: Union[RelaxType, str] = RelaxType.POSITIONS,
+        electronic_type: Union[ElectronicType, str] = ElectronicType.METAL,
+        spin_type: Union[SpinType, str] = SpinType.NONE,
+        magnetization_per_site: Union[List[float], Tuple[float]] = None,
         threshold_forces: float = None,
         threshold_stress: float = None,
         reference_workchain=None,
@@ -134,6 +134,15 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             reference_workchain=reference_workchain,
             **kwargs
         )
+
+        if isinstance(electronic_type, str):
+            electronic_type = ElectronicType(electronic_type)
+
+        if isinstance(relax_type, str):
+            relax_type = RelaxType(relax_type)
+
+        if isinstance(spin_type, str):
+            spin_type = SpinType(spin_type)
 
         # Checks
         if protocol not in self.get_protocol_names():

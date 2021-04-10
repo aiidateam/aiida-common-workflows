@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for Quantum ESPRESSO."""
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple, Union
 
 from aiida import engine
 from aiida import orm
@@ -106,10 +106,10 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         engines: Dict[str, Any],
         *,
         protocol: str = None,
-        relax_type: RelaxType = RelaxType.POSITIONS,
-        electronic_type: ElectronicType = ElectronicType.METAL,
-        spin_type: SpinType = SpinType.NONE,
-        magnetization_per_site: List[float] = None,
+        relax_type: Union[RelaxType, str] = RelaxType.POSITIONS,
+        electronic_type: Union[ElectronicType, str] = ElectronicType.METAL,
+        spin_type: Union[SpinType, str] = SpinType.NONE,
+        magnetization_per_site: Union[List[float], Tuple[float]] = None,
         threshold_forces: float = None,
         threshold_stress: float = None,
         reference_workchain=None,
@@ -132,7 +132,7 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
-        # pylint: disable=too-many-locals
+        # pylint: disable=too-many-locals,too-many-branches
         from aiida_quantumespresso.common import types
         from qe_tools import CONSTANTS
 
@@ -151,6 +151,21 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             reference_workchain=reference_workchain,
             **kwargs
         )
+
+        if isinstance(electronic_type, str):
+            electronic_type = types.ElectronicType(electronic_type)
+        else:
+            electronic_type = types.ElectronicType(electronic_type.value)
+
+        if isinstance(relax_type, str):
+            relax_type = types.RelaxType(relax_type)
+        else:
+            relax_type = types.RelaxType(relax_type.value)
+
+        if isinstance(spin_type, str):
+            spin_type = types.SpinType(spin_type)
+        else:
+            spin_type = types.SpinType(spin_type.value)
 
         if magnetization_per_site:
             kind_to_magnetization = set(zip([site.kind_name for site in structure.sites], magnetization_per_site))
@@ -175,9 +190,9 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                     }
                 },
             },
-            relax_type=types.RelaxType(relax_type.value),
-            electronic_type=types.ElectronicType(electronic_type.value),
-            spin_type=types.SpinType(spin_type.value),
+            relax_type=relax_type,
+            electronic_type=electronic_type,
+            spin_type=spin_type,
             initial_magnetic_moments=initial_magnetic_moments,
         )
 
