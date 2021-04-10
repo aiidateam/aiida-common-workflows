@@ -1,7 +1,7 @@
-Common relax workflow
+Common Relax Workflow
 ---------------------
 
-he common relax workflow performs a geometric optimization of a molecule or extended system towards the most energetically favorable configuration.
+The common relax workflow performs a geometric optimization of a molecule or extended system towards the most energetically favorable configuration.
 It defines a common interface that is currently implemented by eleven quantum engines: Abinit, BigDFT, CASTEP, CP2K, FLEUR, Gaussian, NWChem, ORCA, Quantum ESPRESSO, Siesta, VASP.
 The ORCA and Gaussian implementations only support the optimization of molecules.
 
@@ -9,8 +9,10 @@ In the initial page of this documentation the general instructions for the :ref:
 Since the CLI does not expose the full functionalities of the interface, this section focuses on the creation of submission scripts and explains how to have full control on the relaxation process through the common interface.
 The CLI is explained at the end of the section.
 
-Relaxation inputs
-.................
+.. _relax-inputs:
+
+Submission script template
+..........................
 
 A typical script for the submission of common relax workflow could look something like the following:
 
@@ -32,6 +34,10 @@ The quantum engine that will be used for the relaxation is determined by the ent
 To select a particular quantum engine, you should replace ``<implementation>`` in the string ``'common_workflows.relax.<implementation>'`` with the corresponding entry point name of the quantum engine.
 To see a list of all available entry points, call ``verdi plugin list aiida.workflows``.
 Any entry point that starts with ``common_workflows.relax.`` can be used, for example ``common_workflows.relax.quantum_espresso`` corresponds to the implementation using Quantum ESPRESSO.
+
+Inputs
+...........
+
 
 The ``RelaxWorkChain.get_input_generator().get_builder`` method takes a number of required and optional arguments (referenced as ``<RELAXATION INPUTS>`` in the example submission script), which are listed below.
 Only ``structure`` and ``engines`` can be specified as a positional argument, all others have to be defined as a keyword argument.
@@ -92,9 +98,9 @@ Only ``structure`` and ``engines`` can be specified as a positional argument, al
         input_generator.get_default_protocol_name()
 
 
-* ``relax_type``. (Type: members of RelaxType Enum (link)).
+* ``relax_type``. (Type: a Python string).
   The type of relaxation to perform, ranging from the relaxation of only atomic coordinates to the full cell relaxation for extended systems.
-  The complete list of supported options is: ‘none’,‘positions’, ‘volume’, ‘shape’, ‘cell’, ‘positions_cell’, ‘positions_volume’, ‘positions_shape’ (substitute with corresponding Enum).
+  The complete list of supported options is: ‘none’,‘positions’, ‘volume’, ‘shape’, ‘cell’, ‘positions_cell’, ‘positions_volume’, ‘positions_shape’.
   Each name indicates the physical quantities allowed to relax. For instance, ‘positions_shape’ corresponds to a relaxation where both the shape of the cell and the atomic coordinates are relaxed, but not the volume; in other words, this option indicates a geometric optimization at constant volume.
   On the other hand, the ‘shape’ option designates a situation when the shape of the cell is relaxed and the atomic coordinates are rescaled following the variation of the cell, not following a force minimization process.
   The term "cell" is short-hand for the combination of ‘shape‘ and ‘volume’.
@@ -107,17 +113,17 @@ Only ``structure`` and ``engines`` can be specified as a positional argument, al
         input_generator.get_relax_types()
 
 
-* ``threshold_forces``. (Type: Python float).
+* ``threshold_forces``. (Type: a Python float).
   A real positive number indicating the target threshold for the forces in eV/Å.
   If not specified, the protocol specification will select an appropriate value.
 
-* ``threshold_stress``. (Type: Python float).
+* ``threshold_stress``. (Type: a Python float).
   A real positive number indicating the target threshold for the stress in eV/Å^3.
   If not specified, the protocol specification will select an appropriate value.
 
-* ``electronic_type``.   (Type: members of ElectronicType Enum (link)).
+* ``electronic_type``.   (Type: a Python string).
   An optional string to signal whether to perform the simulation for a metallic or an insulating system.
-  It accepts only the ‘insulator’ and ‘metal’ values (or Enums).
+  It accepts only the ‘insulator’ and ‘metal’ values.
   This input is relevant only for calculations on extended systems.
   In case such option is not specified, the calculation is assumed to be metallic which is the safest assumption.
   An exact understanding of the difference between ‘insulator’ and ‘metal’ calculations for each supported quantum engine can be achieved reading the supplementary material of (doi paper).
@@ -129,7 +135,7 @@ Only ``structure`` and ``engines`` can be specified as a positional argument, al
         input_generator.get_electronic_types()
 
 
-* ``spin_type``. (Type: members of ElectronicType Enum (link)).
+* ``spin_type``. (Type: a python string).
   An optional string to specify the spin degree of freedom for the calculation.
   It accepts the values ‘none’ or ‘collinear’. These will be extended in the future to include, for instance, non-collinear magnetism and spin-orbit coupling.
   The default is to run the calculation without spin polarization.
@@ -139,6 +145,7 @@ Only ``structure`` and ``engines`` can be specified as a positional argument, al
 
         input_generator.get_spin_types()
 
+
 * ``magnetization_per_site``. (Type: Python None or a Python list of floats).
   An input devoted to the initial magnetization specifications.
   It accepts a list where each entry refers to an atomic site in the structure.
@@ -147,14 +154,16 @@ Only ``structure`` and ``engines`` can be specified as a positional argument, al
   The default for this input is the Python value None and, in case of calculations with spin, the None value signals that the implementation should automatically decide an appropriate default initial magnetization.
   The implementation of such choice is code-dependent and described in the supplementary material of the manuscript (doi)
 
+.. _relax-ref-wc:
+
 * ``reference_workchain.`` (Type: a previously completed ``RelaxWorkChain``, performed with the same code as the ``RelaxWorkChain`` created by ``get_builder``).
   When this input is present, the interface returns a set of inputs which  ensure  that  results of the new ``RelaxWorkChain`` (to be run) can be directly compared to the ``reference_workchain``.
   This is necessary to create, for instance, meaningful equations of state.
 
 
 
-Relaxation outputs
-..................
+Outputs
+...........
 
 To allow direct comparison and cross-verification of the results, the outputs of ``RelaxWorkChain`` are standardized for all implementations and are defined as follows:
 
@@ -183,8 +192,10 @@ To allow direct comparison and cross-verification of the results, the outputs of
   (Type: AiiDA ``Float``).
 
 
-CLI options
-...........
+.. _relax-cli:
+
+CLI
+...
 
 The use of the CLI for the submission of a common workflow is reported in the :ref:`main page <how-to-submit>` of this documentation.
 For the relaxation workflow:
