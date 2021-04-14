@@ -176,12 +176,11 @@ def generate_upf_data(tmp_path_factory):
 @pytest.mark.usefixtures('with_database')
 def sssp(generate_upf_data):
     """Create an SSSP pseudo potential family from scratch."""
-    from qe_tools import CONSTANTS
     from aiida.plugins import GroupFactory
 
     SsspFamily = GroupFactory('pseudo.family.sssp')  # pylint: disable=invalid-name
 
-    cutoffs = {'standard': {}}
+    cutoffs_dict = {'normal': {}}
 
     with tempfile.TemporaryDirectory() as dirpath:
         for values in elements.values():
@@ -195,14 +194,12 @@ def sssp(generate_upf_data):
                     handle.write(source.read())
                     handle.flush()
 
-            cutoffs['standard'][element] = {
-                'cutoff_wfc': 30. * CONSTANTS.ry_to_ev,
-                'cutoff_rho': 240. * CONSTANTS.ry_to_ev
-            }
+            cutoffs_dict['normal'][element] = {'cutoff_wfc': 30., 'cutoff_rho': 240.}
 
         label = 'SSSP/1.1/PBE/efficiency'
         family = SsspFamily.create_from_folder(dirpath, label)
 
-    family.set_cutoffs(cutoffs)
+    for stringency, cutoffs in cutoffs_dict.items():
+        family.set_cutoffs(cutoffs, stringency, unit='Ry')
 
     return family
