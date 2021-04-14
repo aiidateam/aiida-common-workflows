@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """Tests for the :mod:`aiida_common_workflows.cli.plot` module."""
-import pytest
+from pathlib import Path
 
-import pylab as plt
+import pytest
+import matplotlib.pyplot as plt
 
 from aiida_common_workflows.cli import plot
 
@@ -44,6 +45,7 @@ def test_plot_eos_output_file(run_cli_command, generate_eos_node, include_magnet
     options = [str(node.pk), '--output-file', str(output_file)]
     result = run_cli_command(plot.cmd_plot_eos, options)
     assert f'Success: Plot saved to {output_file}' in result.output
+    assert Path.exists(output_file)
 
 
 @pytest.mark.usefixtures('aiida_profile')
@@ -67,6 +69,7 @@ def test_plot_eos_print_table_output_file(run_cli_command, generate_eos_node, in
 
     result = run_cli_command(plot.cmd_plot_eos, options)
     assert f'Success: Table saved to {output_file}' in result.output
+    assert Path.exists(output_file)
 
 
 @pytest.mark.usefixtures('aiida_profile')
@@ -135,6 +138,7 @@ def test_plot_dissociation_curve_output_file(run_cli_command, generate_dissociat
 
     result = run_cli_command(plot.cmd_plot_dissociation_curve, options)
     assert f'Success: Plot saved to {output_file}' in result.output
+    assert Path.exists(output_file)
 
 
 @pytest.mark.usefixtures('aiida_profile')
@@ -147,3 +151,4 @@ def test_plot_dissociation_curve_print_table_output_file(run_cli_command, genera
 
     result = run_cli_command(plot.cmd_plot_dissociation_curve, options)
     assert f'Success: Table saved to {output_file}' in result.output
+    assert Path.exists(output_file)

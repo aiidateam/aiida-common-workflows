@@ -3,7 +3,7 @@
 import typing
 import numpy
 
-import pylab as plt
+import matplotlib.pyplot as plt
 
 
 def birch_murnaghan(V, E0, V0, B0, B01):
