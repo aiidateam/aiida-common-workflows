@@ -17,6 +17,15 @@ def validate_inputs(value, _):
         if 'scale_count' not in value or 'scale_increment' not in value:
             return 'neither `scale_factors` nor the pair of `scale_count` and `scale_increment` were defined.'
 
+    # Validate that the provided ``generator_inputs`` are valid for the associated input generator.
+    process_class = WorkflowFactory(value['sub_process_class'])
+    generator = process_class.get_input_generator()
+
+    try:
+        generator.get_builder(value['structure'], **value['generator_inputs'])
+    except Exception as exc:  # pylint: disable=broad-except
+        return f'`{generator.__class__.__name__}.get_builder()` fails for the provided `generator_inputs`: {exc}'
+
 
 def validate_sub_process_class(value, _):
     """Validate the sub process class."""
@@ -49,6 +58,9 @@ def validate_scale_increment(value, _):
 
 def validate_relax_type(value, _):
     """Validate the `generator_inputs.relax_type` input."""
+    if value is not None and isinstance(value, str):
+        value = RelaxType(value)
+
     if value not in [RelaxType.NONE, RelaxType.POSITIONS, RelaxType.SHAPE, RelaxType.POSITIONS_SHAPE]:
         return '`generator_inputs.relax_type`. Equation of state and relaxation with variable volume not compatible.'
 
@@ -76,16 +88,17 @@ class EquationOfStateWorkChain(WorkChain):
         spec.input('scale_increment', valid_type=orm.Float, default=lambda: orm.Float(0.02),
             validator=validate_scale_increment,
             help='The relative difference between consecutive scaling factors.')
-        spec.input_namespace('generator_inputs', dynamic=True,
+        spec.input_namespace('generator_inputs',
             help='The inputs that will be passed to the input generator of the specified `sub_process`.')
         spec.input('generator_inputs.engines', valid_type=dict, non_db=True)
         spec.input('generator_inputs.protocol', valid_type=str, non_db=True,
             help='The protocol to use when determining the workchain inputs.')
-        spec.input('generator_inputs.relax_type', valid_type=RelaxType, non_db=True, validator=validate_relax_type,
+        spec.input('generator_inputs.relax_type',
+             valid_type=(RelaxType, str), non_db=True, validator=validate_relax_type,
             help='The type of relaxation to perform.')
-        spec.input('generator_inputs.spin_type', valid_type=SpinType, required=False, non_db=True,
+        spec.input('generator_inputs.spin_type', valid_type=(SpinType, str), required=False, non_db=True,
             help='The type of spin for the calculation.')
-        spec.input('generator_inputs.electronic_type', valid_type=ElectronicType, required=False, non_db=True,
+        spec.input('generator_inputs.electronic_type', valid_type=(ElectronicType, str), required=False, non_db=True,
             help='The type of electronics (insulator/metal) for the calculation.')
         spec.input('generator_inputs.magnetization_per_site', valid_type=(list, tuple), required=False, non_db=True,
             help='List containing the initial magnetization per atomic site.')

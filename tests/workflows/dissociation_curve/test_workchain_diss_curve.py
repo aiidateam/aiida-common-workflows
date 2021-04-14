@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=redefined-outer-name
 """Tests for the :mod:`aiida_common_workflows.workflows.dissociation` module."""
+import copy
+
 import pytest
 
 from aiida import orm
@@ -41,33 +43,93 @@ def test_validate_sub_process_class_plugins(ctx, common_relax_workchain):
     ) is None
 
 
-@pytest.mark.usefixtures('with_database')
-def test_validate_inputs(ctx):
-    """Test the `validate_inputs` validator."""
-    value = {}
+@pytest.mark.usefixtures('sssp')
+def test_validate_inputs_distance(ctx, generate_code, generate_structure):
+    """Test the ``validate_inputs`` validator for invalid distance inputs."""
+    base_values = {
+        'molecule': generate_structure(symbols=('Si',)),
+        'sub_process_class': 'common_workflows.relax.quantum_espresso',
+        'generator_inputs': {
+            'engines': {
+                'relax': {
+                    'code': generate_code('quantumespresso.pw'),
+                    'options': {
+                        'resources': {
+                            'num_machines': 1
+                        }
+                    }
+                }
+            },
+            'spin_type': 'collinear'
+        }
+    }
+
+    value = copy.deepcopy(base_values)
     assert dissociation.validate_inputs(
         value, ctx
     ) == 'neither `distances` nor the `distances_count`, `distance_min`, and `distance_max` set were defined.'
-    value = {'distances_count': 3, 'distance_min': 0.5}
+
+    value = copy.deepcopy(base_values)
+    value.update({'distances_count': 3, 'distance_min': 0.5})
     assert dissociation.validate_inputs(
         value, ctx
     ) == 'neither `distances` nor the `distances_count`, `distance_min`, and `distance_max` set were defined.'
-    value = {'distances_count': 3, 'distance_max': 1.5}
+
+    value = copy.deepcopy(base_values)
+    value.update({'distances_count': 3, 'distance_max': 1.5})
     assert dissociation.validate_inputs(
         value, ctx
     ) == 'neither `distances` nor the `distances_count`, `distance_min`, and `distance_max` set were defined.'
-    value = {'distance_max': 2, 'distance_min': 0.5}
+
+    value = copy.deepcopy(base_values)
+    value.update({'distance_max': 2, 'distance_min': 0.5})
     assert dissociation.validate_inputs(
         value, ctx
     ) == 'neither `distances` nor the `distances_count`, `distance_min`, and `distance_max` set were defined.'
-    value = {'distance_max': 2, 'distance_min': 0.5, 'distances_count': 3}
+
+    value = copy.deepcopy(base_values)
+    value.update({'distance_max': 2, 'distance_min': 0.5, 'distances_count': 3})
     assert dissociation.validate_inputs(value, ctx) is None
-    value = {'distances': []}
+
+    value = copy.deepcopy(base_values)
+    value.update({'distances': []})
     assert dissociation.validate_inputs(value, ctx) is None
-    value = {'distances': [], 'distance_min': 0.5}
+
+    value = copy.deepcopy(base_values)
+    value.update({'distances': [], 'distance_min': 0.5})
     assert dissociation.validate_inputs(value, ctx) is None
-    value = {'distance_max': 2, 'distance_min': 5, 'distances_count': 3}
+
+    value = copy.deepcopy(base_values)
+    value.update({'distance_max': 2, 'distance_min': 5, 'distances_count': 3})
     assert dissociation.validate_inputs(value, ctx) == '`distance_min` must be smaller than `distance_max`'
+
+
+@pytest.mark.usefixtures('sssp')
+def test_validate_inputs_generator_inputs(ctx, generate_code, generate_structure):
+    """Test the ``validate_inputs`` validator for invalid generator inputs."""
+    value = {
+        'distances': [],
+        'molecule': generate_structure(symbols=('Si',)),
+        'sub_process_class': 'common_workflows.relax.quantum_espresso',
+        'generator_inputs': {
+            'engines': {
+                'relax': {
+                    'code': generate_code('quantumespresso.pw'),
+                    'options': {
+                        'resources': {
+                            'num_machines': 1
+                        }
+                    }
+                }
+            },
+            'spin_type': 'collinear'
+        }
+    }
+
+    assert dissociation.validate_inputs(value, ctx) is None
+
+    value['generator_inputs']['spin_type'] = 'invalid_value'
+    assert "invalid_value' is not a valid SpinType" in dissociation.validate_inputs(value, ctx)
 
 
 @pytest.mark.usefixtures('with_database')
