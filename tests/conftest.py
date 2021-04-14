@@ -124,6 +124,8 @@ def generate_eos_node(generate_structure):
                 magnetization = Float(index).store()
                 magnetization.add_incoming(node, link_type=LinkType.RETURN, link_label=f'total_magnetizations__{index}')
 
+        node.set_exit_status(0)
+
         return node
 
     return _generate_eos_node
@@ -149,6 +151,8 @@ def generate_dissociation_curve_node():
             if include_magnetization:
                 magnetization = Float(index).store()
                 magnetization.add_incoming(node, link_type=LinkType.RETURN, link_label=f'total_magnetizations__{index}')
+
+        node.set_exit_status(0)
 
         return node
 
