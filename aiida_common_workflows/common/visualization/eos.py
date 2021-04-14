@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """Utilities to fit and visualize a Equation of States based on set of volumes and energies."""
 import typing
-
 import numpy
+
+import pylab as plt
 
 
 def birch_murnaghan(V, E0, V0, B0, B01):
@@ -32,9 +33,12 @@ def fit_birch_murnaghan_params(volumes, energies):
     return params, covariance
 
 
-def plot_eos(
-    volumes: typing.List[float], energies: typing.List[float], unit_volume: str = 'Å^3', unit_energy: str = 'eV'
-):
+def get_eos_plot(
+    volumes: typing.List[float],
+    energies: typing.List[float],
+    unit_volume: str = 'Å^3',
+    unit_energy: str = 'eV'
+) -> plt:
     """Plot the Equation of State for a given set of volumes and energies
 
     :param volumes: list of cell volumes.
@@ -42,8 +46,6 @@ def plot_eos(
     :param unit_volume: unit of volume, default is [Å^3].
     :param unit_energy: unit of energy, default is [eV].
     """
-    import pylab as plt
-
     params, _ = fit_birch_murnaghan_params(numpy.array(volumes), numpy.array(energies))
 
     volume_min = min(volumes)
@@ -55,4 +57,5 @@ def plot_eos(
 
     plt.xlabel(f'Volume [{unit_volume}]')
     plt.ylabel(f'Energy [{unit_energy}]')
-    plt.show()
+
+    return plt

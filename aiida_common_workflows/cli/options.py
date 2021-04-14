@@ -237,3 +237,7 @@ REFERENCE_WORKCHAIN = options.OverridableOption(
     required=False,
     help='An instance of a completed workchain of the same type as would be run for the given plugin.'
 )
+
+OUTPUT_FILENAME = options.OverridableOption(
+    '-o', '--output-filename', type=click.STRING, required=False, help='Save the plot to a specified file.'
+)
