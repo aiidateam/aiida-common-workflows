@@ -119,19 +119,18 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         pseudo_family = orm.Group.objects.get(label=protocol.pop('pseudo_family'))
         cutoff_stringency = protocol['cutoff_stringency']
         pseudo_type = pseudo_family.pseudo_type
-        # Recommended cutoffs from `aiida-pseudo` are in eV
         recommended_ecut_wfc, recommended_ecut_rho = pseudo_family.get_recommended_cutoffs(
-            structure=structure, stringency=cutoff_stringency
+            structure=structure, stringency=cutoff_stringency, unit='Eh'
         )
         if pseudo_type == 'pseudo.jthxml':
             # JTH XML are PAW; we need `pawecutdg`
             cutoff_parameters = {
-                'ecut': np.ceil(recommended_ecut_wfc / units.Ha_to_eV),
-                'pawecutdg': np.ceil(recommended_ecut_rho / units.Ha_to_eV),
+                'ecut': np.ceil(recommended_ecut_wfc),
+                'pawecutdg': np.ceil(recommended_ecut_rho),
             }
         else:
             # All others are NC; no need for `pawecutdg`
-            cutoff_parameters = {'ecut': recommended_ecut_wfc / units.Ha_to_eV}
+            cutoff_parameters = {'ecut': recommended_ecut_wfc}
 
         override = {
             'abinit': {
