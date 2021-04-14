@@ -19,8 +19,8 @@ def cmd_plot():
 @arguments.NODE()
 @options.PRECISIONS()
 @options.PRINT_TABLE()
-@options.OUTPUT_FILENAME()
-def cmd_plot_eos(node, precisions, print_table, output_filename):
+@options.OUTPUT_FILE()
+def cmd_plot_eos(node, precisions, print_table, output_file):
     """Plot the results from an `EquationOfStateWorkChain`."""
     # pylint: disable=too-many-locals
     from tabulate import tabulate
@@ -61,19 +61,19 @@ def cmd_plot_eos(node, precisions, print_table, output_filename):
 
         output = tabulate(**tabulate_inputs)
 
-        if output_filename is not None:
-            with click.open_file(output_filename, 'w') as file:
+        if output_file is not None:
+            with click.open_file(output_file, 'w') as file:
                 file.write(output)
-            echo.echo_success(f'Table saved to {output_filename}')
+            echo.echo_success(f'Table saved to {output_file}')
         else:
             click.echo(output)
     else:
         eos_plot = get_eos_plot(volumes, energies)
 
-        if output_filename is not None:
-            eos_plot.savefig(output_filename)
-            output_filename = f'{output_filename}.png' if len(output_filename.split('.')) == 1 else output_filename
-            echo.echo_success(f'Plot saved to {output_filename}')
+        if output_file is not None:
+            eos_plot.savefig(output_file)
+            output_file = f'{output_file}.png' if len(output_file.split('.')) == 1 else output_file
+            echo.echo_success(f'Plot saved to {output_file}')
         else:
             eos_plot.show()
 
@@ -82,8 +82,8 @@ def cmd_plot_eos(node, precisions, print_table, output_filename):
 @arguments.NODE()
 @options.PRECISIONS()
 @options.PRINT_TABLE()
-@options.OUTPUT_FILENAME()
-def cmd_plot_dissociation_curve(node, precisions, print_table, output_filename):
+@options.OUTPUT_FILE()
+def cmd_plot_dissociation_curve(node, precisions, print_table, output_file):
     """Plot the results from a `DissociationCurveWorkChain`."""
     # pylint: disable=too-many-locals
     from tabulate import tabulate
@@ -123,18 +123,18 @@ def cmd_plot_dissociation_curve(node, precisions, print_table, output_filename):
 
         output = tabulate(**tabulate_inputs)
 
-        if output_filename is not None:
-            with click.open_file(output_filename, 'w') as file:
+        if output_file is not None:
+            with click.open_file(output_file, 'w') as file:
                 file.write(output)
-            echo.echo_success(f'Table saved to {output_filename}')
+            echo.echo_success(f'Table saved to {output_file}')
         else:
             click.echo(output)
     else:
         dissociation_plot = get_dissociation_plot(distances, energies)
 
-        if output_filename is not None:
-            dissociation_plot.savefig(output_filename)
-            output_filename = f'{output_filename}.png' if len(output_filename.split('.')) == 1 else output_filename
+        if output_file is not None:
+            dissociation_plot.savefig(output_file)
+            output_filename = f'{output_file}.png' if len(output_file.split('.')) == 1 else output_file
             echo.echo_success(f'Plot saved to {output_filename}')
         else:
             dissociation_plot.show()
