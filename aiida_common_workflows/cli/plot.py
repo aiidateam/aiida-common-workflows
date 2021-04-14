@@ -42,6 +42,11 @@ def cmd_plot_eos(node, precisions, print_table):
 
         magnetizations.append(total_magnetization)
 
+    # Sort the results by volumes
+    energies = [e for _, e in sorted(zip(volumes, energies))]
+    magnetizations = [m for _, m in sorted(zip(volumes, magnetizations))]
+    volumes = sorted(volumes)
+
     if print_table:
         headers = ['Volume (Å^3)', 'Energy (eV)', 'Total magnetization (μB)']
 
@@ -82,6 +87,11 @@ def cmd_plot_dissociation_curve(node, precisions, print_table):
             total_magnetization = None
 
         magnetizations.append(total_magnetization)
+
+    # Sort the results by distance
+    energies = [e for _, e in sorted(zip(distances, energies))]
+    magnetizations = [m for _, m in sorted(zip(distances, magnetizations))]
+    distances = sorted(distances)
 
     if print_table:
         headers = ['Distance (Å)', 'Energy (eV)', 'Total magnetization (μB)']
