@@ -8,3 +8,4 @@ click_completion.init()
 
 from .root import cmd_root
 from .launch import cmd_launch
+from .plot import cmd_plot
