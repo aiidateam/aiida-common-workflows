@@ -20,6 +20,15 @@ def validate_inputs(value, _):
         if value['distance_min'] >= value['distance_max']:
             return '`distance_min` must be smaller than `distance_max`'
 
+    # Validate that the provided ``generator_inputs`` are valid for the associated input generator.
+    process_class = WorkflowFactory(value['sub_process_class'])
+    generator = process_class.get_input_generator()
+
+    try:
+        generator.get_builder(value['molecule'], **value['generator_inputs'])
+    except Exception as exc:  # pylint: disable=broad-except
+        return f'`{generator.__class__.__name__}.get_builder()` fails for the provided `generator_inputs`: {exc}'
+
 
 def validate_sub_process_class(value, _):
     """Validate the sub process class."""
@@ -68,6 +77,9 @@ def validate_distance_min(value, _):
 
 def validate_relax(value, _):
     """Validate the `generator_inputs.relax_type` input."""
+    if value is not None and isinstance(value, str):
+        value = RelaxType(value)
+
     if value is not RelaxType.NONE:
         return '`generator_inputs.relax_type`. Only `RelaxType.NONE` supported.'
 
@@ -107,14 +119,14 @@ class DissociationCurveWorkChain(WorkChain):
         spec.input('distance_max', valid_type=orm.Float, default=lambda: orm.Float(3),
             validator=validate_distance_max,
             help='The maximum tested distance in Ångstrom.')
-        spec.input_namespace('generator_inputs', dynamic=True,
+        spec.input_namespace('generator_inputs',
             help='The inputs that will be passed to the input generator of the specified `sub_process`.')
         spec.input('generator_inputs.engines', valid_type=dict, non_db=True)
         spec.input('generator_inputs.protocol', valid_type=str, non_db=True,
             help='The protocol to use when determining the workchain inputs.')
-        spec.input('generator_inputs.relax_type', valid_type=RelaxType, non_db=True, validator=validate_relax,
+        spec.input('generator_inputs.relax_type', valid_type=(RelaxType, str), non_db=True, validator=validate_relax,
             help='The type of relaxation to perform.')
-        spec.input('generator_inputs.spin_type', valid_type=SpinType, required=False, non_db=True,
+        spec.input('generator_inputs.spin_type', valid_type=(SpinType, str), required=False, non_db=True,
             help='The type of spin for the calculation.')
         spec.input('generator_inputs.magnetization_per_site', valid_type=(list, tuple), required=False, non_db=True,
             help='List containing the initial magnetization fer each site.')

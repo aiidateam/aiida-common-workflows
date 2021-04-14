@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=redefined-outer-name
 """Tests for the :mod:`aiida_common_workflows.workflows.eos` module."""
+import copy
+
 import pytest
 
 from aiida import orm
@@ -40,25 +42,79 @@ def test_validate_sub_process_class_plugins(ctx, common_relax_workchain):
     assert eos.validate_sub_process_class(get_entry_point_name_from_class(common_relax_workchain).name, ctx) is None
 
 
-@pytest.mark.usefixtures('with_database')
-def test_validate_inputs(ctx):
-    """Test the `validate_inputs` validator."""
-    value = {}
+@pytest.mark.usefixtures('sssp')
+def test_validate_inputs_scale(ctx, generate_code, generate_structure):
+    """Test the ``validate_inputs`` validator for invalid scale inputs."""
+    base_values = {
+        'structure': generate_structure(symbols=('Si',)),
+        'sub_process_class': 'common_workflows.relax.quantum_espresso',
+        'generator_inputs': {
+            'engines': {
+                'relax': {
+                    'code': generate_code('quantumespresso.pw'),
+                    'options': {
+                        'resources': {
+                            'num_machines': 1
+                        }
+                    }
+                }
+            },
+            'electronic_type': 'metal'
+        }
+    }
+
+    value = copy.deepcopy(base_values)
     assert eos.validate_inputs(
         value, ctx
     ) == 'neither `scale_factors` nor the pair of `scale_count` and `scale_increment` were defined.'
-    value = {'scale_count': 2}
+
+    value = copy.deepcopy(base_values)
+    value.update({'scale_count': 2})
     assert eos.validate_inputs(
         value, ctx
     ) == 'neither `scale_factors` nor the pair of `scale_count` and `scale_increment` were defined.'
-    value = {'scale_increment': 2}
+
+    value = copy.deepcopy(base_values)
+    value.update({'scale_increment': 2})
     assert eos.validate_inputs(
         value, ctx
     ) == 'neither `scale_factors` nor the pair of `scale_count` and `scale_increment` were defined.'
-    value = {'scale_count': 2, 'scale_increment': 0.2}
+
+    value = copy.deepcopy(base_values)
+    value.update({'scale_count': 2, 'scale_increment': 0.2})
     assert eos.validate_inputs(value, ctx) is None
-    value = {'scale_factors': []}
+
+    value = copy.deepcopy(base_values)
+    value.update({'scale_factors': []})
     assert eos.validate_inputs(value, ctx) is None
+
+
+@pytest.mark.usefixtures('sssp')
+def test_validate_inputs_generator_inputs(ctx, generate_code, generate_structure):
+    """Test the ``validate_inputs`` validator for invalid generator inputs."""
+    value = {
+        'scale_factors': [],
+        'structure': generate_structure(symbols=('Si',)),
+        'sub_process_class': 'common_workflows.relax.quantum_espresso',
+        'generator_inputs': {
+            'engines': {
+                'relax': {
+                    'code': generate_code('quantumespresso.pw'),
+                    'options': {
+                        'resources': {
+                            'num_machines': 1
+                        }
+                    }
+                }
+            },
+            'electronic_type': 'metal'
+        }
+    }
+
+    assert eos.validate_inputs(value, ctx) is None
+
+    value['generator_inputs']['electronic_type'] = 'invalid_value'
+    assert "invalid_value' is not a valid ElectronicType" in eos.validate_inputs(value, ctx)
 
 
 @pytest.mark.usefixtures('with_database')
