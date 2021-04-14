@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 """Utilities to visualize a dissociation curve based on set of distances and energies."""
-
 import typing
 
-import pylab as plt
+import matplotlib.pyplot as plt
 
 
 def get_dissociation_plot(

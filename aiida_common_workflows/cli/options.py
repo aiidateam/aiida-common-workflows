@@ -239,5 +239,5 @@ REFERENCE_WORKCHAIN = options.OverridableOption(
 )
 
 OUTPUT_FILE = options.OverridableOption(
-    '-o', '--output-file', type=click.STRING, required=False, help='Save the plot to a specified file.'
+    '-o', '--output-file', type=click.STRING, required=False, help='Save the output to a specified file.'
 )
