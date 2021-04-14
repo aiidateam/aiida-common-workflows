@@ -237,3 +237,7 @@ REFERENCE_WORKCHAIN = options.OverridableOption(
     required=False,
     help='An instance of a completed workchain of the same type as would be run for the given plugin.'
 )
+
+OUTPUT_FILE = options.OverridableOption(
+    '-o', '--output-file', type=click.STRING, required=False, help='Save the output to a specified file.'
+)
