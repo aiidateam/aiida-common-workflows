@@ -32,11 +32,13 @@ def cmd_plot_eos(workflow, precisions, print_table, output_file):
     from aiida_common_workflows.common.visualization.eos import get_eos_plot
 
     if workflow.process_class is not EquationOfStateWorkChain:
-        echo.echo_critical(f'Provided workflow with PK {workflow.pk} does not represent an EquationOfStateWorkChain.')
-    if workflow.exit_status != 0:
-        echo.echo_critical(f'Provided workflow with PK {workflow.pk} did not finish successfully.')
-
+        echo.echo_critical(
+            f'node {workflow.__class__.__name__}<{workflow.pk}> does not correspond to an EquationOfStateWorkChain.'
+        )
     outputs = workflow.get_outgoing(link_type=LinkType.RETURN).nested()
+
+    if any([output not in outputs for output in ('structures', 'total_energies')]):
+        echo.echo_critical(f'node {workflow.__class__.__name__}<{workflow.pk}> does not have the required outputs.')
 
     volumes = []
     energies = []
@@ -99,11 +101,13 @@ def cmd_plot_dissociation_curve(workflow, precisions, print_table, output_file):
     from aiida_common_workflows.common.visualization.dissociation import get_dissociation_plot
 
     if workflow.process_class is not DissociationCurveWorkChain:
-        echo.echo_critical(f'Provided workflow with PK {workflow.pk} does not represent a DissociationCurveWorkChain.')
-    if workflow.exit_status != 0:
-        echo.echo_critical(f'Provided workflow with PK {workflow.pk} did not finish successfully.')
-
+        echo.echo_critical(
+            f'node {workflow.__class__.__name__}<{workflow.pk}> does not represent a DissociationCurveWorkChain.'
+        )
     outputs = workflow.get_outgoing(link_type=LinkType.RETURN).nested()
+
+    if any([output not in outputs for output in ('distances', 'total_energies')]):
+        echo.echo_critical(f'node {workflow.__class__.__name__}<{workflow.pk}> does not have the required outputs.')
 
     distances = []
     energies = []

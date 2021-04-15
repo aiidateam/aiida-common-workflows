@@ -46,12 +46,12 @@ def get_eos_plot(
     :param unit_volume: unit of volume, default is [Å^3].
     :param unit_energy: unit of energy, default is [eV].
     """
-    assert len(volumes) == len(energies), \
-        '`distances` and `energies` are not of the same length.'
-    assert all([isinstance(v, float) for v in volumes]), \
-        'not all values provided in `volumes` are of type `float`.'
-    assert all([isinstance(d, float) for d in energies]), \
-        'not all values provided in `energies` are of type `float`.'
+    if len(volumes) != len(energies):
+        raise ValueError('`distances` and `energies` are not of the same length.')
+    if not all([isinstance(v, float) for v in volumes]):
+        raise ValueError('not all values provided in `volumes` are of type `float`.')
+    if not all([isinstance(d, float) for d in energies]):
+        raise ValueError('not all values provided in `energies` are of type `float`.')
 
     params, _ = fit_birch_murnaghan_params(numpy.array(volumes), numpy.array(energies))
 
