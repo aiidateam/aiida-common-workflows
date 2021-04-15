@@ -107,7 +107,7 @@ def generate_code(aiida_localhost):
 def generate_eos_node(generate_structure):
     """Generate an instance of ``EquationOfStateWorkChain``."""
 
-    def _generate_eos_node(include_magnetization=True):
+    def _generate_eos_node(include_magnetization=True, include_energy=True):
         from aiida.common import LinkType
         from aiida.orm import Float, WorkflowNode
 
@@ -115,10 +115,11 @@ def generate_eos_node(generate_structure):
 
         for index in range(5):
             structure = generate_structure().store()
-            energy = Float(index).store()
-
             structure.add_incoming(node, link_type=LinkType.RETURN, link_label=f'structures__{index}')
-            energy.add_incoming(node, link_type=LinkType.RETURN, link_label=f'total_energies__{index}')
+
+            if include_energy:
+                energy = Float(index).store()
+                energy.add_incoming(node, link_type=LinkType.RETURN, link_label=f'total_energies__{index}')
 
             if include_magnetization:
                 magnetization = Float(index).store()
