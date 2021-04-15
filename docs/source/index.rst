@@ -12,9 +12,9 @@ AiiDA common workflows
    workflows/composite/index
 
 The AiiDA common workflows project provides computational workflows, implemented in `AiiDA`_, to compute various material properties using any of the quantum engines that implement it.
-The distinguishing feature is that the interfaces of the AiiDA common workflows are unique, independent of the quantum engine that is used underneath to perform the material property simulations.
+The distinguishing feature is that the interfaces of the AiiDA common workflows are uniform, independent of the quantum engine that is used underneath to perform the material property simulations.
 These common interfaces make it trivial to switch from quantum engine.
-In addition to the common interface, the workflows provide input generators that automatically define the required inputs for a given task.
+In addition to the common interface, the workflows provide input generators that automatically define the required inputs for a given task and desired computational precision.
 
 The common workflows can be subdivided into two categories:
 

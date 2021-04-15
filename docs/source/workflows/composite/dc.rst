@@ -7,8 +7,6 @@ The inputs for the single-point calculations can be defined in a code-agnostic w
 The only available option for the ``relax_type`` is ``none``, which corresponds to single-point calculations.
 To allow full flexibility on the inputs, code-dependent overrides can be specified through the input port ``sub_process`` (see below).
 
-
-
 Submission script template
 ..........................
 
@@ -36,7 +34,7 @@ A typical script for the submission of common DC workflow could look something l
         'sub_process' : {  # optional code-dependent overrides
             'parameters': Dict(dict={...})
             ...
-     },
+        },
     }
 
     submit(cls, **inputs)
@@ -101,24 +99,24 @@ A template script to retrieve the results follows:
 
 .. code:: python
 
-        from aiida.common import LinkType
+    from aiida.common import LinkType
 
-        node = load_node(<IDN>) # <IDN> is an identifier (PK, uuid, ..) of a completed DC workchain
+    node = load_node(<IDN>) # <IDN> is an identifier (PK, uuid, ..) of a completed DC workchain
 
-        outputs = node.get_outgoing(link_type=LinkType.RETURN).nested()
+    outputs = node.get_outgoing(link_type=LinkType.RETURN).nested()
 
-        distances = []
-        energies = []
-        magnetizations = []
+    distances = []
+    energies = []
+    magnetizations = []
 
-        for index in outputs['total_energies'].keys():
-            distances.append(outputs['distances'][index].value)
-            energies.append(outputs['total_energies'][index].value)
-            try:
-                total_magnetization = outputs['total_magnetizations'][index].value
-            except KeyError:
-                total_magnetization = None
-            magnetizations.append(total_magnetization)
+    for index in outputs['total_energies'].keys():
+        distances.append(outputs['distances'][index].value)
+        energies.append(outputs['total_energies'][index].value)
+        try:
+            total_magnetization = outputs['total_magnetizations'][index].value
+        except KeyError:
+            total_magnetization = None
+        magnetizations.append(total_magnetization)
 
 
 
@@ -130,7 +128,7 @@ For the DC workflow:
 
 .. code:: console
 
-    aiida-common-workflows launch dissociation-curve <OPTIONS>  -- <ENGINE>
+    aiida-common-workflows launch dissociation-curve <OPTIONS> -- <ENGINE>
 
 The available ``<ENGINE>`` and ``<OPTIONS>`` are the same of the :ref:`relaxation CLI <relax-cli>`, with the exception of the ``-P`` and ``-r`` option.
 
