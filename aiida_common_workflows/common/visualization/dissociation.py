@@ -20,7 +20,7 @@ def get_dissociation_plot(
     """
     if len(distances) != len(energies):
         raise ValueError('`distances` and `energies` are not of the same length.')
-    if not all([isinstance(d, float) for d in distances]):
+    if any(not isinstance(d, float) for d in distances):
         raise ValueError('not all values provided in `distances` are of type `float`.')
     if not all([isinstance(e, float) for e in energies]):
         raise ValueError('not all values provided in `energies` are of type `float`.')

@@ -110,7 +110,7 @@ def test_plot_eos_wrong_workchain(run_cli_command, generate_dissociation_curve_n
     """Test the `plot_eos` command in case the provided work chain is incorrect."""
     node = generate_dissociation_curve_node().store()
 
-    options = [str(node.pk), '--print-table']
+    options = [str(node.pk)]
     result = run_cli_command(plot.cmd_plot_eos, options, raises=SystemExit)
     assert 'does not correspond to an EquationOfStateWorkChain' in result.output
 
@@ -169,6 +169,6 @@ def test_plot_dissociation_curve_wrong_workchain(run_cli_command, generate_eos_n
     """Test the `plot_dissociation_curve` command in case the provided work chain is incorrect."""
     node = generate_eos_node().store()
 
-    options = [str(node.pk), '--print-table']
+    options = [str(node.pk)
     result = run_cli_command(plot.cmd_plot_dissociation_curve, options, raises=SystemExit)
     assert 'does not correspond to a DissociationCurveWorkChain' in result.output
