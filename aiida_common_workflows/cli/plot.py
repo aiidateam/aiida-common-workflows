@@ -38,7 +38,10 @@ def cmd_plot_eos(workflow, precisions, print_table, output_file):
     outputs = workflow.get_outgoing(link_type=LinkType.RETURN).nested()
 
     if any(output not in outputs for output in ('structures', 'total_energies')):
-        echo.echo_critical(f'node {workflow.__class__.__name__}<{workflow.pk}> does not have the required outputs.')
+        missing_outputs = tuple(output for output in ('structures', 'total_energies') if output not in outputs)
+        echo.echo_critical(
+            f'node {workflow.__class__.__name__}<{workflow.pk}> is missing required outputs: {missing_outputs}'
+        )
 
     volumes = []
     energies = []
@@ -107,7 +110,10 @@ def cmd_plot_dissociation_curve(workflow, precisions, print_table, output_file):
     outputs = workflow.get_outgoing(link_type=LinkType.RETURN).nested()
 
     if any(output not in outputs for output in ('distances', 'total_energies')):
-        echo.echo_critical(f'node {workflow.__class__.__name__}<{workflow.pk}> does not have the required outputs.')
+        missing_outputs = tuple(output for output in ('distances', 'total_energies') if output not in outputs)
+        echo.echo_critical(
+            f'node {workflow.__class__.__name__}<{workflow.pk}> is missing required outputs: {missing_outputs}'
+        )
 
     distances = []
     energies = []

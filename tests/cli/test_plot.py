@@ -169,6 +169,16 @@ def test_plot_dissociation_curve_wrong_workchain(run_cli_command, generate_eos_n
     """Test the `plot_dissociation_curve` command in case the provided work chain is incorrect."""
     node = generate_eos_node().store()
 
-    options = [str(node.pk)
+    options = [str(node.pk)]
     result = run_cli_command(plot.cmd_plot_dissociation_curve, options, raises=SystemExit)
     assert 'does not correspond to a DissociationCurveWorkChain' in result.output
+
+
+@pytest.mark.usefixtures('aiida_profile')
+def test_plot_dissociation_curve_missing_outputs(run_cli_command, generate_dissociation_curve_node):
+    """Test the `plot_dissociation_curve` command in case the provided work chain is incorrect."""
+    node = generate_dissociation_curve_node(include_energy=False).store()
+
+    options = [str(node.pk)]
+    result = run_cli_command(plot.cmd_plot_dissociation_curve, options, raises=SystemExit)
+    assert 'is missing required outputs: (\'total_energies\',)' in result.output

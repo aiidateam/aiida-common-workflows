@@ -135,7 +135,7 @@ def generate_eos_node(generate_structure):
 def generate_dissociation_curve_node():
     """Generate an instance of ``DissociationCurveWorkChain``."""
 
-    def _generate_dissociation_curve_node(include_magnetization=True):
+    def _generate_dissociation_curve_node(include_magnetization=True, include_energy=True):
         from aiida.common import LinkType
         from aiida.orm import Float, WorkflowNode
 
@@ -143,10 +143,12 @@ def generate_dissociation_curve_node():
 
         for index in range(5):
             distance = Float(index / 10).store()
-            energy = Float(index).store()
-
             distance.add_incoming(node, link_type=LinkType.RETURN, link_label=f'distances__{index}')
-            energy.add_incoming(node, link_type=LinkType.RETURN, link_label=f'total_energies__{index}')
+
+            # `include_energy` can be set to False to test cases with missing outputs
+            if include_energy:
+                energy = Float(index).store()
+                energy.add_incoming(node, link_type=LinkType.RETURN, link_label=f'total_energies__{index}')
 
             if include_magnetization:
                 magnetization = Float(index).store()
