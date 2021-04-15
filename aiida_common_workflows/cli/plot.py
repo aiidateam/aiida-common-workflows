@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
 """Commands to plot results from a workflow."""
-
 import click
 
 from aiida.cmdline.params import arguments
 from aiida.cmdline.utils import echo
+from aiida.plugins import WorkflowFactory
 
 from .root import cmd_root
 from . import options
+
+EquationOfStateWorkChain = WorkflowFactory('common_workflows.eos')
+DissociationCurveWorkChain = WorkflowFactory('common_workflows.dissociation_curve')
 
 
 @cmd_root.group('plot')
@@ -16,11 +19,11 @@ def cmd_plot():
 
 
 @cmd_plot.command('eos')
-@arguments.NODE()
+@arguments.WORKFLOW()
 @options.PRECISIONS()
 @options.PRINT_TABLE()
 @options.OUTPUT_FILE()
-def cmd_plot_eos(node, precisions, print_table, output_file):
+def cmd_plot_eos(workflow, precisions, print_table, output_file):
     """Plot the results from an `EquationOfStateWorkChain`."""
     # pylint: disable=too-many-locals
     from tabulate import tabulate
@@ -28,7 +31,17 @@ def cmd_plot_eos(node, precisions, print_table, output_file):
     from aiida.common import LinkType
     from aiida_common_workflows.common.visualization.eos import get_eos_plot
 
-    outputs = node.get_outgoing(link_type=LinkType.RETURN).nested()
+    if workflow.process_class is not EquationOfStateWorkChain:
+        echo.echo_critical(
+            f'node {workflow.__class__.__name__}<{workflow.pk}> does not correspond to an EquationOfStateWorkChain.'
+        )
+    outputs = workflow.get_outgoing(link_type=LinkType.RETURN).nested()
+
+    missing_outputs = tuple(output for output in ('structures', 'total_energies') if output not in outputs)
+    if missing_outputs:
+        echo.echo_critical(
+            f'node {workflow.__class__.__name__}<{workflow.pk}> is missing required outputs: {missing_outputs}'
+        )
 
     volumes = []
     energies = []
@@ -79,18 +92,28 @@ def cmd_plot_eos(node, precisions, print_table, output_file):
 
 
 @cmd_plot.command('dissociation-curve')
-@arguments.NODE()
+@arguments.WORKFLOW()
 @options.PRECISIONS()
 @options.PRINT_TABLE()
 @options.OUTPUT_FILE()
-def cmd_plot_dissociation_curve(node, precisions, print_table, output_file):
+def cmd_plot_dissociation_curve(workflow, precisions, print_table, output_file):
     """Plot the results from a `DissociationCurveWorkChain`."""
     # pylint: disable=too-many-locals
     from tabulate import tabulate
     from aiida.common import LinkType
     from aiida_common_workflows.common.visualization.dissociation import get_dissociation_plot
 
-    outputs = node.get_outgoing(link_type=LinkType.RETURN).nested()
+    if workflow.process_class is not DissociationCurveWorkChain:
+        echo.echo_critical(
+            f'node {workflow.__class__.__name__}<{workflow.pk}> does not correspond to a DissociationCurveWorkChain.'
+        )
+    outputs = workflow.get_outgoing(link_type=LinkType.RETURN).nested()
+
+    missing_outputs = tuple(output for output in ('distances', 'total_energies') if output not in outputs)
+    if missing_outputs:
+        echo.echo_critical(
+            f'node {workflow.__class__.__name__}<{workflow.pk}> is missing required outputs: {missing_outputs}'
+        )
 
     distances = []
     energies = []

@@ -18,6 +18,13 @@ def get_dissociation_plot(
     :param unit_distance: unit of volume, default is [Å^3].
     :param unit_energy: unit of energy, default is [eV].
     """
+    if len(distances) != len(energies):
+        raise ValueError('`distances` and `energies` are not of the same length.')
+    if any(not isinstance(d, float) for d in distances):
+        raise ValueError('not all values provided in `distances` are of type `float`.')
+    if any(not isinstance(e, float) for e in energies):
+        raise ValueError('not all values provided in `energies` are of type `float`.')
+
     plt.plot(distances, energies, 'o-')
 
     plt.xlabel(f'Distance [{unit_distance}]')
