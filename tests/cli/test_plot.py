@@ -111,8 +111,8 @@ def test_plot_eos_wrong_workchain(run_cli_command, generate_dissociation_curve_n
     node = generate_dissociation_curve_node().store()
 
     options = [str(node.pk), '--print-table']
-    with pytest.raises(AssertionError):
-        run_cli_command(plot.cmd_plot_eos, options)
+    result = run_cli_command(plot.cmd_plot_eos, options, raises=SystemExit)
+    assert 'does not correspond to an EquationOfStateWorkChain' in result.output
 
 
 @pytest.mark.usefixtures('aiida_profile')
@@ -170,5 +170,5 @@ def test_plot_dissociation_curve_wrong_workchain(run_cli_command, generate_eos_n
     node = generate_eos_node().store()
 
     options = [str(node.pk), '--print-table']
-    with pytest.raises(AssertionError):
-        run_cli_command(plot.cmd_plot_dissociation_curve, options)
+    result = run_cli_command(plot.cmd_plot_dissociation_curve, options, raises=SystemExit)
+    assert 'does not correspond to a DissociationCurveWorkChain' in result.output
