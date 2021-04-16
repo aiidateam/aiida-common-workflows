@@ -7,7 +7,6 @@ from aiida_common_workflows.cli import launch
 from aiida_common_workflows.cli import utils
 
 
-@pytest.mark.usefixtures('aiida_profile')
 def test_relax_wallclock_seconds(run_cli_command, generate_structure, generate_code):
     """Test the `--wallclock-seconds` option."""
     structure = generate_structure().store()
@@ -20,7 +19,6 @@ def test_relax_wallclock_seconds(run_cli_command, generate_structure, generate_c
            'requires 1 values' in result.output_lines
 
 
-@pytest.mark.usefixtures('aiida_profile')
 def test_relax_number_machines(run_cli_command, generate_structure, generate_code):
     """Test the `--number-machines` option."""
     structure = generate_structure().store()
@@ -33,7 +31,6 @@ def test_relax_number_machines(run_cli_command, generate_structure, generate_cod
            'requires 1 values' in result.output_lines
 
 
-@pytest.mark.usefixtures('aiida_profile')
 def test_relax_number_mpi_procs_per_machine(run_cli_command, generate_structure, generate_code):
     """Test the `--number-mpi-procs-per-machine` option."""
     structure = generate_structure().store()
@@ -48,7 +45,7 @@ def test_relax_number_mpi_procs_per_machine(run_cli_command, generate_structure,
            'steps, so requires 1 values' in result.output_lines
 
 
-@pytest.mark.usefixtures('clear_database_before_test')
+@pytest.mark.usefixtures('with_clean_database')
 def test_relax_codes(run_cli_command, generate_structure, generate_code, monkeypatch):
     """Test the `--codes` option."""
 
@@ -75,7 +72,6 @@ def test_relax_codes(run_cli_command, generate_structure, generate_code, monkeyp
     result = run_cli_command(launch.cmd_relax, options)
 
 
-@pytest.mark.usefixtures('aiida_profile')
 def test_eos_wallclock_seconds(run_cli_command, generate_structure, generate_code):
     """Test the `--wallclock-seconds` option."""
     structure = generate_structure().store()
@@ -88,7 +84,6 @@ def test_eos_wallclock_seconds(run_cli_command, generate_structure, generate_cod
            'requires 1 values' in result.output_lines
 
 
-@pytest.mark.usefixtures('aiida_profile')
 def test_eos_number_machines(run_cli_command, generate_structure, generate_code):
     """Test the `--number-machines` option."""
     structure = generate_structure().store()
@@ -101,7 +96,6 @@ def test_eos_number_machines(run_cli_command, generate_structure, generate_code)
            'requires 1 values' in result.output_lines
 
 
-@pytest.mark.usefixtures('aiida_profile')
 def test_eos_number_mpi_procs_per_machine(run_cli_command, generate_structure, generate_code):
     """Test the `--number-mpi-procs-per-machine` option."""
     structure = generate_structure().store()
@@ -116,7 +110,6 @@ def test_eos_number_mpi_procs_per_machine(run_cli_command, generate_structure, g
            'steps, so requires 1 values' in result.output_lines
 
 
-@pytest.mark.usefixtures('aiida_profile')
 def test_eos_relax_types(run_cli_command, generate_structure, generate_code):
     """Test the `--relax-type` option."""
     structure = generate_structure().store()
@@ -129,7 +122,6 @@ def test_eos_relax_types(run_cli_command, generate_structure, generate_code):
             '(choose from none, positions, shape, positions_shape)' in result.output_lines
 
 
-@pytest.mark.usefixtures('aiida_profile')
 def test_dissociation_curve_wallclock_seconds(run_cli_command, generate_structure, generate_code):
     """Test the `--wallclock-seconds` option."""
     structure = generate_structure().store()
@@ -142,7 +134,6 @@ def test_dissociation_curve_wallclock_seconds(run_cli_command, generate_structur
            'requires 1 values' in result.output_lines
 
 
-@pytest.mark.usefixtures('aiida_profile')
 def test_dissociation_curve_number_machines(run_cli_command, generate_structure, generate_code):
     """Test the `--number-machines` option."""
     structure = generate_structure().store()
@@ -155,7 +146,6 @@ def test_dissociation_curve_number_machines(run_cli_command, generate_structure,
            'requires 1 values' in result.output_lines
 
 
-@pytest.mark.usefixtures('aiida_profile')
 def test_dissociation_curve_number_mpi_procs_per_machine(run_cli_command, generate_structure, generate_code):
     """Test the `--number-mpi-procs-per-machine` option."""
     structure = generate_structure().store()
@@ -170,7 +160,6 @@ def test_dissociation_curve_number_mpi_procs_per_machine(run_cli_command, genera
            'steps, so requires 1 values' in result.output_lines
 
 
-@pytest.mark.usefixtures('aiida_profile')
 def test_relax_magn_per_type(run_cli_command, generate_structure, generate_code):
     """Test the `--magnetization-per-site` option."""
     structure = generate_structure()

@@ -373,7 +373,7 @@ def recursive_merge(left: Dict[str, Any], right: Dict[str, Any]) -> Dict[str, An
     """
     for key, value in left.items():
         if key in right:
-            if isinstance(value, collections.Mapping) and isinstance(right[key], collections.Mapping):
+            if isinstance(value, collections.abc.Mapping) and isinstance(right[key], collections.abc.Mapping):
                 right[key] = recursive_merge(value, right[key])
 
     merged = left.copy()

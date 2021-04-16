@@ -5,7 +5,7 @@ import pytest
 from aiida_common_workflows.cli.utils import get_code_from_list_or_database
 
 
-@pytest.mark.usefixtures('clear_database_before_test')
+@pytest.mark.usefixtures('with_clean_database')
 def test_get_code_from_list_or_database(generate_code):
     """Test `get_code_from_list_or_database` method."""
     entry_point = 'quantumespresso.pw'

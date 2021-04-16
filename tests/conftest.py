@@ -7,22 +7,22 @@ import tempfile
 import click
 import pytest
 
+from aiida.common import exceptions
 from aiida.common.constants import elements
 
 pytest_plugins = ['aiida.manage.tests.pytest_fixtures']  # pylint: disable=invalid-name
 
 
-@pytest.fixture(scope='session')
-@pytest.mark.usefixtures('aiida_profile')
-def with_database():
-    """Alias for the `aiida_profile` fixture from `aiida-core`."""
-    yield
+@pytest.fixture(scope='session', autouse=True)
+def with_database(aiida_profile):
+    """Alias for the ``aiida_profile`` fixture from ``aiida-core``."""
+    yield aiida_profile
 
 
 @pytest.fixture
-@pytest.mark.usefixtures('clear_database_before_test')
-def clear_database():
-    """Alias for the `clear_database_before_test` fixture from `aiida-core`."""
+def with_clean_database(with_database):
+    """Fixture to clear the database before yielding to the test."""
+    with_database.reset_db()
     yield
 
 
@@ -164,7 +164,7 @@ def generate_dissociation_curve_node():
 
 @pytest.fixture(scope='session')
 def generate_upf_data(tmp_path_factory):
-    """Return a `UpfData` instance for the given element a file for which should exist in `tests/fixtures/pseudos`."""
+    """Return a `UpfData` instance for the given elemen."""
 
     def _generate_upf_data(element):
         """Return `UpfData` node."""
@@ -180,12 +180,67 @@ def generate_upf_data(tmp_path_factory):
 
 
 @pytest.fixture(scope='session')
-@pytest.mark.usefixtures('with_database')
+def generate_psml_data(tmp_path_factory):
+    """Return a `PsmlData` instance for the given elemen."""
+
+    def _generate_psml_data(element):
+        """Return `PsmlData` node."""
+        from textwrap import dedent
+        from aiida_pseudo.data.pseudo import PsmlData
+
+        with open(tmp_path_factory.mktemp('pseudos') / f'{element}.psml', 'w+b') as handle:
+            content = dedent(
+                f"""<?xml version="1.0" encoding="UTF-8" ?>
+                <psml version="1.1" energy_unit="hartree" length_unit="bohr">
+                <pseudo-atom-spec atomic-label="{element}" atomic-number="2"></pseudo-atom-spec>
+                </psml>
+                """
+            )
+            handle.write(content.encode('utf-8'))
+            handle.flush()
+            return PsmlData(file=handle)
+
+    return _generate_psml_data
+
+
+@pytest.fixture(scope='session')
+def generate_jthxml_data(tmp_path_factory):
+    """Return a ``JthXmlData`` instance for the given element."""
+
+    def _generate_jthxml_data(element):
+        """Return ``JthXmlData`` node."""
+        from textwrap import dedent
+        from aiida_pseudo.data.pseudo import JthXmlData
+
+        with open(tmp_path_factory.mktemp('pseudos') / f'{element}.jthxml', 'w+b') as handle:
+            content = dedent(
+                f"""<?xml  version="1.0"?>
+                <paw_dataset version="0.7">
+                <atom symbol="{element}" Z="2.00" core="0.00" valence="2.00"/>
+                </paw_dataset>
+                """
+            )
+            handle.write(content.encode('utf-8'))
+            handle.flush()
+            return JthXmlData(file=handle)
+
+    return _generate_jthxml_data
+
+
+@pytest.fixture(scope='session')
 def sssp(generate_upf_data):
     """Create an SSSP pseudo potential family from scratch."""
     from aiida.plugins import GroupFactory
 
     SsspFamily = GroupFactory('pseudo.family.sssp')  # pylint: disable=invalid-name
+    label = 'SSSP/1.1/PBE/efficiency'
+
+    try:
+        family = SsspFamily.objects.get(label=label)
+    except exceptions.NotExistent:
+        pass
+    else:
+        return family
 
     cutoffs_dict = {'normal': {}}
 
@@ -203,10 +258,81 @@ def sssp(generate_upf_data):
 
             cutoffs_dict['normal'][element] = {'cutoff_wfc': 30., 'cutoff_rho': 240.}
 
-        label = 'SSSP/1.1/PBE/efficiency'
         family = SsspFamily.create_from_folder(dirpath, label)
 
     for stringency, cutoffs in cutoffs_dict.items():
         family.set_cutoffs(cutoffs, stringency, unit='Ry')
+
+    return family
+
+
+@pytest.fixture(scope='session')
+def pseudo_dojo(generate_jthxml_data):
+    """Create a PseudoDojo pseudo potential family from scratch."""
+    from aiida import plugins
+
+    PseudoDojoFamily = plugins.GroupFactory('pseudo.family.pseudo_dojo')  # pylint: disable=invalid-name
+    label = 'PseudoDojo/1.0/PBE/SR/standard/jthxml'
+
+    try:
+        family = PseudoDojoFamily.objects.get(label=label)
+    except exceptions.NotExistent:
+        pass
+    else:
+        return family
+
+    cutoffs_dict = {'normal': {}}
+
+    with tempfile.TemporaryDirectory() as dirpath:
+        for values in elements.values():
+
+            element = values['symbol']
+            upf = generate_jthxml_data(element)
+            filename = os.path.join(dirpath, f'{element}.jthxml')
+
+            with open(filename, 'w+b') as handle:
+                with upf.open(mode='rb') as source:
+                    handle.write(source.read())
+                    handle.flush()
+
+            cutoffs_dict['normal'][element] = {'cutoff_wfc': 30., 'cutoff_rho': 240.}
+
+        family = PseudoDojoFamily.create_from_folder(dirpath, label, pseudo_type=plugins.DataFactory('pseudo.jthxml'))
+
+    for stringency, cutoffs in cutoffs_dict.items():
+        family.set_cutoffs(cutoffs, stringency, unit='Eh')
+
+    return family
+
+
+@pytest.fixture(scope='session')
+def psml_family(generate_psml_data):
+    """Create a pseudopotential family with PsmlData potentials from scratch."""
+    from aiida import plugins
+
+    PsmlData = plugins.DataFactory('pseudo.psml')  # pylint: disable=invalid-name
+    PseudoPotentialFamily = plugins.GroupFactory('pseudo.family')  # pylint: disable=invalid-name
+    label = 'nc-sr-04_pbe_standard_psml'
+
+    try:
+        family = PseudoPotentialFamily.objects.get(label=label)
+    except exceptions.NotExistent:
+        pass
+    else:
+        return family
+
+    with tempfile.TemporaryDirectory() as dirpath:
+        for values in elements.values():
+
+            element = values['symbol']
+            upf = generate_psml_data(element)
+            filename = os.path.join(dirpath, f'{element}.psml')
+
+            with open(filename, 'w+b') as handle:
+                with upf.open(mode='rb') as source:
+                    handle.write(source.read())
+                    handle.flush()
+
+        family = PseudoPotentialFamily.create_from_folder(dirpath, label, pseudo_type=PsmlData)
 
     return family
