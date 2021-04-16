@@ -59,14 +59,15 @@
             "aiida-common-workflows = aiida_common_workflows.cli:cmd_root"
         ],
         "aiida.workflows": [
-            "common_workflows.eos = aiida_common_workflows.workflows.eos:EquationOfStateWorkChain",
             "common_workflows.dissociation_curve = aiida_common_workflows.workflows.dissociation:DissociationCurveWorkChain",
+            "common_workflows.eos = aiida_common_workflows.workflows.eos:EquationOfStateWorkChain",
             "common_workflows.relax.abinit = aiida_common_workflows.workflows.relax.abinit.workchain:AbinitCommonRelaxWorkChain",
             "common_workflows.relax.bigdft = aiida_common_workflows.workflows.relax.bigdft.workchain:BigDftCommonRelaxWorkChain",
             "common_workflows.relax.castep = aiida_common_workflows.workflows.relax.castep.workchain:CastepCommonRelaxWorkChain",
             "common_workflows.relax.cp2k = aiida_common_workflows.workflows.relax.cp2k.workchain:Cp2kCommonRelaxWorkChain",
             "common_workflows.relax.fleur = aiida_common_workflows.workflows.relax.fleur.workchain:FleurCommonRelaxWorkChain",
             "common_workflows.relax.gaussian = aiida_common_workflows.workflows.relax.gaussian.workchain:GaussianCommonRelaxWorkChain",
+            "common_workflows.relax.nwchem = aiida_common_workflows.workflows.relax.nwchem.workchain:NwchemCommonRelaxWorkChain",
             "common_workflows.relax.orca = aiida_common_workflows.workflows.relax.orca.workchain:OrcaCommonRelaxWorkChain",
             "common_workflows.relax.quantum_espresso = aiida_common_workflows.workflows.relax.quantum_espresso.workchain:QuantumEspressoCommonRelaxWorkChain",
             "common_workflows.relax.siesta = aiida_common_workflows.workflows.relax.siesta.workchain:SiestaCommonRelaxWorkChain",
