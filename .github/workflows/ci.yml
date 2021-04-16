@@ -26,7 +26,7 @@ jobs:
                 python-version: 3.8
 
         -   name: Install python dependencies
-            run: pip install -e .[pre-commit,tests]
+            run: pip install .[pre-commit,tests]
 
         -   name: Run pre-commit
             run:
@@ -61,7 +61,7 @@ jobs:
         -   name: Install python dependencies
             run: |
                 pip install --upgrade setuptools
-                pip install -e .[tests]
+                pip install .[tests]
                 reentry scan
 
         -   name: Run pytest
