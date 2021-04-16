@@ -74,11 +74,11 @@ def generate_structure():
         valid_symbols = [value['symbol'] for value in elements.values()]
 
         if symbols is not None:
-            for symbol in symbols:
+            for index, symbol in enumerate(symbols):
                 if symbol not in valid_symbols:
                     raise ValueError(f'symbol `{symbol}` is not a valid element.')
 
-                structure.append_atom(position=(0., 0., 0.), symbols=[symbol])
+                structure.append_atom(position=(0. + index * 1, 0. + index * 1, 0. + index * 1), symbols=[symbol])
 
         return structure
 
@@ -93,6 +93,8 @@ def generate_code(aiida_localhost):
         import random
         import string
         from aiida.plugins import DataFactory
+
+        aiida_localhost.set_default_mpiprocs_per_machine(1)
 
         label = ''.join(random.choice(string.ascii_letters) for _ in range(16))
         code = DataFactory('code')(
