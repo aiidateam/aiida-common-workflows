@@ -68,13 +68,13 @@ Only ``structure`` and ``engines`` can be specified as a positional argument, al
 
   .. code:: python
 
-        input_generator.get_engine_types()
+    input_generator.get_engine_types()
 
   For each ``engine_type`` (for instance ``inpgen`` of FLEUR), details on the required code and resources can be obtained with:
 
   .. code:: python
 
-        input_generator.get_engine_type_schema("inpgen")
+    input_generator.get_engine_type_schema("inpgen")
 
 
 * ``protocol``. (Type: a Python string).
@@ -93,9 +93,9 @@ Only ``structure`` and ``engines`` can be specified as a positional argument, al
 
   .. code:: python
 
-        input_generator.get_protocol_names()
-        input_generator.get_protocol('fast')  # Can replace 'fast' with any of the other available protocols
-        input_generator.get_default_protocol_name()
+    input_generator.get_protocol_names()
+    input_generator.get_protocol('fast')  # Can replace 'fast' with any of the other available protocols
+    input_generator.get_default_protocol_name()
 
 
 * ``relax_type``. (Type: a Python string).
@@ -110,7 +110,7 @@ Only ``structure`` and ``engines`` can be specified as a positional argument, al
 
   .. code:: python
 
-        input_generator.get_relax_types()
+    input_generator.get_relax_types()
 
 
 * ``threshold_forces``. (Type: a Python float).
@@ -132,7 +132,7 @@ Only ``structure`` and ``engines`` can be specified as a positional argument, al
 
   .. code:: python
 
-        input_generator.get_electronic_types()
+    input_generator.get_electronic_types()
 
 
 * ``spin_type``. (Type: a python string).
@@ -143,7 +143,7 @@ Only ``structure`` and ``engines`` can be specified as a positional argument, al
 
   .. code:: python
 
-        input_generator.get_spin_types()
+    input_generator.get_spin_types()
 
 
 * ``magnetization_per_site``. (Type: Python None or a Python list of floats).
@@ -208,7 +208,7 @@ The available ``<ENGINE>`` are:
 
 .. code:: console
 
-        [abinit|bigdft|castep|cp2k|fleur|gaussian|orca|quantum_espresso|siesta|vasp]
+    [abinit|bigdft|castep|cp2k|fleur|gaussian|orca|quantum_espresso|siesta|vasp]
 
 
 A list of options follows:

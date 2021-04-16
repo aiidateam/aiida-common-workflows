@@ -6,7 +6,6 @@ The inputs for the relaxation can be defined in a code-agnostic way, making use 
 Relaxation types with variable volume are forbidden.
 To allow full flexibility on the inputs, code-dependent overrides can be specified through the input port ``sub_process`` (see below).
 
-
 Submission script template
 ..........................
 
@@ -33,7 +32,7 @@ A typical script for the submission of common EoS workflow could look something 
         'sub_process' : {  # optional code-dependent overrides
             'parameters' : Dict(dict={...})
             ...
-     },
+        },
     }
 
     submit(cls, **inputs)
@@ -100,24 +99,24 @@ A template script to retrieve the results follows:
 
 .. code:: python
 
-        from aiida.common import LinkType
+    from aiida.common import LinkType
 
-        node = load_node(<IDN>) # <IDN> is an identifier (PK, uuid, ..) of a completed EoS workchain
+    node = load_node(<IDN>) # <IDN> is an identifier (PK, uuid, ..) of a completed EoS workchain
 
-        outputs = node.get_outgoing(link_type=LinkType.RETURN).nested()
+    outputs = node.get_outgoing(link_type=LinkType.RETURN).nested()
 
-        volumes = []
-        energies = []
-        magnetizations = []
+    volumes = []
+    energies = []
+    magnetizations = []
 
-        for index in outputs['total_energies'].keys():
-            volumes.append(outputs['structures'][index].get_cell_volume())
-            energies.append(outputs['total_energies'][index].value)
-            try:
-                total_magnetization = outputs['total_magnetizations'][index].value
-            except KeyError:
-                total_magnetization = None
-            magnetizations.append(total_magnetization)
+    for index in outputs['total_energies'].keys():
+        volumes.append(outputs['structures'][index].get_cell_volume())
+        energies.append(outputs['total_energies'][index].value)
+        try:
+            total_magnetization = outputs['total_magnetizations'][index].value
+        except KeyError:
+            total_magnetization = None
+        magnetizations.append(total_magnetization)
 
 CLI
 ...
@@ -127,7 +126,7 @@ For the eos workflow:
 
 .. code:: console
 
-    aiida-common-workflows launch eos <OPTIONS>  -- <ENGINE>
+    aiida-common-workflows launch eos <OPTIONS> -- <ENGINE>
 
 The available ``<ENGINE>`` and ``<OPTIONS>`` are the same of the :ref:`relaxation CLI <relax-cli>`, with the exception of the ``-P`` option and a limitation on the allowed relaxation types.
 
