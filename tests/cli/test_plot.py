@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 from aiida_common_workflows.cli import plot
 
 
-@pytest.mark.usefixtures('aiida_profile')
 @pytest.mark.parametrize('include_magnetization', (True, False))
 def test_plot_eos(run_cli_command, generate_eos_node, include_magnetization, monkeypatch):
     """Test the `plot_eos` command.
@@ -28,7 +27,6 @@ def test_plot_eos(run_cli_command, generate_eos_node, include_magnetization, mon
     run_cli_command(plot.cmd_plot_eos, options)
 
 
-@pytest.mark.usefixtures('aiida_profile')
 @pytest.mark.parametrize('include_magnetization', (True, False))
 def test_plot_eos_output_file(run_cli_command, generate_eos_node, include_magnetization, monkeypatch, tmp_path):
     """Test the `plot_eos` command with the `--output-file` option."""
@@ -48,7 +46,6 @@ def test_plot_eos_output_file(run_cli_command, generate_eos_node, include_magnet
     assert Path.exists(output_file)
 
 
-@pytest.mark.usefixtures('aiida_profile')
 @pytest.mark.parametrize('include_magnetization', (True, False))
 def test_plot_eos_print_table(run_cli_command, generate_eos_node, include_magnetization, data_regression):
     """Test the `plot_eos` command with the `--print-table` option."""
@@ -58,7 +55,6 @@ def test_plot_eos_print_table(run_cli_command, generate_eos_node, include_magnet
     data_regression.check({'output_lines': result.output_lines})
 
 
-@pytest.mark.usefixtures('aiida_profile')
 @pytest.mark.parametrize('include_magnetization', (True, False))
 def test_plot_eos_print_table_output_file(run_cli_command, generate_eos_node, include_magnetization, tmp_path):
     """Test the `plot_eos` command with the `--print-table` and `--output-file` options."""
@@ -72,7 +68,6 @@ def test_plot_eos_print_table_output_file(run_cli_command, generate_eos_node, in
     assert Path.exists(output_file)
 
 
-@pytest.mark.usefixtures('aiida_profile')
 @pytest.mark.parametrize('precisions', ((8,), (8, 7), (8, 7, 6), (8, 7, 6, 5)))
 def test_plot_eos_precision(run_cli_command, generate_eos_node, precisions, data_regression):
     """Test the `plot_eos` command with the `--precisions` option.
@@ -86,7 +81,6 @@ def test_plot_eos_precision(run_cli_command, generate_eos_node, precisions, data
     data_regression.check({'output_lines': result.output_lines})
 
 
-@pytest.mark.usefixtures('aiida_profile')
 def test_plot_eos_wrong_workchain(run_cli_command, generate_dissociation_curve_node):
     """Test the `plot_eos` command in case the provided work chain is incorrect."""
     node = generate_dissociation_curve_node().store()
@@ -96,7 +90,6 @@ def test_plot_eos_wrong_workchain(run_cli_command, generate_dissociation_curve_n
     assert 'does not correspond to an EquationOfStateWorkChain' in result.output
 
 
-@pytest.mark.usefixtures('aiida_profile')
 def test_plot_eos_missing_outputs(run_cli_command, generate_eos_node):
     """Test the `plot_eos` command in case the provided work chain is missing outputs."""
     node = generate_eos_node(include_energy=False).store()
@@ -106,7 +99,6 @@ def test_plot_eos_missing_outputs(run_cli_command, generate_eos_node):
     assert 'is missing required outputs: (\'total_energies\',)' in result.output
 
 
-@pytest.mark.usefixtures('aiida_profile')
 def test_plot_dissociation_curve(run_cli_command, generate_dissociation_curve_node, monkeypatch):
     """Test the `plot_dissociation_curve` command.
 
@@ -125,7 +117,6 @@ def test_plot_dissociation_curve(run_cli_command, generate_dissociation_curve_no
     run_cli_command(plot.cmd_plot_dissociation_curve, options)
 
 
-@pytest.mark.usefixtures('aiida_profile')
 @pytest.mark.parametrize('precisions', ((8, 7),))
 def test_plot_dissociation_curve_print_table(
     run_cli_command, generate_dissociation_curve_node, precisions, data_regression
@@ -142,7 +133,6 @@ def test_plot_dissociation_curve_print_table(
     data_regression.check({'output_lines': result.output_lines})
 
 
-@pytest.mark.usefixtures('aiida_profile')
 def test_plot_dissociation_curve_output_file(run_cli_command, generate_dissociation_curve_node, monkeypatch, tmp_path):
     """Test the `plot_dissociation_curve` command with the `--output-file` option."""
     from aiida_common_workflows.common.visualization import dissociation
@@ -161,7 +151,6 @@ def test_plot_dissociation_curve_output_file(run_cli_command, generate_dissociat
     assert Path.exists(output_file)
 
 
-@pytest.mark.usefixtures('aiida_profile')
 def test_plot_dissociation_curve_print_table_output_file(run_cli_command, generate_dissociation_curve_node, tmp_path):
     """Test the `plot_dissociation_curve` command with the `--output-file` option."""
     node = generate_dissociation_curve_node().store()
@@ -174,7 +163,6 @@ def test_plot_dissociation_curve_print_table_output_file(run_cli_command, genera
     assert Path.exists(output_file)
 
 
-@pytest.mark.usefixtures('aiida_profile')
 def test_plot_dissociation_curve_wrong_workchain(run_cli_command, generate_eos_node):
     """Test the `plot_dissociation_curve` command in case the provided work chain is incorrect."""
     node = generate_eos_node().store()
@@ -184,7 +172,6 @@ def test_plot_dissociation_curve_wrong_workchain(run_cli_command, generate_eos_n
     assert 'does not correspond to a DissociationCurveWorkChain' in result.output
 
 
-@pytest.mark.usefixtures('aiida_profile')
 def test_plot_dissociation_curve_missing_outputs(run_cli_command, generate_dissociation_curve_node):
     """Test the `plot_dissociation_curve` command in case the provided work chain is missing outputs."""
     node = generate_dissociation_curve_node(include_energy=False).store()
