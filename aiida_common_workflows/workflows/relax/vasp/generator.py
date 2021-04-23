@@ -43,7 +43,7 @@ class VaspCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
     def _initialize_protocols(self):
         """Initialize the protocols class attribute by parsing them from the protocols configuration file."""
-        with open(str(pathlib.Path(__file__).parent / 'protocols.yml')) as handle:
+        with open(str(pathlib.Path(__file__).parent / 'protocol.yml')) as handle:
             self._protocols = yaml.safe_load(handle)
 
     def _initialize_potential_mapping(self):
