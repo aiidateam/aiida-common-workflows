@@ -33,7 +33,7 @@ def cmd_launch():
 @options.MAGNETIZATION_PER_SITE()
 @options.REFERENCE_WORKCHAIN()
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
-def cmd_relax(  #pylint: disable=too-many-branches
+def cmd_relax(  # pylint: disable=too-many-branches
     plugin, structure, codes, protocol, relax_type, electronic_type, spin_type, threshold_forces, threshold_stress,
     number_machines, number_mpi_procs_per_machine, wallclock_seconds, daemon, magnetization_per_site,
     reference_workchain, show_engines
@@ -150,7 +150,7 @@ def cmd_relax(  #pylint: disable=too-many-branches
 @options.DAEMON()
 @options.MAGNETIZATION_PER_SITE()
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
-def cmd_eos(  #pylint: disable=too-many-branches
+def cmd_eos(  # pylint: disable=too-many-branches
     plugin, structure, codes, protocol, relax_type, electronic_type, spin_type, threshold_forces, threshold_stress,
     number_machines, number_mpi_procs_per_machine, wallclock_seconds, daemon, magnetization_per_site, show_engines
 ):
@@ -274,7 +274,7 @@ def cmd_eos(  #pylint: disable=too-many-branches
 @options.DAEMON()
 @options.MAGNETIZATION_PER_SITE()
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
-def cmd_dissociation_curve(  #pylint: disable=too-many-branches
+def cmd_dissociation_curve(  # pylint: disable=too-many-branches
     plugin, structure, codes, protocol, electronic_type, spin_type, number_machines, number_mpi_procs_per_machine,
     wallclock_seconds, daemon, magnetization_per_site, show_engines
 ):
