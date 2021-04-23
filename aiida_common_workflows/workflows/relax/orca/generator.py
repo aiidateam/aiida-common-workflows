@@ -53,7 +53,7 @@ class OrcaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
     def _initialize_protocols(self):
         """Initialize the protocols class attribute by parsing them from the configuration file."""
-        yamlpath = os.path.join(os.path.dirname(__file__), 'protocols.yaml')
+        yamlpath = os.path.join(os.path.dirname(__file__), 'protocol.yml')
 
         with open(yamlpath) as handler:
             self._protocols = yaml.safe_load(handler)
