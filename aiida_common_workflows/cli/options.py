@@ -49,18 +49,18 @@ def get_spin_types():
     return [entry.value for entry in SpinType]
 
 
-class JsonParamType(click.ParamType):
-    """CLI parameter type that can load a JSON string into a python value."""
+class JsonParamType(click.StringParamType):
+    """CLI parameter type that can load a JSON string into a Python value."""
+
     name = 'json'
 
     def convert(self, value, param, ctx):
         """Convert from a string to a python object."""
-        if not isinstance(value, str):
-            self.fail(f'{value!r} is not a valid string to be converted to json', param, ctx)
+        value = super().convert(value, param, ctx)
         try:
             data = json.loads(value)
         except ValueError:
-            self.fail(f'{value!r} is not a valid json', param, ctx)
+            self.fail(f'`{value!r}` is not a valid json', param, ctx)
         return data
 
 
