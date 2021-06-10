@@ -32,11 +32,12 @@ def cmd_launch():
 @options.DAEMON()
 @options.MAGNETIZATION_PER_SITE()
 @options.REFERENCE_WORKCHAIN()
+@options.ENGINE_OPTIONS()
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
 def cmd_relax(  # pylint: disable=too-many-branches
     plugin, structure, codes, protocol, relax_type, electronic_type, spin_type, threshold_forces, threshold_stress,
     number_machines, number_mpi_procs_per_machine, wallclock_seconds, daemon, magnetization_per_site,
-    reference_workchain, show_engines
+    reference_workchain, engine_options, show_engines
 ):
     """Relax a crystal structure using the common relax workflow for one of the existing plugin implementations.
 
@@ -90,6 +91,10 @@ def cmd_relax(  # pylint: disable=too-many-branches
 
         return
 
+    if not isinstance(engine_options, dict):
+        message = f'You must pass a dictionary in JSON format (it is now {type(engine_options)}'
+        raise click.BadParameter(message, param_hint='engine-options')
+
     engines = {}
 
     for index, engine in enumerate(generator.get_engine_types()):
@@ -104,15 +109,15 @@ def cmd_relax(  # pylint: disable=too-many-branches
                 'Either provide it with the -X option or make sure such a code is configured in the DB.'
             )
 
-        engines[engine] = {
-            'code': code.full_label,
-            'options': {
-                'resources': {
-                    'num_machines': number_machines[index],
-                },
-                'max_wallclock_seconds': wallclock_seconds[index],
-            }
+        all_options = {
+            'resources': {
+                'num_machines': number_machines[index],
+            },
+            'max_wallclock_seconds': wallclock_seconds[index],
         }
+        all_options.update(engine_options)
+
+        engines[engine] = {'code': code.full_label, 'options': all_options}
 
         if number_mpi_procs_per_machine is not None:
             engines[engine]['options']['resources']['num_mpiprocs_per_machine'] = number_mpi_procs_per_machine[index]
@@ -149,10 +154,12 @@ def cmd_relax(  # pylint: disable=too-many-branches
 @options.WALLCLOCK_SECONDS()
 @options.DAEMON()
 @options.MAGNETIZATION_PER_SITE()
+@options.ENGINE_OPTIONS()
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
 def cmd_eos(  # pylint: disable=too-many-branches
     plugin, structure, codes, protocol, relax_type, electronic_type, spin_type, threshold_forces, threshold_stress,
-    number_machines, number_mpi_procs_per_machine, wallclock_seconds, daemon, magnetization_per_site, show_engines
+    number_machines, number_mpi_procs_per_machine, wallclock_seconds, daemon, magnetization_per_site, engine_options,
+    show_engines
 ):
     """Compute the equation of state of a crystal structure using the common relax workflow.
 
@@ -209,6 +216,10 @@ def cmd_eos(  # pylint: disable=too-many-branches
 
         return
 
+    if not isinstance(engine_options, dict):
+        message = f'You must pass a dictionary in JSON format (it is now {type(engine_options)}'
+        raise click.BadParameter(message, param_hint='engine-options')
+
     engines = {}
 
     for index, engine in enumerate(generator.get_engine_types()):
@@ -222,15 +233,15 @@ def cmd_eos(  # pylint: disable=too-many-branches
                 'Either provide it with the -X option or make sure such a code is configured in the DB.'
             )
 
-        engines[engine] = {
-            'code': code.full_label,
-            'options': {
-                'resources': {
-                    'num_machines': number_machines[index]
-                },
-                'max_wallclock_seconds': wallclock_seconds[index],
-            }
+        all_options = {
+            'resources': {
+                'num_machines': number_machines[index],
+            },
+            'max_wallclock_seconds': wallclock_seconds[index],
         }
+        all_options.update(engine_options)
+
+        engines[engine] = {'code': code.full_label, 'options': all_options}
 
         if number_mpi_procs_per_machine is not None:
             engines[engine]['options']['resources']['num_mpiprocs_per_machine'] = number_mpi_procs_per_machine[index]
@@ -273,10 +284,11 @@ def cmd_eos(  # pylint: disable=too-many-branches
 @options.WALLCLOCK_SECONDS()
 @options.DAEMON()
 @options.MAGNETIZATION_PER_SITE()
+@options.ENGINE_OPTIONS()
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
 def cmd_dissociation_curve(  # pylint: disable=too-many-branches
     plugin, structure, codes, protocol, electronic_type, spin_type, number_machines, number_mpi_procs_per_machine,
-    wallclock_seconds, daemon, magnetization_per_site, show_engines
+    wallclock_seconds, daemon, magnetization_per_site, engine_options, show_engines
 ):
     """Compute the dissociation curve of a diatomic molecule using the common relax workflow.
 
@@ -337,6 +349,10 @@ def cmd_dissociation_curve(  # pylint: disable=too-many-branches
 
         return
 
+    if not isinstance(engine_options, dict):
+        message = f'You must pass a dictionary in JSON format (it is now {type(engine_options)}'
+        raise click.BadParameter(message, param_hint='engine-options')
+
     engines = {}
 
     for index, engine in enumerate(generator.get_engine_types()):
@@ -351,15 +367,15 @@ def cmd_dissociation_curve(  # pylint: disable=too-many-branches
                 'Either provide it with the -X option or make sure such a code is configured in the DB.'
             )
 
-        engines[engine] = {
-            'code': code.full_label,
-            'options': {
-                'resources': {
-                    'num_machines': number_machines[index]
-                },
-                'max_wallclock_seconds': wallclock_seconds[index],
-            }
+        all_options = {
+            'resources': {
+                'num_machines': number_machines[index],
+            },
+            'max_wallclock_seconds': wallclock_seconds[index],
         }
+        all_options.update(engine_options)
+
+        engines[engine] = {'code': code.full_label, 'options': all_options}
 
         if number_mpi_procs_per_machine is not None:
             engines[engine]['options']['resources']['num_mpiprocs_per_machine'] = number_mpi_procs_per_machine[index]
