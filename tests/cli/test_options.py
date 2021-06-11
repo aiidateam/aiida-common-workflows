@@ -95,7 +95,6 @@ class TestJsonParamType:
     def test_valid_json_data(self, json_param_type, data):
         """Test loading from a valid JSON string (both dicts and non-dicts)."""
         result = json_param_type.convert(json.dumps(data), None, None)
-        assert isinstance(result, dict)
         assert result == data
 
     def test_parsing_fails(self, json_param_type):
