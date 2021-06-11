@@ -2,6 +2,7 @@
 # pylint: disable=redefined-outer-name,no-self-use
 """Tests for the :mod:`aiida_common_workflows.cli.launch` module."""
 import pathlib
+import json
 
 import click
 import pytest
@@ -79,6 +80,22 @@ class TestStructureDataParamType:
         """
         result = param_type.convert(label, None, None)
         assert result.get_formula() == formula
+
+
+class TestJsonParamType:
+    """Test the ``JsonParamType``."""
+
+    @pytest.mark.parametrize('data', ({'a': 'b', 'c': True, 'd': 134}, 1, 'a', [1, True, '124aa']))
+    def test_valid_json_data(self, param_type, data):
+        """Test loading from a valid JSON string (both dicts and non-dicts)."""
+        result = param_type.convert(json.dumps(data), None, None)
+        assert isinstance(result, dict)
+        assert result == data
+
+    def test_parsing_fails(self, param_type):
+        """Test case where parsing of a non-valid JSON string fails."""
+        with pytest.raises(click.BadParameter, match=r'.*not a valid json.*'):
+            param_type.convert('inV alidJSON', None, None)
 
 
 def test_reference_workchain(run_cli_command):

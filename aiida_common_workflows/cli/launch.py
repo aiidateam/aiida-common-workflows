@@ -11,6 +11,25 @@ from . import options
 from . import utils
 
 
+def validate_engine_options(engine_options, all_engines):
+    """Validate the custom engine_options.
+
+    It will check the type (dictionary) and if there are unknown engine types.
+
+    :param engine_options: the engine_options returned from the command line option `options.ENGINE_OPTIONS`.
+    :param all_engines: a list of valid engine names
+    :raises click.BadParameter: if the options do not validate.
+    """
+    if not isinstance(engine_options, dict):
+        message = f'You must pass a dictionary in JSON format (it is now {type(engine_options)}'
+        raise click.BadParameter(message, param_hint='engine-options')
+
+    unknown_engines = set(engine_options).difference(all_engines)
+    if unknown_engines:
+        message = f'You are passing unknown engine types: {unknown_engines}'
+        raise click.BadParameter(message, param_hint='engine-options')
+
+
 @cmd_root.group('launch')
 def cmd_launch():
     """Launch a common workflow."""
@@ -91,9 +110,7 @@ def cmd_relax(  # pylint: disable=too-many-branches
 
         return
 
-    if not isinstance(engine_options, dict):
-        message = f'You must pass a dictionary in JSON format (it is now {type(engine_options)}'
-        raise click.BadParameter(message, param_hint='engine-options')
+    validate_engine_options(engine_options, generator.get_engine_types())
 
     engines = {}
 
@@ -115,7 +132,7 @@ def cmd_relax(  # pylint: disable=too-many-branches
             },
             'max_wallclock_seconds': wallclock_seconds[index],
         }
-        all_options.update(engine_options)
+        all_options.update(engine_options.get(engine, {}))
 
         engines[engine] = {'code': code.full_label, 'options': all_options}
 
@@ -216,9 +233,7 @@ def cmd_eos(  # pylint: disable=too-many-branches
 
         return
 
-    if not isinstance(engine_options, dict):
-        message = f'You must pass a dictionary in JSON format (it is now {type(engine_options)}'
-        raise click.BadParameter(message, param_hint='engine-options')
+    validate_engine_options(engine_options, generator.get_engine_types())
 
     engines = {}
 
@@ -239,7 +254,7 @@ def cmd_eos(  # pylint: disable=too-many-branches
             },
             'max_wallclock_seconds': wallclock_seconds[index],
         }
-        all_options.update(engine_options)
+        all_options.update(engine_options.get(engine, {}))
 
         engines[engine] = {'code': code.full_label, 'options': all_options}
 
@@ -349,9 +364,7 @@ def cmd_dissociation_curve(  # pylint: disable=too-many-branches
 
         return
 
-    if not isinstance(engine_options, dict):
-        message = f'You must pass a dictionary in JSON format (it is now {type(engine_options)}'
-        raise click.BadParameter(message, param_hint='engine-options')
+    validate_engine_options(engine_options, generator.get_engine_types())
 
     engines = {}
 
@@ -373,7 +386,7 @@ def cmd_dissociation_curve(  # pylint: disable=too-many-branches
             },
             'max_wallclock_seconds': wallclock_seconds[index],
         }
-        all_options.update(engine_options)
+        all_options.update(engine_options.get(engine, {}))
 
         engines[engine] = {'code': code.full_label, 'options': all_options}
 
