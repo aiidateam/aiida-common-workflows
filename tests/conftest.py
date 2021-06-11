@@ -2,6 +2,7 @@
 # pylint: disable=redefined-outer-name
 """Configuration and fixtures for unit test suite."""
 import os
+import io
 import tempfile
 
 import click
@@ -165,48 +166,43 @@ def generate_dissociation_curve_node():
 
 
 @pytest.fixture(scope='session')
-def generate_upf_data(tmp_path_factory):
-    """Return a `UpfData` instance for the given elemen."""
+def generate_upf_data():
+    """Return a `UpfData` instance for the given element."""
 
     def _generate_upf_data(element):
         """Return `UpfData` node."""
         from aiida_pseudo.data.pseudo import UpfData
-
-        with open(tmp_path_factory.mktemp('pseudos') / f'{element}.upf', 'w+b') as handle:
-            content = f'<UPF version="2.0.1"><PP_HEADER\nelement="{element}"\nz_valence="4.0"\n/></UPF>\n'
-            handle.write(content.encode('utf-8'))
-            handle.flush()
-            return UpfData(file=handle)
+        content = f'<UPF version="2.0.1"><PP_HEADER\nelement="{element}"\nz_valence="4.0"\n/></UPF>\n'
+        stream = io.BytesIO(content.encode('utf-8'))
+        return UpfData(stream, filename=f'{element}.upf')
 
     return _generate_upf_data
 
 
 @pytest.fixture(scope='session')
-def generate_psml_data(tmp_path_factory):
-    """Return a `PsmlData` instance for the given elemen."""
+def generate_psml_data():
+    """Return a `PsmlData` instance for the given element."""
 
     def _generate_psml_data(element):
         """Return `PsmlData` node."""
         from textwrap import dedent
         from aiida_pseudo.data.pseudo import PsmlData
 
-        with open(tmp_path_factory.mktemp('pseudos') / f'{element}.psml', 'w+b') as handle:
-            content = dedent(
-                f"""<?xml version="1.0" encoding="UTF-8" ?>
-                <psml version="1.1" energy_unit="hartree" length_unit="bohr">
-                <pseudo-atom-spec atomic-label="{element}" atomic-number="2"></pseudo-atom-spec>
-                </psml>
-                """
-            )
-            handle.write(content.encode('utf-8'))
-            handle.flush()
-            return PsmlData(file=handle)
+        content = dedent(
+            f"""<?xml version="1.0" encoding="UTF-8" ?>
+            <psml version="1.1" energy_unit="hartree" length_unit="bohr">
+            <pseudo-atom-spec atomic-label="{element}" atomic-number="2"></pseudo-atom-spec>
+            </psml>
+            """
+        )
+        stream = io.BytesIO(content.encode('utf-8'))
+        return PsmlData(stream, filename=f'{element}.psml')
 
     return _generate_psml_data
 
 
 @pytest.fixture(scope='session')
-def generate_jthxml_data(tmp_path_factory):
+def generate_jthxml_data():
     """Return a ``JthXmlData`` instance for the given element."""
 
     def _generate_jthxml_data(element):
@@ -214,17 +210,15 @@ def generate_jthxml_data(tmp_path_factory):
         from textwrap import dedent
         from aiida_pseudo.data.pseudo import JthXmlData
 
-        with open(tmp_path_factory.mktemp('pseudos') / f'{element}.jthxml', 'w+b') as handle:
-            content = dedent(
-                f"""<?xml  version="1.0"?>
-                <paw_dataset version="0.7">
-                <atom symbol="{element}" Z="2.00" core="0.00" valence="2.00"/>
-                </paw_dataset>
-                """
-            )
-            handle.write(content.encode('utf-8'))
-            handle.flush()
-            return JthXmlData(file=handle)
+        content = dedent(
+            f"""<?xml  version="1.0"?>
+            <paw_dataset version="0.7">
+            <atom symbol="{element}" Z="2.00" core="0.00" valence="2.00"/>
+            </paw_dataset>
+            """
+        )
+        stream = io.BytesIO(content.encode('utf-8'))
+        return JthXmlData(stream, filename=f'{element}.jthxml')
 
     return _generate_jthxml_data
 
