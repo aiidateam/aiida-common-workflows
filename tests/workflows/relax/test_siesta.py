@@ -19,6 +19,7 @@ def default_builder_inputs(generate_code, generate_structure):
             'relax': {
                 'code': generate_code('siesta').store().uuid,
                 'options': {
+                    'max_wallclock_seconds': 3600,
                     'resources': {
                         'num_machines': 1,
                         'tot_num_mpiprocs': 1
