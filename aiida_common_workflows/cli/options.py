@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Module with pre-defined options and defaults for CLI command parameters."""
 import pathlib
+import json
 
 import click
 
@@ -46,6 +47,21 @@ def get_electronic_types():
 def get_spin_types():
     """Return the spin types available for the common relax workflow."""
     return [entry.value for entry in SpinType]
+
+
+class JsonParamType(click.types.StringParamType):
+    """CLI parameter type that can load a JSON string into a Python value."""
+
+    name = 'json'
+
+    def convert(self, value, param, ctx):
+        """Convert from a string to a python object."""
+        value = super().convert(value, param, ctx)
+        try:
+            data = json.loads(value)
+        except ValueError:
+            self.fail(f'`{value!r}` is not a valid json', param, ctx)
+        return data
 
 
 class StructureDataParamType(click.Choice):
@@ -240,4 +256,17 @@ REFERENCE_WORKCHAIN = options.OverridableOption(
 
 OUTPUT_FILE = options.OverridableOption(
     '-o', '--output-file', type=click.STRING, required=False, help='Save the output to a specified file.'
+)
+
+ENGINE_OPTIONS = options.OverridableOption(
+    '--engine-options',
+    type=JsonParamType(),
+    required=False,
+    default='{}',
+    help='Define a valid JSON string with a dictionary of options to add to the metadata options of each engine. '
+    """This could e.g. be in the format `--engine-options='{"relax": {"account": "ACCOUNT_NAME"}}'` (be careful """
+    'with bash escaping, using single quotes, and using instead double quotes for valid JSON strings! The backticks '
+    'are here used instead only to delimit code). This will add the `account` option to the "relax" engine. If your '
+    'common workflow needs multiple engines, you should pass the options for each engine that you need to modify. '
+    ' Suggestion: use the `--show-engines` option to know which engines are required by this common workflow.'
 )
