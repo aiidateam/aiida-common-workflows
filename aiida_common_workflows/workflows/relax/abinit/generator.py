@@ -40,8 +40,10 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         SpinType.SPIN_ORBIT: 'Enable spin-orbit coupling (spinor w.f.s) without magnetization.'
     }
     _electronic_types = {
+        ElectronicType.UNKNOWN: 'Unknown electronic type, so treat the system as metallic by using Gaussian smearing '
+            'for safety and adding additional bands.',
         ElectronicType.METAL: 'Treat the system as metallic by allowing occupations to change, ' \
-            'using Fermi-Dirac smearing, and adding additional bands.',
+            'using Marzari-Vanderbilt Cold II smearing for accuracy, and adding additional bands.',
         ElectronicType.INSULATOR: 'Treat the system as an insulator with fixed integer occupations.'
     }
 
@@ -62,7 +64,7 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         *,
         protocol: str = None,
         relax_type: Union[RelaxType, str] = RelaxType.POSITIONS,
-        electronic_type: Union[ElectronicType, str] = ElectronicType.METAL,
+        electronic_type: Union[ElectronicType, str] = ElectronicType.UNKNOWN,
         spin_type: Union[SpinType, str] = SpinType.NONE,
         magnetization_per_site: Union[List[float], Tuple[float]] = None,
         threshold_forces: float = None,
@@ -269,14 +271,17 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             raise ValueError('spin type `{}` is not supported'.format(spin_type.value))
 
         # ElectronicType
-        if electronic_type == ElectronicType.METAL:
-            # protocal defaults to METAL
+        if electronic_type == ElectronicType.UNKNOWN:
+            # protocal defaults to UNKNOWN, which is metallic w/ Gaussian smearing
             pass
+        elif electronic_type == ElectronicType.METAL:
+            # protocol defaults to a metallic treatment, so just change the smearing type
+            builder.abinit['parameters']['occopt'] = 5  # Marzari-Vanderbilt Cold II smearing
         elif electronic_type == ElectronicType.INSULATOR:
             # LATER: Support magnetization with insulators
             if spin_type not in [SpinType.NONE, SpinType.SPIN_ORBIT]:
                 raise ValueError('`spin_type` {} is not supported for insulating systems.'.format(spin_type.value))
-            builder.abinit['parameters']['occopt'] = 1  # fixed occupations, Abinit default
+            builder.abinit['parameters']['occopt'] = 1  # Fixed occupations, Abinit default
             builder.abinit['parameters']['fband'] = 0.125  # Abinit default
         else:
             raise ValueError('electronic type `{}` is not supported'.format(electronic_type.value))

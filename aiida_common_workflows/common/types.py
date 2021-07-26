@@ -30,6 +30,7 @@ class SpinType(Enum):
 class ElectronicType(Enum):
     """Enumeration of known electronic types."""
 
+    UNKNOWN = 'unknown'
     AUTOMATIC = 'automatic'
     METAL = 'metal'
     INSULATOR = 'insulator'

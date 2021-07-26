@@ -21,7 +21,7 @@ fast:
                 ionmov: 22 # optimize ionic positions with L-BFGS
                 dilatmx: 1.00 # don't book additional memory for basis set enlargement, Abinit default
                 # default to metallic treatment
-                occopt: 3 # Fermi-Dirac smearing
+                occopt: 7 # Gaussian smearing
                 fband: 2.00 # increase the number of bands to > fband * natoms
                 tsmear: 0.008 # Ha
                 # default to no spin treatment
@@ -52,7 +52,7 @@ moderate:
                 ionmov: 22 # optimize ionic positions with L-BFGS
                 dilatmx: 1.00 # don't book additional memory for basis set enlargement, Abinit default
                 # default to metallic treatment
-                occopt: 3 # Fermi-Dirac smearing
+                occopt: 7 # Gaussian smearing
                 fband: 2.00 # increase the number of bands to > fband * natoms
                 tsmear: 0.008 # Ha
                 # default to no spin treatment
@@ -83,7 +83,7 @@ precise:
                 ionmov: 22 # optimize ionic positions with L-BFGS
                 dilatmx: 1.00 # don't book additional memory for basis set enlargement, Abinit default
                 # default to metallic treatment
-                occopt: 3 # Fermi-Dirac smearing
+                occopt: 7 # Gaussian smearing
                 fband: 2.00 # increase the number of bands to > fband * natoms
                 tsmear: 0.005 # Ha
                 # default to no spin treatment
