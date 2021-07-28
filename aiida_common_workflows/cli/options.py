@@ -225,6 +225,16 @@ NUMBER_MPI_PROCS_PER_MACHINE = options.OverridableOption(
     help='Define the number of MPI processes per machine to request for each engine step.'
 )
 
+NUMBER_CORES_PER_MPIPROC = options.OverridableOption(
+    '-t',
+    '--number-cores-per-mpiproc',
+    cls=options.MultipleValueOption,
+    type=click.INT,
+    metavar='VALUES',
+    required=False,
+    help='Define the number of cores (threads) per MPI processes to use for each engine step.'
+)
+
 MAGNETIZATION_PER_SITE = options.OverridableOption(
     '--magnetization-per-site',
     type=click.FLOAT,

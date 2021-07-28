@@ -47,6 +47,7 @@ def cmd_launch():
 @options.THRESHOLD_STRESS()
 @options.NUMBER_MACHINES()
 @options.NUMBER_MPI_PROCS_PER_MACHINE()
+@options.NUMBER_CORES_PER_MPIPROC()
 @options.WALLCLOCK_SECONDS()
 @options.DAEMON()
 @options.MAGNETIZATION_PER_SITE()
@@ -55,8 +56,8 @@ def cmd_launch():
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
 def cmd_relax(  # pylint: disable=too-many-branches
     plugin, structure, codes, protocol, relax_type, electronic_type, spin_type, threshold_forces, threshold_stress,
-    number_machines, number_mpi_procs_per_machine, wallclock_seconds, daemon, magnetization_per_site,
-    reference_workchain, engine_options, show_engines
+    number_machines, number_mpi_procs_per_machine, number_cores_per_mpiproc, wallclock_seconds, daemon,
+    magnetization_per_site, reference_workchain, engine_options, show_engines
 ):
     """Relax a crystal structure using the common relax workflow for one of the existing plugin implementations.
 
@@ -84,6 +85,12 @@ def cmd_relax(  # pylint: disable=too-many-branches
         raise click.BadParameter(
             f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
             param_hint='--number-mpi-procs-per-machine'
+        )
+
+    if number_cores_per_mpiproc is not None and len(number_cores_per_mpiproc) != number_engines:
+        raise click.BadParameter(
+            f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
+            param_hint='--number-cores-per-mpiproc'
         )
 
     if wallclock_seconds is None:
@@ -141,6 +148,9 @@ def cmd_relax(  # pylint: disable=too-many-branches
             if number_mpi_procs_per_machine[index] > 1:
                 engines[engine]['options']['withmpi'] = True
 
+        if number_cores_per_mpiproc is not None:
+            engines[engine]['options']['resources']['num_cores_per_mpiproc'] = number_cores_per_mpiproc[index]
+
     builder = generator.get_builder(
         structure,
         engines,
@@ -168,15 +178,16 @@ def cmd_relax(  # pylint: disable=too-many-branches
 @options.THRESHOLD_STRESS()
 @options.NUMBER_MACHINES()
 @options.NUMBER_MPI_PROCS_PER_MACHINE()
+@options.NUMBER_CORES_PER_MPIPROC()
 @options.WALLCLOCK_SECONDS()
 @options.DAEMON()
 @options.MAGNETIZATION_PER_SITE()
 @options.ENGINE_OPTIONS()
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
-def cmd_eos(  # pylint: disable=too-many-branches
+def cmd_eos(  # pylint: disable=too-many-branches,too-many-statements
     plugin, structure, codes, protocol, relax_type, electronic_type, spin_type, threshold_forces, threshold_stress,
-    number_machines, number_mpi_procs_per_machine, wallclock_seconds, daemon, magnetization_per_site, engine_options,
-    show_engines
+    number_machines, number_mpi_procs_per_machine, number_cores_per_mpiproc, wallclock_seconds, daemon,
+    magnetization_per_site, engine_options, show_engines
 ):
     """Compute the equation of state of a crystal structure using the common relax workflow.
 
@@ -209,6 +220,12 @@ def cmd_eos(  # pylint: disable=too-many-branches
             param_hint='--number-mpi-procs-per-machine'
         )
 
+    if number_cores_per_mpiproc is not None and len(number_cores_per_mpiproc) != number_engines:
+        raise click.BadParameter(
+            f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
+            param_hint='--number-cores-per-mpiproc'
+        )
+
     if wallclock_seconds is None:
         wallclock_seconds = [1 * 3600] * number_engines
 
@@ -262,6 +279,9 @@ def cmd_eos(  # pylint: disable=too-many-branches
             engines[engine]['options']['resources']['num_mpiprocs_per_machine'] = number_mpi_procs_per_machine[index]
             if number_mpi_procs_per_machine[index] > 1:
                 engines[engine]['options']['withmpi'] = True
+
+        if number_cores_per_mpiproc is not None:
+            engines[engine]['options']['resources']['num_cores_per_mpiproc'] = number_cores_per_mpiproc[index]
 
     inputs = {
         'structure': structure,
@@ -296,6 +316,7 @@ def cmd_eos(  # pylint: disable=too-many-branches
 @options.SPIN_TYPE()
 @options.NUMBER_MACHINES()
 @options.NUMBER_MPI_PROCS_PER_MACHINE()
+@options.NUMBER_CORES_PER_MPIPROC()
 @options.WALLCLOCK_SECONDS()
 @options.DAEMON()
 @options.MAGNETIZATION_PER_SITE()
@@ -303,6 +324,7 @@ def cmd_eos(  # pylint: disable=too-many-branches
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
 def cmd_dissociation_curve(  # pylint: disable=too-many-branches
     plugin, structure, codes, protocol, electronic_type, spin_type, number_machines, number_mpi_procs_per_machine,
+    number_cores_per_mpiproc,
     wallclock_seconds, daemon, magnetization_per_site, engine_options, show_engines
 ):
     """Compute the dissociation curve of a diatomic molecule using the common relax workflow.
@@ -340,6 +362,12 @@ def cmd_dissociation_curve(  # pylint: disable=too-many-branches
             param_hint='--number-mpi-procs-per-machine'
         )
 
+    if number_cores_per_mpiproc is not None and len(number_cores_per_mpiproc) != number_engines:
+        raise click.BadParameter(
+            f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
+            param_hint='--number-cores-per-mpiproc'
+        )
+
     if wallclock_seconds is None:
         wallclock_seconds = [1 * 3600] * number_engines
 
@@ -394,6 +422,9 @@ def cmd_dissociation_curve(  # pylint: disable=too-many-branches
             engines[engine]['options']['resources']['num_mpiprocs_per_machine'] = number_mpi_procs_per_machine[index]
             if number_mpi_procs_per_machine[index] > 1:
                 engines[engine]['options']['withmpi'] = True
+
+        if number_cores_per_mpiproc is not None:
+            engines[engine]['options']['resources']['num_cores_per_mpiproc'] = number_cores_per_mpiproc[index]
 
     inputs = {
         'molecule': structure,
