@@ -1,0 +1,50 @@
+precise:
+  name: 'precise'
+  description: 'Protocol to relax a structure with high precision at higher computational cost.'
+  parameters:
+    calculator:
+      name: 'gpaw'
+      args:
+        mode:
+          '@function': 'PW'
+          args:
+            ecut: 300
+        convergence:
+          energy: 0.000001
+    optimizer:
+      name: 'BFGS'
+  kpoint_distance: 0.15
+
+moderate:
+  name: 'moderate'
+  description: 'Protocol to relax a structure with normal precision at moderate computational cost.'
+  parameters:
+    calculator:
+      name: 'gpaw'
+      args:
+        mode:
+          '@function': 'PW'
+          args:
+            ecut: 300
+        convergence:
+          energy: 0.000001
+    optimizer:
+      name: 'BFGS'
+  kpoint_distance: 0.30
+
+fast:
+  name: 'fast'
+  description: 'Protocol to relax a structure with low precision at minimal computational cost for testing purposes.'
+  parameters:
+    calculator:
+      name: 'gpaw'
+      args:
+        mode:
+          '@function': 'PW'
+          args:
+            ecut: 300
+        convergence:
+          energy: 0.000001
+    optimizer:
+      name: 'BFGS'
+  kpoint_distance: 0.45

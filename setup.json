@@ -30,6 +30,7 @@
         "aiida-siesta~=1.1",
         "aiida-vasp",
         "ase>=3.19",
+        "aiida-ase",
         "pymatgen<=2021.3.3",
         "sqlalchemy<1.4"
     ],
@@ -71,7 +72,8 @@
             "common_workflows.relax.orca = aiida_common_workflows.workflows.relax.orca.workchain:OrcaCommonRelaxWorkChain",
             "common_workflows.relax.quantum_espresso = aiida_common_workflows.workflows.relax.quantum_espresso.workchain:QuantumEspressoCommonRelaxWorkChain",
             "common_workflows.relax.siesta = aiida_common_workflows.workflows.relax.siesta.workchain:SiestaCommonRelaxWorkChain",
-            "common_workflows.relax.vasp = aiida_common_workflows.workflows.relax.vasp.workchain:VaspCommonRelaxWorkChain"
+            "common_workflows.relax.vasp = aiida_common_workflows.workflows.relax.vasp.workchain:VaspCommonRelaxWorkChain",
+            "common_workflows.relax.gpaw = aiida_common_workflows.workflows.relax.gpaw.workchain:GPAWCommonRelaxWorkChain"
         ]
     },
     "license": "MIT License",
