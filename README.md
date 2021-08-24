@@ -7,7 +7,7 @@ For more information, please refer to the [online documentation](https://aiida-c
 
 
 ## How to cite
-If you use the workflow of this package, please cite the [original paper (doi:)]().
+If you use the workflow of this package, please cite the [original paper (10.1038/s41524-021-00594-6)](https://doi.org/10.1038/s41524-021-00594-6).
 In addition, one should cite the quantum engines whose implementations are used.
 
 Engine           | DOIs or URLs to be cited
