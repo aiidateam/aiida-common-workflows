@@ -299,7 +299,7 @@ def get_parameters(reference_workchain):
     # Be aware that this parameter node is incomplete. LOs and econfig is
     # currently missing for example, also we do not reuse the same kpoints.
     # the density is likely the same, but the set may vary.
-    parameters = fleurinp.get_parameterdata_ncf()  # This is not a calcfunction!
+    parameters = fleurinp.get_parameterdata_ncf(write_ids=False)  # This is not a calcfunction!
 
     return parameters
 
