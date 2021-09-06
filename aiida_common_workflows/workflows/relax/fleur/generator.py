@@ -163,10 +163,12 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             # In addition we might want to use a different basis APW+LO?
 
         wf_para_scf_dict = recursive_merge(default_scf, protocol_scf_para)
-        wf_para_scf = orm.Dict(dict=wf_para_scf_dict)
 
         if reference_workchain is not None:
             parameters = get_parameters(reference_workchain)
+            if 'kpt' in parameters.get_dict():
+                wf_para_scf_dict.pop('kpoints_distance', None)
+        wf_para_scf = orm.Dict(dict=wf_para_scf_dict)
 
         # User specification overrides previous workchain!
         if 'calc_parameters' in kwargs.keys():
