@@ -138,8 +138,15 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             raise ValueError(f'relaxation type `{relax_type.value}` is not supported')
 
         # We reduce the number of sigfigs for the cell and atom positions accounts for less
-        #  numerical inpgen errors during relaxation and accuracy is still enough for this purpose
-        settings = orm.Dict(dict={'significant_figures_cell': 9, 'significant_figures_position': 9})
+        # numerical inpgen errors during relaxation and accuracy is still enough for this purpose
+        # We also currently assume that all common-workflow protocols exist in fleur
+        settings = orm.Dict(
+            dict={
+                'significant_figures_cell': 9,
+                'significant_figures_position': 9,
+                'cmdline': [f'-{protocol}']
+            }
+        )
 
         wf_para = orm.Dict(dict=wf_para_dict)
 
@@ -156,7 +163,7 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             'mode': relaxation_mode,
         }
         protocol_scf_para = protocol.get('scf', {})
-        kmax = protocol_scf_para.pop('k_max_cutoff', None)
+        kmax = protocol_scf_para.pop('k_max_cutoff', None)  # for now always None, later consider clean up
 
         if molecule:  # We want to use only one kpoint, can be overwritten by user input
             protocol_scf_para['kpoints_distance'] = 100000000

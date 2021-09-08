@@ -1,14 +1,12 @@
 moderate:
     name: 'moderate'
-    description: 'Protocol to relax a structure with normal precision at moderate computational cost.'
+    description: 'Protocol to relax a structure with normal precision at moderate computational cost. This relies on the "moderate" protocol of the fleur code.'
     relax:
         relax_iter: 5
         change_mixing_criterion: 0.025
         run_final_scf: true
     scf:
-        density_converged: 0.00002
         kpoints_distance: 0.2
-        k_max_cutoff: 4.0
         fleur_runmax: 2
         itmax_per_run: 120
         force_dict:
@@ -18,14 +16,12 @@ moderate:
 
 precise:
     name: 'precise'
-    description: 'Protocol to relax a structure with high precision at higher computational cost.'
+    description: 'Protocol to relax a structure with high precision at higher computational cost. This relies on the "precise" protocol of the fleur code.'
     relax:
         relax_iter: 10
         change_mixing_criterion: 0.025
         run_final_scf: true
     scf:
-        density_converged: 0.000002
-        k_max_cutoff: 5.0
         kpoints_distance: 0.1
         fleur_runmax: 3
         itmax_per_run: 120
@@ -36,7 +32,7 @@ precise:
 
 fast:
     name: 'fast'
-    description: 'Protocol to relax a structure with low precision at minimal computational cost for testing purposes.'
+    description: 'Protocol to relax a structure with low precision at minimal computational cost for testing purposes. This relies on the "fast" protocol of the fleur code.'
     relax:
         relax_iter: 3
         change_mixing_criterion: 0.025
@@ -44,9 +40,6 @@ fast:
     scf:
         fleur_runmax: 2
         itmax_per_run: 120
-        force_converged: 0.001
-        density_converged: 0.0002
-        k_max_cutoff: 3.2
         kpoints_distance: 0.4
         force_dict:
             qfix: 2
