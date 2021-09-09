@@ -51,6 +51,16 @@ def test_submit(default_builder_inputs):
 
 
 @pytest.mark.usefixtures('sssp')
+def test_options(default_builder_inputs):
+    """Test that the ``options`` of the ``engines`` argument are added to all namespaces."""
+    inputs = default_builder_inputs
+    builder = GENERATOR.get_builder(**inputs)
+    assert isinstance(builder, engine.ProcessBuilder)
+    assert builder.base.pw.metadata.options.resources == inputs['engines']['relax']['options']['resources']
+    assert builder.base_final_scf.pw.metadata.options.resources == inputs['engines']['relax']['options']['resources']
+
+
+@pytest.mark.usefixtures('sssp')
 def test_supported_electronic_types(default_builder_inputs):
     """Test calling ``get_builder`` for the supported ``electronic_types``."""
     inputs = default_builder_inputs
