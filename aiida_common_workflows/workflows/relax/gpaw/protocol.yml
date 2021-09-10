@@ -5,46 +5,66 @@ precise:
     calculator:
       name: 'gpaw'
       args:
-        mode:
-          '@function': 'PW'
-          args:
-            ecut: 300
+        xc: 'PBE'
+        gpts:
+          '@function': 'h2gpts'
+          args: {'h': 0.12}
         convergence:
-          energy: 0.000001
+          energy: 0.0000000001
+          density: 0.000001
+        occupations:
+          name: 'marzari-vanderbilt'
+          width: 0.1
+    optimizer:
+      name: 'BFGS'
+  kpoint_distance: 0.1
+
+moderate:
+  name: 'moderate'
+  description: 'Protocol to relax a structure with high precision at higher computational cost.'
+  parameters:
+    calculator:
+      name: 'gpaw'
+      args:
+        gpts:
+          '@function': 'h2gpts'
+          args: {'h': 0.18}
+        convergence:
+          energy: 0.0000000001
     optimizer:
       name: 'BFGS'
   kpoint_distance: 0.15
 
-moderate:
-  name: 'moderate'
-  description: 'Protocol to relax a structure with normal precision at moderate computational cost.'
+precise_lcao:
+  name: 'precise_lcao'
+  description: 'Protocal to relax a structure with high precision with LCAO basis.'
   parameters:
     calculator:
-      name: 'gpaw'
-      args:
-        mode:
-          '@function': 'PW'
-          args:
-            ecut: 300
-        convergence:
-          energy: 0.000001
+      name : 'gpaw'
+      args :
+          mode  : 'lcao'
+          basis : 'dzp'
     optimizer:
       name: 'BFGS'
-  kpoint_distance: 0.30
 
-fast:
-  name: 'fast'
-  description: 'Protocol to relax a structure with low precision at minimal computational cost for testing purposes.'
+precise_pw:
+  name: 'precise_pw'
+  description: 'Protocol to relax a structure with high precision at higher computational cost.'
   parameters:
     calculator:
       name: 'gpaw'
       args:
+        xc: 'PBE'
         mode:
           '@function': 'PW'
           args:
-            ecut: 300
+            ecut: 800
         convergence:
-          energy: 0.000001
+          energy: 0.0000000001
+          density: 0.000001
+        occupations:
+          name: 'marzari-vanderbilt'
+          width: 0.1
     optimizer:
       name: 'BFGS'
-  kpoint_distance: 0.45
+  kpoint_distance: 0.1

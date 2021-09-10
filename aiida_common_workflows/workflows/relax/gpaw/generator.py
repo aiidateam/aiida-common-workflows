@@ -121,10 +121,22 @@ class GPAWCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         # Set the parameters
         parameters = protocol['parameters']
+
+        # Make sure that a few useful things are stored
+        parameters['atoms_getters'] = [
+            'temperature',
+            ['forces', {
+                'apply_constraint': True
+            }],
+            ['masses', {}],
+        ]
         if relax_type == RelaxType.NONE:
             parameters.pop('optimizer', {})
 
-        builder.gpaw.parameters = orm.Dict(dict=parameters)
+        # Add the cell parameter to the gpts options
+        if 'pw' not in protocol['name']:
+            parameters['calculator']['args']['gpts']['args']['cell_cv'] = structure.cell
+            parameters['extra_imports'] = [['gpaw.utilities', 'h2gpts']]
 
         # Set the kpoint grid from the density in the protocol
         kpoints = plugins.DataFactory('array.kpoints')()
@@ -134,7 +146,10 @@ class GPAWCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             kpoints.set_kpoints_mesh(previous_kpoints.get_attribute('mesh'), previous_kpoints.get_attribute('offset'))
         else:
             kpoints.set_kpoints_mesh_from_density(protocol['kpoint_distance'])
-        builder.gpaw.kpoints = kpoints
+
+        builder.kpoints = kpoints
+
+        builder.gpaw.parameters = orm.Dict(dict=parameters)
 
         builder.gpaw.metadata.options = engines['relax']['options']
 
