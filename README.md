@@ -11,7 +11,15 @@ If you use the workflow of this package, please cite the paper in which the work
 
 > [S. P. Huber et al., npj Comput. Mater. 7, 136 (2021); doi:10.1038/s41524-021-00594-6](https://doi.org/10.1038/s41524-021-00594-6)
 
-In addition, if you run the common workflows, please also cite the quantum engine(s) that you will use. We provide below a table of references for your convenience.
+In addition, if you run the common workflows, please also cite:
+
+1. The AiiDA engine that manages the simulations and stores the provenance:
+
+   * Main AiiDA paper: [S.P. Huber et al., Scientific Data 7, 300 (2020)](https://doi.org/10.1038/s41597-020-00638-4)
+
+   * AiiDA engine: [M. Uhrin et al., Comp. Mat. Sci. 187 (2021)](https://doi.org/10.1016/j.commatsci.2020.110086)
+
+2. the quantum engine(s) that you will use. We provide below a table of references for your convenience.
 
 Engine           | DOIs or URLs to be cited
 ---------------- | ----------------------------
