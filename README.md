@@ -7,8 +7,11 @@ For more information, please refer to the [online documentation](https://aiida-c
 
 
 ## How to cite
-If you use the workflow of this package, please cite the [original paper (10.1038/s41524-021-00594-6)](https://doi.org/10.1038/s41524-021-00594-6).
-In addition, one should cite the quantum engines whose implementations are used.
+If you use the workflow of this package, please cite the paper in which the work is presented:
+
+> [S. P. Huber et al., npj Comput. Mater. 7, 136 (2021); doi:10.1038/s41524-021-00594-6](https://doi.org/10.1038/s41524-021-00594-6)
+
+In addition, if you run the common workflows, please also cite the quantum engine(s) that you will use. We provide below a table of references for your convenience.
 
 Engine           | DOIs or URLs to be cited
 ---------------- | ----------------------------
@@ -17,7 +20,7 @@ BigDFT           | [10.1063/5.0004792](https://doi.org/10.1063/5.0004792)
 CASTEP           | [10.1524/zkri.220.5.567.65075](https://doi.org/10.1524/zkri.220.5.567.65075)
 CP2K             | [10.1002/wcms.1159](https://doi.org/10.1002/wcms.1159) [10.1063/5.0007045](https://doi.org/10.1063/5.0007045)
 FLEUR            | [https://www.flapw.de](https://www.flapw.de)
-Gaussian         |
+Gaussian         | [see instructions here](https://gaussian.com/g09citation/)
 NWChem           | [10.1063/5.0004997](https://doi.org/10.1063/5.0004997)
 ORCA             | [10.1002/wcms.81](https://doi.org/10.1002/wcms.81) [10.1002/wcms.1327](https://doi.org/10.1002/wcms.1327)
 Quantum ESPRESSO | [10.1088/0953-8984/21/39/395502](https://doi.org/10.1088/0953-8984/21/39/395502) [10.1088/1361-648x/aa8f79](https://doi.org/10.1088/1361-648x/aa8f79)
