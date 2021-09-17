@@ -88,7 +88,7 @@ Only ``structure`` and ``engines`` can be specified as a positional argument, al
     * ``moderate``: a safe choice for prototyping and preliminary studies.
     * ``precise``: uses parameters that might result in an computationally expensive simulation but provides well converged results.
 
-  More details on the parameter choices for the eleven implementations supporting the relax common are reported in the supplementary material of (doi paper).
+  More details on the parameter choices for the eleven implementations supporting the relax common are reported in the supplementary material of `S. P. Huber et al., npj Comput. Mater. 7, 136 (2021)`_.
   Three inspections method are implemented for the protocol specifications:
 
   .. code:: python
@@ -126,7 +126,7 @@ Only ``structure`` and ``engines`` can be specified as a positional argument, al
   It accepts only the ‘insulator’ and ‘metal’ values.
   This input is relevant only for calculations on extended systems.
   In case such option is not specified, the calculation is assumed to be metallic which is the safest assumption.
-  An exact understanding of the difference between ‘insulator’ and ‘metal’ calculations for each supported quantum engine can be achieved reading the supplementary material of (doi paper).
+  An exact understanding of the difference between ‘insulator’ and ‘metal’ calculations for each supported quantum engine can be achieved reading the supplementary material of `S. P. Huber et al., npj Comput. Mater. 7, 136 (2021)`_.
   It must be noted that several implementations ignore the passing of this option since do not require special input parameters for  ‘insulator’ or ‘metal’ calculations.
   To explore the supported electronic types for each implementation an inspection method is available:
 
@@ -152,7 +152,7 @@ Only ``structure`` and ``engines`` can be specified as a positional argument, al
   The quantity is passed as the spin polarization in units of electrons, meaning the difference between spin up and spin down electrons for the site.
   This also corresponds to the magnetization of the site in Bohr magnetons (μB).
   The default for this input is the Python value None and, in case of calculations with spin, the None value signals that the implementation should automatically decide an appropriate default initial magnetization.
-  The implementation of such choice is code-dependent and described in the supplementary material of the manuscript (doi)
+  The implementation of such choice is code-dependent and described in the supplementary material of the `S. P. Huber et al., npj Comput. Mater. 7, 136 (2021)`_.
 
 .. _relax-ref-wc:
 
@@ -270,3 +270,4 @@ A list of options follows:
 
 
 .. _StructureData: https://aiida-core.readthedocs.io/en/latest/topics/data_types.html#structuredata
+.. _S. P. Huber et al., npj Comput. Mater. 7, 136 (2021): https://doi.org/10.1038/s41524-021-00594-6
