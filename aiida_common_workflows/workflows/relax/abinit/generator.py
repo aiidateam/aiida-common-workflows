@@ -41,7 +41,7 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
     }
     _electronic_types = {
         ElectronicType.METAL: 'Treat the system as metallic by allowing occupations to change, ' \
-            'using Fermi-Dirac smearing, and adding additional bands.',
+            'using Gaussian smearing, and adding additional bands.',
         ElectronicType.INSULATOR: 'Treat the system as an insulator with fixed integer occupations.'
     }
 
@@ -183,7 +183,7 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             )  # Remove tolvrs; we will use force tolerance for SCF
             # Set k-points to gamma-point
             protocol['base']['kpoints'] = [1, 1, 1]
-            protocol['base']['abinit']['parameters']['shiftk'] = [[0, 0, 0]]
+            # protocol['base']['abinit']['parameters']['shiftk'] = [[0, 0, 0]]
             protocol['base']['abinit']['parameters']['nkpt'] = 1
             # Set a force tolerance for SCF convergence
             protocol['base']['abinit']['parameters']['toldff'] = threshold_f * 1.0e-1
@@ -210,12 +210,15 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         elif relax_type == RelaxType.POSITIONS_CELL:
             builder.abinit['parameters']['optcell'] = 2  # fully optimize the cell geometry
             builder.abinit['parameters']['dilatmx'] = 1.15  # book additional mem. for p.w. basis exp.
+            builder.abinit['parameters']['ecutsm'] = 0.5  # Ha, smearing on the energy cutoff
         elif relax_type == RelaxType.POSITIONS_VOLUME:
             builder.abinit['parameters']['optcell'] = 1  # optimize volume only
             builder.abinit['parameters']['dilatmx'] = 1.15  # book additional mem. for p.w. basis exp.
+            builder.abinit['parameters']['ecutsm'] = 0.5  # Ha, smearing on the energy cutoff
         elif relax_type == RelaxType.POSITIONS_SHAPE:
             builder.abinit['parameters']['optcell'] = 3  # constant-volume optimization of cell geometry
             builder.abinit['parameters']['dilatmx'] = 1.05  # book additional mem. for p.w. basis exp.
+            builder.abinit['parameters']['ecutsm'] = 0.5  # Ha, smearing on the energy cutoff
         else:
             raise ValueError('relax type `{}` is not supported'.format(relax_type.value))
 
