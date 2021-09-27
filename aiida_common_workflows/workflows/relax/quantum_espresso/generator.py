@@ -189,6 +189,13 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                         }
                     }
                 },
+                'base_final_scf': {
+                    'pw': {
+                        'metadata': {
+                            'options': engines['relax']['options']
+                        }
+                    }
+                },
             },
             relax_type=relax_type,
             electronic_type=electronic_type,

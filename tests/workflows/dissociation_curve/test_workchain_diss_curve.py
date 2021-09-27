@@ -26,7 +26,6 @@ def common_relax_workchain(request) -> CommonRelaxWorkChain:
     return WorkflowFactory(request.param)
 
 
-@pytest.mark.usefixtures('with_database')
 def test_validate_sub_process_class(ctx):
     """Test the `validate_sub_process_class` validator."""
     for value in [None, WorkChain]:
@@ -34,7 +33,6 @@ def test_validate_sub_process_class(ctx):
         assert dissociation.validate_sub_process_class(value, ctx) == message
 
 
-@pytest.mark.usefixtures('with_database')
 def test_validate_sub_process_class_plugins(ctx, common_relax_workchain):
     """Test the `validate_sub_process_class` validator."""
     from aiida_common_workflows.plugins import get_entry_point_name_from_class
@@ -132,7 +130,6 @@ def test_validate_inputs_generator_inputs(ctx, generate_code, generate_structure
     assert "invalid_value' is not a valid SpinType" in dissociation.validate_inputs(value, ctx)
 
 
-@pytest.mark.usefixtures('with_database')
 def test_validate_molecule(ctx, generate_structure):
     """Test the `validate_molecule` validator."""
     molecule = generate_structure()
@@ -142,17 +139,14 @@ def test_validate_molecule(ctx, generate_structure):
     assert dissociation.validate_molecule(molecule, ctx) is None
 
 
-@pytest.mark.usefixtures('with_database')
 def test_validate_distances(ctx):
     """Test the `validate_scale_factors` validator."""
     assert dissociation.validate_distances(None, ctx) is None
     assert dissociation.validate_distances(orm.List(list=[0.98, 1, 1.02]), ctx) is None
-
     assert dissociation.validate_distances(orm.List(list=[0]), ctx) == 'need at least 2 distances.'
     assert dissociation.validate_distances(orm.List(list=[-1, -2, -2]), ctx) == 'distances must be positive.'
 
 
-@pytest.mark.usefixtures('with_database')
 def test_validate_distances_count(ctx):
     """Test the `validate_scale_count` validator."""
     assert dissociation.validate_distances_count(None, ctx) is None
@@ -161,19 +155,15 @@ def test_validate_distances_count(ctx):
     assert dissociation.validate_distances_count(orm.Int(1), ctx) == 'need at least 2 distances.'
 
 
-@pytest.mark.usefixtures('with_database')
 def test_validate_distance_max(ctx):
     """Test the `validate_distance_max` validator."""
     assert dissociation.validate_distance_max(None, ctx) is None
     assert dissociation.validate_distance_max(orm.Float(0.5), ctx) is None
-
     assert dissociation.validate_distance_max(orm.Float(-0.5), ctx) == '`distance_max` must be bigger than zero.'
 
 
-@pytest.mark.usefixtures('with_database')
 def test_validate_distance_min(ctx):
     """Test the `validate_scale_increment` validator."""
     assert dissociation.validate_distance_min(None, ctx) is None
     assert dissociation.validate_distance_min(orm.Float(0.5), ctx) is None
-
     assert dissociation.validate_distance_min(orm.Float(-0.5), ctx) == '`distance_min` must be bigger than zero.'

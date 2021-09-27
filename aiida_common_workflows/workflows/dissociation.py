@@ -8,7 +8,7 @@ from aiida import orm
 from aiida.common import exceptions
 from aiida.engine import WorkChain, append_, calcfunction
 from aiida.plugins import WorkflowFactory
-from aiida_common_workflows.workflows.relax.generator import RelaxType, SpinType
+from aiida_common_workflows.workflows.relax.generator import RelaxType, SpinType, ElectronicType
 from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChain
 
 
@@ -128,6 +128,8 @@ class DissociationCurveWorkChain(WorkChain):
             help='The type of relaxation to perform.')
         spec.input('generator_inputs.spin_type', valid_type=(SpinType, str), required=False, non_db=True,
             help='The type of spin for the calculation.')
+        spec.input('generator_inputs.electronic_type', valid_type=(ElectronicType, str), required=False, non_db=True,
+            help='The type of electronics (insulator/metal) for the calculation.')
         spec.input('generator_inputs.magnetization_per_site', valid_type=(list, tuple), required=False, non_db=True,
             help='List containing the initial magnetization fer each site.')
         spec.input_namespace('sub_process', dynamic=True, populate_defaults=False)

@@ -116,7 +116,15 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         protocol = copy.deepcopy(self.get_protocol(protocol))
         code = engines['relax']['code']
 
-        pseudo_family = orm.Group.objects.get(label=protocol.pop('pseudo_family'))
+        pseudo_family_label = protocol.pop('pseudo_family')
+        try:
+            pseudo_family = orm.Group.objects.get(label=pseudo_family_label)
+        except exceptions.NotExistent as exception:
+            raise ValueError(
+                f'required pseudo family `{pseudo_family_label}` is not installed. '
+                'Please use `aiida-pseudo install pseudo-dojo` to install it.'
+            ) from exception
+
         cutoff_stringency = protocol['cutoff_stringency']
         pseudo_type = pseudo_family.pseudo_type
         recommended_ecut_wfc, recommended_ecut_rho = pseudo_family.get_recommended_cutoffs(
@@ -249,6 +257,9 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             else:
                 raise ValueError(f'Initial magnetization {magnetization_per_site} is ambiguous')
         elif spin_type == SpinType.NON_COLLINEAR:
+            if magnetization_per_site is None:
+                magnetization_per_site = get_initial_magnetization(structure)
+                warnings.warn(f'input magnetization per site was None, setting it to {magnetization_per_site}')
             # LATER: support vector magnetization_per_site
             builder.abinit['parameters']['nspinor'] = 2  # w.f. as spinors
             builder.abinit['parameters']['nsppol'] = 1  # spin-up and spin-down can't be disentangled
@@ -385,7 +396,7 @@ def recursive_merge(left: Dict[str, Any], right: Dict[str, Any]) -> Dict[str, An
     """
     for key, value in left.items():
         if key in right:
-            if isinstance(value, collections.Mapping) and isinstance(right[key], collections.Mapping):
+            if isinstance(value, collections.abc.Mapping) and isinstance(right[key], collections.abc.Mapping):
                 right[key] = recursive_merge(value, right[key])
 
     merged = left.copy()

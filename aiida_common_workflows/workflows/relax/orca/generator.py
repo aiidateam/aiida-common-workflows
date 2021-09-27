@@ -53,7 +53,7 @@ class OrcaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
     def _initialize_protocols(self):
         """Initialize the protocols class attribute by parsing them from the configuration file."""
-        yamlpath = os.path.join(os.path.dirname(__file__), 'protocols.yaml')
+        yamlpath = os.path.join(os.path.dirname(__file__), 'protocol.yml')
 
         with open(yamlpath) as handler:
             self._protocols = yaml.safe_load(handler)
@@ -117,7 +117,7 @@ class OrcaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         # Checks
         if any(structure.get_attribute_many(['pbc1', 'pbc2', 'pbc2'])):
-            warnings.warn('Warning: PBC detected in the input structure. It is not supported and thus is ignored.')
+            warnings.warn('PBC detected in the input structure. It is not supported and thus is ignored.')
 
         if protocol not in self.get_protocol_names():
             warnings.warn('no protocol implemented with name {}, using default moderate'.format(protocol))
@@ -154,9 +154,7 @@ class OrcaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             if magnetization_per_site is None:
                 multiplicity_guess = 1
             else:
-                warnings.warn(
-                    'Warning: magnetization_per_site site-resolved info is disregarded, only total spin is processed.'
-                )
+                warnings.warn('magnetization_per_site site-resolved info is disregarded, only total spin is processed.')
                 # magnetization_per_site are in units of [Bohr magnetons] (*0.5 to get in [au])
                 total_spin_guess = 0.5 * np.abs(np.sum(magnetization_per_site))
                 multiplicity_guess = 2 * total_spin_guess + 1

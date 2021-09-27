@@ -80,7 +80,7 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
     def _initialize_protocols(self):
         """Initialize the protocols class attribute by parsing them from the configuration file."""
-        _filepath = os.path.join(os.path.dirname(__file__), 'protocols_registry.yaml')
+        _filepath = os.path.join(os.path.dirname(__file__), 'protocol.yml')
 
         with open(_filepath) as _thefile:
             self._protocols = yaml.full_load(_thefile)

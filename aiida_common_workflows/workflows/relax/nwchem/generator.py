@@ -112,8 +112,8 @@ class NwchemCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         # Protocol
         parameters = self.get_protocol(protocol)
-        _ = parameters.pop('description')
-        _ = parameters.pop('name')
+        parameters.pop('description', None)
+        parameters.pop('name', None)
 
         # # kpoints
         target_spacing = parameters.pop('kpoint_spacing')
@@ -136,7 +136,7 @@ class NwchemCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             parameters['set'] = {'includestress': '.true.', 'nwpw:zero_forces': '.true.'}
         elif relax_type == RelaxType.NONE:
             parameters['task'] = 'band gradient'
-            _ = parameters.pop('driver')
+            parameters.pop('driver', None)
         else:
             raise ValueError('relax_type `{}` is not supported'.format(relax_type.value))
 
@@ -147,7 +147,7 @@ class NwchemCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             parameters['nwpw']['smear'] = 'fermi'
             parameters['nwpw']['scf'] = 'Anderson outer_iterations 0 Kerker 2.0'
             parameters['nwpw']['loop'] = '10 10'
-            _ = parameters['nwpw'].pop('lmbfgs')  # Revert to CG
+            parameters['nwpw'].pop('lmbfgs', None)  # Revert to CG
         else:
             raise ValueError('electronic_type `{}` is not supported'.format(electronic_type.value))
 
@@ -164,11 +164,34 @@ class NwchemCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         if magnetization_per_site:
             raise ValueError('magnetization per site not yet supported')
 
+        # Add a unit cell to the geometry stanza
+        add_cell = orm.Bool(True)
+
         # Special case of a molecule in "open boundary conditions"
         if structure.pbc == (False, False, False):
             warnings.warn('PBCs set to false in input structure: assuming this is a molecular calculation')
-            parameters['nwpw']['monkhorst-pack'] = '1 1 1'  # Gamma only
-            parameters['nwpw']['cutoff'] = 250
+            add_cell = orm.Bool(False)
+            # We don't use the geometry stanza for the cell, but add it in the parameters
+            parameters['nwpw']['simulation_cell angstroms'] = {
+                'lattice': {
+                    'lat_a': structure.cell_lengths[0],
+                    'lat_b': structure.cell_lengths[1],
+                    'lat_c': structure.cell_lengths[2],
+                    'alpha': structure.cell_angles[0],
+                    'beta': structure.cell_angles[1],
+                    'gamma': structure.cell_angles[2],
+                }
+            }
+            parameters['driver']['redoautoz'] = ''  # To ensure internal coordinates are refreshed
+            parameters['nwpw']['cutoff'] = 140
+            parameters['task'] = 'pspw optimize'
+
+            parameters['nwpw'].pop('monkhorst-pack', None)
+            parameters['nwpw'].pop('ewald_rcut', None)
+            parameters['nwpw'].pop('ewald_ncut', None)
+            parameters['nwpw'].pop('smear', None)
+            parameters['nwpw'].pop('scf', None)
+            parameters['nwpw'].pop('loop', None)
 
         # Forces threshold.
         if threshold_forces is not None:
@@ -180,11 +203,10 @@ class NwchemCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         # Prepare builder
         builder = self.process_class.get_builder()
-
         builder.nwchem.code = orm.load_code(engines['relax']['code'])
         builder.nwchem.metadata.options = engines['relax']['options']
-        builder.nwchem.parameters = orm.Dict(dict=parameters)
-        builder.nwchem.add_cell = orm.Bool(True)
         builder.nwchem.structure = structure
+        builder.nwchem.add_cell = add_cell
+        builder.nwchem.parameters = orm.Dict(dict=parameters)
 
         return builder
