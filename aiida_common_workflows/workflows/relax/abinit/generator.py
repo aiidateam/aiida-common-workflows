@@ -210,15 +210,15 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         elif relax_type == RelaxType.POSITIONS_CELL:
             builder.abinit['parameters']['optcell'] = 2  # fully optimize the cell geometry
             builder.abinit['parameters']['dilatmx'] = 1.15  # book additional mem. for p.w. basis exp.
-            builder.abinit['parameters']['ecutsm'] = 0.5 # Ha, smearing on the energy cutoff
+            builder.abinit['parameters']['ecutsm'] = 0.5  # Ha, smearing on the energy cutoff
         elif relax_type == RelaxType.POSITIONS_VOLUME:
             builder.abinit['parameters']['optcell'] = 1  # optimize volume only
             builder.abinit['parameters']['dilatmx'] = 1.15  # book additional mem. for p.w. basis exp.
-            builder.abinit['parameters']['ecutsm'] = 0.5 # Ha, smearing on the energy cutoff
+            builder.abinit['parameters']['ecutsm'] = 0.5  # Ha, smearing on the energy cutoff
         elif relax_type == RelaxType.POSITIONS_SHAPE:
             builder.abinit['parameters']['optcell'] = 3  # constant-volume optimization of cell geometry
             builder.abinit['parameters']['dilatmx'] = 1.05  # book additional mem. for p.w. basis exp.
-            builder.abinit['parameters']['ecutsm'] = 0.5 # Ha, smearing on the energy cutoff
+            builder.abinit['parameters']['ecutsm'] = 0.5  # Ha, smearing on the energy cutoff
         else:
             raise ValueError('relax type `{}` is not supported'.format(relax_type.value))
 
