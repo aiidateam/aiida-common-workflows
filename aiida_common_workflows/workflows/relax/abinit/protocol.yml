@@ -7,9 +7,8 @@ fast:
         kpoints_distance: 0.25
         abinit:
             parameters:
-                ecutsm: 0.5 # Ha
                 nshiftk: 1
-                shiftk: [[0.5, 0.5, 0.5]]
+                shiftk: [[0.0, 0.0, 0.0]]
                 nstep: 100
                 # tolerances
                 tolvrs: 1.0e-7 # Ha
@@ -20,8 +19,9 @@ fast:
                 optcell: 0 # do not optimize the cell, Abinit default
                 ionmov: 22 # optimize ionic positions with L-BFGS
                 dilatmx: 1.00 # don't book additional memory for basis set enlargement, Abinit default
+                ecutsm: 0.00 # don't smear the energy cutoff, Abinit default
                 # default to metallic treatment
-                occopt: 3 # Fermi-Dirac smearing
+                occopt: 7 # Gaussian smearing
                 fband: 2.00 # increase the number of bands to > fband * natoms
                 tsmear: 0.008 # Ha
                 # default to no spin treatment
@@ -38,9 +38,8 @@ moderate:
         kpoints_distance: 0.20
         abinit:
             parameters:
-                ecutsm: 0.5 # Ha
                 nshiftk: 1
-                shiftk: [[0.5, 0.5, 0.5]]
+                shiftk: [[0.0, 0.0, 0.0]]
                 nstep: 200
                 # tolerances
                 tolvrs: 1.0e-9 # Ha
@@ -51,8 +50,9 @@ moderate:
                 optcell: 0 # do not optimize the cell, Abinit default
                 ionmov: 22 # optimize ionic positions with L-BFGS
                 dilatmx: 1.00 # don't book additional memory for basis set enlargement, Abinit default
+                ecutsm: 0.00 # don't smear the energy cutoff, Abinit default
                 # default to metallic treatment
-                occopt: 3 # Fermi-Dirac smearing
+                occopt: 7 # Gaussian smearing
                 fband: 2.00 # increase the number of bands to > fband * natoms
                 tsmear: 0.008 # Ha
                 # default to no spin treatment
@@ -66,12 +66,11 @@ precise:
     pseudo_family: "PseudoDojo/1.0/PBE/SR/standard/jthxml"
     cutoff_stringency: "high"
     base:
-        kpoints_distance: 0.1
+        kpoints_distance: 0.04
         abinit:
             parameters:
-                ecutsm: 0.5 # Ha
                 nshiftk: 1
-                shiftk: [[0.5, 0.5, 0.5]]
+                shiftk: [[0.0, 0.0, 0.0]]
                 nstep: 300
                 # tolerances
                 tolvrs: 1.0e-10 # Ha
@@ -82,10 +81,11 @@ precise:
                 optcell: 0 # do not optimize the cell, Abinit default
                 ionmov: 22 # optimize ionic positions with L-BFGS
                 dilatmx: 1.00 # don't book additional memory for basis set enlargement, Abinit default
+                ecutsm: 0.00 # don't smear the energy cutoff, Abinit default
                 # default to metallic treatment
-                occopt: 3 # Fermi-Dirac smearing
+                occopt: 7 # Gaussian smearing
                 fband: 2.00 # increase the number of bands to > fband * natoms
-                tsmear: 0.005 # Ha
+                tsmear: 0.0005 # Ha
                 # default to no spin treatment
                 nspinor: 1 # no spin-orbit coupling, Abinit default
                 nsppol: 1 # no spin-polarization, Abinit default
