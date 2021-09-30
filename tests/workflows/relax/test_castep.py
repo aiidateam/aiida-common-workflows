@@ -50,13 +50,13 @@ def with_otfg(with_database):
 
 
 @pytest.fixture
-def default_builder_inputs(generate_code, generate_structure):
+def default_builder_inputs(generate_code, generate_structure, castep_code):
     """Return a dictionary with minimum required inputs for the ``get_builder`` method of the inputs generator."""
     return {
         'structure': generate_structure(symbols=('Si',)),
         'engines': {
             'relax': {
-                'code': generate_code('castep').store().uuid,
+                'code': castep_code,
                 'options': {
                     'resources': {
                         'num_machines': 1,
@@ -88,7 +88,7 @@ def test_supported_electronic_types(default_builder_inputs):
     """Test calling ``get_builder`` for the supported ``electronic_types``."""
     inputs = default_builder_inputs
 
-    for electronic_type in GENERATOR.get_electronic_types():
+    for electronic_type in GENERATOR.spec().inputs['electronic_type'].choices:
         inputs['electronic_type'] = electronic_type
         builder = GENERATOR.get_builder(**inputs)
         assert isinstance(builder, engine.ProcessBuilder)
@@ -98,7 +98,7 @@ def test_supported_relax_types(default_builder_inputs):
     """Test calling ``get_builder`` for the supported ``relax_types``."""
     inputs = default_builder_inputs
 
-    for relax_type in GENERATOR.get_relax_types():
+    for relax_type in GENERATOR.spec().inputs['relax_type'].choices:
         inputs['relax_type'] = relax_type
         builder = GENERATOR.get_builder(**inputs)
         assert isinstance(builder, engine.ProcessBuilder)
@@ -108,7 +108,7 @@ def test_supported_spin_types(default_builder_inputs):
     """Test calling ``get_builder`` for the supported ``spin_types``."""
     inputs = default_builder_inputs
 
-    for spin_type in GENERATOR.get_spin_types():
+    for spin_type in GENERATOR.spec().inputs['spin_type'].choices:
         inputs['spin_type'] = spin_type
         builder = GENERATOR.get_builder(**inputs)
         assert isinstance(builder, engine.ProcessBuilder)
@@ -212,23 +212,25 @@ def test_input_generator(castep_code, nacl, si):  # pylint: disable=invalid-name
     """Test for the input generator"""
     gen = CastepCommonRelaxInputGenerator(process_class=CastepCommonRelaxWorkChain)
     engines = {'relax': {'code': castep_code, 'options': {}}}
-    builder = gen.get_builder(si, engines, protocol='moderate')
+    builder = gen.get_builder(structure=si, engines=engines, protocol='moderate')
     param = builder.calc.parameters.get_dict()
     assert param['cut_off_energy'] == 326
     assert builder.base.kpoints_spacing == pytest.approx(0.023873, abs=1e-6)
 
-    builder = gen.get_builder(si, engines, protocol='moderate', relax_type=RelaxType.POSITIONS)
+    builder = gen.get_builder(structure=si, engines=engines, protocol='moderate', relax_type=RelaxType.POSITIONS)
     assert 'fix_all_cell' in builder.calc.parameters.get_dict()
 
-    builder = gen.get_builder(si, engines, protocol='moderate', relax_type=RelaxType.POSITIONS_SHAPE)
+    builder = gen.get_builder(structure=si, engines=engines, protocol='moderate', relax_type=RelaxType.POSITIONS_SHAPE)
     assert 'fix_vol' in builder.calc.parameters.get_dict()
 
-    builder = gen.get_builder(si, engines, protocol='moderate', spin_type=SpinType.COLLINEAR)
+    builder = gen.get_builder(structure=si, engines=engines, protocol='moderate', spin_type=SpinType.COLLINEAR)
     assert 'SPINS' in builder.calc.settings.get_dict()
 
-    builder = gen.get_builder(si, engines, protocol='moderate', spin_type=SpinType.NON_COLLINEAR)
+    builder = gen.get_builder(structure=si, engines=engines, protocol='moderate', spin_type=SpinType.NON_COLLINEAR)
     assert builder.calc.settings['SPINS'][0] == [1.0, 1.0, 1.0]
 
-    builder = gen.get_builder(si, engines, protocol='moderate', electronic_type=ElectronicType.INSULATOR)
+    builder = gen.get_builder(
+        structure=si, engines=engines, protocol='moderate', electronic_type=ElectronicType.INSULATOR
+    )
     assert builder.calc.settings is None
     assert builder.base.kpoints_spacing == pytest.approx(0.023873, abs=1e-6)
