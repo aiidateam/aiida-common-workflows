@@ -3,7 +3,24 @@ Common Relax Workflow
 
 The common relax workflow performs a geometric optimization of a molecule or extended system towards the most energetically favorable configuration.
 It defines a common interface that is currently implemented by eleven quantum engines: Abinit, BigDFT, CASTEP, CP2K, FLEUR, Gaussian, NWChem, ORCA, Quantum ESPRESSO, Siesta, VASP.
-The ORCA and Gaussian implementations only support the optimization of molecules.
+Note that the ORCA and Gaussian implementations only support the optimization of molecules.
+On this page you will find generic information on how to use any of these implementations of the common relax workflow.
+The links in the table below provide detailed information on the input generators and any important information regarding the implementation of the individual implementations themselves.
+
+.. toctree::
+   :maxdepth: 1
+
+   implementations/abinit
+   implementations/bigdft
+   implementations/castep
+   implementations/cp2k
+   implementations/fleur
+   implementations/gaussian
+   implementations/nwchem
+   implementations/orca
+   implementations/quantum_espresso
+   implementations/siesta
+   implementations/vasp
 
 In the initial page of this documentation the general instructions for the :ref:`submission of a common workflow <how-to-submit>` are presented, covering both the use of the built-in command line interface (CLI) and custom submission scripts.
 Since the CLI does not expose the full functionalities of the interface, this section focuses on the creation of submission scripts and explains how to have full control on the relaxation process through the common interface.
