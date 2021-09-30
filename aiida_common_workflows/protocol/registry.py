@@ -13,9 +13,8 @@ class ProtocolRegistry:
     _protocols = None
     _default_protocol = None
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *_, **__):
         """Construct an instance of the protocol registry, validating the class attributes set by the sub class."""
-        super().__init__(*args, **kwargs)
 
         def raise_invalid(message):
             raise RuntimeError('invalid protocol registry `{}`: '.format(self.__class__.__name__) + message)

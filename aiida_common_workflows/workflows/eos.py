@@ -22,7 +22,7 @@ def validate_inputs(value, _):
     generator = process_class.get_input_generator()
 
     try:
-        generator.get_builder(value['structure'], **value['generator_inputs'])
+        generator.get_builder(structure=value['structure'], **value['generator_inputs'])
     except Exception as exc:  # pylint: disable=broad-except
         return f'`{generator.__class__.__name__}.get_builder()` fails for the provided `generator_inputs`: {exc}'
 
@@ -139,7 +139,7 @@ class EquationOfStateWorkChain(WorkChain):
         process_class = WorkflowFactory(self.inputs.sub_process_class)
 
         builder = process_class.get_input_generator().get_builder(
-            structure,
+            structure=structure,
             reference_workchain=reference_workchain,
             **self.inputs.generator_inputs
         )
@@ -173,7 +173,7 @@ class EquationOfStateWorkChain(WorkChain):
 
     def inspect_eos(self):
         """Inspect all children workflows to make sure they finished successfully."""
-        if any([not child.is_finished_ok for child in self.ctx.children]):
+        if any(not child.is_finished_ok for child in self.ctx.children):
             return self.exit_codes.ERROR_SUB_PROCESS_FAILED.format(cls=self.inputs.sub_process_class)  # pylint: disable=no-member
 
         for index, child in enumerate(self.ctx.children):

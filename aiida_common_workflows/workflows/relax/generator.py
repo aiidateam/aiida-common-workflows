@@ -1,162 +1,111 @@
 # -*- coding: utf-8 -*-
 """Module with base input generator for the common structure relax workchains."""
-from abc import ABCMeta, abstractmethod
-from typing import Any, Dict, List, Tuple, Union
+import abc
 
-from aiida import engine
+from aiida import orm
 from aiida import plugins
+
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
-from aiida_common_workflows.protocol import ProtocolRegistry
+from aiida_common_workflows.generators import ChoiceType, InputGenerator
 
 __all__ = ('CommonRelaxInputGenerator',)
 
-StructureData = plugins.DataFactory('structure')
 
+class CommonRelaxInputGenerator(InputGenerator, metaclass=abc.ABCMeta):
+    """Input generator for the common relax workflow.
 
-class CommonRelaxInputGenerator(ProtocolRegistry, metaclass=ABCMeta):
-    """Input generator for the common structure relax workchains.
-
-    Subclasses should define the `_engine_types`, `_spin_types`, `_electronic_types` and `_relax_types` class attributes
-    as well as the `get_builder` method.
+    This class should be subclassed by implementations for specific quantum engines. After calling the super, they can
+    modify the ports defined here in the base class as well as add additional custom ports.
     """
 
-    _spin_types = None
-    _engine_types = None
-    _relax_types = None
-    _process_class = None
-    _electronic_types = None
+    @classmethod
+    def define(cls, spec):
+        """Define the specification of the input generator.
 
-    def __init__(self, *args, **kwargs):
-        """Construct an instance of the input generator, validating the class attributes."""
-
-        def raise_invalid(message):
-            raise RuntimeError('invalid input generator `{}`: {}'.format(self.__class__.__name__, message))
-
-        try:
-            self._process_class = kwargs.pop('process_class')
-        except KeyError:
-            raise_invalid('required keyword argument `process_class` was not defined.')
-
-        super().__init__(*args, **kwargs)
-
-        if self._engine_types is None:
-            raise_invalid('does not define `_engine_types`.')
-
-        if self._relax_types is None:
-            raise_invalid('does not define `_relax_types`.')
-
-        if self._spin_types is None:
-            raise_invalid('does not define `_spin_types`.')
-
-        if self._electronic_types is None:
-            raise_invalid('does not define `_electronic_types`.')
-
-        if any(not isinstance(relax_type, RelaxType) for relax_type in self._relax_types):
-            raise_invalid('`_relax_types` are not all an instance of `RelaxType`')
-
-        if any(not isinstance(spin_type, SpinType) for spin_type in self._spin_types):
-            raise_invalid('`_spin_types` are not all an instance of `SpinType`')
-
-        if any(not isinstance(electronic_type, ElectronicType) for electronic_type in self._electronic_types):
-            raise_invalid('`_electronic_types` are not all an instance of `ElectronicType`')
-
-    @property
-    def process_class(self):
-        """Return the process class for which this instance is supposed to build the inputs."""
-        return self._process_class
-
-    @abstractmethod
-    def get_builder(
-        self,
-        structure: StructureData,
-        engines: Dict[str, Any],
-        *,
-        protocol: str = None,
-        relax_type: Union[RelaxType, str] = RelaxType.POSITIONS,
-        electronic_type: Union[ElectronicType, str] = ElectronicType.METAL,
-        spin_type: Union[SpinType, str] = SpinType.NONE,
-        magnetization_per_site: Union[List[float], Tuple[float]] = None,
-        threshold_forces: float = None,
-        threshold_stress: float = None,
-        reference_workchain=None,
-        **kwargs
-    ) -> engine.ProcessBuilder:
-        """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
-
-        :param structure: the structure to be relaxed.
-        :param engines: a dictionary containing the computational resources for the relaxation.
-        :param protocol: the protocol to use when determining the workchain inputs.
-        :param relax_type: the type of relaxation to perform.
-        :param electronic_type: the electronic character that is to be used for the structure.
-        :param spin_type: the spin polarization type to use for the calculation.
-        :param magnetization_per_site: a list/tuple with the initial spin polarization for each site. Float or integer
-            in units of electrons. If not defined, the builder will automatically define the initial magnetization if
-            and only if `spin_type != SpinType.NONE`.
-        :param threshold_forces: target threshold for the forces in eV/Å.
-        :param threshold_stress: target threshold for the stress in eV/Å^3.
-        :param reference_workchain: a <Code>RelaxWorkChain node.
-        :param kwargs: any inputs that are specific to the plugin.
-        :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
+        The ports defined on the specification are the inputs that will be accepted by the ``get_builder`` method.
         """
-        # pylint: disable=too-many-locals,unused-argument,too-many-branches
-        if reference_workchain is not None:
-            try:
-                prev_wc_class = reference_workchain.process_class
-                if prev_wc_class not in [self.process_class, self.process_class._process_class]:  # pylint: disable=protected-access
-                    raise ValueError('The "reference_workchain" must be a node of {}'.format(self.process_class))
-            except AttributeError as exc:
-                raise ValueError('The "reference_workchain" must be a node of {}'.format(self.process_class)) from exc
-
-        for arg, valid_enum in [(relax_type, RelaxType), (electronic_type, ElectronicType), (spin_type, SpinType)]:
-            if not isinstance(arg, (str, valid_enum)):
-                raise TypeError(f'{arg} is neither a string nor a {valid_enum}.')
-
-        # Convert the various type arguments to its Enum counterpart if a string is passed
-        if isinstance(relax_type, str):
-            relax_type = RelaxType(relax_type)
-
-        if isinstance(electronic_type, str):
-            electronic_type = ElectronicType(electronic_type)
-
-        if isinstance(spin_type, str):
-            spin_type = SpinType(spin_type)
-
-        if relax_type not in self._relax_types:
-            raise ValueError('relax type `{}` is not supported'.format(relax_type))
-
-        if electronic_type not in self._electronic_types:
-            raise ValueError('electronic type `{}` is not supported'.format(electronic_type))
-
-        if spin_type not in self._spin_types:
-            raise ValueError('spin type `{}` is not supported'.format(spin_type))
-
-        if magnetization_per_site is not None:
-            if not isinstance(magnetization_per_site, (list, tuple)):
-                raise ValueError('The `initial_magnetization` must be a list or a tuple')
-            if len(magnetization_per_site) != len(structure.sites):
-                raise ValueError(
-                    'The size of `magnetization_per_site` is different from the number of sites in `structure`.'
-                )
-
-    def get_engine_types(self):
-        """Return the calculation types for this input generator."""
-        return list(self._engine_types.keys())
-
-    def get_engine_type_schema(self, key):
-        """Return the schema of a particular calculation type for this input generator."""
-        try:
-            return self._engine_types[key]
-        except KeyError as exc:
-            raise ValueError('the calculation type `{}` does not exist'.format(key)) from exc
-
-    def get_relax_types(self):
-        """Return the available relax types for this input generator."""
-        return list(self._relax_types.keys())
-
-    def get_spin_types(self):
-        """Return the available spin types for this input generator."""
-        return list(self._spin_types.keys())
-
-    def get_electronic_types(self):
-        """Return the available electronic types for this input generator."""
-        return list(self._electronic_types.keys())
+        super().define(spec)
+        spec.input(
+            'structure',
+            valid_type=plugins.DataFactory('structure'),
+            help='The structure whose geometry should be optimized.'
+        )
+        spec.input(
+            'protocol',
+            valid_type=ChoiceType(('fast', 'moderate', 'precise')),
+            default='moderate',
+            help='The protocol to use for the automated input generation. This value indicates the level of precision '
+            'of the results and computational cost that the input parameters will be selected for.',
+        )
+        spec.input(
+            'spin_type',
+            valid_type=SpinType,
+            serializer=SpinType,
+            default=SpinType.NONE,
+            help='The type of spin polarization to be used.',
+        )
+        spec.input(
+            'relax_type',
+            valid_type=RelaxType,
+            serializer=RelaxType,
+            default=RelaxType.POSITIONS,
+            help='The degrees of freedom during the geometry optimization process.',
+        )
+        spec.input(
+            'electronic_type',
+            valid_type=ElectronicType,
+            serializer=ElectronicType,
+            default=ElectronicType.METAL,
+            help='The electronic character of the system.',
+        )
+        spec.input(
+            'magnetization_per_site',
+            valid_type=list,
+            required=False,
+            help='The initial magnetization of the system. Should be a list of floats, where each float represents the '
+            'spin polarization in units of electrons, meaning the difference between spin up and spin down '
+            'electrons, for the site. This also corresponds to the magnetization of the site in Bohr magnetons '
+            '(μB).',
+        )
+        spec.input(
+            'threshold_forces',
+            valid_type=float,
+            required=False,
+            help='A real positive number indicating the target threshold for the forces in eV/Å. If not specified, '
+            'the protocol specification will select an appropriate value.',
+        )
+        spec.input(
+            'threshold_stress',
+            valid_type=float,
+            required=False,
+            help='A real positive number indicating the target threshold for the stress in eV/Å^3. If not specified, '
+            'the protocol specification will select an appropriate value.',
+        )
+        spec.input(
+            'reference_workchain',
+            valid_type=orm.WorkChainNode,
+            required=False,
+            help='The node of a previously completed process of the same type whose inputs should be taken into '
+            'account when generating inputs. This is important for particular workflows where certain inputs have '
+            'to be kept constant between successive iterations.',
+        )
+        spec.input_namespace(
+            'engines',
+            help='Inputs for the quantum engines',
+        )
+        spec.input_namespace(
+            'engines.relax',
+            help='Inputs for the quantum engine performing the geometry optimization.',
+        )
+        spec.input(
+            'engines.relax.code',
+            valid_type=orm.Code,
+            serializer=orm.load_code,
+            help='The code instance to use for the geometry optimization.',
+        )
+        spec.input(
+            'engines.relax.options',
+            valid_type=dict,
+            required=False,
+            help='Options for the geometry optimization calculation jobs.',
+        )

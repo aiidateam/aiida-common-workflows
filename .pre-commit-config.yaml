@@ -25,5 +25,5 @@ repos:
         language: system
         args: [
             '--max-line-length=120',
-            '--disable=import-outside-toplevel,inconsistent-return-statements,too-many-arguments,bad-continuation,duplicate-code,no-member'
+            '--disable=import-outside-toplevel,inconsistent-return-statements,too-many-arguments,bad-continuation,duplicate-code,no-member,too-few-public-methods'
         ]
