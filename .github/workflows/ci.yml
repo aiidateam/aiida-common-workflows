@@ -26,7 +26,7 @@ jobs:
                 python-version: 3.8
 
         -   name: Install python dependencies
-            run: pip install .[pre-commit,tests]
+            run: pip install .[docs,pre-commit,tests]
 
         -   name: Run pre-commit
             run:
