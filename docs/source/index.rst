@@ -11,6 +11,11 @@ AiiDA common workflows
    workflows/base/index
    workflows/composite/index
 
+.. image:: images/calculator.jpg
+   :width: 100%
+   :alt: The AiiDA common workflows project
+   :align: right
+
 The AiiDA common workflows project provides computational workflows, implemented in `AiiDA`_, to compute various material properties using any of the quantum engines that implement it.
 The distinguishing feature is that the interfaces of the AiiDA common workflows are uniform, independent of the quantum engine that is used underneath to perform the material property simulations.
 These common interfaces make it trivial to switch from quantum engine.
@@ -81,7 +86,7 @@ If more flexibility is required, it is advised to write a custom launch script, 
 .. code:: python
 
     from aiida.engine import submit
-    from aiida.plugin import WorkflowFactory
+    from aiida.plugins import WorkflowFactory
 
     RelaxWorkChain = WorkflowFactory('common_workflows.relax.quantum_espresso')  # Load the relax workflow implementation of choice.
 
@@ -157,8 +162,16 @@ To use a different protocol for the generation of the inputs, simply pass it as 
 How to cite
 ***********
 
-If you use the workflow of this package, please cite the [original paper (doi:)]().
-In addition, one should cite the quantum engines whose implementations are used.
+If you use the workflow of this package, please cite the paper in which the work is presented: `S. P. Huber et al., npj Comput. Mater. 7, 136 (2021)`_.
+
+In addition, if you run the common workflows, please also cite the AiiDA engine that manages the simulations and stores the provenance:
+
+   * Main AiiDA paper: `S. P. Huber et al., Scientific Data 7, 300 (2020)`_
+
+   * AiiDA engine: `M. Uhrin et al., Comp. Mat. Sci. 187 (2021)`_
+
+
+You should also cite the quantum engines whose implementations are used; you can check the `README of the project`_ for a summary table of references for each quantum engine.
 
 
 
@@ -168,3 +181,7 @@ In addition, one should cite the quantum engines whose implementations are used.
 .. _Code: https://aiida-core.readthedocs.io/en/latest/howto/run_codes.html#how-to-setup-a-code
 .. _entry point name: https://aiida-core.readthedocs.io/en/latest/topics/plugins.html#what-is-an-entry-point)
 .. _process builder instance: https://aiida-core.readthedocs.io/en/latest/topics/processes/usage.html?highlight=ProcessBuilder#process-builder
+.. _S. P. Huber et al., npj Comput. Mater. 7, 136 (2021): https://doi.org/10.1038/s41524-021-00594-6
+.. _README of the project: https://github.com/aiidateam/aiida-common-workflows/blob/master/README.md
+.. _S. P. Huber et al., Scientific Data 7, 300 (2020): https://doi.org/10.1038/s41597-020-00638-4
+.. _M. Uhrin et al., Comp. Mat. Sci. 187 (2021): https://doi.org/10.1016/j.commatsci.2020.110086
