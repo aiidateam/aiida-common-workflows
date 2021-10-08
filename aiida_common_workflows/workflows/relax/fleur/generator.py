@@ -144,7 +144,7 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             dict={
                 'significant_figures_cell': 9,
                 'significant_figures_position': 9,
-                'cmdline': [f'-{protocol}']
+                'cmdline': [f'-{protocol["name"]}']
             }
         )
 
