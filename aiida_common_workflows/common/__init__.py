@@ -4,4 +4,4 @@
 from .types import *
 from .structure import *
 
-all = (types.__all__, structure.__all__)
+all = (types.__all__ + structure.__all__)

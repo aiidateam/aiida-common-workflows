@@ -2,7 +2,7 @@
 """Module collecting functions to modify StructureData objects."""
 from aiida.engine import calcfunction
 
-__all__ = ('seekpath_explicit_kp_path')
+__all__ = ('seekpath_explicit_kp_path',)
 
 
 @calcfunction
