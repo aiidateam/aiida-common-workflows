@@ -8,7 +8,6 @@ from aiida import engine
 from aiida import orm
 from aiida import plugins
 from aiida.common import exceptions
-from aiida.engine import calcfunction
 from aiida_common_workflows.common import ElectronicType, SpinType, seekpath_explicit_kp_path
 from aiida_common_workflows.generators import ChoiceType, CodeType
 from ..generator import CommonBandsInputGenerator
