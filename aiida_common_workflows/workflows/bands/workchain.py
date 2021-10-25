@@ -39,8 +39,7 @@ class CommonBandsWorkChain(WorkChain, metaclass=ABCMeta):
             cls.inspect_workchain,
             cls.convert_outputs,
         )
-        spec.output('bands', valid_type=BandsData, required=False,
-            help='All cell dimensions and atomic positions are in Ångstrom.')
+        spec.output('bands', valid_type=BandsData, required=False, help='Energies in eV.')
         spec.exit_code(400, 'ERROR_SUB_PROCESS_FAILED',
             message='The `{cls}` workchain failed with exit status {exit_status}.')
 

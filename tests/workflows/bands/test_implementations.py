@@ -25,29 +25,13 @@ def test_spec(workchain):
     generator_spec = generator.spec()
 
     required_ports = {
-        'structure': {
-            'valid_type': plugins.DataFactory('structure')
-        },
         'bands_kpoints': {
             'valid_type': plugins.DataFactory('array.kpoints')
         },
         'parent_folder': {
             'valid_type': orm.RemoteData
         },
-        'protocol': {
-            'valid_type': str
-        },
-        'spin_type': {
-            'valid_type': SpinType
-        },
-        'electronic_type': {
-            'valid_type': ElectronicType
-        },
-        'magnetization_per_site': {
-            'valid_type': list
-        },
         'engines': {},
-        'seekpath_parameters': {}
     }
 
     for port_name, values in required_ports.items():

@@ -3,7 +3,7 @@
 from abc import ABCMeta, abstractmethod
 
 from aiida.engine import WorkChain, ToContext
-from aiida.orm import StructureData, ArrayData, TrajectoryData, Float
+from aiida.orm import StructureData, ArrayData, TrajectoryData, Float, RemoteData
 
 from .generator import CommonRelaxInputGenerator
 
@@ -51,6 +51,8 @@ class CommonRelaxWorkChain(WorkChain, metaclass=ABCMeta):
             help='Total energy in eV.')
         spec.output('total_magnetization', valid_type=Float, required=False,
             help='Total magnetization in Bohr magnetons.')
+        spec.output('remote_folder', valid_type=RemoteData, required=False,
+            help='Folder of the last run calculation.')
         spec.exit_code(400, 'ERROR_SUB_PROCESS_FAILED',
             message='The `{cls}` workchain failed with exit status {exit_status}.')
 
