@@ -3,7 +3,7 @@
 import abc
 import copy
 
-from aiida import engine
+from aiida import engine, orm
 from ..protocol import ProtocolRegistry
 from .spec import InputGeneratorSpec
 
@@ -58,7 +58,14 @@ class InputGenerator(ProtocolRegistry, metaclass=abc.ABCMeta):
         Specific subclass implementations should construct and return a builder from the parsed arguments stored under
         the ``parsed_kwargs`` attribute.
         """
-        processed_kwargs = self.spec().inputs.pre_process(copy.deepcopy(kwargs))
+        copied_kwargs = {}
+        for key, value in kwargs.items():
+            if isinstance(value, orm.Data) and value.is_stored:
+                copied_kwargs[key] = value
+            else:
+                copied_kwargs[key] = copy.deepcopy(value)
+
+        processed_kwargs = self.spec().inputs.pre_process(copied_kwargs)
         serialized_kwargs = self.spec().inputs.serialize(processed_kwargs)
         validation_error = self.spec().inputs.validate(serialized_kwargs)
 
