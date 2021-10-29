@@ -11,19 +11,12 @@ from aiida_common_workflows.generators import ChoiceType, InputGenerator
 __all__ = ('CommonRelaxInputGenerator',)
 
 
-class CommonRelaxInputGenerator(ProtocolRegistry, InputGenerator, metaclass=abc.ABCMeta):
+class CommonRelaxInputGenerator(InputGenerator, ProtocolRegistry, metaclass=abc.ABCMeta):
     """Input generator for the common relax workflow.
 
     This class should be subclassed by implementations for specific quantum engines. After calling the super, they can
     modify the ports defined here in the base class as well as add additional custom ports.
     """
-
-    def __init__(self, **kwargs):
-        """
-        Calls the __init__ of the two parent classes
-        """
-        ProtocolRegistry.__init__(self)
-        InputGenerator.__init__(self, **kwargs)
 
     @classmethod
     def define(cls, spec):

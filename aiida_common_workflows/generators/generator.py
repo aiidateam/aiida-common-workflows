@@ -35,16 +35,14 @@ class InputGenerator(metaclass=abc.ABCMeta):
         The ports defined on the specification are the inputs that will be accepted by the ``get_builder`` method.
         """
 
-    def __init__(self, **kwargs):
+    def __init__(self, process_class, **kwargs):
         """Construct an instance of the input generator, validating the class attributes."""
-
-        #super().__init__(*args, **kwargs)
 
         def raise_invalid(message):
             raise RuntimeError('invalid input generator `{}`: {}'.format(self.__class__.__name__, message))
 
         try:
-            self.process_class = kwargs.pop('process_class')
+            self.process_class = process_class
         except KeyError:
             raise_invalid('required keyword argument `process_class` was not defined.')
 
