@@ -18,11 +18,11 @@ class CommonRelaxInputGenerator(ProtocolRegistry, InputGenerator, metaclass=abc.
     modify the ports defined here in the base class as well as add additional custom ports.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         """
         Calls the __init__ of the two parent classes
         """
-        ProtocolRegistry.__init__(self, *args, **kwargs)
+        ProtocolRegistry.__init__(self)
         InputGenerator.__init__(self, **kwargs)
 
     @classmethod

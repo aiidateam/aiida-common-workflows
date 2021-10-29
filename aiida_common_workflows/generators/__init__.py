@@ -4,6 +4,4 @@ from .generator import InputGenerator
 from .ports import InputGeneratorPort, ChoiceType, CodeType
 from .spec import InputGeneratorSpec
 
-__all__ = (
-    'InputGenerator', 'InputGeneratorPort', 'ChoiceType', 'CodeType', 'InputGeneratorSpec'
-)
+__all__ = ('InputGenerator', 'InputGeneratorPort', 'ChoiceType', 'CodeType', 'InputGeneratorSpec')
