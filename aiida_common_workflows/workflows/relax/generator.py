@@ -4,19 +4,26 @@ import abc
 
 from aiida import orm
 from aiida import plugins
-
+from aiida_common_workflows.protocol import ProtocolRegistry
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, InputGenerator
 
 __all__ = ('CommonRelaxInputGenerator',)
 
 
-class CommonRelaxInputGenerator(InputGenerator, metaclass=abc.ABCMeta):
+class CommonRelaxInputGenerator(ProtocolRegistry, InputGenerator, metaclass=abc.ABCMeta):
     """Input generator for the common relax workflow.
 
     This class should be subclassed by implementations for specific quantum engines. After calling the super, they can
     modify the ports defined here in the base class as well as add additional custom ports.
     """
+
+    def __init__(self, *args, **kwargs):
+        """
+        Calls the __init__ of the two parent classes
+        """
+        ProtocolRegistry.__init__(self, *args, **kwargs)
+        InputGenerator.__init__(self, **kwargs)
 
     @classmethod
     def define(cls, spec):

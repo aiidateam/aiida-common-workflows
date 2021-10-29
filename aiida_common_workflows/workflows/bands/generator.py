@@ -5,12 +5,12 @@ import abc
 from aiida import orm
 from aiida import plugins
 
-from aiida_common_workflows.generators.generator_no_prot import InputGeneratorNoProt
+from aiida_common_workflows.generators import InputGenerator
 
 __all__ = ('CommonBandsInputGenerator',)
 
 
-class CommonBandsInputGenerator(InputGeneratorNoProt, metaclass=abc.ABCMeta):
+class CommonBandsInputGenerator(InputGenerator, metaclass=abc.ABCMeta):
     """Input generator for the common bands workflow.
 
     This class should be subclassed by implementations for specific quantum engines. After calling the super, they can

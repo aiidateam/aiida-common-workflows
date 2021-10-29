@@ -4,13 +4,12 @@ import abc
 import copy
 
 from aiida import engine
-from ..protocol import ProtocolRegistry
 from .spec import InputGeneratorSpec
 
 __all__ = ('InputGenerator',)
 
 
-class InputGenerator(ProtocolRegistry, metaclass=abc.ABCMeta):
+class InputGenerator(metaclass=abc.ABCMeta):
     """Base class for an input generator for a common workflow."""
 
     _spec_cls: InputGeneratorSpec = InputGeneratorSpec
@@ -36,9 +35,10 @@ class InputGenerator(ProtocolRegistry, metaclass=abc.ABCMeta):
         The ports defined on the specification are the inputs that will be accepted by the ``get_builder`` method.
         """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         """Construct an instance of the input generator, validating the class attributes."""
-        super().__init__(*args, **kwargs)
+
+        #super().__init__(*args, **kwargs)
 
         def raise_invalid(message):
             raise RuntimeError('invalid input generator `{}`: {}'.format(self.__class__.__name__, message))
