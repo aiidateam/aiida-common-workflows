@@ -10,6 +10,24 @@ from .spec import InputGeneratorSpec
 __all__ = ('InputGenerator',)
 
 
+def recursively_check_stored_nodes(obj):
+    """
+    This class is used to copy the `dict` containig the arguments passed to `get_builder`
+    following the rules:
+    1) if the value is a node and it is stored, the same value is returned
+    2) if the value is something else, it is deepcopied
+    This function takes care of applying the copy rules also to nested namespaces.
+    :param obj: whatever object, in the `InputGenerator` it receives the `dict` containig
+                `get_builder` arguments.
+    :return: a copy of obj following the rules above
+    """
+    if isinstance(obj, dict):
+        return {k: recursively_check_stored_nodes(v) for k, v in obj.items()}
+    if isinstance(obj, orm.Data) and obj.is_stored:
+        return obj
+    return copy.deepcopy(obj)
+
+
 class InputGenerator(ProtocolRegistry, metaclass=abc.ABCMeta):
     """Base class for an input generator for a common workflow."""
 
@@ -58,12 +76,7 @@ class InputGenerator(ProtocolRegistry, metaclass=abc.ABCMeta):
         Specific subclass implementations should construct and return a builder from the parsed arguments stored under
         the ``parsed_kwargs`` attribute.
         """
-        copied_kwargs = {}
-        for key, value in kwargs.items():
-            if isinstance(value, orm.Data) and value.is_stored:
-                copied_kwargs[key] = value
-            else:
-                copied_kwargs[key] = copy.deepcopy(value)
+        copied_kwargs = recursively_check_stored_nodes(kwargs)
 
         processed_kwargs = self.spec().inputs.pre_process(copied_kwargs)
         serialized_kwargs = self.spec().inputs.serialize(processed_kwargs)
