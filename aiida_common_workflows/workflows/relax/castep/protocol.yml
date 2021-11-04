@@ -83,3 +83,41 @@ fast:
                     geom_force_tol: 0.05
                     geom_energy_tol: 2.0e-5
                     geom_stress_tol: 0.1
+
+
+oxides-validation:
+    name: 'oxides-validation'
+    description: 'Protocol for the oxides validation study.'
+    relax:
+        relax_options:
+            max_meta_iterations: 5
+
+        base:
+            pseudos_family: 'C19'
+            max_iterations: 5
+            kpoints_spacing: 0.04    # Equivalent to `kpoints_mp_spacing : 0.00636` - very fine...
+            ensure_gamma_centering: True   # Ensure that the kpoint grid is Gamma-centered
+            calc:
+                parameters:
+                    task: geometryoptimisation
+                    xc_functional: pbe
+                    symmetry_generate: true
+                    snap_to_symmetry: true
+                    calculate_stress: true
+                    basis_precision: precise
+                    write_otfg: false
+                    opt_strategy: speed
+                    write_bib: false
+                    max_scf_cycles: 100
+                    elec_energy_tol: 1e-8
+                    geom_force_tol: 0.03
+                    geom_energy_tol: 1.0e-5
+                    geom_stress_tol: 0.05
+                    grid_scale: 2
+                    fine_grid_scale : 3
+                    # Revised smearing scheme for the oxide validation project
+                    smearing_width: 0.06122561905370023   # Equivalent to 0.0045 Ry
+                    smearing_scheme: FERMIDIRAC
+                    perc_extra_bands: 0.3     # More bands by default
+                settings:
+                    ADDITIONAL_RETRIEVE_TEMPORARY_LIST: ["aiida.castep_bin"]
