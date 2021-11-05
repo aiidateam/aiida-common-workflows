@@ -3,23 +3,19 @@
 import abc
 import copy
 
-from aiida import engine, orm
+from aiida import engine
+from aiida import orm
 from ..protocol import ProtocolRegistry
 from .spec import InputGeneratorSpec
 
 __all__ = ('InputGenerator',)
 
 
-def recursively_check_stored_nodes(obj):
-    """
-    This class is used to copy the `dict` containig the arguments passed to `get_builder`
-    following the rules:
-    1) if the value is a node and it is stored, the same value is returned
-    2) if the value is something else, it is deepcopied
-    This function takes care of applying the copy rules also to nested namespaces.
-    :param obj: whatever object, in the `InputGenerator` it receives the `dict` containig
-                `get_builder` arguments.
-    :return: a copy of obj following the rules above
+def deepcopy_except_stored_nodes(obj):
+    """Recursively create a deep copy of ``obj`` except for stored data nodes, which are kept as is.
+
+    :param obj: the dictionary that should be recursively deep copied except for the stored data nodes.
+    :return: a deepcopy of ``obj``.
     """
     if isinstance(obj, dict):
         return {k: recursively_check_stored_nodes(v) for k, v in obj.items()}

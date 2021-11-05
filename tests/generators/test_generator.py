@@ -5,59 +5,49 @@ from aiida import orm
 from aiida.plugins import WorkflowFactory
 
 
-def test_instan_inputgen(test_inputgen):
-    """
-    Test the instanciation of a subclass ot `InputGenerator`
-    """
-
-    clas = test_inputgen()
+def test_inputgen_constructor(generate_input_generator_class):
+    """Test the constructor of a subclass of ``InputGenerator``."""
+    
+    cls = generate_input_generator_class()
+    
     with pytest.raises(RuntimeError):
-        clas()
+        cls()
 
-    clas(process_class=WorkflowFactory('common_workflows.relax.siesta'))
-
-
-def test_serializer(test_inputgen, generate_structure):
-    """
-    Test the serializer of the arguments of `get_builder`
-    """
-
-    clas = test_inputgen(inputs_dict={'structure': orm.StructureData})
-
-    class_ins = clas(process_class=WorkflowFactory('common_workflows.relax.siesta'))
-
-    in_struct = generate_structure(symbols=('Si',))
-    buil, args = class_ins.get_builder(structure=in_struct)  # pylint: disable=unused-variable
-    # in_struct is an unstored node, therefore it is deepcopied and
-    # for this reason the uuid of the initial structure and the one
-    # inside `get_builder` are different
-    assert args['structure'].uuid != in_struct.uuid
-
-    in_struct = generate_structure(symbols=('Si',)).store()
-    buil, args = class_ins.get_builder(structure=in_struct)  # pylint: disable=unused-variable
-    # in_struct is now stored, therefore it is maintained
-    # within `get_builder`
-    assert args['structure'].uuid == in_struct.uuid
+    cls(process_class=WorkflowFactory('common_workflows.relax.siesta'))
 
 
-def test_serializer_nested(test_inputgen, generate_structure):
-    """
-    Test the serializer of the arguments of `get_builder` in case of input_namespaces
-    """
+def test_get_builder_immutable_kwargs(test_inputgen, generate_structure):
+    """Test that calling ``get_builder`` does not mutate the ``kwargs``."""
 
-    clas = test_inputgen(inputs_dict={'space.structure': orm.StructureData}, namespaces=['space'])
+    cls = generate_input_generator_cls(inputs_dict={'structure': orm.StructureData})
+    generator = cls(process_class=WorkflowFactory('common_workflows.relax.siesta'))
 
-    class_ins = clas(process_class=WorkflowFactory('common_workflows.relax.siesta'))
+    structure = generate_structure(symbols=('Si',))
+    kwargs = {'structure': structure}
+    generator.get_builder(**kwargs)
+    # structure is an unstored node, therefore it is deepcopied and so the UUID should change.
+    assert kwargs['structure'].uuid != structure.uuid
 
-    in_struct = generate_structure(symbols=('Si',))
-    buil, args = class_ins.get_builder(space={'structure': in_struct})  # pylint: disable=unused-variable
-    # in_struct is an unstored node, therefore it is deepcopied and
-    # for this reason the uuid of the initial structure and the one
-    # inside `get_builder` are different
-    assert args['space']['structure'].uuid != in_struct.uuid
+    structure = generate_structure(symbols=('Si',)).store()
+    kwargs = {'structure': structure}
+    generator.get_builder(**kwargs)
+    # The structure is now stored and so should be the same.
+    assert kwargs['structure'].uuid == structure.uuid
 
-    in_struct = generate_structure(symbols=('Si',)).store()
-    buil, args = class_ins.get_builder(space={'structure': in_struct})  # pylint: disable=unused-variable
-    # in_struct is now stored, therefore it is maintained
-    # within `get_builder`
-    assert args['space']['structure'].uuid == in_struct.uuid
+
+def test_get_builder_immutable_kwargs_nested(test_inputgen, generate_structure):
+    """Test that calling ``get_builder`` does not mutate the ``kwargs`` even if containing nested dictionaries."""
+    cls = generate_input_generator_cls(inputs_dict={'space.structure': orm.StructureData})
+    generator = cls(process_class=WorkflowFactory('common_workflows.relax.siesta'))
+
+    structure = generate_structure(symbols=('Si',))
+    kwargs = {'space': {'structure': structure}}
+    generator.get_builder(**kwargs)
+    # structure is an unstored node, therefore it is deepcopied and so the UUID should change.
+    assert kwargs['space']['structure'].uuid != structure.uuid
+
+    structure = generate_structure(symbols=('Si',)).store()
+    kwargs = {'space': {'structure': structure}}
+    generator.get_builder(**kwargs)
+    # The structure is now stored and so should be the same.
+    assert kwargs['space']['structure'].uuid == structure.uuid
