@@ -65,12 +65,12 @@ def run_cli_command():
 
 
 @pytest.fixture
-def generate_input_generator_class():
+def generate_input_generator_cls():
     """Return a factory to create a subclass of an ``InputGenerator``."""
 
-    def _generate_input_generator_class(inputs_dict=None, namespaces=None):
+    def _generate_input_generator_cls(inputs_dict=None):
         """Generate a subclass of ``InputGenerator``.
-        
+
         :param inputs_dict: an optional dictionary of inputs to be defined on the process spec.
         :param namespaces: an optional list of namespaces to be defined on the process spec.
         """
@@ -86,21 +86,19 @@ def generate_input_generator_class():
             def define(cls, spec):
                 super().define(spec)
 
-                if namespaces is not None:
-                    for val in namespaces:
-                        spec.input_namespace(val)
-
                 if inputs_dict is not None:
                     for k, val in inputs_dict.items():
                         spec.input(k, valid_type=val)
 
             def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:
+                if 'mutable' in kwargs:
+                    kwargs['mutable']['test'] = 'whatever'
                 builder = self.process_class.get_builder()
                 return builder
 
         return TestInputGenerator
 
-    return _generate_input_generator_class
+    return _generate_input_generator_cls
 
 
 @pytest.fixture
