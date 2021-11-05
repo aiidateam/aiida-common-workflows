@@ -85,7 +85,7 @@ fast:
                     geom_stress_tol: 0.1
 
 
-oxides-validation:
+oxides_validation:
     name: 'oxides-validation'
     description: 'Protocol for the oxides validation study.'
     relax:
@@ -118,6 +118,6 @@ oxides-validation:
                     # Revised smearing scheme for the oxide validation project
                     smearing_width: 0.06122561905370023   # Equivalent to 0.0045 Ry
                     smearing_scheme: FERMIDIRAC
-                    perc_extra_bands: 0.3     # More bands by default
+                    perc_extra_bands: 30     # More bands by default
                 settings:
                     ADDITIONAL_RETRIEVE_TEMPORARY_LIST: ["aiida.castep_bin"]

@@ -348,7 +348,8 @@ def generate_inputs_base(
         'kpoints_spacing': orm.Float(merged['kpoints_spacing'] / 2 / pi),
         'max_iterations': orm.Int(merged['max_iterations']),
         'pseudos_family': orm.Str(otfg_family.label),
-        'calc': calc_dictionary
+        'calc': calc_dictionary,
+        'ensure_gamma_centering': orm.Bool(merged.get('ensure_gamma_centering', False)),
     }
 
     return dictionary
