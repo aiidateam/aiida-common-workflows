@@ -140,9 +140,12 @@ class EquationOfStateWorkChain(WorkChain):
         structure = scale_structure(self.inputs.structure, scale_factor)
         process_class = WorkflowFactory(self.inputs.sub_process_class)
 
+        base_inputs = {'structure': structure}
+        if reference_workchain is not None:
+            base_inputs['reference_workchain'] = reference_workchain
+
         builder = process_class.get_input_generator().get_builder(
-            structure=structure,
-            reference_workchain=reference_workchain,
+            **base_inputs,
             **self.inputs.generator_inputs
         )
         builder._update(**self.inputs.get('sub_process', {}))  # pylint: disable=protected-access
