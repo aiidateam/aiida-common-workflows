@@ -8,6 +8,7 @@ import tempfile
 import click
 import pytest
 
+from aiida import engine
 from aiida.common import exceptions
 from aiida.common.constants import elements
 
@@ -61,6 +62,41 @@ def run_cli_command():
         return result
 
     return _run_cli_command
+
+
+@pytest.fixture
+def generate_input_generator_cls():
+    """Return a factory to create a subclass of an ``InputGenerator``."""
+
+    def _generate_input_generator_cls(inputs_dict=None):
+        """Generate a subclass of ``InputGenerator``.
+
+        :param inputs_dict: an optional dictionary of inputs to be defined on the process spec.
+        :param namespaces: an optional list of namespaces to be defined on the process spec.
+        """
+        from aiida_common_workflows.generators import InputGenerator
+
+        class TestInputGenerator(InputGenerator):
+            """Test subclass of ``InputGenerator``."""
+
+            _protocols = {'moderate': {'description': 'bla'}}
+            _default_protocol = 'moderate'
+
+            @classmethod
+            def define(cls, spec):
+                super().define(spec)
+
+                if inputs_dict is not None:
+                    for k, val in inputs_dict.items():
+                        spec.input(k, valid_type=val)
+
+            def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:
+                builder = self.process_class.get_builder()
+                return builder
+
+        return TestInputGenerator
+
+    return _generate_input_generator_cls
 
 
 @pytest.fixture
