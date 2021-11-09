@@ -48,3 +48,21 @@ fast:
             qfix: 2
             forcealpha: 1.0
             forcemix: 'straight'
+
+oxides_validation:
+    name: 'oxides_validation'
+    inpgen-protocol: 'precise'
+    description: 'Protocol to relax a structure with high precision at higher computational cost. This relies on the "precise" protocol of the fleur code.'
+    relax:
+        relax_iter: 10
+        change_mixing_criterion: 0.025
+        run_final_scf: true
+    scf:
+        kpoints_distance: 0.04
+        kpoints_include_gamma: true
+        fleur_runmax: 3
+        itmax_per_run: 120
+        force_dict:
+            qfix: 2
+            forcealpha: 0.50
+            forcemix: 'straight'
