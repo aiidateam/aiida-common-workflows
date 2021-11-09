@@ -31,6 +31,9 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         },
         'precise': {
             'description': 'high level of accuracy'
+        },
+        'oxides_validation': {
+            'description': 'high level of accuracy. Used for validating oxide results for common-workflows'
         }
     }
 
