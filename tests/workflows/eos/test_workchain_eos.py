@@ -27,6 +27,35 @@ def common_relax_workchain(request) -> CommonRelaxWorkChain:
     return WorkflowFactory(request.param)
 
 
+@pytest.fixture
+@pytest.mark.usefixtures('aiida_profile')
+def generate_eos_inputs(generate_structure, generate_code):
+    """Return a dictionary of defaults inputs for the ``EquationOfStateWorkChain``."""
+
+    def _generate_eos_inputs():
+        return {
+            'structure': generate_structure(symbols=('Si',)),
+            'sub_process_class': 'common_workflows.relax.quantum_espresso',
+            'generator_inputs': {
+                'protocol': 'fast',
+                'engines': {
+                    'relax': {
+                        'code': generate_code('quantumespresso.pw').store(),
+                        'options': {
+                            'resources': {
+                                'num_machines': 1
+                            }
+                        }
+                    }
+                },
+                'electronic_type': 'metal',
+                'relax_type': 'positions'
+            }
+        }
+
+    return _generate_eos_inputs
+
+
 def test_validate_sub_process_class(ctx):
     """Test the `validate_sub_process_class` validator."""
     for value in [None, WorkChain]:
@@ -41,25 +70,9 @@ def test_validate_sub_process_class_plugins(ctx, common_relax_workchain):
 
 
 @pytest.mark.usefixtures('sssp')
-def test_validate_inputs_scale(ctx, generate_code, generate_structure):
+def test_validate_inputs_scale(ctx, generate_eos_inputs):
     """Test the ``validate_inputs`` validator for invalid scale inputs."""
-    base_values = {
-        'structure': generate_structure(symbols=('Si',)),
-        'sub_process_class': 'common_workflows.relax.quantum_espresso',
-        'generator_inputs': {
-            'engines': {
-                'relax': {
-                    'code': generate_code('quantumespresso.pw'),
-                    'options': {
-                        'resources': {
-                            'num_machines': 1
-                        }
-                    }
-                }
-            },
-            'electronic_type': 'metal'
-        }
-    }
+    base_values = generate_eos_inputs()
 
     value = copy.deepcopy(base_values)
     assert eos.validate_inputs(
@@ -88,27 +101,10 @@ def test_validate_inputs_scale(ctx, generate_code, generate_structure):
 
 
 @pytest.mark.usefixtures('sssp')
-def test_validate_inputs_generator_inputs(ctx, generate_code, generate_structure):
+def test_validate_inputs_generator_inputs(ctx, generate_eos_inputs):
     """Test the ``validate_inputs`` validator for invalid generator inputs."""
-    value = {
-        'scale_factors': [],
-        'structure': generate_structure(symbols=('Si',)),
-        'sub_process_class': 'common_workflows.relax.quantum_espresso',
-        'generator_inputs': {
-            'engines': {
-                'relax': {
-                    'code': generate_code('quantumespresso.pw'),
-                    'options': {
-                        'resources': {
-                            'num_machines': 1
-                        }
-                    }
-                }
-            },
-            'electronic_type': 'metal'
-        }
-    }
-
+    value = generate_eos_inputs()
+    value['scale_factors'] = []
     assert eos.validate_inputs(value, ctx) is None
 
     value['generator_inputs']['electronic_type'] = 'invalid_value'
@@ -145,3 +141,31 @@ def test_validate_relax_type(ctx):
     assert eos.validate_relax_type(
         RelaxType.CELL, ctx
     ) == '`generator_inputs.relax_type`. Equation of state and relaxation with variable volume not compatible.'
+
+
+@pytest.mark.parametrize(
+    'scaling_inputs, expected', (
+        ({
+            'scale_factors': [0.98, 1.0, 1.02]
+        }, (0.98, 1.0, 1.02)),
+        ({
+            'scale_count': 3,
+            'scale_increment': 0.02
+        }, (0.98, 1.0, 1.02)),
+    )
+)
+@pytest.mark.usefixtures('sssp')
+def test_get_scale_factors(generate_workchain, generate_eos_inputs, scaling_inputs, expected):
+    """Test the ``EquationOfStateWorkChain.get_scale_factors`` method."""
+    inputs = generate_eos_inputs()
+
+    # This conditional and conversion is necessary because for `aiida-core<2.0` the `list` type is not automatically
+    # serialized to a `List` node. Once we require `aiida-core>=2.0`, this can be removed. The reason we couldn't
+    # already simply turn the ``scaling_inputs`` into a ``orm.List`` is that during the parametrization done by pytest
+    # no AiiDA profile will have been loaded yet and so creating a node will raise an exception.
+    if 'scale_factors' in scaling_inputs and isinstance(scaling_inputs['scale_factors'], list):
+        scaling_inputs['scale_factors'] = orm.List(list=scaling_inputs['scale_factors'])
+
+    inputs.update(scaling_inputs)
+    process = generate_workchain('common_workflows.eos', inputs)
+    assert process.get_scale_factors() == expected

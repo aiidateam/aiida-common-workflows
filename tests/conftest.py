@@ -8,6 +8,7 @@ import tempfile
 import click
 import pytest
 
+from aiida import engine
 from aiida.common import exceptions
 from aiida.common.constants import elements
 
@@ -64,6 +65,41 @@ def run_cli_command():
 
 
 @pytest.fixture
+def generate_input_generator_cls():
+    """Return a factory to create a subclass of an ``InputGenerator``."""
+
+    def _generate_input_generator_cls(inputs_dict=None):
+        """Generate a subclass of ``InputGenerator``.
+
+        :param inputs_dict: an optional dictionary of inputs to be defined on the process spec.
+        :param namespaces: an optional list of namespaces to be defined on the process spec.
+        """
+        from aiida_common_workflows.generators import InputGenerator
+
+        class TestInputGenerator(InputGenerator):
+            """Test subclass of ``InputGenerator``."""
+
+            _protocols = {'moderate': {'description': 'bla'}}
+            _default_protocol = 'moderate'
+
+            @classmethod
+            def define(cls, spec):
+                super().define(spec)
+
+                if inputs_dict is not None:
+                    for k, val in inputs_dict.items():
+                        spec.input(k, valid_type=val)
+
+            def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:
+                builder = self.process_class.get_builder()
+                return builder
+
+        return TestInputGenerator
+
+    return _generate_input_generator_cls
+
+
+@pytest.fixture
 def generate_structure():
     """Generate a `StructureData` node."""
 
@@ -104,6 +140,30 @@ def generate_code(aiida_localhost):
         return code
 
     return _generate_code
+
+
+@pytest.fixture
+def generate_workchain():
+    """Generate an instance of a ``WorkChain``."""
+
+    def _generate_workchain(entry_point, inputs):
+        """Generate an instance of a ``WorkChain`` with the given entry point and inputs.
+
+        :param entry_point: entry point name of the work chain subclass.
+        :param inputs: inputs to be passed to process construction.
+        :return: a ``WorkChain`` instance.
+        """
+        from aiida.engine.utils import instantiate_process
+        from aiida.manage.manager import get_manager
+        from aiida.plugins import WorkflowFactory
+
+        process_class = WorkflowFactory(entry_point)
+        runner = get_manager().get_runner()
+        process = instantiate_process(runner, process_class, **inputs)
+
+        return process
+
+    return _generate_workchain
 
 
 @pytest.fixture
