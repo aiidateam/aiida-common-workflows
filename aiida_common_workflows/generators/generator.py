@@ -4,10 +4,24 @@ import abc
 import copy
 
 from aiida import engine
+from aiida import orm
 from ..protocol import ProtocolRegistry
 from .spec import InputGeneratorSpec
 
 __all__ = ('InputGenerator',)
+
+
+def recursively_check_stored_nodes(obj):
+    """Recursively create a deep copy of ``obj`` except for stored data nodes, which are kept as is.
+
+    :param obj: the dictionary that should be recursively deep copied except for the stored data nodes.
+    :return: a deepcopy of ``obj``.
+    """
+    if isinstance(obj, dict):
+        return {k: recursively_check_stored_nodes(v) for k, v in obj.items()}
+    if isinstance(obj, orm.Node):
+        return obj
+    return copy.deepcopy(obj)
 
 
 class InputGenerator(ProtocolRegistry, metaclass=abc.ABCMeta):
@@ -58,7 +72,15 @@ class InputGenerator(ProtocolRegistry, metaclass=abc.ABCMeta):
         Specific subclass implementations should construct and return a builder from the parsed arguments stored under
         the ``parsed_kwargs`` attribute.
         """
-        processed_kwargs = self.spec().inputs.pre_process(copy.deepcopy(kwargs))
+        # Create a deep copy of the input arguments because the ``pre_process`` step may alter them and
+        # the originals need to be preserved in case they are passed to the ``get_builder`` method again, as
+        # for example within a loop of a code-agnostic wrapping workchain like the ``EquationOfStateWorkChain``.
+        # We cannot use ``copy.deepcopy`` directly, however, since it will create clones of any stored nodes that
+        # are in the inputs. That's why we call `recursively_check_stored_nodes` which will recursively create a
+        # deep copy of all inputs except for the stored nodes.
+        copied_kwargs = recursively_check_stored_nodes(kwargs)
+
+        processed_kwargs = self.spec().inputs.pre_process(copied_kwargs)
         serialized_kwargs = self.spec().inputs.serialize(processed_kwargs)
         validation_error = self.spec().inputs.validate(serialized_kwargs)
 
