@@ -90,3 +90,30 @@ precise:
                 nspinor: 1 # no spin-orbit coupling, Abinit default
                 nsppol: 1 # no spin-polarization, Abinit default
                 nspden: 1 # no spin-magnetization, Abinit default
+
+oxides_validation:
+    name: "oxides_validation"
+    description: "Protocol used for the common workflows oxides project."
+    pseudo_family: "PseudoDojo/1.0/PBE/SR/standard/jthxml"
+    cutoff_stringency: "high"
+    base:
+        kpoints_distance: 0.04 # [1/Å]
+        abinit:
+            parameters:
+                nshiftk: 1 # Number of k-grid shifts
+                shiftk: [[0.0, 0.0, 0.0]] # 0-shift
+                nstep: 300 # Max. no. of SCF steps
+                tolvrs: 1.0e-10 # Tolerance on the potential residual [Ha]
+                chkprim: 0 # Disable checking if the lattice is primitive
+                chksymbreak: 0 # Disable check for broken k-point symmetry
+                autoparal: 1 # Enable automatic parallelization
+                optcell: 0 # [DEFAULT] No cell optimization
+                ionmov: 22 # Atomic position optimization with L-BFGS
+                dilatmx: 1.0 # [DEFAULT] Don't book additional memory for basis set enlargement
+                ecutsm: 0.0 # Kinetic energy cutoff smearing [Ha]
+                occopt: 3 # Fermi-Dirac smearing
+                fband: 2.0 # no. of bands > fband * no. of atoms
+                tsmear: 0.00225 # 0.0045 Ry [Ha]
+                nspinor: 1 # [DEFAULT] No spin-orbit coupling
+                nsppol: 1 # [DEFAULT] No spin-polarization
+                nspden: 1 # [DEFAULT] No spin-magnetization
