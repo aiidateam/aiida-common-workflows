@@ -72,12 +72,12 @@ class InputGenerator(ProtocolRegistry, metaclass=abc.ABCMeta):
         Specific subclass implementations should construct and return a builder from the parsed arguments stored under
         the ``parsed_kwargs`` attribute.
         """
-        #Create a deep copy of the input arguments because the ``pre_process`` step may alter them and
-        #the originals need to be preserved in case they are passed to the ``get_builder`` method again, as
-        #for example within a loop of a code-agnostic wrapping workchain like the ``EquationOfStateWorkChain``.
-        #We cannot use ``copy.deepcopy`` directly, however, since it will create clones of any stored nodes that
-        #are in the inputs. That's why we call `recursively_check_stored_nodes` which will recursively create a
-        #deep copy of all inputs except for the stored nodes.
+        # Create a deep copy of the input arguments because the ``pre_process`` step may alter them and
+        # the originals need to be preserved in case they are passed to the ``get_builder`` method again, as
+        # for example within a loop of a code-agnostic wrapping workchain like the ``EquationOfStateWorkChain``.
+        # We cannot use ``copy.deepcopy`` directly, however, since it will create clones of any stored nodes that
+        # are in the inputs. That's why we call `recursively_check_stored_nodes` which will recursively create a
+        # deep copy of all inputs except for the stored nodes.
         copied_kwargs = recursively_check_stored_nodes(kwargs)
 
         processed_kwargs = self.spec().inputs.pre_process(copied_kwargs)
