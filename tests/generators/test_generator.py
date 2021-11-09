@@ -32,17 +32,24 @@ def test_get_builder_immutable_kwargs(generate_input_generator_cls, generate_str
     assert kwargs['structure'].uuid == structure.uuid
 
 
-def test_get_builder_mutable_kwargs(generate_input_generator_cls):
+def test_get_builder_mutable_kwargs(generate_input_generator_cls, monkeypatch):
     """
     Test that calling ``get_builder`` does mutate the ``kwargs`` when they are not nodes.
-    In this case we want to deepcopy the ``kwargs`` before entering the ``get_builder``.
-    In this specific test, we test a particulat input (``mutable``) that is modified inside
-    the get_builder of ``generate_input_generator_cls``.
-    Here we test that, even if this input is modified inside. This does not affect the
-    original ``kwargs`` since it was deepcopied.
+    In this case, the implementation of ``get_builder`` ensure to deepcopy the ``kwargs``
+    before they will be available for use by any subclass of ``InputGenerator``.
+    In this specific case, we test a particulat input (``mutable``) that is modified inside
+    the ``get_builder`` of a ``generate_input_generator_cls`` implementation.
+    Even if this input is modified inside the implementation (see ``construct_builder`` here),
+    this does not affect the original ``kwargs`` that was passed in input of ``get_builder``.
+    It would not have been the case if the deepcopy was not in place.
     """
 
+    def construct_builder(self, **kwargs):
+        kwargs['mutable']['test'] = 'whatever'
+        return self.process_class.get_builder()
+
     cls = generate_input_generator_cls(inputs_dict={'mutable': dict})
+    monkeypatch.setattr(cls, '_construct_builder', construct_builder)
     generator = cls(process_class=WorkflowFactory('common_workflows.relax.siesta'))
     kwargs = {'mutable': {'test': 333}}
     generator.get_builder(**kwargs)

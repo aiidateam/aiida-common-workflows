@@ -91,8 +91,6 @@ def generate_input_generator_cls():
                         spec.input(k, valid_type=val)
 
             def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:
-                if 'mutable' in kwargs:
-                    kwargs['mutable']['test'] = 'whatever'
                 builder = self.process_class.get_builder()
                 return builder
 
