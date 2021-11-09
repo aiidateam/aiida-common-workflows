@@ -1,5 +1,6 @@
 moderate:
     name: 'moderate'
+    inpgen-protocol: 'moderate'
     description: 'Protocol to relax a structure with normal precision at moderate computational cost. This relies on the "moderate" protocol of the fleur code.'
     relax:
         relax_iter: 5
@@ -16,6 +17,7 @@ moderate:
 
 precise:
     name: 'precise'
+    inpgen-protocol: 'precise'
     description: 'Protocol to relax a structure with high precision at higher computational cost. This relies on the "precise" protocol of the fleur code.'
     relax:
         relax_iter: 10
@@ -32,6 +34,7 @@ precise:
 
 fast:
     name: 'fast'
+    inpgen-protocol: 'fast'
     description: 'Protocol to relax a structure with low precision at minimal computational cost for testing purposes. This relies on the "fast" protocol of the fleur code.'
     relax:
         relax_iter: 3
