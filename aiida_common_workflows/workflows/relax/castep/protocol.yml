@@ -108,6 +108,7 @@ oxides_validation:
                     write_otfg: false
                     opt_strategy: speed
                     write_bib: false
+                    write_checkpoint: minimal
                     max_scf_cycles: 100
                     elec_energy_tol: 1e-8
                     geom_force_tol: 0.03
