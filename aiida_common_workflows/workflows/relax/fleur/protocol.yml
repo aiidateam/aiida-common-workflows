@@ -59,7 +59,7 @@ oxides_validation:
         run_final_scf: true
     scf:
         kpoints_distance: 0.04
-        kpoints_include_gamma: true
+        kpoints_force_gamma: true
         fleur_runmax: 3
         itmax_per_run: 120
         force_dict:
