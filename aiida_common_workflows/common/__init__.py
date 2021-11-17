@@ -3,4 +3,4 @@
 """Module for resources common to the entire `aiida-common-workflows` package."""
 from .types import *
 
-all = (types.__all__)
+all = (types.__all__,)
