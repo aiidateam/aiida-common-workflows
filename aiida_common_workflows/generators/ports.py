@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 """Modules with resources to define specific port types for input generator specifications."""
 import typing as t
-
+from plumpy.ports import Port, PortValidationError, UNSPECIFIED, breadcrumbs_to_port
 from aiida.engine import InputPort
 from aiida.orm import Code
-from plumpy.ports import Port, PortValidationError, UNSPECIFIED, breadcrumbs_to_port
 
 __all__ = ('ChoiceType', 'CodeType', 'InputGeneratorPort')
 
@@ -39,10 +38,11 @@ class InputGeneratorPort(InputPort):
     code_entry_point = None
     choices = None
 
-    def __init__(self, *args, valid_type=None, **kwargs) -> None:
+    def __init__(self, *args, valid_type_in_wc=None, valid_type=None, **kwargs) -> None:
         """Construct a new instance and process the ``valid_type`` keyword if it is an instance of ``ChoiceType``."""
         super().__init__(*args, **kwargs)
         self.valid_type = valid_type
+        self.valid_type_in_wc = valid_type_in_wc
 
     @Port.valid_type.setter
     def valid_type(self, valid_type: t.Optional[t.Any]) -> None:
@@ -75,3 +75,17 @@ class InputGeneratorPort(InputPort):
             message = f'`{value}` is not a valid choice. Valid choices are: {", ".join(choices)}'
             breadcrumbs = (breadcrumb for breadcrumb in (*breadcrumbs, self.name) if breadcrumb)
             return PortValidationError(message, breadcrumbs_to_port(breadcrumbs))
+
+    @property
+    def valid_type_in_wc(self) -> t.Optional[t.Type[t.Any]]:
+        """Get the valid value type for this port if one is specified
+        :return: the value value type
+        """
+        return self._valid_type_in_wc
+
+    @valid_type_in_wc.setter
+    def valid_type_in_wc(self, valid_type_in_wc: t.Optional[t.Type[t.Any]]) -> None:
+        """Set the valid value type for this port
+        :param valid_type: the value valid type
+        """
+        self._valid_type_in_wc = valid_type_in_wc

@@ -1,15 +1,57 @@
 # -*- coding: utf-8 -*-
-"""Equation of state workflow that can use any code plugin implementing the common relax workflow."""
+"""
+Workflow that runs a relaxation and subsequently calculates bands.
+It can use any code plugin implementing the common relax workflow and the
+common bands workflow. It also allows the relaxation with one code and the
+bands calculations with another.
+It also allows the automatic use of `seekpath` in order to get the high
+symmetries path for bands.
+"""
 import inspect
 
 from aiida import orm
 from aiida.common import exceptions, AttributeDict
 from aiida.engine import WorkChain, if_, calcfunction, ToContext
-from aiida.plugins import WorkflowFactory, DataFactory
-
-from aiida_common_workflows.workflows.relax.generator import RelaxType, SpinType, ElectronicType
+from aiida.plugins import WorkflowFactory
+from aiida.orm.nodes.data.base import to_aiida_type
+from aiida_common_workflows.workflows.relax.generator import RelaxType
 from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChain
 from aiida_common_workflows.workflows.bands.workchain import CommonBandsWorkChain
+from aiida_common_workflows.workflows.relax.generator import CommonRelaxInputGenerator
+from aiida_common_workflows.workflows.bands.generator import CommonBandsInputGenerator
+
+
+def deserialize(inputs):
+    """
+    Function used to deserialize the inputs of get_builder. It also removes some specific
+    inputs that are not wanted.
+
+    In this workchain the inputs of `CommonRelaxInputGenerator` and `CommonBandsInputGenerator`
+    are exposed to the users of the workchain. However, in order to have them exposed,
+    it is necessary to transform them in aiida data type. This is done by various commands in
+    the `define` method of this workchain.
+    However, then these inputs need to be passed to the `get_builder`, that accepts normal python
+    types and not AiiDA data types. Here we deserialize the inputs to bring
+    them to normal python types.
+    The `structure` and `bands_kpoins` inputs are also removed by the list of passed
+    inputs, since they are treated differently.
+    """
+
+    inputs.pop('structure', None)
+    inputs.pop('bands_kpoints', None)
+    for key, val in inputs.items():
+        if isinstance(val, (orm.Float, orm.Str, orm.Int, orm.Bool)):
+            inputs[key] = val.value
+        if isinstance(val, orm.Dict):
+            inputs[key] = val.get_dict()
+        if isinstance(val, orm.List):
+            inputs[key] = val.get_list()
+        if isinstance(val, orm.Code):
+            inputs[key] = val.label
+        if isinstance(val, dict):
+            deserialize(val)
+
+    return inputs
 
 
 @calcfunction
@@ -78,71 +120,70 @@ class RelaxAndBandsWorkChain(WorkChain):
         )
         spec.input(
             'seekpath_parameters.reference_distance',
-            valid_type=float,
-            default=0.025,
-            non_db=True,
+            valid_type=orm.Float,
+            default=lambda: orm.Float(0.025),
+            serializer=to_aiida_type,
             help='Reference target distance between neighboring k-points along the path in units 1/Å.',
         )
         spec.input(
             'seekpath_parameters.symprec',
-            valid_type=float,
-            default=0.00001,
-            non_db=True,
+            valid_type=orm.Float,
+            default=lambda: orm.Float(0.00001),
+            serializer=to_aiida_type,
             help='The symmetry precision used internally by SPGLIB.',
         )
         spec.input(
             'seekpath_parameters.angle_tolerance',
-            valid_type=float,
-            default=-1.0,
-            non_db=True,
+            valid_type=orm.Float,
+            default=lambda: orm.Float(-1.0),
+            serializer=to_aiida_type,
             help='The angle tollerance used internally by SPGLIB.',
         )
         spec.input(
             'seekpath_parameters.threshold',
-            valid_type=float,
-            default=0.0000001,
-            non_db=True,
+            valid_type=orm.Float,
+            default=lambda: orm.Float(0.0000001),
+            serializer=to_aiida_type,
             help='The treshold for determining edge cases. Meaning is different depending on bravais lattice.',
         )
         spec.input(
             'seekpath_parameters.with_time_reversal',
-            valid_type=bool,
-            default=True,
-            non_db=True,
+            valid_type=orm.Bool,
+            default=lambda: orm.Bool(True),
+            serializer=to_aiida_type,
             help='If False, and the group has no inversion symmetry, additional lines are returned.',
         )
-        spec.input(
-            'bands_kpoints',
-            valid_type=DataFactory('array.kpoints'),
-            required=False,
-            help='The full list of kpoints where to calculate bands, in (direct) coordinates of the reciprocal space.'
-        )
-        spec.input('structure', valid_type=orm.StructureData, help='The structure might be change by seekpath!')
-        spec.input_namespace('relax_inputs',
-            help='The inputs that will be passed to the input generator of a `CommonRelaxWorkChain`.')
-        spec.input('relax_inputs.engines', valid_type=dict, non_db=True)
-        spec.input('relax_inputs.protocol', valid_type=str, non_db=True,
-            help='The protocol to use when determining the workchain inputs.')
-        spec.input('relax_inputs.relax_type', valid_type=(RelaxType, str), non_db=True,
-            help='The type of relaxation to perform.')
-        spec.input('relax_inputs.spin_type', valid_type=(SpinType, str), required=False, non_db=True,
-            help='The type of spin for the calculation.')
-        spec.input('relax_inputs.electronic_type', valid_type=(ElectronicType, str), required=False, non_db=True,
-            help='The type of electronics (insulator/metal) for the calculation.')
-        spec.input('relax_inputs.magnetization_per_site', valid_type=(list, tuple), required=False, non_db=True,
-            help='List containing the initial magnetization per atomic site.')
-        spec.input('relax_inputs.threshold_forces', valid_type=float, required=False, non_db=True,
-            help='Target threshold for the forces in eV/Å.')
-        spec.input('relax_inputs.threshold_stress', valid_type=float, required=False, non_db=True,
-            help='Target threshold for the stress in eV/Å^3.')
-        spec.input_namespace('bands_inputs', required=False,
-            help='The inputs that will be passed to the input generator of a `CommonBandsWorkChain`.')
-        spec.input('bands_inputs.engines', valid_type=dict, non_db=True, required=False)
-        spec.input_namespace('relax_sub_process', dynamic=True, populate_defaults=False)
-        spec.input_namespace('bands_sub_process', dynamic=True, populate_defaults=False)
+
+        namspac = spec.inputs.create_port_namespace('relax_inputs')
+        namspac.absorb(CommonRelaxInputGenerator.spec().inputs)
+        namspac['protocol'].valid_type = namspac['protocol'].valid_type_in_wc
+        namspac['protocol'].default = to_aiida_type(namspac['protocol'].default)
+        namspac['protocol']._serializer = to_aiida_type  #pylint: disable=protected-access
+        # Next three wait for PR 5225 of aiida-core in order to be serialized
+        namspac['spin_type'].non_db = True
+        namspac['relax_type'].non_db = True
+        namspac['electronic_type'].non_db = True
+        namspac['magnetization_per_site'].valid_type = namspac['magnetization_per_site'].valid_type_in_wc
+        namspac['threshold_forces'].valid_type = namspac['threshold_forces'].valid_type_in_wc
+        namspac['threshold_forces']._serializer = to_aiida_type  #pylint: disable=protected-access
+        namspac['threshold_stress'].valid_type = namspac['threshold_stress'].valid_type_in_wc
+        namspac['threshold_stress']._serializer = to_aiida_type  #pylint: disable=protected-access
+        namspac['engines']['relax']['options'].non_db = True
+
+        namspac2 = spec.inputs.create_port_namespace('bands_inputs')
+        namspac2.absorb(CommonBandsInputGenerator.spec().inputs, exclude='parent_folder')
+        namspac2['engines']['bands']['options'].non_db = True
+        namspac2['bands_kpoints'].required = False
+
         spec.input('relax_sub_process_class', non_db=True, validator=validate_sub_process_class_r)
         spec.input('bands_sub_process_class', non_db=True, validator=validate_sub_process_class_b)
-        spec.inputs.validator = validate_inputs
+
+
+        #spec.input_namespace('relax_sub_process', dynamic=True, populate_defaults=False)
+        #spec.input_namespace('bands_sub_process', dynamic=True, populate_defaults=False)
+
+        #spec.inputs.validator = validate_inputs
+
         spec.outline(
             cls.initialize,
             cls.run_relax,
@@ -151,8 +192,9 @@ class RelaxAndBandsWorkChain(WorkChain):
                 cls.run_relax
             ),
             cls.run_bands,
-            cls.inspect_bands,
+            cls.inspect_bands
         )
+
         spec.output('final_structure', valid_type=orm.StructureData, help='The final structure.')
         spec.output('bands', valid_type=orm.BandsData,
             help='The computed total energy of the relaxed structures at each scaling factor.')
@@ -164,32 +206,35 @@ class RelaxAndBandsWorkChain(WorkChain):
         """
         Initialize some variables that will be used and modified in the workchain
         """
-        self.ctx.structure = self.inputs.structure
+        self.ctx.structure = self.inputs.relax_inputs.structure
         self.ctx.need_other_scf = False
+        self.ctx.relax_process_class = self.inputs.relax_sub_process_class
 
     def run_relax(self):
         """
         Run the relaxation workchain.
         """
-        structure = self.ctx.structure
-        process_class = WorkflowFactory(self.inputs.relax_sub_process_class)
+        process_class = WorkflowFactory(self.ctx.relax_process_class)
 
-        inputs_gen = AttributeDict(self.inputs.relax_inputs)
+        # To pass the AttributeDict is a guarantee to have self.inputs.relax_inputs unmuted?
+        relax_inp_no_struct = deserialize(AttributeDict(self.inputs.relax_inputs))
 
         # Impose RelaxType.NONE when the relax workcain is called the second time
         if self.ctx.need_other_scf:
-            inputs_gen['relax_type'] = RelaxType.NONE
+            relax_inp_no_struct['relax_type'] = RelaxType.NONE
+            relax_inp_no_struct['engines']['relax']['code'] = self.inputs.bands_inputs['engines']['bands']['code'].label
 
         builder = process_class.get_input_generator().get_builder(
-            structure=structure,
-            **inputs_gen
+            structure=self.ctx.structure,
+            **relax_inp_no_struct
         )
-        builder._update(**self.inputs.get('relax_sub_process', {}))  # pylint: disable=protected-access
+        #builder._update(**self.inputs.get('relax_sub_process', {}))  # pylint: disable=protected-access
 
         self.report(f'submitting `{builder.process_class.__name__}` for relaxation.')
         running = self.submit(builder)
 
         return ToContext(workchain_relax=running)
+
 
     def prepare_bands(self):
         """
@@ -202,19 +247,30 @@ class RelaxAndBandsWorkChain(WorkChain):
         if 'relaxed_structure' in self.ctx.workchain_relax.outputs:
             structure = self.ctx.workchain_relax.outputs.relaxed_structure
         else:
-            structure = self.inputs.structure
+            structure = self.ctx.structure
 
         if 'bands_kpoints' not in self.inputs:
-            self.report('Using SekPath to create kpoints for bands. Structure might change. A new scf cycle needed')
-            res = seekpath_explicit_kp_path(structure, orm.Dict(dict=self.inputs.seekpath_parameters))
+            self.report('Using SekPath to create kpoints for bands. Structure might change.')
+            seekpath_dict_to_aiida = orm.Dict(dict=deserialize(AttributeDict(self.inputs.seekpath_parameters)))
+            res = seekpath_explicit_kp_path(structure, seekpath_dict_to_aiida)
             self.ctx.structure = res['structure']
             self.ctx.bandskpoints = res['kpoints']
             self.ctx.need_other_scf = True
         else:
             self.report('Kpoints for bands in inputs detected.')
             self.ctx.need_other_scf = False
-            self.ctx.bandskpoints = self.inputs.bands_kpoints
+            self.ctx.bandskpoints = self.inputs.bands_inputs['bands_kpoints']
             self.ctx.structure = structure
+
+        first_relax_plugin = self.inputs.relax_sub_process_class.replace('common_workflows.relax.', '')
+        bands_plugin = self.inputs.bands_sub_process_class.replace('common_workflows.bands.', '')
+        if first_relax_plugin != bands_plugin:
+            self.report(f'Different code between relax and bands. Relax {first_relax_plugin}, bands {bands_plugin}')
+            self.ctx.need_other_scf = True
+            self.ctx.relax_process_class = 'common_workflows.relax.' + bands_plugin
+
+        if self.ctx.need_other_scf:
+            self.report('A new scf cycle needed')
 
     def should_run_other_scf(self):
         """
@@ -226,15 +282,19 @@ class RelaxAndBandsWorkChain(WorkChain):
         """
         Run the sub process to obtain the bands.
         """
+        rel_wc = self.ctx.workchain_relax
+
         process_class = WorkflowFactory(self.inputs.bands_sub_process_class)
+
+        bands_inpus_no_kp = deserialize(AttributeDict(self.inputs.bands_inputs))
 
         builder = process_class.get_input_generator().get_builder(
             bands_kpoints=self.ctx.bandskpoints,
-            parent_folder=self.ctx.workchain_relax.outputs.remote_folder,
-            **self.inputs.bands_inputs
+            parent_folder=rel_wc.outputs.remote_folder,
+            **bands_inpus_no_kp
         )
 
-        builder._update(**self.inputs.get('bands_sub_process', {}))  # pylint: disable=protected-access
+        #builder._update(**self.inputs.get('bands_sub_process', {}))  # pylint: disable=protected-access
 
         self.report(f'submitting `{builder.process_class.__name__}` for bands.')
         running = self.submit(builder)

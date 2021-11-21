@@ -34,6 +34,7 @@ class CommonRelaxInputGenerator(InputGenerator, ProtocolRegistry, metaclass=abc.
             'protocol',
             valid_type=ChoiceType(('fast', 'moderate', 'precise')),
             default='moderate',
+            valid_type_in_wc=orm.Str,
             help='The protocol to use for the automated input generation. This value indicates the level of precision '
             'of the results and computational cost that the input parameters will be selected for.',
         )
@@ -62,6 +63,7 @@ class CommonRelaxInputGenerator(InputGenerator, ProtocolRegistry, metaclass=abc.
             'magnetization_per_site',
             valid_type=list,
             required=False,
+            valid_type_in_wc=orm.List,
             help='The initial magnetization of the system. Should be a list of floats, where each float represents the '
             'spin polarization in units of electrons, meaning the difference between spin up and spin down '
             'electrons, for the site. This also corresponds to the magnetization of the site in Bohr magnetons '
@@ -71,6 +73,7 @@ class CommonRelaxInputGenerator(InputGenerator, ProtocolRegistry, metaclass=abc.
             'threshold_forces',
             valid_type=float,
             required=False,
+            valid_type_in_wc=orm.Float,
             help='A real positive number indicating the target threshold for the forces in eV/Å. If not specified, '
             'the protocol specification will select an appropriate value.',
         )
@@ -78,6 +81,7 @@ class CommonRelaxInputGenerator(InputGenerator, ProtocolRegistry, metaclass=abc.
             'threshold_stress',
             valid_type=float,
             required=False,
+            valid_type_in_wc=orm.Float,
             help='A real positive number indicating the target threshold for the stress in eV/Å^3. If not specified, '
             'the protocol specification will select an appropriate value.',
         )
