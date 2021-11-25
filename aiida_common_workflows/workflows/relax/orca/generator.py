@@ -140,7 +140,7 @@ class OrcaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             if 'num_mpiprocs_per_machine' in resources:
                 nproc = resources['num_machines'] * resources['num_mpiprocs_per_machine']
             else:
-                code = orm.load_code(engines['relax']['code'])
+                code = engines['relax']['code']
                 default_mpiprocs = code.computer.get_default_mpiprocs_per_machine()
                 if default_mpiprocs is not None:
                     nproc = resources['num_machines'] * default_mpiprocs
@@ -151,7 +151,7 @@ class OrcaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         builder = self.process_class.get_builder()
         builder.orca.structure = structure
         builder.orca.parameters = orm.Dict(dict=params)
-        builder.orca.code = orm.load_code(engines['relax']['code'])
+        builder.orca.code = engines['relax']['code']
         builder.orca.metadata.options = engines['relax']['options']
         return builder
 

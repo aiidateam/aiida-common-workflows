@@ -256,7 +256,7 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             psprel = [os.path.normpath(os.path.relpath(i)) for i in psp]
             builder.pseudos.extend(psprel)
         builder.parameters = BigDFTParameters(dict=inputdict)
-        builder.code = orm.load_code(engines[relaxation_schema]['code'])
+        builder.code = engines[relaxation_schema]['code']
         run_opts = {'options': engines[relaxation_schema]['options']}
         builder.run_opts = orm.Dict(dict=run_opts)
 

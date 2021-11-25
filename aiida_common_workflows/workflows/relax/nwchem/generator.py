@@ -160,7 +160,7 @@ class NwchemCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         # Prepare builder
         builder = self.process_class.get_builder()
-        builder.nwchem.code = orm.load_code(engines['relax']['code'])
+        builder.nwchem.code = engines['relax']['code']
         builder.nwchem.metadata.options = engines['relax']['options']
         builder.nwchem.structure = structure
         builder.nwchem.add_cell = add_cell

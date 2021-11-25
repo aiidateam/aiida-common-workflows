@@ -270,7 +270,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         )
 
         # CP2K code.
-        builder.cp2k.code = orm.load_code(engines['relax']['code'])
+        builder.cp2k.code = engines['relax']['code']
 
         # Run options.
         builder.cp2k.metadata.options = engines['relax']['options']

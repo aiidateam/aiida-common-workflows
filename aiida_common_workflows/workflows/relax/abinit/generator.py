@@ -323,13 +323,6 @@ def generate_inputs(
 
     type_check(structure, orm.StructureData)
 
-    if not isinstance(code, orm.Code):
-        try:
-            code = orm.load_code(code)
-        except (exceptions.MultipleObjectsError, exceptions.NotExistent) as exception:
-            msg = f'could not load the code {code}'
-            raise ValueError(msg) from exception
-
     if process_class == AbinitCalculation:
         protocol = protocol['abinit']
         dictionary = generate_inputs_calculation(protocol, code, structure, override)

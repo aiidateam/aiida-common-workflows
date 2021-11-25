@@ -153,7 +153,7 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             builder.kpoints = kpoints_mesh
         builder.pseudo_family = pseudo_family
         builder.options = orm.Dict(dict=engines['relax']['options'])
-        builder.code = orm.load_code(engines['relax']['code'])
+        builder.code = engines['relax']['code']
 
         return builder
 
