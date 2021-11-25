@@ -10,10 +10,11 @@ symmetries path for bands.
 import inspect
 
 from aiida import orm
-from aiida.common import exceptions, AttributeDict
+from aiida.common import exceptions, AttributeDict, NotExistent
 from aiida.engine import WorkChain, if_, calcfunction, ToContext
 from aiida.plugins import WorkflowFactory
 from aiida.orm.nodes.data.base import to_aiida_type
+from aiida_common_workflows.cli.utils import get_code_from_list_or_database
 from aiida_common_workflows.workflows.relax.generator import RelaxType
 from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChain
 from aiida_common_workflows.workflows.bands.workchain import CommonBandsWorkChain
@@ -21,7 +22,7 @@ from aiida_common_workflows.workflows.relax.generator import CommonRelaxInputGen
 from aiida_common_workflows.workflows.bands.generator import CommonBandsInputGenerator
 
 
-def deserialize(inputs):
+def deserialize(inputs, remove_struct=False, remove_bands_kp=False):
     """
     Function used to deserialize the inputs of get_builder. It also removes some specific
     inputs that are not wanted.
@@ -37,8 +38,10 @@ def deserialize(inputs):
     inputs, since they are treated differently.
     """
 
-    inputs.pop('structure', None)
-    inputs.pop('bands_kpoints', None)
+    if remove_struct:
+        inputs.pop('structure', None)
+    if remove_bands_kp:
+        inputs.pop('bands_kpoints', None)
     for key, val in inputs.items():
         if isinstance(val, (orm.Float, orm.Str, orm.Int, orm.Bool)):
             inputs[key] = val.value
@@ -68,19 +71,50 @@ def seekpath_explicit_kp_path(structure, seekpath_params):
     return {'structure': results['primitive_structure'], 'kpoints': results['explicit_kpoints']}
 
 
-def validate_inputs(value, _):
+def validate_inputs(value, _):  #pylint: disable=too-many-branches,too-many-return-statements
     """Validate the entire input namespace."""
 
-    # Validate that the provided ``generator_inputs`` are valid for the associated input generator.
     process_class = WorkflowFactory(value['relax_sub_process_class'])
     generator = process_class.get_input_generator()
 
+    #Validate the relax_inputs.engines port
+    for engine in generator.spec().inputs['engines']:
+        if engine not in value['relax_inputs']['engines']:
+            return f'The relax_inputs.engines dictionary must contain the keyword {engine}.'
+        if 'code' not in value['relax_inputs']['engines'][engine]:
+            return f'A `code` must be specified for the {engine} step of relax_inputs.engines.'
+        if isinstance(value['relax_inputs']['engines'][engine]['code'], str):
+            try:
+                orm.load_code(value['relax_inputs']['engines'][engine]['code'])
+            except NotExistent:
+                return f'The `code` in relax_inputs.engines.{engine} does not exist.'
+        else:
+            #Will change in the future
+            return f'The `code` in relax_inputs.engines.{engine} must be a string with the full label of the code.'
+
+    # Validate that the provided ``relax_inputs`` are valid for the associated input generator.
     try:
-        generator.get_builder(structure=value['structure'], **value['relax_inputs'])
+        generator.get_builder(**deserialize(AttributeDict(value['relax_inputs'])))
     except Exception as exc:  # pylint: disable=broad-except
-        return f'`{generator.__class__.__name__}.get_builder()` fails for the provided `generator_inputs`: {exc}'
+        return f'`{generator.__class__.__name__}.get_builder()` fails for the provided `relax_inputs`: {exc}'
+
+    process_class_bands = WorkflowFactory(value['bands_sub_process_class'])
+    generator_bands = process_class_bands.get_input_generator()
 
     #Validate engines of bands
+    for engine in generator_bands.spec().inputs['engines']:
+        if engine not in value['bands_inputs']['engines']:
+            return f'The bands_inputs.engines dictionary must contain the keyword {engine}.'
+        if 'code' not in value['bands_inputs']['engines'][engine]:
+            return f'A `code` must be specified for the {engine} step of bands_inputs.engines.'
+        if isinstance(value['bands_inputs']['engines'][engine]['code'], str):
+            try:
+                orm.load_code(value['bands_inputs']['engines'][engine]['code'])
+            except NotExistent:
+                return f'The `code` in bands_inputs.engines.{engine} does not exist.'
+        else:
+            #Will change in the future
+            return f'The `code` in bands_inputs.engines.{engine} must be a string with the full label of the code'
 
 
 def validate_sub_process_class_r(value, _):
@@ -155,7 +189,7 @@ class RelaxAndBandsWorkChain(WorkChain):
         )
 
         namspac = spec.inputs.create_port_namespace('relax_inputs')
-        namspac.absorb(CommonRelaxInputGenerator.spec().inputs)
+        namspac.absorb(CommonRelaxInputGenerator.spec().inputs, exclude='engines')
         namspac['protocol'].valid_type = namspac['protocol'].valid_type_in_wc
         namspac['protocol'].default = to_aiida_type(namspac['protocol'].default)
         namspac['protocol']._serializer = to_aiida_type  #pylint: disable=protected-access
@@ -168,21 +202,43 @@ class RelaxAndBandsWorkChain(WorkChain):
         namspac['threshold_forces']._serializer = to_aiida_type  #pylint: disable=protected-access
         namspac['threshold_stress'].valid_type = namspac['threshold_stress'].valid_type_in_wc
         namspac['threshold_stress']._serializer = to_aiida_type  #pylint: disable=protected-access
-        namspac['engines']['relax']['options'].non_db = True
+        #namspac['engines']['relax']['options'].non_db = True
+        spec.input(
+            'relax_inputs.engines',
+            valid_type=dict,
+            non_db=True,
+            help='Inputs for the quantum engine performing the geometry optimization.',
+        )
+
 
         namspac2 = spec.inputs.create_port_namespace('bands_inputs')
-        namspac2.absorb(CommonBandsInputGenerator.spec().inputs, exclude='parent_folder')
-        namspac2['engines']['bands']['options'].non_db = True
+        namspac2.absorb(CommonBandsInputGenerator.spec().inputs, exclude=('parent_folder', 'engines'))
+        #namspac2['engines']['bands']['options'].non_db = True
         namspac2['bands_kpoints'].required = False
+        spec.input(
+            'bands_inputs.engines',
+            valid_type=dict,
+            non_db=True,
+            help='Inputs for the quantum engine performing the geometry optimization.',
+        )
+
+        spec.input_namespace(
+            'extra_relax_inputs',
+            required=False,
+            help='Inputs for the quantum engine performing the second geometry optimization.',
+        )
+        spec.input(
+            'extra_relax_inputs.engines',
+            valid_type=dict,
+            non_db=True,
+            required=False,
+            help='Inputs for the quantum engine performing the second geometry optimization.',
+        )
 
         spec.input('relax_sub_process_class', non_db=True, validator=validate_sub_process_class_r)
         spec.input('bands_sub_process_class', non_db=True, validator=validate_sub_process_class_b)
 
-
-        #spec.input_namespace('relax_sub_process', dynamic=True, populate_defaults=False)
-        #spec.input_namespace('bands_sub_process', dynamic=True, populate_defaults=False)
-
-        #spec.inputs.validator = validate_inputs
+        spec.inputs.validator = validate_inputs
 
         spec.outline(
             cls.initialize,
@@ -208,6 +264,7 @@ class RelaxAndBandsWorkChain(WorkChain):
         """
         self.ctx.structure = self.inputs.relax_inputs.structure
         self.ctx.need_other_scf = False
+        self.ctx.new_engine = False
         self.ctx.relax_process_class = self.inputs.relax_sub_process_class
 
     def run_relax(self):
@@ -217,12 +274,13 @@ class RelaxAndBandsWorkChain(WorkChain):
         process_class = WorkflowFactory(self.ctx.relax_process_class)
 
         # To pass the AttributeDict is a guarantee to have self.inputs.relax_inputs unmuted?
-        relax_inp_no_struct = deserialize(AttributeDict(self.inputs.relax_inputs))
+        relax_inp_no_struct = deserialize(AttributeDict(self.inputs.relax_inputs), remove_struct=True)
 
         # Impose RelaxType.NONE when the relax workcain is called the second time
         if self.ctx.need_other_scf:
             relax_inp_no_struct['relax_type'] = RelaxType.NONE
-            relax_inp_no_struct['engines']['relax']['code'] = self.inputs.bands_inputs['engines']['bands']['code'].label
+            if self.ctx.new_engine:
+                relax_inp_no_struct['engines']['relax'] = self.get_new_engine()
 
         builder = process_class.get_input_generator().get_builder(
             structure=self.ctx.structure,
@@ -239,7 +297,6 @@ class RelaxAndBandsWorkChain(WorkChain):
     def prepare_bands(self):
         """
         Check that the first workchain finished successfully or abort the workchain.
-        Then anal
         """
         if not self.ctx.workchain_relax.is_finished_ok:
             self.report('Relaxation did not finish successful so aborting the workchain.')
@@ -266,7 +323,11 @@ class RelaxAndBandsWorkChain(WorkChain):
         bands_plugin = self.inputs.bands_sub_process_class.replace('common_workflows.bands.', '')
         if first_relax_plugin != bands_plugin:
             self.report(f'Different code between relax and bands. Relax {first_relax_plugin}, bands {bands_plugin}')
+        bands_plugin = self.inputs.bands_sub_process_class.replace('common_workflows.bands.', '')
+        if first_relax_plugin != bands_plugin:
+            self.report(f'Different code between relax and bands. Relax {first_relax_plugin}, bands {bands_plugin}')
             self.ctx.need_other_scf = True
+            self.ctx.new_engine = True
             self.ctx.relax_process_class = 'common_workflows.relax.' + bands_plugin
 
         if self.ctx.need_other_scf:
@@ -286,7 +347,7 @@ class RelaxAndBandsWorkChain(WorkChain):
 
         process_class = WorkflowFactory(self.inputs.bands_sub_process_class)
 
-        bands_inpus_no_kp = deserialize(AttributeDict(self.inputs.bands_inputs))
+        bands_inpus_no_kp = deserialize(AttributeDict(self.inputs.bands_inputs), remove_bands_kp=True)
 
         builder = process_class.get_input_generator().get_builder(
             bands_kpoints=self.ctx.bandskpoints,
@@ -311,3 +372,44 @@ class RelaxAndBandsWorkChain(WorkChain):
 
         self.out('final_structure', self.ctx.workchain_bands.inputs.structure)
         self.out('bands', self.ctx.workchain_bands.outputs.bands)
+
+
+    def get_new_engine(self):
+        """
+        Fixes the code and resources to use in case a different plugin
+        is used between bands and relaxation.
+        """
+        if 'extra_relax_inputs.engines' in self.inputs:
+            return self.inputs.extra_relax_inputs.engines
+
+        self.report('ww')
+        new_relax_process_class = WorkflowFactory(self.inputs.bands_sub_process_class.replace('bands', 'relax'))
+        generator_new_relax = new_relax_process_class.get_input_generator()
+
+        self.report(f'eee {generator_new_relax}')
+
+        engines = {}
+
+        for engine in generator_new_relax.spec().inputs['engines']:
+            port = generator_new_relax.spec().inputs['engines'][engine]
+            entry_point = port['code'].code_entry_point
+            self.report(f'{port},{entry_point},{engine}')
+            code = get_code_from_list_or_database([], entry_point)
+            if code is None:
+                raise ValueError(
+                    f'could not find a configured code for the plugin `{entry_point}`. '
+                    'Make sure such a code is configured in the DB.'
+                )
+
+            number_machines = 1
+            wallclock_seconds = 3600
+
+            all_options = {
+                'resources': {'num_machines': number_machines,},
+                'max_wallclock_seconds': wallclock_seconds,
+            }
+
+            engines[engine] = {'code': code.full_label, 'options': all_options}
+            self.report(f'{engines}')
+
+        return engines
