@@ -78,10 +78,6 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         inpgen_code = engines['inpgen']['code']
         fleur_code = engines['relax']['code']
-        if not isinstance(inpgen_code, orm.Code):
-            inpgen_code = orm.load_code(inpgen_code)
-        if not isinstance(fleur_code, orm.Code):
-            fleur_code = orm.load_code(fleur_code)
         options = engines['relax'].get('options', {})
         options_scf = orm.Dict(dict=options)
         # Checks if protocol exists

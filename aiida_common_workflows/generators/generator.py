@@ -87,7 +87,7 @@ class InputGenerator(ProtocolRegistry, metaclass=abc.ABCMeta):
         if validation_error is not None:
             raise ValueError(validation_error)
 
-        return self._construct_builder(**processed_kwargs)
+        return self._construct_builder(**serialized_kwargs)
 
     @abc.abstractmethod
     def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:

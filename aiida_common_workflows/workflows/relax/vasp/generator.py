@@ -5,7 +5,6 @@ import pathlib
 import yaml
 
 from aiida import engine
-from aiida import orm
 from aiida import plugins
 from aiida.common.extendeddicts import AttributeDict
 
@@ -76,7 +75,7 @@ class VaspCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         builder = self.process_class.get_builder()
 
         # Set code
-        builder.code = orm.load_code(engines['relax']['code'])
+        builder.code = engines['relax']['code']
 
         # Set structure
         builder.structure = structure

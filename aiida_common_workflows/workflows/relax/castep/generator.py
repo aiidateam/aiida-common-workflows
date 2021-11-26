@@ -260,12 +260,6 @@ def generate_inputs(
 
     type_check(structure, orm.StructureData)
 
-    if not isinstance(code, orm.Code):
-        try:
-            code = orm.load_code(code)
-        except (exceptions.MultipleObjectsError, exceptions.NotExistent) as exception:
-            raise ValueError('could not load the code {}: {}'.format(code, exception)) from exception
-
     if process_class == CastepCalculation:
         protocol = protocol['relax']['base']['calc']
         dictionary = generate_inputs_calculation(protocol, code, structure, otfg_family, override)
