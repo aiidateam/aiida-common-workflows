@@ -7,7 +7,7 @@ from aiida import plugins
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
 
-from ..generator import CommonRelaxInputGenerator
+from ..generator import CommonDftRelaxInputGenerator
 
 __all__ = ('QuantumEspressoCommonRelaxInputGenerator',)
 
@@ -62,7 +62,7 @@ def create_magnetic_allotrope(structure, magnetization_per_site):
     return (allotrope, allotrope_magnetic_moments)
 
 
-class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
+class QuantumEspressoCommonRelaxInputGenerator(CommonDftRelaxInputGenerator):
     """Input generator for the common relax workflow implementation of Quantum ESPRESSO."""
 
     def __init__(self, *args, **kwargs):

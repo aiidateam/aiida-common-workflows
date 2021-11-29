@@ -2,7 +2,7 @@
 """Module with basic type definitions."""
 from enum import Enum
 
-__all__ = ('ElectronicType', 'SpinType', 'RelaxType')
+__all__ = ('ElectronicType', 'SpinType', 'RelaxType', 'OccupationType', 'XcFunctionalType')
 
 
 class RelaxType(Enum):
@@ -24,12 +24,30 @@ class SpinType(Enum):
     NONE = 'none'
     COLLINEAR = 'collinear'
     NON_COLLINEAR = 'non_collinear'
-    SPIN_ORBIT = 'spin_orbit'
 
 
 class ElectronicType(Enum):
     """Enumeration of known electronic types."""
 
-    AUTOMATIC = 'automatic'
+    UNKNOWN = 'unknown'
     METAL = 'metal'
     INSULATOR = 'insulator'
+
+
+class OccupationType(Enum):
+    """Enumeration of known methods of treating electronic occupations."""
+
+    FIXED = 'fixed'
+    TETRAHEDRON = 'tetrahedron'
+    GAUSSIAN = 'gaussian'
+    FERMI_DIRAC = 'fermi-dirac'
+    METHFESSEL_PAXTON = 'methfessel-paxton'
+    MARZARI_VANDERBILT = 'marzari-vanderbilt'
+
+
+class XcFunctionalType(Enum):
+    """Enumeration of known exchange-correlation functional types."""
+
+    LDA = 'lda'
+    PBE = 'pbe'
+    PBESOL = 'pbesol'
