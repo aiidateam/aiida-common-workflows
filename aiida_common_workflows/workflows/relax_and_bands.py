@@ -14,7 +14,6 @@ from aiida.common import exceptions, AttributeDict, NotExistent
 from aiida.engine import WorkChain, if_, calcfunction, ToContext
 from aiida.plugins import WorkflowFactory
 from aiida.orm.nodes.data.base import to_aiida_type
-from aiida_common_workflows.cli.utils import get_code_from_list_or_database
 from aiida_common_workflows.workflows.relax.generator import RelaxType
 from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChain
 from aiida_common_workflows.workflows.bands.workchain import CommonBandsWorkChain
@@ -115,6 +114,11 @@ def validate_inputs(value, _):  #pylint: disable=too-many-branches,too-many-retu
         else:
             #Will change in the future
             return f'The `code` in bands_inputs.engines.{engine} must be a string with the full label of the code'
+
+    first_relax_plugin = value['relax_sub_process_class'].replace('common_workflows.relax.', '')
+    bands_plugin = value['bands_sub_process_class'].replace('common_workflows.bands.', '')
+    if first_relax_plugin != bands_plugin:
+        return 'Different code between relax and bands. Not supported yet.'
 
 
 def validate_sub_process_class_r(value, _):
@@ -222,19 +226,6 @@ class RelaxAndBandsWorkChain(WorkChain):
             help='Inputs for the quantum engine performing the geometry optimization.',
         )
 
-        spec.input_namespace(
-            'extra_relax_inputs',
-            required=False,
-            help='Inputs for the quantum engine performing the second geometry optimization.',
-        )
-        spec.input(
-            'extra_relax_inputs.engines',
-            valid_type=dict,
-            non_db=True,
-            required=False,
-            help='Inputs for the quantum engine performing the second geometry optimization.',
-        )
-
         spec.input('relax_sub_process_class', non_db=True, validator=validate_sub_process_class_r)
         spec.input('bands_sub_process_class', non_db=True, validator=validate_sub_process_class_b)
 
@@ -279,8 +270,6 @@ class RelaxAndBandsWorkChain(WorkChain):
         # Impose RelaxType.NONE when the relax workcain is called the second time
         if self.ctx.need_other_scf:
             relax_inp_no_struct['relax_type'] = RelaxType.NONE
-            if self.ctx.new_engine:
-                relax_inp_no_struct['engines']['relax'] = self.get_new_engine()
 
         builder = process_class.get_input_generator().get_builder(
             structure=self.ctx.structure,
@@ -318,17 +307,6 @@ class RelaxAndBandsWorkChain(WorkChain):
             self.ctx.need_other_scf = False
             self.ctx.bandskpoints = self.inputs.bands_inputs['bands_kpoints']
             self.ctx.structure = structure
-
-        first_relax_plugin = self.inputs.relax_sub_process_class.replace('common_workflows.relax.', '')
-        bands_plugin = self.inputs.bands_sub_process_class.replace('common_workflows.bands.', '')
-        if first_relax_plugin != bands_plugin:
-            self.report(f'Different code between relax and bands. Relax {first_relax_plugin}, bands {bands_plugin}')
-        bands_plugin = self.inputs.bands_sub_process_class.replace('common_workflows.bands.', '')
-        if first_relax_plugin != bands_plugin:
-            self.report(f'Different code between relax and bands. Relax {first_relax_plugin}, bands {bands_plugin}')
-            self.ctx.need_other_scf = True
-            self.ctx.new_engine = True
-            self.ctx.relax_process_class = 'common_workflows.relax.' + bands_plugin
 
         if self.ctx.need_other_scf:
             self.report('A new scf cycle needed')
@@ -372,44 +350,3 @@ class RelaxAndBandsWorkChain(WorkChain):
 
         self.out('final_structure', self.ctx.workchain_bands.inputs.structure)
         self.out('bands', self.ctx.workchain_bands.outputs.bands)
-
-
-    def get_new_engine(self):
-        """
-        Fixes the code and resources to use in case a different plugin
-        is used between bands and relaxation.
-        """
-        if 'extra_relax_inputs.engines' in self.inputs:
-            return self.inputs.extra_relax_inputs.engines
-
-        self.report('ww')
-        new_relax_process_class = WorkflowFactory(self.inputs.bands_sub_process_class.replace('bands', 'relax'))
-        generator_new_relax = new_relax_process_class.get_input_generator()
-
-        self.report(f'eee {generator_new_relax}')
-
-        engines = {}
-
-        for engine in generator_new_relax.spec().inputs['engines']:
-            port = generator_new_relax.spec().inputs['engines'][engine]
-            entry_point = port['code'].code_entry_point
-            self.report(f'{port},{entry_point},{engine}')
-            code = get_code_from_list_or_database([], entry_point)
-            if code is None:
-                raise ValueError(
-                    f'could not find a configured code for the plugin `{entry_point}`. '
-                    'Make sure such a code is configured in the DB.'
-                )
-
-            number_machines = 1
-            wallclock_seconds = 3600
-
-            all_options = {
-                'resources': {'num_machines': number_machines,},
-                'max_wallclock_seconds': wallclock_seconds,
-            }
-
-            engines[engine] = {'code': code.full_label, 'options': all_options}
-            self.report(f'{engines}')
-
-        return engines
