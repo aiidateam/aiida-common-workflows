@@ -13,7 +13,7 @@ class ProtocolRegistry:
     _protocols = None
     _default_protocol = None
 
-    def __init__(self, *_, **__):
+    def __init__(self):
         """Construct an instance of the protocol registry, validating the class attributes set by the sub class."""
 
         def raise_invalid(message):

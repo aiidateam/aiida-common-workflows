@@ -36,7 +36,7 @@ def test_inputgen_constructor(generate_input_generator_cls):
 
     cls = generate_input_generator_cls()
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(TypeError):
         cls()
 
     cls(process_class=WorkflowFactory('common_workflows.relax.siesta'))
