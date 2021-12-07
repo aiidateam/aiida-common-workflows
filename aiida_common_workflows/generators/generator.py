@@ -33,7 +33,7 @@ class InputGenerator(ProtocolRegistry, metaclass=abc.ABCMeta):
     def spec(cls) -> InputGeneratorSpec:
         """Return the specification of the input generator."""
         try:
-            return getattr(cls, '_spec')
+            return cls.__getattribute__(cls, '_spec')
         except AttributeError:
             try:
                 cls._spec: InputGeneratorSpec = cls._spec_cls()
