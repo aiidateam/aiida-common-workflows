@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """Utilities to fit and visualize a Equation of States based on set of volumes and energies."""
 import typing
-import numpy
 
 import matplotlib.pyplot as plt
+import numpy
 
 
 def birch_murnaghan(V, E0, V0, B0, B01):

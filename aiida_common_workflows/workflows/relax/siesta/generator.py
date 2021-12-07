@@ -2,15 +2,13 @@
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for SIESTA."""
 import os
 
-import yaml
-
-from aiida import engine
-from aiida import orm
-from aiida import plugins
+from aiida import engine, orm, plugins
 from aiida.common import exceptions
+import yaml
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
+
 from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('SiestaCommonRelaxInputGenerator',)
@@ -31,27 +29,26 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         super().__init__(*args, **kwargs)
 
         def raise_invalid(message):
-            raise RuntimeError('invalid protocol registry `{}`: '.format(self.__class__.__name__) + message)
+            raise RuntimeError(f'invalid protocol registry `{self.__class__.__name__}`: ' + message)
 
         for k, v in self._protocols.items():  # pylint: disable=invalid-name
 
             if 'parameters' not in v:
-                raise_invalid('protocol `{}` does not define the mandatory key `parameters`'.format(k))
+                raise_invalid(f'protocol `{k}` does not define the mandatory key `parameters`')
             if 'mesh-cutoff' in v['parameters']:
                 try:
                     float(v['parameters']['mesh-cutoff'].split()[0])
                     str(v['parameters']['mesh-cutoff'].split()[1])
                 except (ValueError, IndexError):
                     raise_invalid(
-                        'Wrong format of `mesh-cutoff` in `parameters` of protocol '
-                        '`{}`. Value and units are required'.format(k)
+                        f'Wrong format of `mesh-cutoff` in `parameters` of protocol `{k}`. Value and units are required'
                     )
 
             if 'basis' not in v:
-                raise_invalid('protocol `{}` does not define the mandatory key `basis`'.format(k))
+                raise_invalid(f'protocol `{k}` does not define the mandatory key `basis`')
 
             if 'pseudo_family' not in v:
-                raise_invalid('protocol `{}` does not define the mandatory key `pseudo_family`'.format(k))
+                raise_invalid(f'protocol `{k}` does not define the mandatory key `pseudo_family`')
 
     def _initialize_protocols(self):
         """Initialize the protocols class attribute by parsing them from the configuration file."""
@@ -93,7 +90,7 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         # Checks
         if protocol not in self.get_protocol_names():
             import warnings
-            warnings.warn('no protocol implemented with name {}, using default moderate'.format(protocol))
+            warnings.warn(f'no protocol implemented with name {protocol}, using default moderate')
             protocol = self.get_default_protocol_name()
         if 'relax' not in engines:
             raise ValueError('The `engines` dictionaly must contain "relax" as outermost key')
@@ -201,8 +198,7 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                             cust_meshcut = float(cust_param['mesh-cutoff'].split()[0])
                         except (ValueError, IndexError) as exc:
                             raise RuntimeError(
-                                'Wrong `mesh-cutoff` value for heuristc '
-                                '{0} of protocol {1}'.format(kind.symbol, key)
+                                f'Wrong `mesh-cutoff` value for heuristc {kind.symbol} of protocol {key}'
                             ) from exc
                         if meshcut_glob is not None:
                             if cust_meshcut > float(meshcut_glob):
@@ -213,12 +209,11 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                                 meshcut_units = cust_param['mesh-cutoff'].split()[1]
                             except (ValueError, IndexError) as exc:
                                 raise RuntimeError(
-                                    'Wrong `mesh-cutoff` units for heuristc '
-                                    '{0} of protocol {1}'.format(kind.symbol, key)
+                                    f'Wrong `mesh-cutoff` units for heuristc {kind.symbol} of protocol {key}'
                                 ) from exc
 
             if meshcut_glob is not None:
-                parameters['mesh-cutoff'] = '{0} {1}'.format(meshcut_glob, meshcut_units)
+                parameters['mesh-cutoff'] = f'{meshcut_glob} {meshcut_units}'
 
         return parameters
 

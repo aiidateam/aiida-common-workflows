@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """Tests for the :mod:`aiida_common_workflows.generators.generator` module."""
-import pytest
 from aiida import orm
 from aiida.plugins import WorkflowFactory
+import pytest
 
 from aiida_common_workflows.generators import InputGenerator
 

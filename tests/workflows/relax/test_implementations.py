@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
 """Tests for the :mod:`aiida_common_workflows.workflows.relax.quantum_espresso` module."""
 # pylint: disable=redefined-outer-name
+from aiida import engine, orm, plugins
 import pytest
-
-from aiida import engine
-from aiida import orm
-from aiida import plugins
 
 from aiida_common_workflows.common.types import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators.ports import InputGeneratorPort

@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for CP2K."""
 import re
-import numpy as np
+
 from aiida import orm
 from aiida.engine import calcfunction
 from aiida.plugins import WorkflowFactory
+import numpy as np
 
 from ..workchain import CommonRelaxWorkChain
 from .generator import Cp2kCommonRelaxInputGenerator

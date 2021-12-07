@@ -3,15 +3,14 @@
 import collections
 import pathlib
 import typing as t
-import yaml
-import numpy as np
 
-from aiida import engine
-from aiida import orm
-from aiida import plugins
+from aiida import engine, orm, plugins
+import numpy as np
+import yaml
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
+
 from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('Cp2kCommonRelaxInputGenerator',)

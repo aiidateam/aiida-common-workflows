@@ -5,8 +5,7 @@ import re
 import click
 import pytest
 
-from aiida_common_workflows.cli import launch
-from aiida_common_workflows.cli import utils
+from aiida_common_workflows.cli import launch, utils
 
 
 @pytest.mark.usefixtures('aiida_profile')

@@ -17,23 +17,23 @@ class ProtocolRegistry:
         """Construct an instance of the protocol registry, validating the class attributes set by the sub class."""
 
         def raise_invalid(message):
-            raise RuntimeError('invalid protocol registry `{}`: '.format(self.__class__.__name__) + message)
+            raise RuntimeError(f'invalid protocol registry `{self.__class__.__name__}`: ' + message)
 
         if self._protocols is None:
             raise_invalid('does not define `_protocols`')
 
         for protocol in self._protocols.values():
             if not isinstance(protocol, dict):
-                raise_invalid('protocol `{}` is not a dictionary'.format(protocol))
+                raise_invalid(f'protocol `{protocol}` is not a dictionary')
 
             if 'description' not in protocol:
-                raise_invalid('protocol `{}` does not define the key `description`'.format(protocol))
+                raise_invalid(f'protocol `{protocol}` does not define the key `description`')
 
         if self._default_protocol is None:
             raise_invalid('does not define `_default_protocol`')
 
         if self._default_protocol not in self._protocols:
-            raise_invalid('default protocol `{}` is not a defined protocol'.format(self._default_protocol))
+            raise_invalid(f'default protocol `{self._default_protocol}` is not a defined protocol')
 
     def is_valid_protocol(self, name: str) -> bool:
         """Return whether the given protocol exists."""
@@ -52,4 +52,4 @@ class ProtocolRegistry:
         try:
             return copy.deepcopy(self._protocols[name])
         except KeyError as exception:
-            raise ValueError('the protocol `{}` does not exist'.format(name)) from exception
+            raise ValueError(f'the protocol `{name}` does not exist') from exception

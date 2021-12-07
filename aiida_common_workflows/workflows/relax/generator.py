@@ -2,8 +2,7 @@
 """Module with base input generator for the common structure relax workchains."""
 import abc
 
-from aiida import orm
-from aiida import plugins
+from aiida import orm, plugins
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, InputGenerator

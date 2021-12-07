@@ -2,14 +2,13 @@
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for VASP."""
 import pathlib
 
-import yaml
-
-from aiida import engine
-from aiida import plugins
+from aiida import engine, plugins
 from aiida.common.extendeddicts import AttributeDict
+import yaml
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
+
 from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('VaspCommonRelaxInputGenerator',)
