@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """Module with pre-defined options and defaults for CLI command parameters."""
-import pathlib
 import json
-
-import click
+import pathlib
 
 from aiida.cmdline.params import options, types
 from aiida.cmdline.utils.decorators import with_dbenv
+import click
+
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 
 DEFAULT_STRUCTURES_MAPPING = {
@@ -73,7 +73,7 @@ class StructureDataParamType(click.Choice):
     @with_dbenv()
     def convert(self, value, param, ctx):
         """Attempt to interpret the value as a file first and if that fails try to load as a node."""
-        from aiida.orm import StructureData, QueryBuilder
+        from aiida.orm import QueryBuilder, StructureData
 
         try:
             filepath = pathlib.Path(__file__).parent.parent / 'common' / 'data' / DEFAULT_STRUCTURES_MAPPING[value]

@@ -5,7 +5,8 @@
 def setup_package():
     """Install the `aiida-common-workflows` package."""
     import json
-    from setuptools import setup, find_packages
+
+    from setuptools import find_packages, setup
 
     filename_setup_json = 'setup.json'
     filename_description = 'README.md'

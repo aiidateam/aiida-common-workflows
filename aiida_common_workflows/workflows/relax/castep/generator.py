@@ -2,21 +2,21 @@
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for CASTEP"""
 import collections
 import copy
-import pathlib
 from math import pi
+import pathlib
 import typing as t
-import yaml
 
-from aiida import engine
-from aiida import orm
-from aiida import plugins
+from aiida import engine, orm, plugins
 from aiida.common import exceptions
 from aiida_castep.data import get_pseudos_from_structure
 from aiida_castep.data.otfg import OTFGGroup
+import yaml
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
+
 from ..generator import CommonRelaxInputGenerator
+
 # pylint: disable=import-outside-toplevel, too-many-branches, too-many-statements
 
 __all__ = ('CastepCommonRelaxInputGenerator',)
@@ -109,7 +109,7 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             param['fix_all_ions'] = True
             param['cell_constraints'] = ['1 1 1', '0 0 0']
         else:
-            raise ValueError('relaxation type `{}` is not supported'.format(relax_type.value))
+            raise ValueError(f'relaxation type `{relax_type.value}` is not supported')
 
         # Process the spin types
         if spin_type == SpinType.COLLINEAR:
@@ -126,7 +126,7 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         elif spin_type == SpinType.NONE:
             param['spin_polarized'] = False
         else:
-            raise ValueError('Spin type `{}` is not supported'.format(spin_type.value))
+            raise ValueError(f'Spin type `{spin_type.value}` is not supported')
 
         # Process the initial magnetic moments
         if magnetization_per_site:
@@ -138,7 +138,7 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             elif isinstance(magnetization_per_site[0], dict):
                 raise ValueError('Dictionary style initialisation is not supported yet')
             else:
-                raise ValueError('Unsupported `magnetization_per_site` format {}'.format(magnetization_per_site[0]))
+                raise ValueError(f'Unsupported `magnetization_per_site` format {magnetization_per_site[0]}')
         elif spin_type == SpinType.COLLINEAR:
             # Initialise with FM spin arrangement
             override['base']['calc']['settings'] = {'SPINS': [1.0] * len(structure.sites)}
@@ -270,7 +270,7 @@ def generate_inputs(
         protocol = protocol['relax']
         dictionary = generate_inputs_relax(protocol, code, structure, otfg_family, override)
     else:
-        raise NotImplementedError('process class {} is not supported'.format(process_class))
+        raise NotImplementedError(f'process class {process_class} is not supported')
 
     return dictionary
 

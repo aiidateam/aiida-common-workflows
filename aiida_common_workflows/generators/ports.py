@@ -4,7 +4,7 @@ import typing as t
 
 from aiida.engine import InputPort
 from aiida.orm import Code
-from plumpy.ports import Port, PortValidationError, UNSPECIFIED, breadcrumbs_to_port
+from plumpy.ports import UNSPECIFIED, Port, PortValidationError, breadcrumbs_to_port
 
 __all__ = ('ChoiceType', 'CodeType', 'InputGeneratorPort')
 

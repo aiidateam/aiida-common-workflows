@@ -2,13 +2,13 @@
 """Commands to launch common workflows."""
 import functools
 
+from aiida.cmdline.params import types
 import click
 
-from aiida.cmdline.params import types
 from aiida_common_workflows.plugins import get_workflow_entry_point_names, load_workflow_entry_point
+
+from . import options, utils
 from .root import cmd_root
-from . import options
-from . import utils
 
 
 def validate_engine_options(engine_options, all_engines):

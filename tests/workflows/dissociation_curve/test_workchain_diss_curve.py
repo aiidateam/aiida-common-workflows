@@ -3,11 +3,10 @@
 """Tests for the :mod:`aiida_common_workflows.workflows.dissociation` module."""
 import copy
 
-import pytest
-
 from aiida import orm
 from aiida.engine import WorkChain
 from aiida.plugins import WorkflowFactory
+import pytest
 
 from aiida_common_workflows.plugins import get_workflow_entry_point_names
 from aiida_common_workflows.workflows import dissociation

@@ -3,8 +3,8 @@
 import abc
 import copy
 
-from aiida import engine
-from aiida import orm
+from aiida import engine, orm
+
 from ..protocol import ProtocolRegistry
 from .spec import InputGeneratorSpec
 
@@ -55,7 +55,7 @@ class InputGenerator(ProtocolRegistry, metaclass=abc.ABCMeta):
         super().__init__(*args, **kwargs)
 
         def raise_invalid(message):
-            raise RuntimeError('invalid input generator `{}`: {}'.format(self.__class__.__name__, message))
+            raise RuntimeError(f'invalid input generator `{self.__class__.__name__}`: {message}')
 
         try:
             self.process_class = kwargs.pop('process_class')

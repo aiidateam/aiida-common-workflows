@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=redefined-outer-name
 """Configuration and fixtures for unit test suite."""
-import os
 import io
+import os
 import tempfile
-
-import click
-import pytest
 
 from aiida import engine
 from aiida.common import exceptions
 from aiida.common.constants import elements
+import click
+import pytest
 
 pytest_plugins = ['aiida.manage.tests.pytest_fixtures']  # pylint: disable=invalid-name
 
@@ -129,6 +128,7 @@ def generate_code(aiida_localhost):
     def _generate_code(entry_point):
         import random
         import string
+
         from aiida.plugins import DataFactory
 
         aiida_localhost.set_default_mpiprocs_per_machine(1)
@@ -246,6 +246,7 @@ def generate_psml_data():
     def _generate_psml_data(element):
         """Return `PsmlData` node."""
         from textwrap import dedent
+
         from aiida_pseudo.data.pseudo import PsmlData
 
         content = dedent(
@@ -268,6 +269,7 @@ def generate_jthxml_data():
     def _generate_jthxml_data(element):
         """Return ``JthXmlData`` node."""
         from textwrap import dedent
+
         from aiida_pseudo.data.pseudo import JthXmlData
 
         content = dedent(

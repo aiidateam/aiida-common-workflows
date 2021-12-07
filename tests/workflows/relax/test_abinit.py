@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 """Tests for the :mod:`aiida_common_workflows.workflows.relax.abinit` module."""
 # pylint: disable=redefined-outer-name
+from aiida import engine, plugins
 import pytest
-
-from aiida import engine
-from aiida import plugins
 
 WORKCHAIN = plugins.WorkflowFactory('common_workflows.relax.abinit')
 GENERATOR = WORKCHAIN.get_input_generator()
