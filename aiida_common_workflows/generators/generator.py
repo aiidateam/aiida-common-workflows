@@ -49,7 +49,7 @@ class InputGenerator(metaclass=abc.ABCMeta):
         The ports defined on the specification are the inputs that will be accepted by the ``get_builder`` method.
         """
 
-    def __init__(self, *args, **kwargs):  #pylint: disable=unused-argument
+    def __init__(self, *args, **kwargs):  # pylint: disable=unused-argument
         """Construct an instance of the input generator, validating the class attributes."""
 
         def raise_invalid(message):
