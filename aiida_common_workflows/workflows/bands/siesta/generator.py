@@ -36,7 +36,7 @@ class SiestaCommonBandsInputGenerator(CommonBandsInputGenerator):
         # From the parent folder, we retrieve the calculation that created it. Note
         # that we are sure it exists (it wouldn't be the same for WorkChains). We then check
         # that it is a SiestaCalculation and create the builder.
-        parent_siesta_calc = parent_folder.get_incoming(link_type=LinkType.CREATE).one().node
+        parent_siesta_calc = parent_folder.creator
         if parent_siesta_calc.process_type != 'aiida.calculations:siesta.siesta':
             raise ValueError('The `parent_folder` has not been created by a SiestaCalculation')
         builder_siesta_calc = parent_siesta_calc.get_builder_restart()
@@ -44,9 +44,9 @@ class SiestaCommonBandsInputGenerator(CommonBandsInputGenerator):
         # Construct the builder of the `common_bands_wc` from the builder of a SiestaCalculation.
         # Siesta specific: we have to eampty the metadata and put the resources in `options`.
         builder_common_bands_wc = self.process_class.get_builder()
-        builder_common_bands_wc.options = orm.Dict(dict=builder_siesta_calc._data['metadata']['options'])  # pylint: disable=protected-access
-        builder_siesta_calc._data['metadata'] = {}  # pylint: disable=protected-access
-        for key, value in builder_siesta_calc._data.items():  # pylint: disable=protected-access
+        builder_common_bands_wc.options = orm.Dict(dict=dict(builder_siesta_calc.metadata.options))
+        builder_siesta_calc.metadata = {}
+        for key, value in builder_siesta_calc.items():
             if value:
                 builder_common_bands_wc[key] = value
 
