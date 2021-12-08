@@ -16,7 +16,6 @@ class SiestaCommonBandsWorkChain(CommonBandsWorkChain):
 
     def convert_outputs(self):
         """Convert the outputs of the sub workchain to the common output specification."""
-        self.report('Bands calculation concluded sucessfully, converting outputs')
         if 'bands' not in self.ctx.workchain.outputs:
             self.report('SiestaBaseWorkChain concluded without returning bands!')
             return self.exit_codes.ERROR_SUB_PROCESS_FAILED

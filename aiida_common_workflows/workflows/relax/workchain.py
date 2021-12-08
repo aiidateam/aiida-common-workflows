@@ -68,6 +68,7 @@ class CommonRelaxWorkChain(WorkChain, metaclass=ABCMeta):
             exit_status = self.ctx.workchain.exit_status
             self.report(f'the `{cls}` failed with exit status {exit_status}')
             return self.exit_codes.ERROR_SUB_PROCESS_FAILED.format(cls=cls, exit_status=exit_status)
+        self.report('Bands calculation concluded sucessfully, converting outputs')
 
     @abstractmethod
     def convert_outputs(self):
