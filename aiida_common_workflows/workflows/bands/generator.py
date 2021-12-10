@@ -48,7 +48,7 @@ class CommonBandsInputGenerator(InputGenerator, metaclass=abc.ABCMeta):
             'engines.bands.code',
             valid_type=orm.Code,
             serializer=orm.load_code,
-            help='The code instance to use for the geometry optimization.',
+            help='The code instance to use for the bands calculation.',
         )
         spec.input(
             'engines.bands.options',
