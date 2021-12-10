@@ -45,7 +45,7 @@ class SiestaCommonBandsInputGenerator(CommonBandsInputGenerator):
         builder_common_bands_wc.options = orm.Dict(dict=dict(builder_siesta_calc.metadata.options))
         builder_siesta_calc.metadata = {}
         for key, value in builder_siesta_calc.items():
-            if value:
+            if value and key != 'metadata':
                 builder_common_bands_wc[key] = value
 
         # Updated the structure (in case we have one in output)
