@@ -50,8 +50,9 @@ class CommonBandsWorkChain(WorkChain, metaclass=ABCMeta):
 
     def inspect_workchain(self):
         """Inspect the terminated workchain."""
+        cls = self._process_class.__name__
+
         if not self.ctx.workchain.is_finished_ok:
-            cls = self._process_class.__name__
             exit_status = self.ctx.workchain.exit_status
             self.report(f'{cls}<{self.ctx.workchain.pk}> failed with exit status {exit_status}.')
             return self.exit_codes.ERROR_SUB_PROCESS_FAILED.format(cls=cls, exit_status=exit_status)
