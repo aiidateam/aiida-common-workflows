@@ -38,12 +38,11 @@ class CommonBandsInputGenerator(InputGenerator, metaclass=abc.ABCMeta):
         )
         spec.input_namespace(
             'engines',
-            required=False,
             help='Inputs for the quantum engines',
         )
         spec.input_namespace(
             'engines.bands',
-            help='Inputs for the quantum engine performing the calculation of bands.',
+            help='Inputs for the quantum engine performing the bands calculation.',
         )
         spec.input(
             'engines.bands.code',
@@ -55,5 +54,5 @@ class CommonBandsInputGenerator(InputGenerator, metaclass=abc.ABCMeta):
             'engines.bands.options',
             valid_type=dict,
             required=False,
-            help='Options for the bands calculations jobs.',
+            help='Options for the bands calculation jobs.',
         )
