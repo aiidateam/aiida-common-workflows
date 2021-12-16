@@ -3,7 +3,7 @@
 from abc import ABCMeta, abstractmethod
 
 from aiida.engine import ToContext, WorkChain
-from aiida.orm import BandsData
+from aiida.orm import BandsData, Float
 
 from .generator import CommonBandsInputGenerator
 
@@ -40,6 +40,7 @@ class CommonBandsWorkChain(WorkChain, metaclass=ABCMeta):
             cls.convert_outputs,
         )
         spec.output('bands', valid_type=BandsData, required=False, help='Energies in eV.')
+        spec.output('fermi_energy', valid_type=Float, required=False, help='Fermi Energy in eV.')
         spec.exit_code(400, 'ERROR_SUB_PROCESS_FAILED',
             message='The `{cls}` workchain failed with exit status {exit_status}.')
 
