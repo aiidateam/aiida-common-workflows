@@ -2,15 +2,14 @@
 """
 Workflow that runs a relaxation and subsequently calculates bands.
 It can use any code plugin implementing the common relax workflow and the
-common bands workflow. It also allows the relaxation with one code and the
-bands calculations with another.
+common bands workflow.
 It also allows the automatic use of `seekpath` in order to get the high
 symmetries path for bands.
 """
 import inspect
 
 from aiida import orm
-from aiida.common import AttributeDict, NotExistent, exceptions
+from aiida.common import AttributeDict, exceptions
 from aiida.engine import ToContext, WorkChain, calcfunction, if_
 from aiida.orm.nodes.data.base import to_aiida_type
 from aiida.plugins import WorkflowFactory
@@ -23,16 +22,15 @@ from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChai
 
 def deserialize(inputs):
     """
-    Function used to deserialize the inputs of get_builder. It also removes some specific
-    inputs that are not wanted.
+    Function used to deserialize the inputs of get_builder.
 
-    In this workchain the inputs of `CommonRelaxInputGenerator` and `CommonBandsInputGenerator`
-    are exposed to the users of the workchain. However, in order to have them exposed,
-    it is necessary to transform them in aiida data type. This is done by various commands in
-    the `define` method of this workchain.
-    However, then these inputs need to be passed to the `get_builder`, that accepts normal python
-    types and not AiiDA data types. Here we deserialize the inputs to bring
-    them to normal python types.
+    The process of serialization consists in transforming simple python types
+    into aiida Data types.
+    In this function we perform the opposite process, we bring the aiida
+    Data to the correspondingo normal python types.
+
+    :param inputs: dictionary containing the elements to deserialize
+    :return: the dictionary containing the deserialized inputs.
     """
 
     for key, val in inputs.items():
@@ -72,17 +70,15 @@ def validate_inputs(value, _):  #pylint: disable=too-many-branches,too-many-retu
 
     # Validate that the provided ``relax_inputs`` are valid for the associated input generator.
     try:
-        generator.get_builder(**deserialize(AttributeDict(value['relax_inputs'])))
+        generator.get_builder(**AttributeDict(value['relax_inputs']))
     except Exception as exc:  # pylint: disable=broad-except
         return f'`{generator.__class__.__name__}.get_builder()` fails for the provided `relax_inputs`: {exc}'
 
-    #process_class_bands = WorkflowFactory(value['bands_sub_process_class'].value)
-    #generator_bands = process_class_bands.get_input_generator()
-
-    #first_relax_plugin = value['relax_sub_process_class'].replace('common_workflows.relax.', '')
-    #bands_plugin = value['bands_sub_process_class'].replace('common_workflows.bands.', '')
-    #if first_relax_plugin != bands_plugin:
-    #    return 'Different code between relax and bands. Not supported yet.'
+    #Validate that the plugin for bands and the relax are the same
+    bands_plugin = value['bands_sub_process_class'].value.replace('common_workflows.bands.', '')
+    relax_plugin = value['relax_sub_process_class'].value.replace('common_workflows.relax.', '')
+    if relax_plugin != bands_plugin:
+        return 'Different code between relax and bands. Not supported yet.'
 
 
 def validate_sub_process_class_r(value, _):
@@ -185,11 +181,12 @@ class RelaxAndBandsWorkChain(WorkChain):
         for key in namspac3:
             namspac3[key].required = False
             namspac3[key].populate_defaults = False
+            namspac3[key].default = ()
         namspac3['relax_type'].required = True
         namspac3['relax_type'].default = RelaxType.NONE
 
-        spec.input('relax_sub_process_class', 
-                valid_type=orm.Str, 
+        spec.input('relax_sub_process_class',
+                valid_type=orm.Str,
                 serializer=to_aiida_type,
                 validator=validate_sub_process_class_r
                 )
@@ -227,13 +224,12 @@ class RelaxAndBandsWorkChain(WorkChain):
         self.ctx.inputs = AttributeDict(self.inputs.relax_inputs)
         self.ctx.need_other_scf = False
 
+
     def run_relax(self):
         """
         Run the relaxation workchain.
         """
         process_class = WorkflowFactory(self.inputs.relax_sub_process_class.value)
-
-        self.report(self.ctx.inputs)
 
         builder = process_class.get_input_generator().get_builder(
             **self.ctx.inputs
@@ -249,6 +245,10 @@ class RelaxAndBandsWorkChain(WorkChain):
     def prepare_bands(self):
         """
         Check that the first workchain finished successfully or abort the workchain.
+        Analyze the `bands_inputs` namespace and decide whether to call SeeKpath or not.
+        When SeeKpath is called in order to create the bands high symmetries path,
+        the structure might change, therefore a new scf calculation should be
+        performed before calculating bands.
         """
         if not self.ctx.workchain_relax.is_finished_ok:
             self.report('Relaxation did not finish successful so aborting the workchain.')
@@ -258,7 +258,6 @@ class RelaxAndBandsWorkChain(WorkChain):
         else:
             structure = self.ctx.inputs['structure']
 
-        #self.report(self.inputs.second_relax_inputs)
         if 'bands_kpoints' not in self.inputs.bands_inputs:
             self.report('Using SekPath to create kpoints for bands. Structure might change.')
             seekpath_dict_to_aiida = orm.Dict(dict=deserialize(AttributeDict(self.inputs.seekpath_parameters)))
@@ -298,17 +297,10 @@ class RelaxAndBandsWorkChain(WorkChain):
 
         process_class = WorkflowFactory(self.inputs.bands_sub_process_class.value)
 
-        #bands_inpus_no_kp = AttributeDict(self.inputs.bands_inputs)
-        #if "bands_kpoints" in bands_inpus_no_kp:
-        #    bands_inpus_no_kp.pop("bands_kpoints")
-
-        #self.report(bands_inpus_no_kp)
-
         builder = process_class.get_input_generator().get_builder(
-            bands_kpoints=self.ctx.bandskpoints,
-            parent_folder=rel_wc.outputs.remote_folder,
-            engines = self.inputs.bands_inputs["engines"],
-            #**bands_inpus_no_kp
+            bands_kpoints = self.ctx.bandskpoints,
+            parent_folder = rel_wc.outputs.remote_folder,
+            engines = AttributeDict(self.inputs.bands_inputs['engines']),
         )
 
         #builder._update(**self.inputs.get('bands_sub_process', {}))  # pylint: disable=protected-access
@@ -325,6 +317,8 @@ class RelaxAndBandsWorkChain(WorkChain):
         if not self.ctx.workchain_bands.is_finished_ok:
             self.report('Bands calculation did not finish successful so aborting the workchain.')
             return self.exit_codes.ERROR_SUB_PROCESS_FAILED.format(cls=self.inputs.bands_sub_process_class)
+
+        self.report('Bands calculation finished successfully, returning outputs')
 
         self.out('final_structure', self.ctx.workchain_bands.inputs.structure)
         self.out('bands', self.ctx.workchain_bands.outputs.bands)
