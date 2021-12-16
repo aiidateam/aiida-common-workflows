@@ -298,9 +298,9 @@ class RelaxAndBandsWorkChain(WorkChain):
         process_class = WorkflowFactory(self.inputs.bands_sub_process_class.value)
 
         builder = process_class.get_input_generator().get_builder(
-            bands_kpoints = self.ctx.bandskpoints,
-            parent_folder = rel_wc.outputs.remote_folder,
-            engines = AttributeDict(self.inputs.bands_inputs['engines']),
+            bands_kpoints=self.ctx.bandskpoints,
+            parent_folder=rel_wc.outputs.remote_folder,
+            engines=AttributeDict(self.inputs.bands_inputs['engines']),
         )
 
         #builder._update(**self.inputs.get('bands_sub_process', {}))  # pylint: disable=protected-access
