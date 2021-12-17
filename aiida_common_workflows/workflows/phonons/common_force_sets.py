@@ -10,7 +10,7 @@ from aiida.plugins import WorkflowFactory
 from aiida_common_workflows.workflows.relax.generator import RelaxType, SpinType, ElectronicType
 from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChain
 
-ForceSetWorkChain = WorkflowFactory('phonopy.force_set')
+ForceSetsWorkChain = WorkflowFactory('phonopy.force_sets')
 
 def validate_common_inputs(value, _):
     """Validate the entire input namespace."""
@@ -34,7 +34,7 @@ def validate_sub_process_class(value, _):
         return f'`{value}` is not a subclass of the `CommonRelaxWorkChain` common workflow.'
 
 
-class CommonForceSetStateWorkChain(ForceSetWorkChain):
+class CommonForceSetsWorkChain(ForceSetsWorkChain):
     """
     Workflow to compute automatically the force set of a given structure
     using the frozen phonons approach.
@@ -42,6 +42,8 @@ class CommonForceSetStateWorkChain(ForceSetWorkChain):
     Phonopy is used to produce structures with displacements,
     while the forces are calculated with a quantum engine of choice.
     """
+
+    _RUN_PREFIX = 'force_calc'
 
     @classmethod
     def define(cls, spec):
@@ -66,7 +68,7 @@ class CommonForceSetStateWorkChain(ForceSetWorkChain):
             message='At least one of the `{cls}` sub processes did not finish successfully.')
 
 
-    def get_sub_workchain_builder(self, structure, reference_workchain=None):
+    def get_sub_workchain_builder(self, structure):
         """Return the builder for the scf workchain."""
         process_class = WorkflowFactory(self.inputs.sub_process_class)
 
@@ -74,8 +76,6 @@ class CommonForceSetStateWorkChain(ForceSetWorkChain):
 
         builder = process_class.get_input_generator().get_builder(
             structure,
-            # v : useful in the future for using the charge density to make calcs faster?
-            reference_workchain=reference_workchain, 
             **self.inputs.generator_inputs,
             **relax_type,
         )
@@ -83,47 +83,51 @@ class CommonForceSetStateWorkChain(ForceSetWorkChain):
 
         return builder
 
-    def run_init(self): # can be usefull for restarting from pristine structure
-        """Run the first workchain."""
-        scale_factor = self.get_scale_factors()[0]
-        builder, structure = self.get_sub_workchain_builder(scale_factor)
-        self.report(f'submitting `{builder.process_class.__name__}` for scale_factor `{scale_factor}`')
-        self.ctx.reference_workchain = self.submit(builder)
-        self.ctx.structures = [structure]
-        self.to_context(children=append_(self.ctx.reference_workchain))
+    def collect_forces_and_energies(self):
+        """Collect forces and energies from calculation outputs."""
+        forces_dict = {}
 
-    def inspect_init(self):
-        """Check that the first workchain finished successfully or abort the workchain."""
-        if not self.ctx.children[0].is_finished_ok:
-            self.report('Initial sub process did not finish successful so aborting the workchain.')
-            return self.exit_codes.ERROR_SUB_PROCESS_FAILED.format(cls=self.inputs.sub_process_class)  # pylint: disable=no-member
+        for key, workchain in self.ctx.items(): # key: e.g. "supercell_001"
+            if key.startswith(self._RUN_PREFIX):
+                num = key.split("_")[-1] # e.g. "001"
+                
+                output = workchain.outputs
+
+                forces_dict[f'forces_{num}'] = output["forces"] 
+                forces_dict[f'energy_{num}'] = output["total_energy"] 
+
+        return forces_dict
 
     def run_forces(self):
         """Run supercell force calculations."""
         for key, supercell in self.ctx.supercells.items():
-            label = "force_calc_%s" % key.split("_")[-1]
+            num = key.split("_")[-1]
+            if num == key:
+                num = 0
+            label = self._RUN_PREFIX + "_%s" % num
             builder = self.get_sub_workchain_builder(supercell)
             builder.metadata.label = label # very necessary?
             future = self.submit(builder)
-            self.report("submitting `{builder.process_class.__name__}` <PK={}> with {} as structure".format(future.pk, label))
+            self.report(f"submitting `{builder.process_class.__name__}` <PK={future.pk}> with {key} as structure")
             self.to_context(**{label: future})
 
     def inspect_forces(self):
         """Inspect all children workflows to make sure they finished successfully."""
-        if any([not supercell.is_finished_ok for supercell in self.ctx if supercell.label.startswith("force_calc_") ]):
+        failed_runs = []
+        
+        for label, workchain in self.ctx.items():
+            if label.startswith(self._RUN_PREFIX):
+                if workchain.is_finished_ok:
+                    forces = workchain.outputs.forces
+                    self.out(f'supercells_forces.{label}', forces)
+                else:
+                    failed_runs.append(workchain.pk)
+                    
+        if failed_runs:
+            self.report("workchain(s) with <PK={}> did not finish correctly".format(failed_runs))
             return self.exit_codes.ERROR_SUB_PROCESS_FAILED.format(cls=self.inputs.sub_process_class)  # pylint: disable=no-member
         
-        self.ctx.forces = {}
-
-        for force_run in self.ctx:
-            label = force_run.label
-            if label.startswith("force_calc_"):
-                forces = force_run.outputs.forces
-                self.ctx.forces.append({label:forces})
-                self.out(f'supercells_forces.{label}', forces)
+        self.ctx.forces = self.collect_forces_and_energies()
         
-    def run_results:
-        """Run final results."""
-        pass
 
 
