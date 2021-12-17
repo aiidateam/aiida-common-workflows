@@ -232,14 +232,12 @@ class RelaxAndBandsWorkChain(WorkChain):
             self.report('Relaxation did not finish successful so aborting the workchain.')
             return self.exit_codes.ERROR_SUB_PROCESS_FAILED.format(cls=self.inputs.relax_sub_process_class.value)  # pylint: disable=no-member
         if 'relaxed_structure' in self.ctx.workchain_relax.outputs:
-            structure = self.ctx.workchain_relax.outputs.relaxed_structure
-        else:
-            structure = self.ctx.inputs['structure']
+            self.ctx.inputs['structure'] = self.ctx.workchain_relax.outputs.relaxed_structure
 
         if 'bands_kpoints' not in self.inputs.bands:
             self.report('Using SekPath to create kpoints for bands. Structure might change.')
             seekpath_dict = AttributeDict(self.inputs.seekpath_parameters)
-            res = seekpath_explicit_kp_path(structure, **seekpath_dict)
+            res = seekpath_explicit_kp_path(self.ctx.inputs['structure'], **seekpath_dict)
             self.ctx.inputs['structure'] = res['structure']
             self.ctx.bandskpoints = res['kpoints']
             self.ctx.need_other_scf = True
