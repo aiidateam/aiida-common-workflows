@@ -370,7 +370,7 @@ def psml_family(generate_psml_data):
 
     PsmlData = plugins.DataFactory('pseudo.psml')  # pylint: disable=invalid-name
     PseudoPotentialFamily = plugins.GroupFactory('pseudo.family')  # pylint: disable=invalid-name
-    label = 'nc-sr-04_pbe_standard_psml'
+    label = 'PseudoDojo/0.4/PBE/FR/standard/psml'
 
     try:
         family = PseudoPotentialFamily.objects.get(label=label)
