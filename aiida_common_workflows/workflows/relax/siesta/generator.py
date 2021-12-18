@@ -100,8 +100,8 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             orm.Group.objects.get(label=pseudo_family)
         except exceptions.NotExistent as exc:
             raise ValueError(
-                'protocol `{}` requires `pseudo_family` with name {} '
-                'but no family with this name is loaded in the database'.format(protocol, pseudo_family)
+                f'protocol `{protocol}` requires `pseudo_family` with name {pseudo_family} '
+                'but no family with this name is loaded in the database'
             ) from exc
 
         # K points

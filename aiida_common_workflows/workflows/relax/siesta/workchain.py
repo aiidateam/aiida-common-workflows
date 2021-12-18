@@ -12,8 +12,13 @@ __all__ = ('SiestaCommonRelaxWorkChain',)
 
 @calcfunction
 def get_energy(pardict):
-    """Extract the energy from the `output_parameters` dictionary"""
-    return orm.Float(pardict['E_KS'])
+    """
+    Extract the energy from the `output_parameters` dictionary.
+
+    The energy to use is the Free energy since a fictitious electronic temperature
+    have been introduced in the calculations.
+    """
+    return orm.Float(pardict['FreeE'])
 
 
 @calcfunction

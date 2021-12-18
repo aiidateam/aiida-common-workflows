@@ -15,7 +15,7 @@ moderate:
   basis:
     pao-energy-shift: '50 meV'
     pao-basis-size: 'DZP'
-  pseudo_family: 'nc-sr-04_pbe_standard_psml'
+  pseudo_family: 'PseudoDojo/0.4/PBE/FR/standard/psml'
   kpoints:
     distance: 0.1
     offset: [0., 0., 0.]
@@ -86,7 +86,7 @@ precise:
   basis:
     pao-energy-shift: '50 meV'
     pao-basis-size: 'DZP'
-  pseudo_family: 'nc-sr-04_pbe_standard_psml'
+  pseudo_family: 'PseudoDojo/0.4/PBE/FR/standard/psml'
   kpoints:
     distance: 0.1 #0.062
     offset: [0., 0., 0.]
@@ -276,7 +276,7 @@ fast:
   basis:
     pao-energy-shift: '200 meV'
     pao-basis-size: 'DZ'
-  pseudo_family: 'nc-sr-04_pbe_standard_psml'
+  pseudo_family: 'PseudoDojo/0.4/PBE/FR/standard/psml'
   kpoints:
     distance: 0.2
     offset: [0., 0., 0.]
