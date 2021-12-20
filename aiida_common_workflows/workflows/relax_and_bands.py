@@ -16,9 +16,10 @@ from aiida.engine import ToContext, WorkChain, calcfunction, if_
 from aiida.orm.nodes.data.base import to_aiida_type
 from aiida.plugins import WorkflowFactory
 
+from aiida_common_workflows.common import RelaxType
 from aiida_common_workflows.workflows.bands.generator import CommonBandsInputGenerator
 from aiida_common_workflows.workflows.bands.workchain import CommonBandsWorkChain
-from aiida_common_workflows.workflows.relax.generator import CommonRelaxInputGenerator, RelaxType
+from aiida_common_workflows.workflows.relax.generator import CommonRelaxInputGenerator
 from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChain
 
 
@@ -49,7 +50,17 @@ def validate_inputs(value, _):  #pylint: disable=too-many-branches,too-many-retu
     except Exception as exc:  # pylint: disable=broad-except
         return f'`{generator.__class__.__name__}.get_builder()` fails for the provided `relax_inputs`: {exc}'
 
-    #Validate that the plugin for bands and the relax are the same
+    # Raise when a relax type with variable cell is selected and also the the kpoints for bands
+    # are specified in input.
+    if 'bands_kpoints' in value['bands']:
+        if value['relax']['relax_type'] not in [RelaxType.NONE, RelaxType.POSITIONS]:
+            message = (
+                'A kpoints path for bands in input is incompatible with a `relax_type` that ' +
+                'involves cell modification.'
+            )
+            return message
+
+    # Validate that the plugin for bands and the relax are the same
     bands_plugin = value['bands_sub_process_class'].value.replace('common_workflows.bands.', '')
     relax_plugin = value['relax_sub_process_class'].value.replace('common_workflows.relax.', '')
     if relax_plugin != bands_plugin:
@@ -70,6 +81,12 @@ def validate_sub_process_class(value, _, required_class=None):
 class RelaxAndBandsWorkChain(WorkChain):
     """
     Workflow to carry on a relaxation and subsequently calculate the bands.
+
+    It allows three possibilities:
+    1) relax+seekpath+scf+bands, when ``bands.bands_kpoints`` is NOT in input
+    2) relax+kp_in_input+bands, when ``bands.bands_kpoints`` is in input
+    3) relax+kp_in_input+scf+bands, when ``bands.bands_kpoints`` is in input AND ``extra_scf``
+       namespace is populated
     """
 
     @classmethod
@@ -151,7 +168,9 @@ class RelaxAndBandsWorkChain(WorkChain):
                         }
                 )
         spec.inputs['extra_scf']['protocol'].non_db = True
+        spec.inputs['extra_scf']['protocol'].default = ()
         spec.inputs['extra_scf']['spin_type'].non_db = True
+        spec.inputs['extra_scf']['spin_type'].default = ()
         spec.inputs['extra_scf']['electronic_type'].non_db = True
         spec.inputs['extra_scf']['magnetization_per_site'].non_db = True
         spec.inputs['extra_scf']['engines']['relax']['options'].non_db = True
@@ -173,10 +192,18 @@ class RelaxAndBandsWorkChain(WorkChain):
         spec.outline(
             cls.initialize,
             cls.run_common_relax_wc,
-            cls.prepare_bands,
-            if_(cls.should_run_extra_scf)(
+            cls.inspect_common_relax_wc,
+            if_(cls.should_use_seekpath)(
+                cls.fix_structure,
+                cls.use_seekpath,
                 cls.fix_inputs,
-                cls.run_common_relax_wc
+                cls.run_common_relax_wc,
+                cls.inspect_common_relax_wc
+            ).elif_(cls.extra_scf_requested)(
+                cls.fix_structure,
+                cls.fix_inputs,
+                cls.run_common_relax_wc,
+                cls.inspect_common_relax_wc
             ),
             cls.run_bands,
             cls.inspect_bands
@@ -191,7 +218,7 @@ class RelaxAndBandsWorkChain(WorkChain):
 
     def initialize(self):
         """
-        Initialize some variables that will be used and modified in the workchain
+        Initialize some variables that will be used and modified in the workchain.
         """
         self.ctx.inputs = AttributeDict(self.inputs.relax)
         self.ctx.need_other_scf = False
@@ -201,9 +228,11 @@ class RelaxAndBandsWorkChain(WorkChain):
         """
         Run the common relax workchain.
 
-        It can be a relaxation or a simple scf, depending on the self.ctx.inputs
+        It can be a relaxation or a simple scf, depending on the ``self.ctx.inputs``.
         """
         process_class = WorkflowFactory(self.inputs.relax_sub_process_class.value)
+
+        self.report(self.ctx.inputs)
 
         builder = process_class.get_input_generator().get_builder(
             **self.ctx.inputs
@@ -216,48 +245,49 @@ class RelaxAndBandsWorkChain(WorkChain):
         return ToContext(workchain_relax=running)
 
 
-    def prepare_bands(self):
+    def inspect_common_relax_wc(self):
         """
-        Check that the first workchain finished successfully and analyze bands inputs.
+        Check that the first relax workchain finished successfully.
 
-        Check that the first workchain finished successfully or abort the workchain.
-        Analyze the ``bands`` namespace and decide whether to call SeeKpath or not.
-        When SeeKpath is called in order to create the bands high symmetries path,
-        the structure might change, therefore a new scf calculation should be
-        performed before calculating bands.
-        A user can also explicitly call for an extra scf, setting one of the
-        inputs in the ``extra_scf`` namespace.
+        Otherwise abort the workchain.
         """
         if not self.ctx.workchain_relax.is_finished_ok:
             self.report('Relaxation did not finish successful so aborting the workchain.')
             return self.exit_codes.ERROR_SUB_PROCESS_FAILED.format(cls=self.inputs.relax_sub_process_class.value)  # pylint: disable=no-member
+
+
+    def should_use_seekpath(self):
+        """
+        Bool that triggers the use of SeeK-path
+
+        Any time ``bands.bands_kpoints`` is not in input, SeeKpath is called.
+        """
+        return 'bands_kpoints' not in self.inputs.bands
+
+
+    def fix_structure(self):
+        """
+        Set the structure to the output structure of a previously run relaxation.
+
+        It is called before calling the second ``run_common_relax_wc``.
+        """
         if 'relaxed_structure' in self.ctx.workchain_relax.outputs:
             self.ctx.inputs['structure'] = self.ctx.workchain_relax.outputs.relaxed_structure
 
-        if 'bands_kpoints' not in self.inputs.bands:
-            self.report('Using SekPath to create kpoints for bands. Structure might change.')
-            seekpath_dict = AttributeDict(self.inputs.seekpath_parameters)
-            res = seekpath_explicit_kp_path(self.ctx.inputs['structure'], **seekpath_dict)
-            self.ctx.inputs['structure'] = res['structure']
-            self.ctx.bandskpoints = res['kpoints']
-            self.ctx.need_other_scf = True
-        else:
-            self.report('Kpoints for bands in inputs detected.')
-            self.ctx.need_other_scf = False
-            self.ctx.bandskpoints = self.inputs.bands['bands_kpoints']
 
-        if self.ctx.need_other_scf:
-            self.report('A new scf run needed')
-
-        if 'extra_scf' in self.inputs and not self.ctx.need_other_scf:
-            self.report('A new scf run requested')
-            self.ctx.need_other_scf = True
-
-    def should_run_extra_scf(self):
+    def use_seekpath(self):
         """
-        Return the bool variable that triggers a further scf calculation before the bands run.
+        Use SeeK-path to get the high symmetry path for the calculation of bands.
+
+        It might change the structure to a conventional one.
         """
-        return self.ctx.need_other_scf
+        self.report('Using SekPath to create kpoints for bands. Structure might change.')
+        seekpath_dict = AttributeDict(self.inputs.seekpath_parameters)
+        res = seekpath_explicit_kp_path(self.ctx.inputs['structure'], **seekpath_dict)
+        self.ctx.inputs['structure'] = res['structure']
+        self.ctx.bandskpoints = res['kpoints']
+        #self.ctx.need_other_scf = True
+
 
     def fix_inputs(self):
         """
@@ -269,16 +299,41 @@ class RelaxAndBandsWorkChain(WorkChain):
         """
         self.ctx.inputs['relax_type'] = RelaxType.NONE
 
-        for key in self.ctx.inputs:
-            if 'extra_scf' in self.inputs:
+        if 'extra_scf' in self.inputs:
+            self.report(self.inputs.extra_scf)
+            for key in self.ctx.inputs:
+                if key == 'engines':
+                    if 'code' in self.inputs.extra_scf[key]['relax']:
+                        self.ctx.inputs[key]['relax']['code'] = self.inputs.extra_scf[key]['relax']['code']
+                    if 'options' in self.inputs.extra_scf[key]['relax']:
+                        self.ctx.inputs[key]['relax']['options'] = self.inputs.extra_scf[key]['relax']['options']
+                    continue
                 if key in self.inputs.extra_scf:
                     self.ctx.inputs[key] = self.inputs.extra_scf[key]
+
+        self.report('Set the inputs of the extra scf step')
+
+
+    def extra_scf_requested(self):
+        """
+        Bool that returns wheather a scf is requested by user.
+
+        This is done populating ant port of the ``extra_scf`` namespace.
+        """
+        if 'extra_scf' in self.inputs:
+            self.report('A new scf run requested')
+
+        return 'extra_scf' in self.inputs
+
 
     def run_bands(self):
         """
         Run the sub process to obtain the bands.
         """
         rel_wc = self.ctx.workchain_relax
+
+        if not self.should_use_seekpath():
+            self.ctx.bandskpoints = self.inputs.bands['bands_kpoints']
 
         process_class = WorkflowFactory(self.inputs.bands_sub_process_class.value)
 
