@@ -174,6 +174,115 @@ def cmd_relax(  # pylint: disable=too-many-branches
     utils.launch_process(builder, daemon)
 
 
+@cmd_launch.command('bands')
+@click.argument('plugin', type=types.LazyChoice(functools.partial(get_workflow_entry_point_names, 'bands', True)))
+@click.argument('parent_folder', type=types.DataParamType(sub_classes=('aiida.data:remote',)))
+@click.argument('bands_kpoints', type=options.KpointsDataForBandsParamType())
+@options.CODES()
+@options.NUMBER_MACHINES()
+@options.NUMBER_MPI_PROCS_PER_MACHINE()
+@options.NUMBER_CORES_PER_MPIPROC()
+@options.WALLCLOCK_SECONDS()
+@options.DAEMON()
+@options.ENGINE_OPTIONS()
+@click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
+def cmd_bands(  # pylint: disable=too-many-branches
+    plugin, parent_folder, bands_kpoints, codes, number_machines, number_mpi_procs_per_machine,
+    number_cores_per_mpiproc, wallclock_seconds, daemon, engine_options, show_engines
+):
+    """Calculates bands using the common bands workflow for one of the existing plugin implementations.
+
+    The mandatory arguments of the command are three: the plugin name, the ``PARENT_FOLDER`` (a ``RemoteData``
+    associated to the scf/relax calculation of the system under scrutiny), the BANDS_KPOINTS (a ``KpointsData``
+    containing the kpoints path along which calculating the bands).
+    The codes required for the plugin workflow in order to complete the task can be passed with the option `-X`,
+    however, if no code is passed, the command will automatically try to find and load the codes that are required.
+    If no code is installed for at least one of the calculation engines, the command will fail.
+    Use the `--show-engine` flag to display the required calculation engines for the selected plugin workflow.
+    """
+    # pylint: disable=too-many-locals,too-many-statements
+    process_class = load_workflow_entry_point('bands', plugin)
+    generator = process_class.get_input_generator()
+
+    number_engines = len(generator.spec().inputs['engines'])
+
+    if number_machines is None:
+        number_machines = [1] * number_engines
+
+    if len(number_machines) != number_engines:
+        raise click.BadParameter(
+            f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
+            param_hint='--number-machines'
+        )
+
+    if number_mpi_procs_per_machine is not None and len(number_mpi_procs_per_machine) != number_engines:
+        raise click.BadParameter(
+            f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
+            param_hint='--number-mpi-procs-per-machine'
+        )
+
+    if number_cores_per_mpiproc is not None and len(number_cores_per_mpiproc) != number_engines:
+        raise click.BadParameter(
+            f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
+            param_hint='--number-cores-per-mpiproc'
+        )
+
+    if wallclock_seconds is None:
+        wallclock_seconds = [1 * 3600] * number_engines
+
+    if len(wallclock_seconds) != number_engines:
+        raise click.BadParameter(
+            f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
+            param_hint='--wallclock-seconds'
+        )
+
+    if show_engines:
+        for engine, port in generator.spec().inputs['engines'].items():
+            click.secho(engine, fg='red', bold=True)
+            click.echo(f'Required code plugin: {port["code"].entry_point}')
+            click.echo(f'Engine description:   {port.help}')
+
+        return
+
+    validate_engine_options(engine_options, generator.spec().inputs['engines'])
+
+    engines = {}
+
+    for index, engine in enumerate(generator.spec().inputs['engines']):
+        port = generator.spec().inputs['engines'][engine]
+        entry_point = port['code'].code_entry_point
+        code = utils.get_code_from_list_or_database(codes or [], entry_point)
+
+        if code is None:
+            raise click.UsageError(
+                f'could not find a configured code for the plugin `{entry_point}`. '
+                'Either provide it with the -X option or make sure such a code is configured in the DB.'
+            )
+
+        all_options = {
+            'resources': {
+                'num_machines': number_machines[index],
+            },
+            'max_wallclock_seconds': wallclock_seconds[index],
+        }
+        all_options.update(engine_options.get(engine, {}))
+
+        engines[engine] = {'code': code.full_label, 'options': all_options}
+
+        if number_mpi_procs_per_machine is not None:
+            engines[engine]['options']['resources']['num_mpiprocs_per_machine'] = number_mpi_procs_per_machine[index]
+            if number_mpi_procs_per_machine[index] > 1:
+                engines[engine]['options']['withmpi'] = True
+
+        if number_cores_per_mpiproc is not None:
+            engines[engine]['options']['resources']['num_cores_per_mpiproc'] = number_cores_per_mpiproc[index]
+
+    inputs = {'engines': engines, 'bands_kpoints': bands_kpoints, 'parent_folder': parent_folder}
+
+    builder = generator.get_builder(**inputs)
+    utils.launch_process(builder, daemon)
+
+
 @cmd_launch.command('eos')
 @click.argument('plugin', type=types.LazyChoice(functools.partial(get_workflow_entry_point_names, 'relax', True)))
 @options.STRUCTURE()

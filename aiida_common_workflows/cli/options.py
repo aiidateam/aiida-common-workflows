@@ -113,6 +113,28 @@ class StructureDataParamType(click.Choice):
         return structure
 
 
+class KpointsDataForBandsParamType(types.DataParamType):
+    """
+    CLI parameter type that can load ``KpointsData`` from identifier.
+
+    The ``KpointsData`` must contain an explicit list of kpoints since it
+    will be used to calculate bands.
+    """
+
+    @with_dbenv()
+    def convert(self, value, param, ctx):
+        """Attempt to interpret the value as a file first and if that fails try to load as a node."""
+
+        kp_loaded = super().convert(value, param, ctx)
+
+        try:
+            kp_loaded.get_kpoints()
+        except AttributeError as exception:
+            raise click.BadParameter('the loaded ``KpointsData`` does not contain any kpoints.') from exception
+
+        return kp_loaded
+
+
 CODES = options.OverridableOption(
     '-X',
     '--codes',
