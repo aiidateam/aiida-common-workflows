@@ -232,8 +232,6 @@ class RelaxAndBandsWorkChain(WorkChain):
         """
         process_class = WorkflowFactory(self.inputs.relax_sub_process_class.value)
 
-        self.report(self.ctx.inputs)
-
         builder = process_class.get_input_generator().get_builder(
             **self.ctx.inputs
         )
@@ -300,7 +298,6 @@ class RelaxAndBandsWorkChain(WorkChain):
         self.ctx.inputs['relax_type'] = RelaxType.NONE
 
         if 'extra_scf' in self.inputs:
-            self.report(self.inputs.extra_scf)
             for key in self.ctx.inputs:
                 if key == 'engines':
                     if 'code' in self.inputs.extra_scf[key]['relax']:
