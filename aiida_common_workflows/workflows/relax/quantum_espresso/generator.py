@@ -91,6 +91,12 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         )
         spec.inputs['electronic_type'].valid_type = ChoiceType((ElectronicType.METAL, ElectronicType.INSULATOR))
         spec.inputs['engines']['relax']['code'].valid_type = CodeType('quantumespresso.pw')
+        spec.input(
+            'clean_workdir',
+            valid_type=orm.Bool,
+            default=lambda: orm.Bool(False),
+            help='If `True`, work directories of all called calculation will be cleaned at the end of execution.'
+        )
 
     def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:
         """Construct a process builder based on the provided keyword arguments.
@@ -111,6 +117,7 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         threshold_forces = kwargs.get('threshold_forces', None)
         threshold_stress = kwargs.get('threshold_stress', None)
         reference_workchain = kwargs.get('reference_workchain', None)
+        clean_workdir = kwargs.get('clean_workdir')
 
         if isinstance(electronic_type, str):
             electronic_type = types.ElectronicType(electronic_type)
@@ -162,6 +169,7 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             spin_type=spin_type,
             initial_magnetic_moments=initial_magnetic_moments,
         )
+        builder.clean_workdir = clean_workdir
 
         if threshold_forces is not None:
             threshold = threshold_forces * CONSTANTS.bohr_to_ang / CONSTANTS.ry_to_ev

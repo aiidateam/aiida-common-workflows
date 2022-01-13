@@ -63,3 +63,4 @@ class QuantumEspressoCommonRelaxWorkChain(CommonRelaxWorkChain):
         self.out('total_energy', total_energy)
         self.out('forces', forces)
         self.out('stress', stress)
+        self.out('remote_folder', outputs.remote_folder)
