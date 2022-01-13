@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for BigDFT."""
-from aiida import engine
-from aiida import orm
-from aiida import plugins
+from aiida import engine, orm, plugins
 from aiida.engine import calcfunction
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
+
 from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('BigDftCommonRelaxInputGenerator',)
@@ -180,7 +179,7 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             relaxation_schema = 'relax'
             builder.relax.perform = orm.Bool(False)
         else:
-            raise ValueError('relaxation type `{}` is not supported'.format(relax_type.value))
+            raise ValueError(f'relaxation type `{relax_type.value}` is not supported')
 
         pymatgen_struct = structure.get_pymatgen()
         ortho_dict = None
@@ -256,7 +255,7 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             psprel = [os.path.normpath(os.path.relpath(i)) for i in psp]
             builder.pseudos.extend(psprel)
         builder.parameters = BigDFTParameters(dict=inputdict)
-        builder.code = orm.load_code(engines[relaxation_schema]['code'])
+        builder.code = engines[relaxation_schema]['code']
         run_opts = {'options': engines[relaxation_schema]['options']}
         builder.run_opts = orm.Dict(dict=run_opts)
 

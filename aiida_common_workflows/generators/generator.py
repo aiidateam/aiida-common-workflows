@@ -3,9 +3,8 @@
 import abc
 import copy
 
-from aiida import engine
-from aiida import orm
-from ..protocol import ProtocolRegistry
+from aiida import engine, orm
+
 from .spec import InputGeneratorSpec
 
 __all__ = ('InputGenerator',)
@@ -24,7 +23,7 @@ def recursively_check_stored_nodes(obj):
     return copy.deepcopy(obj)
 
 
-class InputGenerator(ProtocolRegistry, metaclass=abc.ABCMeta):
+class InputGenerator(metaclass=abc.ABCMeta):
     """Base class for an input generator for a common workflow."""
 
     _spec_cls: InputGeneratorSpec = InputGeneratorSpec
@@ -33,7 +32,7 @@ class InputGenerator(ProtocolRegistry, metaclass=abc.ABCMeta):
     def spec(cls) -> InputGeneratorSpec:
         """Return the specification of the input generator."""
         try:
-            return getattr(cls, '_spec')
+            return cls.__getattribute__(cls, '_spec')
         except AttributeError:
             try:
                 cls._spec: InputGeneratorSpec = cls._spec_cls()
@@ -50,12 +49,11 @@ class InputGenerator(ProtocolRegistry, metaclass=abc.ABCMeta):
         The ports defined on the specification are the inputs that will be accepted by the ``get_builder`` method.
         """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):  # pylint: disable=unused-argument
         """Construct an instance of the input generator, validating the class attributes."""
-        super().__init__(*args, **kwargs)
 
         def raise_invalid(message):
-            raise RuntimeError('invalid input generator `{}`: {}'.format(self.__class__.__name__, message))
+            raise RuntimeError(f'invalid input generator `{self.__class__.__name__}`: {message}')
 
         try:
             self.process_class = kwargs.pop('process_class')
@@ -87,7 +85,7 @@ class InputGenerator(ProtocolRegistry, metaclass=abc.ABCMeta):
         if validation_error is not None:
             raise ValueError(validation_error)
 
-        return self._construct_builder(**processed_kwargs)
+        return self._construct_builder(**serialized_kwargs)
 
     @abc.abstractmethod
     def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:

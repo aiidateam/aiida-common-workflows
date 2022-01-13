@@ -2,20 +2,26 @@
 """Tests for the :mod:`aiida_common_workflows.workflows.relax.castep` module."""
 # pylint: disable=abstract-method,arguments-differ,redefined-outer-name,unused-argument
 import copy
-import pytest
 
-from aiida import engine
-from aiida import plugins
+from aiida import engine, plugins
 from aiida.orm import StructureData
 from aiida.plugins import WorkflowFactory
 from aiida_castep.data.otfg import OTFGGroup
 from ase.build.bulk import bulk
+import pytest
 
-from aiida_common_workflows.workflows.relax.castep.workchain import CastepCommonRelaxWorkChain
 from aiida_common_workflows.workflows.relax.castep.generator import (
-    CastepCommonRelaxInputGenerator, generate_inputs, generate_inputs_base, generate_inputs_calculation,
-    generate_inputs_relax, ensure_otfg_family, RelaxType, ElectronicType, SpinType
+    CastepCommonRelaxInputGenerator,
+    ElectronicType,
+    RelaxType,
+    SpinType,
+    ensure_otfg_family,
+    generate_inputs,
+    generate_inputs_base,
+    generate_inputs_calculation,
+    generate_inputs_relax,
 )
+from aiida_common_workflows.workflows.relax.castep.workchain import CastepCommonRelaxWorkChain
 
 WORKCHAIN = plugins.WorkflowFactory('common_workflows.relax.castep')
 GENERATOR = WORKCHAIN.get_input_generator()

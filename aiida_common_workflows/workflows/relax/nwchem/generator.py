@@ -2,16 +2,14 @@
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for NWChem."""
 import pathlib
 import warnings
-import yaml
 
+from aiida import engine, orm, plugins
 import numpy as np
-
-from aiida import engine
-from aiida import orm
-from aiida import plugins
+import yaml
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
+
 from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('NwchemCommonRelaxInputGenerator',)
@@ -95,7 +93,7 @@ class NwchemCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             parameters['task'] = 'band gradient'
             parameters.pop('driver', None)
         else:
-            raise ValueError('relax_type `{}` is not supported'.format(relax_type.value))
+            raise ValueError(f'relax_type `{relax_type.value}` is not supported')
 
         # Electronic type
         if electronic_type == ElectronicType.INSULATOR:
@@ -106,7 +104,7 @@ class NwchemCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             parameters['nwpw']['loop'] = '10 10'
             parameters['nwpw'].pop('lmbfgs', None)  # Revert to CG
         else:
-            raise ValueError('electronic_type `{}` is not supported'.format(electronic_type.value))
+            raise ValueError(f'electronic_type `{electronic_type.value}` is not supported')
 
         # Spin type
         if spin_type == SpinType.NONE:
@@ -114,7 +112,7 @@ class NwchemCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         elif spin_type == SpinType.COLLINEAR:
             parameters['nwpw']['odft'] = ''
         else:
-            raise ValueError('spin_type `{}` is not supported'.format(spin_type.value))
+            raise ValueError(f'spin_type `{spin_type.value}` is not supported')
 
         # Magnetization per site
         # Not implemented yet - one has to specify the site, spin AND angular momentum
@@ -152,7 +150,7 @@ class NwchemCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         # Forces threshold.
         if threshold_forces is not None:
-            parameters['driver']['xmax'] = '{}'.format(threshold_forces / HA_BOHR_TO_EV_A)
+            parameters['driver']['xmax'] = f'{threshold_forces / HA_BOHR_TO_EV_A}'
 
         # Stress threshold.
         if threshold_stress is not None:
@@ -160,7 +158,7 @@ class NwchemCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         # Prepare builder
         builder = self.process_class.get_builder()
-        builder.nwchem.code = orm.load_code(engines['relax']['code'])
+        builder.nwchem.code = engines['relax']['code']
         builder.nwchem.metadata.options = engines['relax']['options']
         builder.nwchem.structure = structure
         builder.nwchem.add_cell = add_cell

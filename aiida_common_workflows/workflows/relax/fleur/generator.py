@@ -3,15 +3,14 @@
 import collections
 import pathlib
 import typing as t
-import yaml
 
-from aiida import engine
-from aiida import orm
-from aiida import plugins
+from aiida import engine, orm, plugins
 from aiida.common.constants import elements as PeriodicTableElements
+import yaml
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
+
 from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('FleurCommonRelaxInputGenerator',)
@@ -78,16 +77,12 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         inpgen_code = engines['inpgen']['code']
         fleur_code = engines['relax']['code']
-        if not isinstance(inpgen_code, orm.Code):
-            inpgen_code = orm.load_code(inpgen_code)
-        if not isinstance(fleur_code, orm.Code):
-            fleur_code = orm.load_code(fleur_code)
         options = engines['relax'].get('options', {})
         options_scf = orm.Dict(dict=options)
         # Checks if protocol exists
         if protocol not in self.get_protocol_names():
             import warnings
-            warnings.warn('no protocol implemented with name {}, using default moderate'.format(protocol))
+            warnings.warn(f'no protocol implemented with name {protocol}, using default moderate')
             protocol = self.get_default_protocol_name()
         else:
             protocol = self.get_protocol(protocol)
@@ -140,7 +135,7 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             wf_para_dict['relax_iter'] = 0
             wf_para_dict['relaxation_type'] = None
         else:
-            raise ValueError('relaxation type `{}` is not supported'.format(relax_type.value))
+            raise ValueError(f'relaxation type `{relax_type.value}` is not supported')
 
         # We reduce the number of sigfigs for the cell and atom positions accounts for less
         #  numerical inpgen errors during relaxation and accuracy is still enough for this purpose
@@ -281,8 +276,8 @@ def get_parameters(reference_workchain):
                                Fleur CalcJob or Inpgen CalcJob.
     :return: Dict node of parameters ready to use, or None
     """
-    from aiida.plugins import WorkflowFactory
     from aiida.common.exceptions import NotExistent
+    from aiida.plugins import WorkflowFactory
     from aiida_fleur.tools.common_fleur_wf import find_last_submitted_workchain
 
     fleur_scf_wc = WorkflowFactory('fleur.scf')

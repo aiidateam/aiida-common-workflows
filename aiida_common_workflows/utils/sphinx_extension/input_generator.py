@@ -2,17 +2,16 @@
 """Define a Restructured Text directive to auto-document :class:`aiida_common_workflows.generators.InputGenerator`."""
 import inspect
 
+from aiida.common.utils import get_object_from_string
+from aiida.engine import Process
+from aiida.manage.configuration import load_profile
 from docutils import nodes
 from docutils.parsers.rst import directives
+from plumpy.ports import PortNamespace
 from sphinx import addnodes
 from sphinx.ext.autodoc import ClassDocumenter
 from sphinx.util.docutils import SphinxDirective
 
-from plumpy.ports import PortNamespace
-
-from aiida.common.utils import get_object_from_string
-from aiida.engine import Process
-from aiida.manage.configuration import load_profile
 from aiida_common_workflows.generators.ports import InputGeneratorPort
 
 

@@ -7,7 +7,7 @@ from aiida.common import exceptions
 from aiida.engine import WorkChain, append_, calcfunction
 from aiida.plugins import WorkflowFactory
 
-from aiida_common_workflows.workflows.relax.generator import RelaxType, SpinType, ElectronicType
+from aiida_common_workflows.workflows.relax.generator import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChain
 
 

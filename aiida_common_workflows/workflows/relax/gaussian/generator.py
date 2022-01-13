@@ -1,16 +1,13 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for Gaussian."""
 import copy
+
+from aiida import engine, orm, plugins
 import numpy as np
-
-from aiida import engine
-from aiida import orm
-from aiida import plugins
-
-from aiida.orm import load_code
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
+
 from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('GaussianCommonRelaxInputGenerator',)
@@ -109,7 +106,7 @@ class GaussianCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             if 'num_mpiprocs_per_machine' in res:
                 n_proc = res['num_machines'] * res['num_mpiprocs_per_machine']
             else:
-                code = load_code(engines['relax']['code'])
+                code = engines['relax']['code']
                 def_mppm = code.computer.get_default_mpiprocs_per_machine()
                 if def_mppm is not None:
                     n_proc = res['num_machines'] * def_mppm
@@ -189,7 +186,7 @@ class GaussianCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         builder = self.process_class.get_builder()
         builder.gaussian.structure = structure
         builder.gaussian.parameters = orm.Dict(dict=params)
-        builder.gaussian.code = orm.load_code(engines['relax']['code'])
+        builder.gaussian.code = engines['relax']['code']
         builder.gaussian.metadata.options = engines['relax']['options']
 
         return builder

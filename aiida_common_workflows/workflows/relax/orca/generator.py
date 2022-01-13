@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for Orca."""
-import os
 from copy import deepcopy
+import os
 import warnings
 
+from aiida import engine, orm
+from aiida.plugins import DataFactory
 import numpy as np
 import yaml
 
-from aiida import engine
-from aiida import orm
-from aiida.plugins import DataFactory
-
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
+
 from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('OrcaCommonRelaxInputGenerator',)
@@ -33,12 +32,12 @@ class OrcaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         super().__init__(*args, **kwargs)
 
         def raise_invalid(message):
-            raise RuntimeError('invalid protocol registry `{}`: '.format(self.__class__.__name__) + message)
+            raise RuntimeError(f'invalid protocol registry `{self.__class__.__name__}`: ' + message)
 
         for k, v in self._protocols.items():  # pylint: disable=invalid-name
 
             if 'input_keywords' not in v:
-                raise_invalid('protocol `{}` does not define the mandatory key `input_keywords`'.format(k))
+                raise_invalid(f'protocol `{k}` does not define the mandatory key `input_keywords`')
 
     def _initialize_protocols(self):
         """Initialize the protocols class attribute by parsing them from the configuration file."""
@@ -77,7 +76,7 @@ class OrcaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             warnings.warn('PBC detected in the input structure. It is not supported and thus is ignored.')
 
         if protocol not in self.get_protocol_names():
-            warnings.warn('no protocol implemented with name {}, using default moderate'.format(protocol))
+            warnings.warn(f'no protocol implemented with name {protocol}, using default moderate')
             protocol = self.get_default_protocol_name()
         if 'relax' not in engines:
             raise ValueError('The `engines` dictionaly must contain "relax" as outermost key')
@@ -140,7 +139,7 @@ class OrcaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             if 'num_mpiprocs_per_machine' in resources:
                 nproc = resources['num_machines'] * resources['num_mpiprocs_per_machine']
             else:
-                code = orm.load_code(engines['relax']['code'])
+                code = engines['relax']['code']
                 default_mpiprocs = code.computer.get_default_mpiprocs_per_machine()
                 if default_mpiprocs is not None:
                     nproc = resources['num_machines'] * default_mpiprocs
@@ -151,7 +150,7 @@ class OrcaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         builder = self.process_class.get_builder()
         builder.orca.structure = structure
         builder.orca.parameters = orm.Dict(dict=params)
-        builder.orca.code = orm.load_code(engines['relax']['code'])
+        builder.orca.code = engines['relax']['code']
         builder.orca.metadata.options = engines['relax']['options']
         return builder
 

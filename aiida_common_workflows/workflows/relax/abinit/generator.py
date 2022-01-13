@@ -6,15 +6,15 @@ import pathlib
 import typing as t
 import warnings
 
-import yaml
-from pymatgen.core import units
-import numpy as np
-
 from aiida import engine, orm, plugins
 from aiida.common import exceptions
+import numpy as np
+from pymatgen.core import units
+import yaml
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
+
 from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('AbinitCommonRelaxInputGenerator',)
@@ -48,7 +48,9 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         spec.inputs['relax_type'].valid_type = ChoiceType([
             t for t in RelaxType if t not in (RelaxType.VOLUME, RelaxType.SHAPE, RelaxType.CELL)
         ])
-        spec.inputs['electronic_type'].valid_type = ChoiceType((ElectronicType.METAL, ElectronicType.INSULATOR))
+        spec.inputs['electronic_type'].valid_type = ChoiceType(
+            (ElectronicType.METAL, ElectronicType.INSULATOR, ElectronicType.UNKNOWN)
+        )
         spec.inputs['engines']['relax']['code'].valid_type = CodeType('abinit')
 
     def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:
@@ -175,7 +177,7 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             builder.abinit['parameters']['dilatmx'] = 1.05  # book additional mem. for p.w. basis exp.
             builder.abinit['parameters']['ecutsm'] = 0.5  # Ha, smearing on the energy cutoff
         else:
-            raise ValueError('relax type `{}` is not supported'.format(relax_type.value))
+            raise ValueError(f'relax type `{relax_type.value}` is not supported')
 
         # SpinType
         if spin_type == SpinType.NONE:
@@ -224,20 +226,22 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             builder.abinit['parameters']['nspinor'] = 2  # w.f. as spinors
             builder.abinit['parameters']['kptopt'] = 4  # no time-reversal symmetry
         else:
-            raise ValueError('spin type `{}` is not supported'.format(spin_type.value))
+            raise ValueError(f'spin type `{spin_type.value}` is not supported')
 
         # ElectronicType
-        if electronic_type == ElectronicType.METAL:
-            # protocal defaults to METAL
+        if electronic_type == ElectronicType.UNKNOWN:
+            # protocol defaults to UNKNOWN, which is metallic with Gaussian smearing
             pass
+        elif electronic_type == ElectronicType.METAL:
+            builder.abinit['parameters']['occopt'] = 5  # Marzari-Vanderbilt Cold II smearing
         elif electronic_type == ElectronicType.INSULATOR:
             # LATER: Support magnetization with insulators
             if spin_type not in [SpinType.NONE, SpinType.SPIN_ORBIT]:
-                raise ValueError('`spin_type` {} is not supported for insulating systems.'.format(spin_type.value))
-            builder.abinit['parameters']['occopt'] = 1  # fixed occupations, Abinit default
+                raise ValueError(f'`spin_type` {spin_type.value} is not supported for insulating systems.')
+            builder.abinit['parameters']['occopt'] = 1  # Fixed occupations, Abinit default
             builder.abinit['parameters']['fband'] = 0.125  # Abinit default
         else:
-            raise ValueError('electronic type `{}` is not supported'.format(electronic_type.value))
+            raise ValueError(f'electronic type `{electronic_type.value}` is not supported')
 
         # Continue force and stress thresholds from above (see molecule treatment)
         builder.abinit['parameters']['tolmxf'] = threshold_f
@@ -323,13 +327,6 @@ def generate_inputs(
 
     type_check(structure, orm.StructureData)
 
-    if not isinstance(code, orm.Code):
-        try:
-            code = orm.load_code(code)
-        except (exceptions.MultipleObjectsError, exceptions.NotExistent) as exception:
-            msg = f'could not load the code {code}'
-            raise ValueError(msg) from exception
-
     if process_class == AbinitCalculation:
         protocol = protocol['abinit']
         dictionary = generate_inputs_calculation(protocol, code, structure, override)
@@ -337,7 +334,7 @@ def generate_inputs(
         protocol = protocol['base']
         dictionary = generate_inputs_base(protocol, code, structure, override)
     else:
-        raise NotImplementedError('process class {} is not supported'.format(process_class))
+        raise NotImplementedError(f'process class {process_class} is not supported')
 
     return dictionary
 

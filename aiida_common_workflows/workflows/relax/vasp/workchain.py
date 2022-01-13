@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for VASP."""
 from aiida import orm
+from aiida.common.exceptions import NotExistentAttributeError
 from aiida.engine import calcfunction
 from aiida.plugins import WorkflowFactory
-from aiida.common.exceptions import NotExistentAttributeError
 
 from ..workchain import CommonRelaxWorkChain
 from .generator import VaspCommonRelaxInputGenerator

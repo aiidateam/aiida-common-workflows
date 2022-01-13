@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
-"""Module with base wrapper workchain for common structure relaxation workchains."""
+"""Module with base wrapper workchain for bands workchains."""
 from abc import ABCMeta, abstractmethod
 
 from aiida.engine import ToContext, WorkChain
-from aiida.orm import ArrayData, Float, RemoteData, StructureData, TrajectoryData
+from aiida.orm import BandsData, Float
 
-from .generator import CommonRelaxInputGenerator
+from .generator import CommonBandsInputGenerator
 
-__all__ = ('CommonRelaxWorkChain',)
+__all__ = ('CommonBandsWorkChain',)
 
 
-class CommonRelaxWorkChain(WorkChain, metaclass=ABCMeta):
-    """Base workchain implementation that serves as a wrapper for common structure relaxation workchains.
+class CommonBandsWorkChain(WorkChain, metaclass=ABCMeta):
+    """Base workchain implementation that serves as a wrapper for bands workchains.
 
-    Subclasses should simply define the concrete plugin-specific relaxation workchain for the `_process_class` attribute
+    Subclasses should simply define the concrete plugin-specific bands workchain for the `_process_class` attribute
     and implement the `convert_outputs` class method to map the plugin specific outputs to the output spec of this
     common wrapper workchain.
     """
@@ -22,7 +22,7 @@ class CommonRelaxWorkChain(WorkChain, metaclass=ABCMeta):
     _generator_class = None
 
     @classmethod
-    def get_input_generator(cls) -> CommonRelaxInputGenerator:
+    def get_input_generator(cls) -> CommonBandsInputGenerator:
         """Return an instance of the input generator for this work chain.
 
         :return: input generator
@@ -39,20 +39,8 @@ class CommonRelaxWorkChain(WorkChain, metaclass=ABCMeta):
             cls.inspect_workchain,
             cls.convert_outputs,
         )
-        spec.output('relaxed_structure', valid_type=StructureData, required=False,
-            help='All cell dimensions and atomic positions are in Ångstrom.')
-        spec.output('forces', valid_type=ArrayData, required=False,
-            help='The final forces on all atoms in eV/Å.')
-        spec.output('stress', valid_type=ArrayData, required=False,
-            help='The final stress tensor in eV/Å^3.')
-        spec.output('trajectory', valid_type=TrajectoryData, required=False,
-            help='All cell dimensions and atomic positions are in Ångstrom.')
-        spec.output('total_energy', valid_type=Float, required=False,
-            help='Total energy in eV.')
-        spec.output('total_magnetization', valid_type=Float, required=False,
-            help='Total magnetization in Bohr magnetons.')
-        spec.output('remote_folder', valid_type=RemoteData, required=False,
-            help='Folder of the last run calculation.')
+        spec.output('bands', valid_type=BandsData, required=False, help='Energies in eV.')
+        spec.output('fermi_energy', valid_type=Float, required=False, help='Fermi Energy in eV.')
         spec.exit_code(400, 'ERROR_SUB_PROCESS_FAILED',
             message='The `{cls}` workchain failed with exit status {exit_status}.')
 
@@ -64,6 +52,7 @@ class CommonRelaxWorkChain(WorkChain, metaclass=ABCMeta):
     def inspect_workchain(self):
         """Inspect the terminated workchain."""
         cls = self._process_class.__name__
+
         if not self.ctx.workchain.is_finished_ok:
             exit_status = self.ctx.workchain.exit_status
             self.report(f'{cls}<{self.ctx.workchain.pk}> failed with exit status {exit_status}.')
