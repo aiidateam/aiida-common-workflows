@@ -42,7 +42,11 @@ class CastepCommonBandsInputGenerator(CommonBandsInputGenerator):
         # Construct the builder of the `common_bands_wc` from the builder of a CastepCalculation.
         builder_common_bands_wc = self.process_class.get_builder()
         builder_common_bands_wc.scf.calc_options = orm.Dict(dict=dict(builder_castep_calc.metadata.options))
+        # Ensure we use castep_bin for restart, instead of the check file
+        #builder_common_bands_wc.scf.options = orm.Dict(dict={'use_castep_bin': True})
+
         builder_castep_calc.metadata = {}
+
         # Attach inputs of the calculation
         for key, value in builder_castep_calc.items():
             if value and key not in ['metadata', 'structure']:
@@ -51,15 +55,17 @@ class CastepCommonBandsInputGenerator(CommonBandsInputGenerator):
         # Updated the structure (in case we have one in output)
         if 'output_structure' in parent_castep_calc.outputs:
             builder_common_bands_wc.structure = parent_castep_calc.outputs.output_structure
+        else:
+            builder_common_bands_wc.structure = parent_castep_calc.inputs.structure
 
         engb = engines['bands']
-        builder_common_bands_wc.code = engines['bands']['code']
+        builder_common_bands_wc.scf.calc.code = engines['bands']['code']
         if 'options' in engb:
-            builder_common_bands_wc.options = orm.Dict(dict=engines['bands']['options'])
+            builder_common_bands_wc.scf.calc_options = orm.Dict(dict=engines['bands']['options'])
 
         # Set the `bandskpoints` and the `parent_calc_folder` for restart
         builder_common_bands_wc.bands_kpoints = bands_kpoints
-        builder_common_bands_wc.scf.reuse_folder = parent_folder
+        builder_common_bands_wc.scf.continuation_folder = parent_folder
         builder_common_bands_wc.run_separate_scf = orm.Bool(False)
 
         return builder_common_bands_wc
