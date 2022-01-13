@@ -32,7 +32,6 @@ class CommonRelaxInputGenerator(InputGenerator, ProtocolRegistry, metaclass=abc.
         )
         spec.input(
             'protocol',
-            valid_type=ChoiceType(('fast', 'moderate', 'precise', 'oxides_validation', 'oxides_validation_k_015')),
             default='moderate',
             help='The protocol to use for the automated input generation. This value indicates the level of precision '
             'of the results and computational cost that the input parameters will be selected for.',
