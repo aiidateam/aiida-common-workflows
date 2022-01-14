@@ -40,10 +40,7 @@ class FleurCommonBandsInputGenerator(CommonBandsInputGenerator):
 
         builder = self.process_class.get_builder()
         builder.options = orm.Dict(dict=builder_parent.metadata.options)
-        builder.metadata = {}
-        for key, value in builder_parent.items():
-            if value and key != 'metadata':
-                builder[key] = value
+        builder.fleur = builder_parent.code
 
         wf_parameters = {'kpath': 'skip'}
 
@@ -57,7 +54,7 @@ class FleurCommonBandsInputGenerator(CommonBandsInputGenerator):
             except KeyError:
                 raise ValueError('The `engines` dictionary must contain `bands` as a top-level key')
             if 'code' in band_engines:
-                builder.code = band_engines['code']
+                builder.fleur = band_engines['code']
             if 'options' in band_engines:
                 builder.options = orm.Dict(dict=band_engines['options'])
 
