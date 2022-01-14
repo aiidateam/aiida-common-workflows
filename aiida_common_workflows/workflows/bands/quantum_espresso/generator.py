@@ -2,7 +2,6 @@
 """Implementation of the ``CommonBandsInputGenerator`` for Quantum ESPRESSO."""
 
 from aiida import engine, orm
-from aiida.common import LinkType
 
 from aiida_common_workflows.generators import CodeType
 
@@ -38,10 +37,10 @@ class QuantumEspressoCommonBandsInputGenerator(CommonBandsInputGenerator):
         if parent_calc.process_type != 'aiida.calculations:quantumespresso.pw':
             raise ValueError('The `parent_folder` has not been created by a `PwCalculation`.')
         builder = self.process_class.get_builder()
-        
-        parameters = builder_common_bands_wc.pw.parameters.get_dict()
+
+        parameters = builder.pw.parameters.get_dict()
         parameters['CONTROL']['calculation'] = 'bands'
-        
+
         # Inputs of the `pw` calcjob are based of the inputs of the `parent_folder` creator's inputs
         builder.pw = parent_folder.creator.get_builder_restart()
         builder.pw.parameters = orm.Dict(dict=parameters)
@@ -51,9 +50,12 @@ class QuantumEspressoCommonBandsInputGenerator(CommonBandsInputGenerator):
 
         # Update the structure in case we have one in output, i.e. the `parent_calc` optimized the structure
         if 'output_structure' in parent_calc.outputs:
-            builder_common_bands_wc.pw.structure = parent_calc.outputs.output_structure
+            builder.pw.structure = parent_calc.outputs.output_structure
 
-        # Update the code and computational options if `engines` is specified
+        # Update the code and computational options only if the `engines` input is provided
+        if engines is None:
+            return builder
+
         try:
             bands_engine = engines['bands']
         except KeyError:
@@ -62,8 +64,8 @@ class QuantumEspressoCommonBandsInputGenerator(CommonBandsInputGenerator):
             code = bands_engine['code']
             if isinstance(code, str):
                 code = orm.load_code(code)
-            builder_common_bands_wc.pw.code = code
+            builder.pw.code = code
         if 'options' in bands_engine:
-            builder_common_bands_wc.pw.metadata.options = bands_engine['options']
+            builder.pw.metadata.options = bands_engine['options']
 
-        return builder_common_bands_wc
+        return builder
