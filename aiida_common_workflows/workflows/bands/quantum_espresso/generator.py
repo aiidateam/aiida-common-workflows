@@ -34,19 +34,20 @@ class QuantumEspressoCommonBandsInputGenerator(CommonBandsInputGenerator):
         bands_kpoints = kwargs['bands_kpoints']
 
         # Find the `PwCalculation` that created the `parent_folder` and obtain the restart builder.
-        parent_calc = parent_folder.get_incoming(link_type=LinkType.CREATE).one().node
+        parent_calc = parent_folder.creator
         if parent_calc.process_type != 'aiida.calculations:quantumespresso.pw':
             raise ValueError('The `parent_folder` has not been created by a `PwCalculation`.')
-        builder_calc = parent_calc.get_builder_restart()
-
-        builder_common_bands_wc = self.process_class.get_builder()
-        builder_calc.pop('kpoints')
-        builder_common_bands_wc.pw = builder_calc
+        builder = self.process_class.get_builder()
+        
         parameters = builder_common_bands_wc.pw.parameters.get_dict()
         parameters['CONTROL']['calculation'] = 'bands'
-        builder_common_bands_wc.pw.parameters = orm.Dict(dict=parameters)
-        builder_common_bands_wc.kpoints = bands_kpoints
-        builder_common_bands_wc.pw.parent_folder = parent_folder
+        
+        # Inputs of the `pw` calcjob are based of the inputs of the `parent_folder` creator's inputs
+        builder.pw = parent_folder.creator.get_builder_restart()
+        builder.pw.parameters = orm.Dict(dict=parameters)
+        builder.pw.parent_folder = parent_folder
+        builder.pw.pop('kpoints')
+        builder.kpoints = bands_kpoints
 
         # Update the structure in case we have one in output, i.e. the `parent_calc` optimized the structure
         if 'output_structure' in parent_calc.outputs:
@@ -58,11 +59,11 @@ class QuantumEspressoCommonBandsInputGenerator(CommonBandsInputGenerator):
         except KeyError:
             raise ValueError('The `engines` dictionary must contain `bands` as a top-level key')
         if 'code' in bands_engine:
-            code = engines['bands']['code']
+            code = bands_engine['code']
             if isinstance(code, str):
                 code = orm.load_code(code)
             builder_common_bands_wc.pw.code = code
         if 'options' in bands_engine:
-            builder_common_bands_wc.pw.metadata.options = engines['bands']['options']
+            builder_common_bands_wc.pw.metadata.options = bands_engine['options']
 
         return builder_common_bands_wc
