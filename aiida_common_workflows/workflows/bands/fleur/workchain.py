@@ -10,12 +10,6 @@ from .generator import FleurCommonBandsInputGenerator
 __all__ = ('FleurCommonBandsWorkChain',)
 
 
-@calcfunction
-def get_fermi_energy(pardict):
-    """Extract the Fermi energy from the `output_parameters` dictionary"""
-    return Float(pardict['fermi_energy_scf'])
-
-
 class FleurCommonBandsWorkChain(CommonBandsWorkChain):
     """Implementation of `aiida_common_workflows.common.bands.workchain.CommonBandsWorkChain` for Fleur."""
 
@@ -29,6 +23,7 @@ class FleurCommonBandsWorkChain(CommonBandsWorkChain):
             self.report('FleurBandDOSWorkChain concluded without returning bands!')
             return self.exit_codes.ERROR_SUB_PROCESS_FAILED
 
-        self.out('fermi_energy', get_fermi_energy(self.ctx.workchain.outputs.output_banddos_wc_para))
+        #The bands output of fleur is shifted to have the fermi energy at zero
+        self.out('fermi_energy', Float(0.0))
 
         self.out('bands', self.ctx.workchain.outputs['output_banddos_wc_bands'])

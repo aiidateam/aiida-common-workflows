@@ -38,6 +38,7 @@ class FleurCommonBandsInputGenerator(CommonBandsInputGenerator):
             raise ValueError('The `parent_folder` has not been created by a FleurCalculation')
         builder_parent = parent_folder.creator.get_builder_restart()
 
+        #Transfer inputs from the parent calculation
         builder = self.process_class.get_builder()
         builder.options = orm.Dict(dict=builder_parent.metadata.options)
         builder.fleur = builder_parent.code
@@ -48,6 +49,7 @@ class FleurCommonBandsInputGenerator(CommonBandsInputGenerator):
         builder.kpoints = bands_kpoints
         builder.remote = parent_folder
 
+        #Add inputs from engines if given
         if engines:
             try:
                 band_engines = engines['bands']
