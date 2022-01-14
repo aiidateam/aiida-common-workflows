@@ -32,21 +32,24 @@ class QuantumEspressoCommonBandsInputGenerator(CommonBandsInputGenerator):
         parent_folder = kwargs['parent_folder']
         bands_kpoints = kwargs['bands_kpoints']
 
-        # Find the `PwCalculation` that created the `parent_folder` and obtain the restart builder.
+        builder = self.process_class.get_builder()
+
+        # Inputs of the `pw` calcjob are based of the inputs of the `parent_folder` creator's inputs
         parent_calc = parent_folder.creator
         if parent_calc.process_type != 'aiida.calculations:quantumespresso.pw':
             raise ValueError('The `parent_folder` has not been created by a `PwCalculation`.')
-        builder = self.process_class.get_builder()
+        pw_builder = parent_calc.get_builder_restart()
+        pw_builder.pop('kpoints')
+        builder.pw = pw_builder
+        builder.pw.parent_folder = parent_folder
 
+        # Use the explicit `kpoints` list from the inputs
+        builder.kpoints = bands_kpoints
+
+        # Update the `calculation` type to `bands`
         parameters = builder.pw.parameters.get_dict()
         parameters['CONTROL']['calculation'] = 'bands'
-
-        # Inputs of the `pw` calcjob are based of the inputs of the `parent_folder` creator's inputs
-        builder.pw = parent_folder.creator.get_builder_restart()
         builder.pw.parameters = orm.Dict(dict=parameters)
-        builder.pw.parent_folder = parent_folder
-        builder.pw.pop('kpoints')
-        builder.kpoints = bands_kpoints
 
         # Update the structure in case we have one in output, i.e. the `parent_calc` optimized the structure
         if 'output_structure' in parent_calc.outputs:
