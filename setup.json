@@ -59,6 +59,7 @@
             "aiida-common-workflows = aiida_common_workflows.cli:cmd_root"
         ],
         "aiida.workflows": [
+            "common_workflows.relax_code_agnostic = aiida_common_workflows.workflows._relax:RelaxWorkChain",
             "common_workflows.dissociation_curve = aiida_common_workflows.workflows.dissociation:DissociationCurveWorkChain",
             "common_workflows.eos = aiida_common_workflows.workflows.eos:EquationOfStateWorkChain",
             "common_workflows.relax_and_bands = aiida_common_workflows.workflows.relax_and_bands:RelaxAndBandsWorkChain",
