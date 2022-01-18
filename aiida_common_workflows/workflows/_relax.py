@@ -102,7 +102,10 @@ def validate_sub_process_class(value, _):
 
 class RelaxWorkChain(WorkChain):
     """
-    Workflow to carry on a relaxation and subsequently calculate the bands.
+    Workchain to carry on a relaxation. The implementation to
+    use is selected thanks to the `relax_sub_process_class` input,
+    for the rest the interface is completely code-agnostic. It
+    exposes the interface created to the input-generators system.
     """
 
     @classmethod
@@ -110,7 +113,6 @@ class RelaxWorkChain(WorkChain):
         # yapf: disable
         super().define(spec)
 
-        #The spec.expose_inputs works only exposing inputs of a WORKCHAIN
         spec.expose_inputs(CommonRelaxInputGenerator, exclude=('reference_workchain'))
 
         fix_valid_type(spec.inputs)
@@ -142,6 +144,8 @@ class RelaxWorkChain(WorkChain):
         spec.output('remote_folder', valid_type=orm.RemoteData, required=False,
             help='Folder of the last run calculation.')
 
+        #Exposing the outputs does not work, probably because CommonRelaxWorkChain
+        #is an abstract class.
         #spec.expose_outputs(CommonRelaxWorkChain)
 
         spec.exit_code(400, 'ERROR_SUB_PROCESS_FAILED',
