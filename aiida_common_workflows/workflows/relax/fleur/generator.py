@@ -178,6 +178,11 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             parameters = get_parameters(reference_workchain)
             if 'kpt' in parameters.get_dict():
                 wf_para_scf_dict.pop('kpoints_distance', None)
+                if protocol['kpoints_force_gamma']:
+                    parameters = parameters.get_dict()
+                    parameters['kpt']['gamma'] = True
+                    parameters = orm.Dict(dict=parameters)
+
         wf_para_scf = orm.Dict(dict=wf_para_scf_dict)
 
         # User specification overrides previous workchain!
