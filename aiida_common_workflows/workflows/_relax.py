@@ -18,11 +18,25 @@ from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChai
 from aiida_common_workflows.workflows.relax.generator import CommonRelaxInputGenerator
 
 
+def from_remote_folder_to_reference_wc(folder):
+    """
+    Returns the instance of `CommonRelaxWorkChain` (or subclasses)
+    that returned the `folder` (`RemoteFolderData`)
+    """
+    ref_wc = None
+
+    for link in folder.get_incoming().all():
+        if issubclass(link.node.process_class, CommonRelaxWorkChain):
+            ref_wc = link.node
+
+    return ref_wc
+
+
 def fix_valid_type(spec_inputs):
     """
     Transform the valid type of a spec().inputs from python type to
     the corresponding Data type. It also sets `to_aiida_type` as `serializer`
-    so that the python types can still be passed as valid input.
+    so that the python types can still be passed as valid inputs.
     It is recursive so it fixes also namespaces.
     It ignores for the moment the "metadata" and the Enum.
     """
@@ -81,6 +95,14 @@ def validate_inputs(value, _):  #pylint: disable=too-many-branches,too-many-retu
     other_inputs.pop('relax_sub_process_class')
     other_inputs.pop('metadata')
     other_inputs.pop('overrides', None)
+
+    if 'reference_wc_remote_folder' in value:
+        ref_wc = from_remote_folder_to_reference_wc(value['reference_wc_remote_folder'])
+        if ref_wc is None:
+            return 'The provided `reference_wc_remote_folder` is not connected to any CommonRelaxInputGenerator'
+        other_inputs['reference_workchain'] = ref_wc
+        other_inputs.pop('reference_wc_remote_folder')
+
     gen_inputs = deserialize(other_inputs)
 
     try:
@@ -114,8 +136,32 @@ class RelaxWorkChain(WorkChain):
         super().define(spec)
 
         spec.expose_inputs(CommonRelaxInputGenerator, exclude=('reference_workchain'))
+        #Note that we expose the inputs of the abstract class `CommonRelaxInputGenerator`.
+        #This has the limitation to not record possible changes in the `spec`
+        #introduced in the subclasses of `CommonRelaxInputGenerator` (i.e.
+        #the various code implementations - `<Code>CommonRelaxInputGenerator`).
+        #A consequence is that the inspection of the `valid_type` and allowed values
+        #for an input might be misleading since a feature that is present for the abstract
+        #class might have been removed for a particular implementation.
+        #The definition of an invalid value will be anyway catch at the validation level
+        #where we verify the inputs against the correct implementation.
+        #A way bigger problem is faced when new features are implemeted in the
+        #`<Code>CommonRelaxInputGenerator`. This includes new input ports, but also
+        #new valid choices for some ports. This would not be accessible in the current.
+        #implementation. The introduction of new features in the
+        #`<Code>CommonRelaxInputGenerator` is therefore totally discourage.
+        #The `reference_workchain` is `WorkChainNode` and this type of Node are not
+        #allowed as inputs of a WorkChain. A workaround is implemented:
+        #set the `remote_folder` output of `CommonRelaxWorkChain` as input here.
+        #We then implement the logic to go from the `remote_folder` to the associated
+        #`CommonRelaxWorkChain`. The latter will be passed as `reference_workchain` to the input generator.
 
         fix_valid_type(spec.inputs)
+
+        spec.input('reference_wc_remote_folder',
+            valid_type=orm.RemoteData,
+            required=False
+            )
 
         spec.input('relax_sub_process_class',
             valid_type=orm.Str,
@@ -129,24 +175,8 @@ class RelaxWorkChain(WorkChain):
 
         spec.outline(cls.run_wc, cls.analyze_wc)
 
-        spec.output('relaxed_structure', valid_type=orm.StructureData, required=False,
-            help='All cell dimensions and atomic positions are in Ångstrom.')
-        spec.output('forces', valid_type=orm.ArrayData, required=False,
-            help='The final forces on all atoms in eV/Å.')
-        spec.output('stress', valid_type=orm.ArrayData, required=False,
-            help='The final stress tensor in eV/Å^3.')
-        spec.output('trajectory', valid_type=orm.TrajectoryData, required=False,
-            help='All cell dimensions and atomic positions are in Ångstrom.')
-        spec.output('total_energy', valid_type=orm.Float, required=False,
-            help='Total energy in eV.')
-        spec.output('total_magnetization', valid_type=orm.Float, required=False,
-            help='Total magnetization in Bohr magnetons.')
-        spec.output('remote_folder', valid_type=orm.RemoteData, required=False,
-            help='Folder of the last run calculation.')
-
-        #Exposing the outputs does not work, probably because CommonRelaxWorkChain
-        #is an abstract class.
-        #spec.expose_outputs(CommonRelaxWorkChain)
+        spec.expose_outputs(CommonRelaxWorkChain)
+        #Ok exposing, but also dynamic outputs
 
         spec.exit_code(400, 'ERROR_SUB_PROCESS_FAILED',
             message='At least one of the sub processes did not finish successfully.')
@@ -162,6 +192,12 @@ class RelaxWorkChain(WorkChain):
         all_inputs.pop('relax_sub_process_class')
         all_inputs.pop('metadata')
         all_inputs.pop('overrides', None)
+
+        if 'reference_wc_remote_folder' in all_inputs:
+            ref_wc = from_remote_folder_to_reference_wc(all_inputs['reference_wc_remote_folder'])
+            all_inputs['reference_workchain'] = ref_wc
+            all_inputs.pop('reference_wc_remote_folder')
+
         inputs_for_builder = deserialize(all_inputs)
 
         builder = process_class.get_input_generator().get_builder(
