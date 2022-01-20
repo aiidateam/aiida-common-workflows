@@ -51,14 +51,14 @@ fast:
 
 oxides_validation:
     name: 'oxides_validation'
-    inpgen-protocol: 'precise'
+    inpgen-protocol: 'oxides_validation'
     description: 'Protocol to relax a structure with high precision at higher computational cost. This relies on the "precise" protocol of the fleur code.'
     relax:
         relax_iter: 10
         change_mixing_criterion: 0.025
         run_final_scf: true
     scf:
-        kpoints_distance: 0.04
+        kpoints_distance: 0.1
         kpoints_force_gamma: true
         fleur_runmax: 3
         itmax_per_run: 120
