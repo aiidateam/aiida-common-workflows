@@ -6,12 +6,11 @@ from aiida import orm, plugins
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, InputGenerator
-from aiida_common_workflows.protocol import ProtocolRegistry
 
 __all__ = ('CommonRelaxInputGenerator',)
 
 
-class CommonRelaxInputGenerator(InputGenerator, ProtocolRegistry, metaclass=abc.ABCMeta):
+class CommonRelaxInputGenerator(InputGenerator, metaclass=abc.ABCMeta):
     """Input generator for the common relax workflow.
 
     This class should be subclassed by implementations for specific quantum engines. After calling the super, they can
@@ -32,6 +31,7 @@ class CommonRelaxInputGenerator(InputGenerator, ProtocolRegistry, metaclass=abc.
         )
         spec.input(
             'protocol',
+            valid_type=ChoiceType(('fast', 'moderate', 'precise')),
             default='moderate',
             help='The protocol to use for the automated input generation. This value indicates the level of precision '
             'of the results and computational cost that the input parameters will be selected for.',

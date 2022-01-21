@@ -46,6 +46,13 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         The ports defined on the specification are the inputs that will be accepted by the ``get_builder`` method.
         """
         super().define(spec)
+        spec.input(
+            'protocol',
+            valid_type=ChoiceType(('fast', 'moderate', 'precise', 'oxide_validation')),
+            default='moderate',
+            help='The protocol to use for the automated input generation. This value indicates the level of precision '
+            'of the results and computational cost that the input parameters will be selected for.',
+        )
         spec.inputs['spin_type'].valid_type = ChoiceType((SpinType.NONE, SpinType.COLLINEAR, SpinType.NON_COLLINEAR))
         spec.inputs['relax_type'].valid_type = ChoiceType(tuple(RelaxType))
         spec.inputs['electronic_type'].valid_type = ChoiceType((ElectronicType.METAL, ElectronicType.INSULATOR))

@@ -27,7 +27,12 @@ class CastepCommonBandsInputGenerator(CommonBandsInputGenerator):
         The keyword arguments will have been validated against the input generator specification.
         """
         # pylint: disable=too-many-branches,too-many-statements,too-many-locals
-        engines = kwargs.get('engines', None)
+
+        required_keys = ('engines', 'parent_folder', 'bands_kpoints')
+        for key in required_keys:
+            if key not in kwargs:
+                raise ValueError(f'Required key `{key}` is missing in the function argument.')
+        engines = kwargs['engines']
         parent_folder = kwargs['parent_folder']
         bands_kpoints = kwargs['bands_kpoints']
 
@@ -58,10 +63,15 @@ class CastepCommonBandsInputGenerator(CommonBandsInputGenerator):
         else:
             builder_common_bands_wc.structure = parent_castep_calc.inputs.structure
 
-        engb = engines['bands']
-        builder_common_bands_wc.scf.calc.code = engines['bands']['code']
+        try:
+            engb = engines['bands']
+        except KeyError:
+            raise ValueError('The engines dictionary passed must contains a key named `bands`.')
+
+        builder_common_bands_wc.scf.calc.code = engb['code']
+
         if 'options' in engb:
-            builder_common_bands_wc.scf.calc_options = orm.Dict(dict=engines['bands']['options'])
+            builder_common_bands_wc.scf.calc.metadata.options = engb['options']
 
         # Set the `bandskpoints` and the `parent_calc_folder` for restart
         builder_common_bands_wc.bands_kpoints = bands_kpoints
