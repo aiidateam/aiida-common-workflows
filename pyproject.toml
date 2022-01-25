@@ -89,6 +89,7 @@ acwf = 'aiida_common_workflows.cli:cmd_root'
 'common_workflows.relax.siesta' = 'aiida_common_workflows.workflows.relax.siesta.workchain:SiestaCommonRelaxWorkChain'
 'common_workflows.relax.vasp' = 'aiida_common_workflows.workflows.relax.vasp.workchain:VaspCommonRelaxWorkChain'
 'common_workflows.relax.gpaw' = 'aiida_common_workflows.workflows.relax.gpaw.workchain:GpawCommonRelaxWorkChain'
+'common_workflows.relax.wien2k' = 'aiida_common_workflows.workflows.relax.wien2k.workchain:Wien2kCommonRelaxWorkChain'
 'common_workflows.bands.siesta' = 'aiida_common_workflows.workflows.bands.siesta.workchain:SiestaCommonBandsWorkChain'
 
 [tool.flit.module]
