@@ -1,0 +1,10 @@
+moderate:
+  description: 'A standard list of inputs for Wienk.'
+  parameters:
+    red: '3'
+    max-scf-iterations: '100'
+    scf-ene-tol-Ry: '0.000001'
+    scf-charge-tol: '0.00003'
+    fermi-temp-Ry: '0.0045'
+    deltak: '0.021'
+    nokshift: True
