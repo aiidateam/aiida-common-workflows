@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=redefined-outer-name,no-self-use
 """Tests for the :mod:`aiida_common_workflows.cli.launch` module."""
-import pathlib
 import json
+import pathlib
 
+from aiida import orm
 import click
 import pytest
 
-from aiida import orm
 from aiida_common_workflows.cli import options
 
 

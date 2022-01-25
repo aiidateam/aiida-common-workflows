@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for SIESTA."""
 import os
-from typing import Any, Dict, List, Tuple, Union
 
+from aiida import engine, orm, plugins
+from aiida.common import exceptions
 import yaml
 
-from aiida import engine
-from aiida import orm
-from aiida import plugins
-from aiida.common import exceptions
-
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
+from aiida_common_workflows.generators import ChoiceType, CodeType
+
 from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('SiestaCommonRelaxInputGenerator',)
@@ -23,31 +21,6 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
     _default_protocol = 'moderate'
 
-    _engine_types = {
-        'relax': {
-            'code_plugin':
-            'siesta.siesta',
-            'description':
-            'These are calculations used for the main and only run of the code, computing the relaxation, in engines '
-            'the user must define a code and options compatibles with plugin siesta.siesta'
-        }
-    }
-    _relax_types = {
-        RelaxType.NONE: 'no relaxation performed',
-        RelaxType.POSITIONS: 'latice shape and volume fixed, only atomic positions are relaxed',
-        RelaxType.POSITIONS_CELL: 'lattice relaxed together with atomic coordinates. Allows '
-        'to target hydro-static pressures or arbitrary stress tensors.',
-        RelaxType.POSITIONS_SHAPE: 'relaxation at constant volume.'
-    }
-    _spin_types = {
-        SpinType.NONE: 'non magnetic calculation',
-        SpinType.COLLINEAR: 'magnetic calculation with collinear spins'
-    }
-    _electronic_types = {
-        ElectronicType.METAL: 'For Siesta, metals and insulators are equally treated',
-        ElectronicType.INSULATOR: 'For Siesta, metals and insulators are equally treated'
-    }
-
     def __init__(self, *args, **kwargs):
         """Construct an instance of the input generator, validating the class attributes."""
 
@@ -56,27 +29,26 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         super().__init__(*args, **kwargs)
 
         def raise_invalid(message):
-            raise RuntimeError('invalid protocol registry `{}`: '.format(self.__class__.__name__) + message)
+            raise RuntimeError(f'invalid protocol registry `{self.__class__.__name__}`: ' + message)
 
         for k, v in self._protocols.items():  # pylint: disable=invalid-name
 
             if 'parameters' not in v:
-                raise_invalid('protocol `{}` does not define the mandatory key `parameters`'.format(k))
+                raise_invalid(f'protocol `{k}` does not define the mandatory key `parameters`')
             if 'mesh-cutoff' in v['parameters']:
                 try:
                     float(v['parameters']['mesh-cutoff'].split()[0])
                     str(v['parameters']['mesh-cutoff'].split()[1])
                 except (ValueError, IndexError):
                     raise_invalid(
-                        'Wrong format of `mesh-cutoff` in `parameters` of protocol '
-                        '`{}`. Value and units are required'.format(k)
+                        f'Wrong format of `mesh-cutoff` in `parameters` of protocol `{k}`. Value and units are required'
                     )
 
             if 'basis' not in v:
-                raise_invalid('protocol `{}` does not define the mandatory key `basis`'.format(k))
+                raise_invalid(f'protocol `{k}` does not define the mandatory key `basis`')
 
             if 'pseudo_family' not in v:
-                raise_invalid('protocol `{}` does not define the mandatory key `pseudo_family`'.format(k))
+                raise_invalid(f'protocol `{k}` does not define the mandatory key `pseudo_family`')
 
     def _initialize_protocols(self):
         """Initialize the protocols class attribute by parsing them from the configuration file."""
@@ -85,69 +57,40 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         with open(_filepath) as _thefile:
             self._protocols = yaml.full_load(_thefile)
 
-    def get_builder(  # pylint: disable=too-many-branches,too-many-locals,too-many-statements
-        self,
-        structure: StructureData,
-        engines: Dict[str, Any],
-        *,
-        protocol: str = None,
-        relax_type: Union[RelaxType, str] = RelaxType.POSITIONS,
-        electronic_type: Union[ElectronicType, str] = ElectronicType.METAL,
-        spin_type: Union[SpinType, str] = SpinType.NONE,
-        magnetization_per_site: Union[List[float], Tuple[float]] = None,
-        threshold_forces: float = None,
-        threshold_stress: float = None,
-        reference_workchain=None,
-        **kwargs
-    ) -> engine.ProcessBuilder:
+    @classmethod
+    def define(cls, spec):
+        """Define the specification of the input generator.
+
+        The ports defined on the specification are the inputs that will be accepted by the ``get_builder`` method.
         """
-        Return a process builder for the corresponding workchain class with inputs set according to the protocol.
-
-        :param structure: the structure to be relaxed.
-        :param engines: a dictionary containing the computational resources for the relaxation.
-        :param protocol: the protocol to use when determining the workchain inputs.
-        :param relax_type: the type of relaxation to perform.
-        :param electronic_type: the electronic character that is to be used for the structure.
-        :param spin_type: the spin polarization type to use for the calculation.
-        :param magnetization_per_site: a list with the initial spin polarization for each site. Float or integer in
-            units of electrons. If not defined, the builder will automatically define the initial magnetization if and
-            only if `spin_type != SpinType.NONE`.
-        :param threshold_forces: target threshold for the forces in eV/Å.
-        :param threshold_stress: target threshold for the stress in eV/Å^3.
-        :param reference_workchain: a <Code>RelaxWorkChain node.
-        :param kwargs: any inputs that are specific to the plugin.
-        :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
-        """
-
-        protocol = protocol or self.get_default_protocol_name()
-
-        super().get_builder(
-            structure,
-            engines,
-            protocol=protocol,
-            relax_type=relax_type,
-            electronic_type=electronic_type,
-            spin_type=spin_type,
-            magnetization_per_site=magnetization_per_site,
-            threshold_forces=threshold_forces,
-            threshold_stress=threshold_stress,
-            reference_workchain=reference_workchain,
-            **kwargs
+        super().define(spec)
+        spec.inputs['spin_type'].valid_type = ChoiceType((SpinType.NONE, SpinType.COLLINEAR))
+        spec.inputs['relax_type'].valid_type = ChoiceType(
+            (RelaxType.NONE, RelaxType.POSITIONS, RelaxType.POSITIONS_CELL, RelaxType.POSITIONS_SHAPE)
         )
+        spec.inputs['electronic_type'].valid_type = ChoiceType((ElectronicType.METAL, ElectronicType.INSULATOR))
+        spec.inputs['engines']['relax']['code'].valid_type = CodeType('siesta.siesta')
 
-        if isinstance(electronic_type, str):
-            electronic_type = ElectronicType(electronic_type)
+    def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:
+        """Construct a process builder based on the provided keyword arguments.
 
-        if isinstance(relax_type, str):
-            relax_type = RelaxType(relax_type)
-
-        if isinstance(spin_type, str):
-            spin_type = SpinType(spin_type)
+        The keyword arguments will have been validated against the input generator specification.
+        """
+        # pylint: disable=too-many-branches,too-many-statements,too-many-locals
+        structure = kwargs['structure']
+        engines = kwargs['engines']
+        protocol = kwargs['protocol']
+        spin_type = kwargs['spin_type']
+        relax_type = kwargs['relax_type']
+        magnetization_per_site = kwargs.get('magnetization_per_site', None)
+        threshold_forces = kwargs.get('threshold_forces', None)
+        threshold_stress = kwargs.get('threshold_stress', None)
+        reference_workchain = kwargs.get('reference_workchain', None)
 
         # Checks
         if protocol not in self.get_protocol_names():
             import warnings
-            warnings.warn('no protocol implemented with name {}, using default moderate'.format(protocol))
+            warnings.warn(f'no protocol implemented with name {protocol}, using default moderate')
             protocol = self.get_default_protocol_name()
         if 'relax' not in engines:
             raise ValueError('The `engines` dictionaly must contain "relax" as outermost key')
@@ -207,7 +150,7 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             builder.kpoints = kpoints_mesh
         builder.pseudo_family = pseudo_family
         builder.options = orm.Dict(dict=engines['relax']['options'])
-        builder.code = orm.load_code(engines['relax']['code'])
+        builder.code = engines['relax']['code']
 
         return builder
 
@@ -255,8 +198,7 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                             cust_meshcut = float(cust_param['mesh-cutoff'].split()[0])
                         except (ValueError, IndexError) as exc:
                             raise RuntimeError(
-                                'Wrong `mesh-cutoff` value for heuristc '
-                                '{0} of protocol {1}'.format(kind.symbol, key)
+                                f'Wrong `mesh-cutoff` value for heuristc {kind.symbol} of protocol {key}'
                             ) from exc
                         if meshcut_glob is not None:
                             if cust_meshcut > float(meshcut_glob):
@@ -267,12 +209,11 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                                 meshcut_units = cust_param['mesh-cutoff'].split()[1]
                             except (ValueError, IndexError) as exc:
                                 raise RuntimeError(
-                                    'Wrong `mesh-cutoff` units for heuristc '
-                                    '{0} of protocol {1}'.format(kind.symbol, key)
+                                    f'Wrong `mesh-cutoff` units for heuristc {kind.symbol} of protocol {key}'
                                 ) from exc
 
             if meshcut_glob is not None:
-                parameters['mesh-cutoff'] = '{0} {1}'.format(meshcut_glob, meshcut_units)
+                parameters['mesh-cutoff'] = f'{meshcut_glob} {meshcut_units}'
 
         return parameters
 

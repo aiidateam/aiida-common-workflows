@@ -8,4 +8,4 @@ Workflows for performing basic operations or computing basic material properties
 .. toctree::
    :maxdepth: 1
 
-   relax
+   relax/index

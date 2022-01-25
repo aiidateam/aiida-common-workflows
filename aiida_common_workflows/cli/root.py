@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """Command line interface `aiida-common-workflows`."""
-import click
-
 from aiida.cmdline.params import options, types
+import click
 
 
 @click.group('aiida-common-workflows', context_settings={'help_option_names': ['-h', '--help']})

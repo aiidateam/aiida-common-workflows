@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 """Tests for the :mod:`aiida_common_workflows.workflows.relax.siesta` module."""
 # pylint: disable=redefined-outer-name
+from aiida import engine, plugins
 import pytest
-
-from aiida import engine
-from aiida import plugins
 
 WORKCHAIN = plugins.WorkflowFactory('common_workflows.relax.siesta')
 GENERATOR = WORKCHAIN.get_input_generator()
@@ -17,7 +15,7 @@ def default_builder_inputs(generate_code, generate_structure):
         'structure': generate_structure(symbols=('Si',)),
         'engines': {
             'relax': {
-                'code': generate_code('siesta').store().uuid,
+                'code': generate_code('siesta.siesta').store().uuid,
                 'options': {
                     'max_wallclock_seconds': 3600,
                     'resources': {
@@ -53,7 +51,7 @@ def test_supported_electronic_types(default_builder_inputs):
     """Test calling ``get_builder`` for the supported ``electronic_types``."""
     inputs = default_builder_inputs
 
-    for electronic_type in GENERATOR.get_electronic_types():
+    for electronic_type in GENERATOR.spec().inputs['electronic_type'].choices:
         inputs['electronic_type'] = electronic_type
         builder = GENERATOR.get_builder(**inputs)
         assert isinstance(builder, engine.ProcessBuilder)
@@ -64,7 +62,7 @@ def test_supported_relax_types(default_builder_inputs):
     """Test calling ``get_builder`` for the supported ``relax_types``."""
     inputs = default_builder_inputs
 
-    for relax_type in GENERATOR.get_relax_types():
+    for relax_type in GENERATOR.spec().inputs['relax_type'].choices:
         inputs['relax_type'] = relax_type
         builder = GENERATOR.get_builder(**inputs)
         assert isinstance(builder, engine.ProcessBuilder)
@@ -75,7 +73,7 @@ def test_supported_spin_types(default_builder_inputs):
     """Test calling ``get_builder`` for the supported ``spin_types``."""
     inputs = default_builder_inputs
 
-    for spin_type in GENERATOR.get_spin_types():
+    for spin_type in GENERATOR.spec().inputs['spin_type'].choices:
         inputs['spin_type'] = spin_type
         builder = GENERATOR.get_builder(**inputs)
         assert isinstance(builder, engine.ProcessBuilder)

@@ -4,11 +4,13 @@ Workflow calculating the dissociation curve of diatomic molecules.
 It can use any code plugin implementing the common relax workflow.
 """
 import inspect
+
 from aiida import orm
 from aiida.common import exceptions
 from aiida.engine import WorkChain, append_, calcfunction
 from aiida.plugins import WorkflowFactory
-from aiida_common_workflows.workflows.relax.generator import RelaxType, SpinType, ElectronicType
+
+from aiida_common_workflows.workflows.relax.generator import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChain
 
 
@@ -25,7 +27,7 @@ def validate_inputs(value, _):
     generator = process_class.get_input_generator()
 
     try:
-        generator.get_builder(value['molecule'], **value['generator_inputs'])
+        generator.get_builder(structure=value['molecule'], **value['generator_inputs'])
     except Exception as exc:  # pylint: disable=broad-except
         return f'`{generator.__class__.__name__}.get_builder()` fails for the provided `generator_inputs`: {exc}'
 
@@ -166,7 +168,7 @@ class DissociationCurveWorkChain(WorkChain):
         process_class = WorkflowFactory(self.inputs.sub_process_class)
 
         builder = process_class.get_input_generator().get_builder(
-            molecule,
+            structure=molecule,
             reference_workchain=reference_workchain,
             **self.inputs.generator_inputs
         )
@@ -205,7 +207,7 @@ class DissociationCurveWorkChain(WorkChain):
         Inspect all children workflows to make sure they finished successfully.
         Collect the total energies and return an array with the results.
         """
-        if any([not child.is_finished_ok for child in self.ctx.children]):
+        if any(not child.is_finished_ok for child in self.ctx.children):
             return self.exit_codes.ERROR_SUB_PROCESS_FAILED.format(cls=self.inputs.sub_process_class)  # pylint: disable=no-member
 
         for index, child in enumerate(self.ctx.children):
