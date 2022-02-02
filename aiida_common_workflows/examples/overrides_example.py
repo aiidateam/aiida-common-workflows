@@ -7,8 +7,7 @@ import pathlib
 import ase.io
 from aiida.engine import submit
 from aiida.plugins import WorkflowFactory
-from aiida.orm import KpointsData, StructureData, Dict
-import aiida_common_workflows.examples.functions_overrides as fo
+from aiida.orm import KpointsData, StructureData, Dict, List
 
 CODE = 'siesta-school--MaX-1.3.0-1@localhost'
 
@@ -37,16 +36,24 @@ kp = KpointsData()
 kp.set_kpoints_mesh([4, 4, 4])
 kp.store()
 
-arg1 = {'port': 'metadata', 'key': 'label', 'value': 'my_label'}
-
-arg2 = {'port': 'parameters', 'key': 'spin', 'value': 'polarized'}
-
-arg3 = {'port': 'kpoints', 'new_node': kp}
-
-a.overrides = {
-    'functions': [fo.add_or_replace_dict_item, fo.add_or_replace_dict_item, fo.replace_node],
-    'params': [arg1, arg2, arg3]
-}
+a.overrides = [
+        #{
+        #    'entrypoint': 'generic.add_or_replace',
+        #    'kwargs': {'port': 'metadata', 'key': 'label', 'value': 'my_label'}
+        #},
+        {
+            'entrypoint': 'generic.add_or_replace_node',
+            'kwargs': {'port': 'kpoints', 'new_node': kp}
+        },
+        #{
+        #    'entrypoint': 'relax.smearing.siesta', 
+        #    'kwargs': {'port': 'kpoints', 'new_node': kp}
+        #},
+        #{
+        #    'entrypoint': 'relax.siesta.basis',
+        #    'kwargs': {'port': 'kpoints', 'new_node': kp}
+        #}
+]
 
 ww = submit(a)
 print(ww)

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Workchain that wraps a CommonRelaxWorkChain and its input generator.
+
 The challenge here is to transform the inputs accepted by the input generator
 into Data nodes. This is required since they will be stored as inputs of a workchain.
 Moreover this workchain is the central piece where to implement
@@ -8,7 +9,7 @@ the "overrides" system, meaning the possibility for experts of
 a code to change the inputs of the relaxation.
 """
 import inspect
-
+from importlib_metadata import entry_points
 from aiida import orm
 from aiida.common import exceptions, AttributeDict
 from aiida.engine import WorkChain, ToContext
@@ -18,18 +19,95 @@ from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChai
 from aiida_common_workflows.workflows.relax.generator import CommonRelaxInputGenerator
 
 
+def validate_overrides(value, _):  #pylint: disable=too-many-return-statements
+    """
+    Validate the overrides input port
+    """
+    found_group = entry_points().select(group='acwf.overrides')
+    if not found_group:  #an empty list is returned if no group found
+        return 'No group `acwf.overrides` found among entry points. Maybe reinstall the package?'
+
+    for over in value.get_list():
+        if not isinstance(over, dict):
+            return 'The `overrides` input must contain a list of dictionaries'
+        if 'entrypoint' not in over:
+            return 'Each override dictionary must contain the keyword `entrypoint`'
+        found = entry_points().select(group='acwf.overrides', name=over['entrypoint'])
+        if not found:  #an empty list is returned if no name found
+            return f"{over['entrypoint']} is not a registered entry point"
+        if len(found.names) > 1:
+            return f"more than one entry point with name {over['entrypoint']} found. Fix the `setup.json`."
+        if 'kwargs' not in over:
+            return 'Each override dictionary must contain the keyword `kwargs`'
+        if not isinstance(over['kwargs'], dict):
+            return 'The `kwargs` of every `overrides` must be a dictionary'
+
+
+def recursive_serialize_kwargs(diction):
+    """
+    Serialize a dictionary according to the rule
+    that every orm.Node is transformed into its uuid
+    """
+    for obj_k, obj_v in diction.items():
+        if isinstance(obj_v, dict):
+            diction[obj_k] = recursive_serialize_kwargs(obj_v)
+        if isinstance(obj_v, orm.Node):
+            if not obj_v.is_stored:
+                obj_v.store()
+            diction[obj_k] = obj_v.uuid
+
+    return diction
+
+
+def serialize_overrides(value):
+    '''
+    Serialize the `overrides` port. In particular trsformes orm.Node into its uuid.
+    This is done because aiida's List does not accept Nodes as items, nor as
+    components of items.
+    :param overrides: the content passed to the overrides input port (a orm.List).
+    :return: an aiida List containing the uuid of each element of list_to_parse
+    '''
+    for over in value:
+        over['kwargs'] = recursive_serialize_kwargs(over['kwargs'])
+
+    return orm.List(list=value)
+
+
+def find_common_rel_wc(work_chain):
+    """
+    Recursively goes through the callers of a workchain
+    and looks for subclasses of `CommonRelaxWorkChain`.
+    """
+    if issubclass(work_chain.process_class, CommonRelaxWorkChain):
+        return work_chain
+
+    if work_chain.caller is not None:
+        find_common_rel_wc(work_chain.caller)
+    else:
+        return None
+
+
+def validate_reference_wc_remote_folder(value, _):
+    """
+    validate the port `reference_wc_remote_folder`, making
+    sure that was returned by a subclass of `CommonRelaxWorkChain`.
+    """
+    creator = value.creator
+
+    ref_wc = find_common_rel_wc(creator.caller)
+
+    if ref_wc is None:
+        return 'the `reference_wc_remote_folder` is not connected to any implementation of `CommonRelaxWorkChain`'
+
+
 def from_remote_folder_to_reference_wc(folder):
     """
     Returns the instance of `CommonRelaxWorkChain` (or subclasses)
-    that returned the `folder` (`RemoteFolderData`)
+    that returned the `folder` (`RemoteData`)
     """
-    ref_wc = None
+    creator = folder.creator
 
-    for link in folder.get_incoming().all():
-        if issubclass(link.node.process_class, CommonRelaxWorkChain):
-            ref_wc = link.node
-
-    return ref_wc
+    return find_common_rel_wc(creator.caller)
 
 
 def fix_valid_type(spec_inputs):
@@ -160,7 +238,8 @@ class RelaxWorkChain(WorkChain):
 
         spec.input('reference_wc_remote_folder',
             valid_type=orm.RemoteData,
-            required=False
+            required=False,
+            validator=validate_reference_wc_remote_folder
             )
 
         spec.input('relax_sub_process_class',
@@ -169,7 +248,13 @@ class RelaxWorkChain(WorkChain):
             validator=validate_sub_process_class
             )
 
-        spec.input('overrides', non_db=True, required=False)
+        spec.input(
+            'overrides',
+            valid_type=orm.List,
+            required=False,
+            serializer=serialize_overrides,
+            validator=validate_overrides
+            )
 
         spec.inputs.validator = validate_inputs
 
@@ -209,10 +294,11 @@ class RelaxWorkChain(WorkChain):
 
         #Apply code dependent overrides
         if 'overrides' in self.inputs:
-            for idx, override_func in enumerate(self.inputs['overrides']['functions']):
-                override_func(builder, **self.inputs['overrides']['params'][idx])
-
-        #self.report(f'{builder}')
+            self.report('Applying overrides')
+            for over in self.inputs['overrides']:
+                found = entry_points().select(group='acwf.overrides', name=over['entrypoint'])
+                override_func = found[over['entrypoint']].load()
+                override_func(builder, **over['kwargs'])
 
         self.report(f'submitting `{builder.process_class.__name__}` for relaxation.')
 
