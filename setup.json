@@ -55,6 +55,12 @@
         ]
     },
     "entry_points": {
+        "acwf.overrides": [
+            "generic.add_or_replace_node = aiida_common_workflows.overrides.generic:add_or_replace_node",
+            "generic.remove_node = aiida_common_workflows.overrides.generic:remove_node",
+            "generic.update_dict = aiida_common_workflows.overrides.generic:update_dict"
+            ],
+
         "console_scripts": [
             "aiida-common-workflows = aiida_common_workflows.cli:cmd_root"
         ],

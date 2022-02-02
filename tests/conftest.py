@@ -9,8 +9,10 @@ import click
 import pytest
 
 from aiida import engine
+from aiida import plugins
 from aiida.common import exceptions
 from aiida.common.constants import elements
+from aiida.engine import ProcessBuilder
 
 pytest_plugins = ['aiida.manage.tests.pytest_fixtures']  # pylint: disable=invalid-name
 
@@ -62,6 +64,19 @@ def run_cli_command():
         return result
 
     return _run_cli_command
+
+
+@pytest.fixture(scope='function')
+def get_empty_builder():
+    """Return a builder of the ``entry_point`` process"""
+
+    def _get_empty_builder(entry_point: str) -> ProcessBuilder:
+        """
+        Get a builder of the ``entry_point`` process.
+        """
+        return plugins.WorkflowFactory(entry_point).get_builder()
+
+    return _get_empty_builder
 
 
 @pytest.fixture
@@ -325,7 +340,6 @@ def sssp(generate_upf_data):
 @pytest.fixture(scope='session')
 def pseudo_dojo(generate_jthxml_data):
     """Create a PseudoDojo pseudo potential family from scratch."""
-    from aiida import plugins
 
     PseudoDojoFamily = plugins.GroupFactory('pseudo.family.pseudo_dojo')  # pylint: disable=invalid-name
     label = 'PseudoDojo/1.0/PBE/SR/standard/jthxml'
@@ -364,7 +378,6 @@ def pseudo_dojo(generate_jthxml_data):
 @pytest.fixture(scope='session')
 def psml_family(generate_psml_data):
     """Create a pseudopotential family with PsmlData potentials from scratch."""
-    from aiida import plugins
 
     PsmlData = plugins.DataFactory('pseudo.psml')  # pylint: disable=invalid-name
     PseudoPotentialFamily = plugins.GroupFactory('pseudo.family')  # pylint: disable=invalid-name
