@@ -9,14 +9,16 @@ the "overrides" system, meaning the possibility for experts of
 a code to change the inputs of the relaxation.
 """
 import inspect
-from importlib_metadata import entry_points
+
 from aiida import orm
-from aiida.common import exceptions, AttributeDict
-from aiida.engine import WorkChain, ToContext
-from aiida.plugins import WorkflowFactory, DataFactory
+from aiida.common import AttributeDict, exceptions
+from aiida.engine import ToContext, WorkChain
 from aiida.orm.nodes.data.base import to_aiida_type
-from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChain
+from aiida.plugins import DataFactory, WorkflowFactory
+from importlib_metadata import entry_points
+
 from aiida_common_workflows.workflows.relax.generator import CommonRelaxInputGenerator
+from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChain
 
 
 def validate_overrides(value, _):  #pylint: disable=too-many-return-statements
@@ -261,7 +263,7 @@ class RelaxWorkChain(WorkChain):
         spec.outline(cls.run_wc, cls.analyze_wc)
 
         spec.expose_outputs(CommonRelaxWorkChain)
-        #Ok exposing, but also dynamic outputs
+        spec.outputs.dynamic = True
 
         spec.exit_code(400, 'ERROR_SUB_PROCESS_FAILED',
             message='At least one of the sub processes did not finish successfully.')
@@ -288,9 +290,6 @@ class RelaxWorkChain(WorkChain):
         builder = process_class.get_input_generator().get_builder(
             **inputs_for_builder
         )
-        #builder._update(**self.inputs.get('relax_sub_process', {}))  # pylint: disable=protected-access
-
-        #self.report(f'{builder}')
 
         #Apply code dependent overrides
         if 'overrides' in self.inputs:
