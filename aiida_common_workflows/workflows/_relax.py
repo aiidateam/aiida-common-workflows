@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Workchain that wraps a CommonRelaxWorkChain and its input generator.
+Workchain that wraps a ``CommonRelaxWorkChain`` and its input generator.
 
 The challenge here is to transform the inputs accepted by the input generator
 into Data nodes. This is required since they will be stored as inputs of a workchain.
@@ -23,7 +23,7 @@ from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChai
 
 def validate_overrides(value, _):  #pylint: disable=too-many-return-statements
     """
-    Validate the overrides input port
+    Validate the ``overrides`` input port.
     """
     found_group = entry_points().select(group='acwf.overrides')
     if not found_group:  #an empty list is returned if no group found
@@ -47,8 +47,7 @@ def validate_overrides(value, _):  #pylint: disable=too-many-return-statements
 
 def recursive_serialize_kwargs(diction):
     """
-    Serialize a dictionary according to the rule
-    that every orm.Node is transformed into its uuid
+    Apply rule that every ``orm.Node`` in a dictionary is transformed into its uuid.
     """
     for obj_k, obj_v in diction.items():
         if isinstance(obj_v, dict):
@@ -63,11 +62,22 @@ def recursive_serialize_kwargs(diction):
 
 def serialize_overrides(value):
     '''
-    Serialize the `overrides` port. In particular trsformes orm.Node into its uuid.
-    This is done because aiida's List does not accept Nodes as items, nor as
-    components of items.
-    :param overrides: the content passed to the overrides input port (a orm.List).
-    :return: an aiida List containing the uuid of each element of list_to_parse
+    Serialize the ``overrides`` port.
+
+    In particular transformes items of ``value`` that are ``orm.Node`` into its uuid.
+    This is done because aiida's ``List`` does not accept ``Node``s as items, nor as
+    components of items. Only json-serializables objects are accepted.
+    IMPORTANT NOTE!!! TO FIX!
+    Due to the way this serialization function is called, the serielization
+    implemented here works ONLY if the user passes a python ``list`` as
+    input for ``overrides``. A ``List`` is not allowed! See
+    https://github.com/aiidateam/aiida-core/issues/5342.
+    This must be fixed in the future since it is inconsistent with aiida
+    directives and it can not be imposed with clear error messages.
+
+    :param value: the content passed to the overrides input port (a ``list``).
+    :return: an aiida List mirroring the input ``list``, but where nodes are
+             serialized to their uuid.
     '''
     for over in value:
         over['kwargs'] = recursive_serialize_kwargs(over['kwargs'])
@@ -77,8 +87,11 @@ def serialize_overrides(value):
 
 def find_common_rel_wc(work_chain):
     """
-    Recursively goes through the callers of a workchain
-    and looks for subclasses of `CommonRelaxWorkChain`.
+    Recursively goes through callers of a workchain and looks for ``CommonRelaxWorkChain``'s subclasses.
+
+    :param work_chain: the input WorkChain
+    :return: The ancestor of the input WorkChain that is a subclass of ``CommonRelaxWorkChain``
+             or None if the former is not found.
     """
     if issubclass(work_chain.process_class, CommonRelaxWorkChain):
         return work_chain
@@ -91,8 +104,9 @@ def find_common_rel_wc(work_chain):
 
 def validate_reference_wc_remote_folder(value, _):
     """
-    validate the port `reference_wc_remote_folder`, making
-    sure that was returned by a subclass of `CommonRelaxWorkChain`.
+    Validate the port ``reference_wc_remote_folder``
+
+    Makes sure that it was returned by a subclass of `CommonRelaxWorkChain`.
     """
     creator = value.creator
 
@@ -104,8 +118,10 @@ def validate_reference_wc_remote_folder(value, _):
 
 def from_remote_folder_to_reference_wc(folder):
     """
-    Returns the instance of `CommonRelaxWorkChain` (or subclasses)
-    that returned the `folder` (`RemoteData`)
+    Returns instance of ``CommonRelaxWorkChain`` (or subclasses) that returned the ``folder`` (`RemoteData`)
+
+    :param folder: ``RemoteData`` passed in the ``reference_wc_remote_folder`` port.
+    :return: the instance of ``CommonRelaxWorkChain`` (or subclasses) connected to ``folder``
     """
     creator = folder.creator
 
@@ -114,11 +130,16 @@ def from_remote_folder_to_reference_wc(folder):
 
 def fix_valid_type(spec_inputs):
     """
-    Transform the valid type of a spec().inputs from python type to
-    the corresponding Data type. It also sets `to_aiida_type` as `serializer`
-    so that the python types can still be passed as valid inputs.
-    It is recursive so it fixes also namespaces.
+    Transform the valid type of a spec().inputs from python type to the corresponding Data type.
+
+    The mapping python type to Data types relys on the use of ``DataFactory``
+    and the manipulation of the string returned when a port valid_type is requested.
+    Maybe not the most robust approach?
+    It also sets `to_aiida_type` as `serializer` so that the python types can still
+    be passed as valid inputs. It is recursive so it fixes also namespaces.
     It ignores for the moment the "metadata" and the Enum.
+
+    :param spec_inputs: the entire spec.inputs namespace
     """
     from enum import Enum
 
@@ -145,9 +166,13 @@ def deserialize(inputs):
     are exposed to the users of the workchain. However, in order to have them exposed,
     it is necessary to transform them in aiida data type. This is done by various commands in
     the `define` method of this workchain.
-    However, then these inputs need to be passed to the `get_builder`, that accepts normal python
+    However, then these inputs need to be passed to the ``get_builder``, that accepts normal python
     types and not AiiDA data types. Here we deserialize the inputs to bring
     them to normal python types.
+
+    :param inputs: a dictionary containing inputs to pass to ``get_builder``.
+    :return: the same dictionary in input but where aiida types are transformed
+             into normal python types
     """
 
     for key, val in inputs.items():
@@ -166,7 +191,12 @@ def deserialize(inputs):
 
 
 def validate_inputs(value, _):  #pylint: disable=too-many-branches,too-many-return-statements
-    """Validate the entire input namespace."""
+    """
+    Validate the entire input namespace.
+
+    In particular checks the inputs for the relaxation against the choosen
+    implementation of the ``CommonRelaxInputGenerator``.
+    """
 
     process_class = WorkflowFactory(value['relax_sub_process_class'].value)
     generator = process_class.get_input_generator()
@@ -192,7 +222,11 @@ def validate_inputs(value, _):  #pylint: disable=too-many-branches,too-many-retu
 
 
 def validate_sub_process_class(value, _):
-    """Validate the sub process class."""
+    """
+    Validate the sub process class.
+
+    It is a valid entr point and has `CommonRelaxWorkChain` as parent
+    """
     try:
         process_class = WorkflowFactory(value.value)
     except exceptions.EntryPointError:
@@ -204,8 +238,9 @@ def validate_sub_process_class(value, _):
 
 class RelaxWorkChain(WorkChain):
     """
-    Workchain to carry on a relaxation. The implementation to
-    use is selected thanks to the `relax_sub_process_class` input,
+    Code agnostic workchain to carry on a relaxation.
+
+    The implementation to use is selected thanks to the ``relax_sub_process_class`` input,
     for the rest the interface is completely code-agnostic. It
     exposes the interface created to the input-generators system.
     """

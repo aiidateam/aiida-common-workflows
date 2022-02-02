@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """Tests for the :mod:`aiida_common_workflows.overrides.generic` module."""
-import pytest
-from importlib_metadata import entry_points
 from aiida import orm
+from importlib_metadata import entry_points
+import pytest
 
 
 def test_updated_dict(get_empty_builder):
