@@ -114,12 +114,6 @@ def get_file_section():
     with open(pathlib.Path(__file__).parent / 'GTH_POTENTIALS', 'rb') as handle:
         potential = orm.SinglefileData(file=handle)
 
-    with open(pathlib.Path(__file__).parent / 'dftd3.dat', 'rb') as handle:
-        dftd3_params = orm.SinglefileData(file=handle)
-
-    with open(pathlib.Path(__file__).parent / 'xTB_parameters', 'rb') as handle:
-        xtb_params = orm.SinglefileData(file=handle)
-
     return {
         'basis_gth': basis_gth,
         'basis_molopt': basis_molopt,
