@@ -133,9 +133,9 @@ precise:
       UKS:          False
       CHARGE:       0
       MGRID:
-        CUTOFF:      1000
-        REL_CUTOFF:  50
-        NGRIDS:      3               # Set to 1 for an extremely precise grid
+        CUTOFF:      1800
+        REL_CUTOFF:  80
+        NGRIDS:      4               # Set to 1 for an extremely precise grid
       QS:
         METHOD: GPW
         EPS_DEFAULT:   1.0E-16

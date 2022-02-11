@@ -200,7 +200,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             parameters['FORCE_EVAL']['DFT']['SCF']['SMEAR'] = {
                 '_': 'ON',
                 'METHOD': 'FERMI_DIRAC',
-                'ELECTRONIC_TEMPERATURE': '[K] 500',
+                'ELECTRONIC_TEMPERATURE': '[K] 710.5',
             }
             parameters['FORCE_EVAL']['DFT']['SCF']['DIAGONALIZATION'] = {
                 'EPS_ADAPT': '1',
