@@ -26,3 +26,4 @@ class Wien2kCommonRelaxWorkChain(CommonRelaxWorkChain):
         """Convert the outputs of the sub workchain to the common output specification."""
         self.report('Relaxation task concluded sucessfully, converting outputs')
         self.out('total_energy', get_energy(self.ctx.workchain.outputs.workchain_result))
+        self.out('relax_structure', self.ctx.workchain.outputs.aiida_structure_out)

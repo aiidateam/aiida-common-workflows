@@ -4,7 +4,9 @@ moderate:
     red: '3'
     max-scf-iterations: '100'
     scf-ene-tol-Ry: '0.000001'
-    scf-charge-tol: '0.00003'
+    scf-charge-tol: '0.000001'
     fermi-temp-Ry: '0.0045'
-    deltak: '0.021'
     nokshift: True
+    noprec: '2'
+    numk: '-1 0.05'
+    numk2: '-1 0.03175'
