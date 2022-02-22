@@ -12,11 +12,12 @@ moderate:
         ADD_LAST: SYMBOLIC
     DFT:
       BASIS_SET_FILE_NAME:
-        - GTH_BASIS_SETS
         - BASIS_MOLOPT
+        - BASIS_MOLOPT_UZH
         - BASIS_MOLOPT_UCL
+        - GTH_BASIS_SETS
       POTENTIAL_FILE_NAME:
-        -  GTH_POTENTIALS
+        - GTH_POTENTIALS
       UKS:          False
       CHARGE:       0
       MGRID:
@@ -125,22 +126,22 @@ precise:
         ADD_LAST: SYMBOLIC
     DFT:
       BASIS_SET_FILE_NAME:
-        - GTH_BASIS_SETS
         - BASIS_MOLOPT
+        - BASIS_MOLOPT_UZH
         - BASIS_MOLOPT_UCL
+        - GTH_BASIS_SETS
       POTENTIAL_FILE_NAME:
-        -  GTH_POTENTIALS
+        - GTH_POTENTIALS
       UKS:          False
       CHARGE:       0
       MGRID:
-        CUTOFF:      1800
+        CUTOFF:      1200
         REL_CUTOFF:  80
         NGRIDS:      4               # Set to 1 for an extremely precise grid
       QS:
         METHOD: GPW
         EPS_DEFAULT:   1.0E-16
         EXTRAPOLATION: ASPC
-        # MAP_CONSISTENT: ".TRUE."   # Enable this for an extremely precise grid
       SCF:
         MAX_SCF:       300           # ROBUST: optimum compromise
         EPS_SCF:       1.0E-8
@@ -153,15 +154,17 @@ precise:
           PBE:
             PARAMETRIZATION: ORIG
       PRINT:
-        MO_CUBES:
-          WRITE_CUBE: F
+        MO:
+          _: 'OFF'
           ADD_LAST: SYMBOLIC
+          EIGENVALUES: ON
+          OCCUPATION_NUMBERS: ON
+          NDIGITS: 12
           EACH:
             CELL_OPT: 0
             GEO_OPT: 0
             MD: 0
-          NHOMO: 1  # all eigenvalues are dumped anyway
-          NLUMO: 1  # specified neigenvalues are dupmed
+            QS_SCF: 0
         MULLIKEN:
           _: 'ON'
           ADD_LAST: SYMBOLIC
@@ -236,11 +239,12 @@ fast:
         ADD_LAST: SYMBOLIC
     DFT:
       BASIS_SET_FILE_NAME:
-        - GTH_BASIS_SETS
         - BASIS_MOLOPT
+        - BASIS_MOLOPT_UZH
         - BASIS_MOLOPT_UCL
+        - GTH_BASIS_SETS
       POTENTIAL_FILE_NAME:
-        -  GTH_POTENTIALS
+        - GTH_POTENTIALS
       UKS:          False
       CHARGE:       0
       MGRID:
