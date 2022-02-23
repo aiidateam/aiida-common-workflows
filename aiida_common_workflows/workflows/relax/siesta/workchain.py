@@ -29,11 +29,16 @@ def get_magn(pardict):
 
 @calcfunction
 def get_forces_and_stress(totalarray):
-    """Separates the forces and stress in two different arrays"""
+    """
+    Separates the forces and stress in two different arrays and correct the units of stress.
+
+    Stress in siesta plugin is return in units of Ry/Ang³. Here we want them in eV/Ang³
+    """
     forces = orm.ArrayData()
     forces.set_array(name='forces', array=totalarray.get_array('forces'))
     stress = orm.ArrayData()
-    stress.set_array(name='stress', array=totalarray.get_array('stress'))
+    stress_correct_units = totalarray.get_array('stress') * 13.6056980659
+    stress.set_array(name='stress', array=stress_correct_units)
     return {'forces': forces, 'stress': stress}
 
 
