@@ -1,3 +1,34 @@
+verification-PBE-v1:
+  description: ''
+  parameters:
+    xc-functional: "GGA"
+    xc-authors: "PBE"
+    max-scf-iterations: 100
+    scf-mixer-history: 5
+    scf-mixer-weight: 0.1
+    scf-dm-tolerance: 1.e-5
+    md-max-force-tol: '0.005 eV/Ang'
+    md-max-stress-tol: '0.7 GPa'
+    solution-method: 'diagon'
+    electronic-temperature: '61 meV'
+    write-forces: True
+    mesh-cutoff: '500 Ry'
+  basis:
+    pao-split-tail-norm: True
+    reparametrize-pseudos: True,
+    restricted-radial-grid: False,
+  pseudo_family: 'PseudoDojo/0.4/PBE/FR/standard/psml'
+  kpoints:
+    distance: 0.1
+    offset: [0., 0., 0.]
+  atomic_heuristics:
+    H:
+      basis:
+        pao-block: "H 2\n  n=1  0  3\n 8.746929\t 1.955667\t 3.192298\n  n=2  1  2\n 2.735175\t 1.797309"
+    He:
+      basis:
+        pao-block: "He 2\n  n=1  0  3\n 9.687252\t 2.294493\t 2.984807\n  n=2  1  1\n 3.144488"
+
 charge_conf_simpl:
   description: 'Basis from simplex optimization on crystal elements (delta paper) with charge conf and varying radius first zeta and global pao-split-norm. The basis size is DZDP for all materials except S, Ni, Cu, Ag, Pt, Au for which it is TZDP. Optimization done with electronic temperature of 25 meV. The rest of the parameters are the same of the protocol.'
   parameters:
