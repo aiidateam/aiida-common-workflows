@@ -4,7 +4,7 @@ Collects some functions to postprocess a `CommonWorkflowSiestaWorkChain`.
 """
 
 
-def return_ts(common_relax_workchain):
+def get_ts_energy(common_relax_workchain):
     """
     Return the TS value of a concluded CommonWorkflowSiestaWorkChain.
 
