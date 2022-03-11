@@ -86,7 +86,7 @@ fast:
 
 
 verification-PBE-v1:
-    name: 'oxides-validation'
+    name: 'verification-PBE-v1'
     description: 'Protocol for the oxides validation study.'
     relax:
         relax_options:
@@ -95,8 +95,7 @@ verification-PBE-v1:
         base:
             pseudos_family: 'C19'
             max_iterations: 5
-            #kpoints_spacing: 0.04    # Equivalent to `kpoints_mp_spacing : 0.00636` - very fine...
-            kpoints_spacing: 0.10    # Equivalent to `kpoints_mp_spacing : 0.00636` - very fine...
+            kpoints_spacing: 0.06    # K point spacing in A^-1, not the A^-1 2Pi that CASTEP defaults to
             ensure_gamma_centering: True   # Ensure that the kpoint grid is Gamma-centered
             calc:
                 parameters:
