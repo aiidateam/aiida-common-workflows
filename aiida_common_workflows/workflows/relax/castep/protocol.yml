@@ -85,7 +85,7 @@ fast:
                     geom_stress_tol: 0.1
 
 
-oxides_validation:
+verification-PBE-v1:
     name: 'oxides-validation'
     description: 'Protocol for the oxides validation study.'
     relax:
@@ -105,47 +105,7 @@ oxides_validation:
                     symmetry_generate: true
                     snap_to_symmetry: true
                     calculate_stress: true
-                    basis_precision: precise
-                    write_otfg: false
-                    opt_strategy: speed
-                    write_bib: false
-                    write_checkpoint: minimal
-                    finite_basis_corr: none   # No finite basis corr as we are NOT moving any atoms....
-                    max_scf_cycles: 100
-                    elec_energy_tol: 1e-8
-                    geom_force_tol: 0.03
-                    geom_energy_tol: 1.0e-5
-                    geom_stress_tol: 0.05
-                    grid_scale: 2
-                    fine_grid_scale : 3
-                    # Revised smearing scheme for the oxide validation project
-                    smearing_width: 0.06122561905370023   # Equivalent to 0.0045 Ry
-                    smearing_scheme: FERMIDIRAC
-                    perc_extra_bands: 80
-                settings:
-                    ADDITIONAL_RETRIEVE_TEMPORARY_LIST: ["aiida.castep_bin"]
-
-oxides_validation_k_015:
-    name: 'oxides-validation-kspacing-0.15'
-    description: 'Protocol for the oxides validation study.'
-    relax:
-        relax_options:
-            max_meta_iterations: 5
-
-        base:
-            pseudos_family: 'C19'
-            max_iterations: 5
-            #kpoints_spacing: 0.04    # Equivalent to `kpoints_mp_spacing : 0.00636` - very fine...
-            kpoints_spacing: 0.15     # Increased kspacing for checks
-            ensure_gamma_centering: True   # Ensure that the kpoint grid is Gamma-centered
-            calc:
-                parameters:
-                    task: geometryoptimisation
-                    xc_functional: pbe
-                    symmetry_generate: true
-                    snap_to_symmetry: true
-                    calculate_stress: true
-                    basis_precision: precise
+                    cut_off_energy: 800              # Fixed cut off energy for handling both unaries and oxides
                     write_otfg: false
                     opt_strategy: speed
                     write_bib: false
