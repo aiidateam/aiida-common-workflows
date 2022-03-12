@@ -168,7 +168,7 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         # Raise the cut off energy for very soft pseudopotentials
         # this is because the small basis set will give rise to errors in EOS / variable volume
         # relaxation even with the "fine" option
-        if 'cut_off_energy' not in param:
+        if 'cut_off_energy' not in protocol['relax']['base']['calc']['parameters']:
             with open(str(pathlib.Path(__file__).parent / 'soft_elements.yml')) as fhandle:
                 soft_elements = yaml.safe_load(fhandle)
             symbols = [kind.symbol for kind in structure.kinds]
