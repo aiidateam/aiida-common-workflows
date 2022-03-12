@@ -48,7 +48,7 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         super().define(spec)
         spec.input(
             'protocol',
-            valid_type=ChoiceType(('fast', 'moderate', 'precise', 'oxide_validation')),
+            valid_type=ChoiceType(('fast', 'moderate', 'precise', 'verification-PBE-v1')),
             default='moderate',
             help='The protocol to use for the automated input generation. This value indicates the level of precision '
             'of the results and computational cost that the input parameters will be selected for.',
@@ -80,7 +80,7 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         # Because the subsequent generators may modify this dictionary and convert things
         # to AiiDA types, here we make a full copy of the original protocol
-        protocol = copy.deepcopy(self.get_protocol(protocol))
+        protocol = copy.deepcopy(self._protocols[protocol])
         code = engines['relax']['code']
 
         override = {'base': {'calc': {'metadata': {'options': engines['relax']['options']}}}}
@@ -168,11 +168,13 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         # Raise the cut off energy for very soft pseudopotentials
         # this is because the small basis set will give rise to errors in EOS / variable volume
         # relaxation even with the "fine" option
-        with open(str(pathlib.Path(__file__).parent / 'soft_elements.yml')) as fhandle:
-            soft_elements = yaml.safe_load(fhandle)
-        symbols = [kind.symbol for kind in structure.kinds]
-        if all(sym in soft_elements for sym in symbols):
-            param['cut_off_energy'] = 326  # eV, approximately 12 Ha
+        if 'cut_off_energy' not in param:
+            with open(str(pathlib.Path(__file__).parent / 'soft_elements.yml')) as fhandle:
+                soft_elements = yaml.safe_load(fhandle)
+            symbols = [kind.symbol for kind in structure.kinds]
+            if all(sym in soft_elements for sym in symbols):
+                param['cut_off_energy'] = 326  # eV, approximately 12 Ha
+                param.pop('basis_precision', None)
 
         # Apply the overrides
         if param:
