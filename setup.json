@@ -55,10 +55,17 @@
         ]
     },
     "entry_points": {
+        "acwf.overrides": [
+            "generic.add_or_replace_node = aiida_common_workflows.overrides.generic:add_or_replace_node",
+            "generic.remove_node = aiida_common_workflows.overrides.generic:remove_node",
+            "generic.update_dict = aiida_common_workflows.overrides.generic:update_dict"
+            ],
+
         "console_scripts": [
             "aiida-common-workflows = aiida_common_workflows.cli:cmd_root"
         ],
         "aiida.workflows": [
+            "common_workflows.relax_code_agnostic = aiida_common_workflows.workflows._relax:RelaxWorkChain",
             "common_workflows.dissociation_curve = aiida_common_workflows.workflows.dissociation:DissociationCurveWorkChain",
             "common_workflows.eos = aiida_common_workflows.workflows.eos:EquationOfStateWorkChain",
             "common_workflows.relax.abinit = aiida_common_workflows.workflows.relax.abinit.workchain:AbinitCommonRelaxWorkChain",

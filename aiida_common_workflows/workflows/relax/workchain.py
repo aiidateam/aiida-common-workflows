@@ -33,7 +33,8 @@ class CommonRelaxWorkChain(WorkChain, metaclass=ABCMeta):
     def define(cls, spec):
         # yapf: disable
         super().define(spec)
-        spec.expose_inputs(cls._process_class)
+        if cls._process_class is not None:
+            spec.expose_inputs(cls._process_class)
         spec.outline(
             cls.run_workchain,
             cls.inspect_workchain,
