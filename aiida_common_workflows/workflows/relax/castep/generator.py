@@ -80,7 +80,7 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         # Because the subsequent generators may modify this dictionary and convert things
         # to AiiDA types, here we make a full copy of the original protocol
-        protocol = copy.deepcopy(self._protocols[protocol])
+        protocol = copy.deepcopy(self.get_protocol(protocol))
         code = engines['relax']['code']
 
         override = {'base': {'calc': {'metadata': {'options': engines['relax']['options']}}}}
