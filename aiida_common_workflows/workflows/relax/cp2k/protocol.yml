@@ -114,7 +114,7 @@ moderate:
 
 precise:
   description: 'Protocol to relax a structure with high precision at higher computational cost.'
-  kpoints_distance: 0.1
+  kpoints_distance: 0.06
   GLOBAL:
     PRINT_LEVEL: MEDIUM              #default: MEDIUM. Important to have the correct parsing
   FORCE_EVAL:
@@ -141,10 +141,11 @@ precise:
       QS:
         METHOD: GPW
         EPS_DEFAULT:   1.0E-16
+        EPS_PGF_ORB:   1.0E-32
         EXTRAPOLATION: ASPC
       SCF:
         MAX_SCF:       300           # ROBUST: optimum compromise
-        EPS_SCF:       1.0E-8
+        EPS_SCF:       1.0E-7
         MAX_ITER_LUMO: 10000         # for computing the Band gap
         OUTER_SCF:
           MAX_SCF:   10              # ROBUST: more than the Standard protocol
