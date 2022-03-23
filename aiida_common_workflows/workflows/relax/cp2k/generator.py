@@ -102,26 +102,28 @@ def guess_multiplicity(structure: StructureData, magnetization_per_site: t.List[
 
 def get_file_section():
     """Provide necessary parameter files such as pseudopotientials, basis sets, etc."""
-    with open(pathlib.Path(__file__).parent / 'GTH_BASIS_SETS', 'rb') as handle:
-        basis_gth = orm.SinglefileData(file=handle)
-
     with open(pathlib.Path(__file__).parent / 'BASIS_MOLOPT', 'rb') as handle:
         basis_molopt = orm.SinglefileData(file=handle)
 
+    with open(pathlib.Path(__file__).parent / 'BASIS_MOLOPT_UZH', 'rb') as handle:
+        basis_molopt_uzh = orm.SinglefileData(file=handle)
+
     with open(pathlib.Path(__file__).parent / 'BASIS_MOLOPT_UCL', 'rb') as handle:
         basis_molopt_ucl = orm.SinglefileData(file=handle)
+
+    with open(pathlib.Path(__file__).parent / 'GTH_BASIS_SETS', 'rb') as handle:
+        basis_gth = orm.SinglefileData(file=handle)
 
     with open(pathlib.Path(__file__).parent / 'GTH_POTENTIALS', 'rb') as handle:
         potential = orm.SinglefileData(file=handle)
 
     return {
-        'basis_gth': basis_gth,
-        'basis_molopt': basis_molopt,
-        'basis_molopt_ucl': basis_molopt_ucl,
-        'potential': potential,
-        'dftd3_params': dftd3_params,
-        'xtb_dat': xtb_params,
-    }
+            'basis_molopt': basis_molopt,
+            'basis_molopt_ucl': basis_molopt_uzh,
+            'basis_molopt_ucl': basis_molopt_ucl,
+            'basis_gth': basis_gth,
+            'potential': potential
+            }
 
 
 class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
@@ -205,6 +207,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 'BETA': '1.5',
             }
             parameters['FORCE_EVAL']['DFT']['SCF']['ADDED_MOS'] = 20
+            parameters['FORCE_EVAL']['DFT']['SCF']['CHOLESKY'] = 'OFF'
 
         ## If insulator then employ OT.
         elif electronic_type == ElectronicType.INSULATOR:
@@ -237,7 +240,9 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             run_type = 'ENERGY_FORCE'
         else:
             raise ValueError(f'Relax type `{relax_type.value}` is not supported')
-        parameters['GLOBAL'] = {'RUN_TYPE': run_type}
+        parameters['GLOBAL'] = {
+              'PREFERRED_DIAG_LIBRARY': 'ScaLAPACK',
+              'RUN_TYPE': run_type }
 
         ## Redefining forces threshold.
         if threshold_forces is not None:
