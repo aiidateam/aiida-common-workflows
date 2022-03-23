@@ -41,7 +41,7 @@ def dict_merge(dct, merge_dct):
 def get_kinds_section(structure: StructureData, magnetization_tags=None):
     """ Write the &KIND sections given the structure and the settings_dict"""
     kinds = []
-    with open(pathlib.Path(__file__).parent / 'atomic_kinds.yml') as fhandle:
+    with open(pathlib.Path(__file__).parent / 'atomic_kinds.yml', 'rb') as fhandle:
         atom_data = yaml.safe_load(fhandle)
     ase_structure = structure.get_ase()
     symbol_tag = {
@@ -118,12 +118,12 @@ def get_file_section():
         potential = orm.SinglefileData(file=handle)
 
     return {
-            'basis_molopt': basis_molopt,
-            'basis_molopt_ucl': basis_molopt_uzh,
-            'basis_molopt_ucl': basis_molopt_ucl,
-            'basis_gth': basis_gth,
-            'potential': potential
-            }
+        'basis_molopt': basis_molopt,
+        'basis_molopt_uzh': basis_molopt_uzh,
+        'basis_molopt_ucl': basis_molopt_ucl,
+        'basis_gth': basis_gth,
+        'potential': potential
+    }
 
 
 class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
@@ -138,7 +138,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
     def _initialize_protocols(self):
         """Initialize the protocols class attribute by parsing them from the configuration file."""
-        with open(pathlib.Path(__file__).parent / 'protocol.yml') as handle:
+        with open(pathlib.Path(__file__).parent / 'protocol.yml', 'rb') as handle:
             self._protocols = yaml.safe_load(handle)
 
     @classmethod
@@ -240,9 +240,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             run_type = 'ENERGY_FORCE'
         else:
             raise ValueError(f'Relax type `{relax_type.value}` is not supported')
-        parameters['GLOBAL'] = {
-              'PREFERRED_DIAG_LIBRARY': 'ScaLAPACK',
-              'RUN_TYPE': run_type }
+        parameters['GLOBAL'] = {'PREFERRED_DIAG_LIBRARY': 'ScaLAPACK', 'RUN_TYPE': run_type}
 
         ## Redefining forces threshold.
         if threshold_forces is not None:
