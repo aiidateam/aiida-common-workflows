@@ -237,7 +237,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         elif relax_type == RelaxType.POSITIONS_CELL:
             run_type = 'CELL_OPT'
         elif relax_type == RelaxType.NONE:
-            run_type = 'ENERGY'
+            run_type = 'ENERGY_FORCE'
         else:
             raise ValueError(f'Relax type `{relax_type.value}` is not supported')
         parameters['GLOBAL'] = {
@@ -263,9 +263,9 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         builder.cp2k.structure = structure
 
         # Additional files to be retrieved.
-        # builder.cp2k.settings = orm.Dict(
-        #    dict={'additional_retrieve_list': ['aiida-frc-1.xyz', 'aiida-1.stress', 'aiida-requested-forces-1_0.xyz']}
-        # )
+        builder.cp2k.settings = orm.Dict(
+            dict={'additional_retrieve_list': ['aiida-frc-1.xyz', 'aiida-1.stress', 'aiida-requested-forces-1_0.xyz']}
+        )
 
         # CP2K code.
         builder.cp2k.code = engines['relax']['code']
