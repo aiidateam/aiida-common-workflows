@@ -130,7 +130,7 @@ pseudopotential:
   Ba: GTH-PBE-q10
   Hf: GTH-PBE-q12
   Ta: GTH-PBE-q13
-   W: GTH-PBE-q14
+  W:  GTH-PBE-q14
   Re: GTH-PBE-q15
   Os: GTH-PBE-q16
   Ir: GTH-PBE-q17
