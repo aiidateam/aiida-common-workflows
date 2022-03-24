@@ -149,7 +149,7 @@ precise:
         MAX_ITER_LUMO: 10000         # for computing the Band gap
         OUTER_SCF:
           MAX_SCF:   10              # ROBUST: more than the Standard protocol
-          EPS_SCF:   1.0E-8
+          EPS_SCF:   1.0E-7
       XC:
         XC_FUNCTIONAL:
           PBE:
