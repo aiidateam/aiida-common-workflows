@@ -143,7 +143,6 @@ precise:
       QS:
         METHOD: GPW
         EPS_DEFAULT:   1.0E-16
-        EPS_PGF_ORB:   1.0E-32
         EXTRAPOLATION: ASPC
       SCF:
         MAX_SCF:       300           # ROBUST: optimum compromise
