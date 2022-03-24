@@ -38,10 +38,10 @@ def dict_merge(dct, merge_dct):
             dct[k] = merge_dct[k]
 
 
-def get_kinds_section(structure: StructureData, magnetization_tags=None):
+def get_kinds_section(structure: StructureData, basis_pseudo: str, magnetization_tags=None):
     """ Write the &KIND sections given the structure and the settings_dict"""
     kinds = []
-    with open(pathlib.Path(__file__).parent / 'atomic_kinds.yml', 'rb') as fhandle:
+    with open(pathlib.Path(__file__).parent / basis_pseudo, 'rb') as fhandle:
         atom_data = yaml.safe_load(fhandle)
     ase_structure = structure.get_ase()
     symbol_tag = {
@@ -148,6 +148,13 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         The ports defined on the specification are the inputs that will be accepted by the ``get_builder`` method.
         """
         super().define(spec)
+        spec.input(
+            'protocol',
+            valid_type=ChoiceType(('fast', 'moderate', 'precise', 'verification-PBE-v1-DZVP-GTH')),
+            default='moderate',
+            help='The protocol to use for the automated input generation. This value indicates the level of precision '
+            'of the results and computational cost that the input parameters will be selected for.',
+        )
         spec.inputs['spin_type'].valid_type = ChoiceType((SpinType.NONE, SpinType.COLLINEAR))
         spec.inputs['relax_type'].valid_type = ChoiceType(
             (RelaxType.NONE, RelaxType.POSITIONS, RelaxType.POSITIONS_CELL)
@@ -229,7 +236,8 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             parameters['FORCE_EVAL']['DFT']['MULTIPLICITY'] = guess_multiplicity(structure, magnetization_per_site)
 
         ## Starting magnetization.
-        dict_merge(parameters, get_kinds_section(structure, magnetization_tags))
+        basis_pseudo = parameters.pop('basis_pseudo')
+        dict_merge(parameters, get_kinds_section(structure, basis_pseudo, magnetization_tags))
 
         ## Relaxation type.
         if relax_type == RelaxType.POSITIONS:
