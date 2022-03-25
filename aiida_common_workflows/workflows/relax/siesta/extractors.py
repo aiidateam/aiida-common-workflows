@@ -8,6 +8,8 @@ def get_ts_energy(common_relax_workchain):
     """
     Return the TS value of a concluded CommonWorkflowSiestaWorkChain.
 
+    T the fictitious temperature due to the presence of a smearing and S is
+    the entropy. The units must be eV.
     In siesta this quantity is not reported in the output parameters, but can be
     extracted from FreeE = E_KS - TS
     """
