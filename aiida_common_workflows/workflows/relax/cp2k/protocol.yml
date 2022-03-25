@@ -346,6 +346,8 @@ verification-PBE-v1-DZVP-GTH:
   kpoints_distance: 0.06
   basis_pseudo: dzvp-pbe-gth.yml
   GLOBAL:
+    EXTENDED_FFT_LENGTHS: True
+    PREFERRED_DIAG_LIBRARY: ScaLAPACK
     PRINT_LEVEL: MEDIUM              #default: MEDIUM. Important to have the correct parsing
   FORCE_EVAL:
     METHOD:         QUICKSTEP
@@ -460,6 +462,8 @@ verification-PBE-v1-TZV2P-GTH:
   kpoints_distance: 0.06
   basis_pseudo: tzv2p-pbe-gth.yml
   GLOBAL:
+    EXTENDED_FFT_LENGTHS: True
+    PREFERRED_DIAG_LIBRARY: ScaLAPACK
     PRINT_LEVEL: MEDIUM              #default: MEDIUM. Important to have the correct parsing
   FORCE_EVAL:
     METHOD:         QUICKSTEP
