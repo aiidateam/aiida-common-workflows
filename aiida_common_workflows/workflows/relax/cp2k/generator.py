@@ -250,7 +250,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             run_type = 'ENERGY_FORCE'
         else:
             raise ValueError(f'Relax type `{relax_type.value}` is not supported')
-        parameters['GLOBAL'] = {'PREFERRED_DIAG_LIBRARY': 'ScaLAPACK', 'RUN_TYPE': run_type}
+        parameters['GLOBAL']['RUN_TYPE'] = run_type
 
         ## Redefining forces threshold.
         if threshold_forces is not None:
