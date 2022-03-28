@@ -137,7 +137,7 @@ precise:
       UKS:          False
       CHARGE:       0
       MGRID:
-        CUTOFF:      1200
+        CUTOFF:      2400
         REL_CUTOFF:  80
         NGRIDS:      4               # Set to 1 for an extremely precise grid
       QS:
@@ -343,7 +343,7 @@ fast:
 
 verification-PBE-v1-DZVP-GTH:
   description: 'Protocol to relax a structure with high precision at higher computational cost.'
-  kpoints_distance: 0.1
+  kpoints_distance: 0.06
   basis_pseudo: dzvp-pbe-gth.yml
   GLOBAL:
     EXTENDED_FFT_LENGTHS:   True
@@ -367,7 +367,7 @@ verification-PBE-v1-DZVP-GTH:
       UKS:          False
       CHARGE:       0
       MGRID:
-        CUTOFF:      1200
+        CUTOFF:      2400
         REL_CUTOFF:  80
         NGRIDS:      4               # Set to 1 for an extremely precise grid
       QS:
@@ -459,7 +459,7 @@ verification-PBE-v1-DZVP-GTH:
 
 verification-PBE-v1-DZVP-GTH-rev:
   description: 'Protocol to relax a structure with high precision at higher computational cost.'
-  kpoints_distance: 0.1
+  kpoints_distance: 0.06
   basis_pseudo: dzvp-pbe-gth-rev.yml
   GLOBAL:
     EXTENDED_FFT_LENGTHS:   True
@@ -483,7 +483,7 @@ verification-PBE-v1-DZVP-GTH-rev:
       UKS:          False
       CHARGE:       0
       MGRID:
-        CUTOFF:      1200
+        CUTOFF:      2400
         REL_CUTOFF:  80
         NGRIDS:      4               # Set to 1 for an extremely precise grid
       QS:
@@ -575,7 +575,7 @@ verification-PBE-v1-DZVP-GTH-rev:
 
 verification-PBE-v1-TZV2P-GTH:
   description: 'Protocol to relax a structure with high precision at higher computational cost.'
-  kpoints_distance: 0.1
+  kpoints_distance: 0.06
   basis_pseudo: tzv2p-pbe-gth.yml
   GLOBAL:
     EXTENDED_FFT_LENGTHS:   True
@@ -599,7 +599,7 @@ verification-PBE-v1-TZV2P-GTH:
       UKS:          False
       CHARGE:       0
       MGRID:
-        CUTOFF:      1200
+        CUTOFF:      2400
         REL_CUTOFF:  80
         NGRIDS:      4               # Set to 1 for an extremely precise grid
       QS:
