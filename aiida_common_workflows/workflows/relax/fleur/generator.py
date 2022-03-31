@@ -153,7 +153,7 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             dict={
                 'significant_figures_cell': 9,
                 'significant_figures_position': 9,
-                'cmdline': ['-profile', protocol['inpgen-protocol']]
+                'profile': protocol['inpgen-protocol']
             }
         )
 
@@ -192,7 +192,7 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         wf_para_scf = orm.Dict(dict=wf_para_scf_dict)
 
         # User specification overrides previous workchain!
-        if 'calc_parameters' in kwargs.keys():
+        if 'calc_parameters' in kwargs:
             parameters = kwargs.pop('calc_parameters')
 
         parameters, structure = prepare_calc_parameters(parameters, spin_type, magnetization_per_site, structure, kmax)
