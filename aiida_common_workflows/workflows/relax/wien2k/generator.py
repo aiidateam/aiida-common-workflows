@@ -8,8 +8,6 @@ import yaml
 from aiida import engine
 from aiida import orm
 from aiida import plugins
-from aiida.common import exceptions
-from aiida.schedulers.datastructures import NodeNumberJobResource
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
@@ -90,6 +88,7 @@ class Wien2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 '-noprec': self._protocols[protocol]['parameters']['noprec'],
                 '-numk': self._protocols[protocol]['parameters']['numk'],
                 '-numk2': self._protocols[protocol]['parameters']['numk2'],
+                '-p': self._protocols[protocol]['parameters']['parallel'],
                 }) # run123_lapw [param]
         if electronic_type == ElectronicType.INSULATOR:
             inpdict['-nometal'] = True
@@ -118,12 +117,11 @@ class Wien2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 if ref_wrkchn_res_dict['fftmesh3k']: # check if the FFT mesh is not empty
                     inpdict['-fft'] = ref_wrkchn_res_dict['fftmesh3k']
 
-        res = NodeNumberJobResource(num_machines=1, num_mpiprocs_per_machine=1, num_cores_per_mpiproc=1) # set resources
-        if 'options' in engines['relax']:
-            print("WIEN2k+AiiDA does not support more than 1 core per job")
+        #res = NodeNumberJobResource(num_machines=8, num_mpiprocs_per_machine=1, num_cores_per_mpiproc=1) # set resources
         builder = self.process_class.get_builder()
         builder.aiida_structure = structure
         builder.code = engines['relax']['code'] # load wien2k-run123_lapw code
+        builder.options = orm.Dict(dict=engines['relax']['options'])
         builder.inpdict = inpdict
 
         return builder
