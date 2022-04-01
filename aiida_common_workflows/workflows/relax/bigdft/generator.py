@@ -207,7 +207,8 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 hgrids = logfile[0].get('dft').get('hgrids')
             else:
                 hgrids = logfile.get('dft').get('hgrids')
-            inputdict['dft']['hgrids'] = hgrids[0] * builder.structure.cell_lengths[0] / \
+            hg = hgrids[0] if isinstance(hgrids, list) else hgrids
+            inputdict['dft']['hgrids'] = hg * builder.structure.cell_lengths[0] / \
                 reference_workchain.inputs.structure.cell_lengths[0]
 
 
