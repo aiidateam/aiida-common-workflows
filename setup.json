@@ -31,7 +31,8 @@
         "aiida-vasp",
         "pymatgen<=2021.3.3",
         "sqlalchemy<1.4",
-	"ase!=3.20.*"
+        "ase!=3.20.*",
+        "pint~=0.16"
     ],
     "extras_require": {
         "docs": [
