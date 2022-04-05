@@ -137,7 +137,7 @@ precise:
       UKS:          False
       CHARGE:       0
       MGRID:
-        CUTOFF:      1200
+        CUTOFF:      2400
         REL_CUTOFF:  80
         NGRIDS:      4               # Set to 1 for an extremely precise grid
       QS:
@@ -346,7 +346,9 @@ verification-PBE-v1-DZVP-GTH:
   kpoints_distance: 0.06
   basis_pseudo: dzvp-pbe-gth.yml
   GLOBAL:
-    PRINT_LEVEL: MEDIUM              #default: MEDIUM. Important to have the correct parsing
+    EXTENDED_FFT_LENGTHS:   True
+    PREFERRED_DIAG_LIBRARY: ScaLAPACK
+    PRINT_LEVEL:            MEDIUM            #default: MEDIUM. Important to have the correct parsing
   FORCE_EVAL:
     METHOD:         QUICKSTEP
     STRESS_TENSOR:  ANALYTICAL
@@ -365,7 +367,7 @@ verification-PBE-v1-DZVP-GTH:
       UKS:          False
       CHARGE:       0
       MGRID:
-        CUTOFF:      1200
+        CUTOFF:      2400
         REL_CUTOFF:  80
         NGRIDS:      4               # Set to 1 for an extremely precise grid
       QS:
@@ -379,6 +381,134 @@ verification-PBE-v1-DZVP-GTH:
         OUTER_SCF:
           MAX_SCF:   10              # ROBUST: more than the Standard protocol
           EPS_SCF:   1.0E-7
+        PRINT:
+          RESTART:
+            BACKUP_COPIES: 1
+            LOG_PRINT_KEY: True
+            EACH:
+              QS_SCF: 5
+      XC:
+        XC_FUNCTIONAL:
+          PBE:
+            PARAMETRIZATION: ORIG
+      PRINT:
+        MO:
+          _: 'OFF'
+          ADD_LAST: SYMBOLIC
+          EIGENVALUES: ON
+          OCCUPATION_NUMBERS: ON
+          NDIGITS: 12
+          EACH:
+            CELL_OPT: 0
+            GEO_OPT: 0
+            MD: 0
+            QS_SCF: 0
+        MULLIKEN:
+          _: 'ON'
+          ADD_LAST: SYMBOLIC
+          EACH:
+            CELL_OPT: 0
+            GEO_OPT: 0
+            MD: 0
+        LOWDIN:
+          _: 'OFF'
+        HIRSHFELD:
+          _: 'OFF'
+  MOTION:
+    PRINT:
+      TRAJECTORY:
+        FORMAT: DCD_ALIGNED_CELL
+        EACH:
+          CELL_OPT: 1
+          GEO_OPT: 1
+          MD: 1
+      RESTART:
+        BACKUP_COPIES: 0
+        EACH:
+          CELL_OPT: 1
+          GEO_OPT: 1
+          MD: 1
+      RESTART_HISTORY:
+        _: 'OFF'
+      CELL:
+        _: 'OFF'
+      VELOCITIES:
+        _: 'OFF'
+      FORCES:
+        _: 'ON'
+      STRESS:
+        _: 'ON'
+    GEO_OPT:
+      TYPE: MINIMIZATION                     #default: MINIMIZATION
+      OPTIMIZER: BFGS                        #default: BFGS
+      MAX_ITER:  1000                        #default: 200
+      MAX_DR:    "[bohr] 0.0030"             #default: [bohr] 0.0030
+      RMS_DR:    "[bohr] 0.0015"             #default: [bohr] 0.0015
+      MAX_FORCE: "[bohr^-1*hartree] 0.00045" #default: [bohr^-1*hartree] 0.00045
+      RMS_FORCE: "[bohr^-1*hartree] 0.00030" #default: [bohr^-1*hartree] 0.00030
+      BFGS:
+          TRUST_RADIUS: "[angstrom] 0.25"      #default: [angstrom] 0.25
+    CELL_OPT:
+      TYPE: DIRECT_CELL_OPT                   #default: DIRECT_CELL_OPT
+      EXTERNAL_PRESSURE:  "[bar] 0.0"
+      PRESSURE_TOLERANCE: "[bar] 100"         #default: 100
+      KEEP_ANGLES:   False
+      KEEP_SYMMETRY: False
+      OPTIMIZER: BFGS                         #default: BFGS
+      MAX_ITER:  1000                         #default: 200
+      MAX_DR:    "[bohr] 0.0030"              #default: [bohr] 0.0030
+      RMS_DR:    "[bohr] 0.0015"              #default: [bohr] 0.0015
+      MAX_FORCE: "[bohr^-1*hartree] 0.00045"  #default: [bohr^-1*hartree] 0.00045
+      RMS_FORCE: "[bohr^-1*hartree] 0.00030"  #default: [bohr^-1*hartree] 0.00030
+      BFGS:
+        TRUST_RADIUS: "[angstrom] 0.5"
+
+verification-PBE-v1-DZVP-GTH-rev:
+  description: 'Protocol to relax a structure with high precision at higher computational cost.'
+  kpoints_distance: 0.06
+  basis_pseudo: dzvp-pbe-gth-rev.yml
+  GLOBAL:
+    EXTENDED_FFT_LENGTHS:   True
+    PREFERRED_DIAG_LIBRARY: ScaLAPACK
+    PRINT_LEVEL:            MEDIUM            #default: MEDIUM. Important to have the correct parsing
+  FORCE_EVAL:
+    METHOD:         QUICKSTEP
+    STRESS_TENSOR:  ANALYTICAL
+    PRINT:
+      FORCES:
+        FILENAME: requested-forces
+        ADD_LAST: SYMBOLIC
+    DFT:
+      BASIS_SET_FILE_NAME:
+        - BASIS_MOLOPT
+        - BASIS_MOLOPT_UZH
+        - BASIS_MOLOPT_UCL
+        - GTH_BASIS_SETS
+      POTENTIAL_FILE_NAME:
+        - GTH_POTENTIALS_PSI
+      UKS:          False
+      CHARGE:       0
+      MGRID:
+        CUTOFF:      2400
+        REL_CUTOFF:  80
+        NGRIDS:      4               # Set to 1 for an extremely precise grid
+      QS:
+        METHOD: GPW
+        EPS_DEFAULT:   1.0E-16
+        EXTRAPOLATION: ASPC
+      SCF:
+        MAX_SCF:       300           # ROBUST: optimum compromise
+        EPS_SCF:       1.0E-7
+        MAX_ITER_LUMO: 10000         # for computing the Band gap
+        OUTER_SCF:
+          MAX_SCF:   10              # ROBUST: more than the Standard protocol
+          EPS_SCF:   1.0E-7
+        PRINT:
+          RESTART:
+            BACKUP_COPIES: 1
+            LOG_PRINT_KEY: True
+            EACH:
+              QS_SCF: 5
       XC:
         XC_FUNCTIONAL:
           PBE:
@@ -460,7 +590,9 @@ verification-PBE-v1-TZV2P-GTH:
   kpoints_distance: 0.06
   basis_pseudo: tzv2p-pbe-gth.yml
   GLOBAL:
-    PRINT_LEVEL: MEDIUM              #default: MEDIUM. Important to have the correct parsing
+    EXTENDED_FFT_LENGTHS:   True
+    PREFERRED_DIAG_LIBRARY: ScaLAPACK
+    PRINT_LEVEL:            MEDIUM            #default: MEDIUM. Important to have the correct parsing
   FORCE_EVAL:
     METHOD:         QUICKSTEP
     STRESS_TENSOR:  ANALYTICAL
@@ -479,7 +611,7 @@ verification-PBE-v1-TZV2P-GTH:
       UKS:          False
       CHARGE:       0
       MGRID:
-        CUTOFF:      1200
+        CUTOFF:      2400
         REL_CUTOFF:  80
         NGRIDS:      4               # Set to 1 for an extremely precise grid
       QS:
@@ -493,6 +625,12 @@ verification-PBE-v1-TZV2P-GTH:
         OUTER_SCF:
           MAX_SCF:   10              # ROBUST: more than the Standard protocol
           EPS_SCF:   1.0E-7
+        PRINT:
+          RESTART:
+            BACKUP_COPIES: 1
+            LOG_PRINT_KEY: True
+            EACH:
+              QS_SCF: 5
       XC:
         XC_FUNCTIONAL:
           PBE:

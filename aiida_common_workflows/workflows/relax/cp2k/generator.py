@@ -117,12 +117,16 @@ def get_file_section():
     with open(pathlib.Path(__file__).parent / 'GTH_POTENTIALS', 'rb') as handle:
         potential = orm.SinglefileData(file=handle)
 
+    with open(pathlib.Path(__file__).parent / 'GTH_POTENTIALS_PSI', 'rb') as handle:
+        potential_rev = orm.SinglefileData(file=handle)
+
     return {
         'basis_molopt': basis_molopt,
         'basis_molopt_uzh': basis_molopt_uzh,
         'basis_molopt_ucl': basis_molopt_ucl,
         'basis_gth': basis_gth,
-        'potential': potential
+        'potential': potential,
+        'potential_rev': potential_rev
     }
 
 
@@ -150,9 +154,10 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         super().define(spec)
         spec.input(
             'protocol',
-            valid_type=ChoiceType(
-                ('fast', 'moderate', 'precise', 'verification-PBE-v1-DZVP-GTH', 'verification-PBE-v1-TZV2P-GTH')
-            ),
+            valid_type=ChoiceType((
+                'fast', 'moderate', 'precise', 'verification-PBE-v1-DZVP-GTH', 'verification-PBE-v1-DZVP-GTH-rev',
+                'verification-PBE-v1-TZV2P-GTH'
+            )),
             default='moderate',
             help='The protocol to use for the automated input generation. This value indicates the level of precision '
             'of the results and computational cost that the input parameters will be selected for.',
@@ -250,7 +255,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             run_type = 'ENERGY_FORCE'
         else:
             raise ValueError(f'Relax type `{relax_type.value}` is not supported')
-        parameters['GLOBAL'] = {'PREFERRED_DIAG_LIBRARY': 'ScaLAPACK', 'RUN_TYPE': run_type}
+        parameters['GLOBAL']['RUN_TYPE'] = run_type
 
         ## Redefining forces threshold.
         if threshold_forces is not None:
