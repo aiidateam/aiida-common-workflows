@@ -34,7 +34,6 @@ moderate:
         MAX_SCF:       20
         EPS_SCF:       1.0E-7
         MAX_ITER_LUMO: 10000
-        SCF_GUESS:     RESTART
         OUTER_SCF:
           MAX_SCF:   30
           EPS_SCF:   1.0E-7
@@ -149,7 +148,6 @@ precise:
         MAX_SCF:       300           # ROBUST: optimum compromise
         EPS_SCF:       1.0E-7
         MAX_ITER_LUMO: 10000         # for computing the Band gap
-        SCF_GUESS:     RESTART
         OUTER_SCF:
           MAX_SCF:   10              # ROBUST: more than the Standard protocol
           EPS_SCF:   1.0E-7
@@ -265,7 +263,6 @@ fast:
         MAX_SCF:       20
         EPS_SCF:       1.0E-6
         MAX_ITER_LUMO: 10000
-        SCF_GUESS:     RESTART
         OUTER_SCF:
           MAX_SCF:   30
           EPS_SCF:   1.0E-6
@@ -381,7 +378,6 @@ verification-PBE-v1-DZVP-GTH:
         MAX_SCF:       300           # ROBUST: optimum compromise
         EPS_SCF:       1.0E-7
         MAX_ITER_LUMO: 10000         # for computing the Band gap
-        SCF_GUESS:     RESTART
         OUTER_SCF:
           MAX_SCF:   10              # ROBUST: more than the Standard protocol
           EPS_SCF:   1.0E-7
@@ -504,7 +500,6 @@ verification-PBE-v1-DZVP-GTH-rev:
         MAX_SCF:       300           # ROBUST: optimum compromise
         EPS_SCF:       1.0E-7
         MAX_ITER_LUMO: 10000         # for computing the Band gap
-        SCF_GUESS:     RESTART
         OUTER_SCF:
           MAX_SCF:   10              # ROBUST: more than the Standard protocol
           EPS_SCF:   1.0E-7
@@ -627,7 +622,6 @@ verification-PBE-v1-TZV2P-GTH:
         MAX_SCF:       300           # ROBUST: optimum compromise
         EPS_SCF:       1.0E-7
         MAX_ITER_LUMO: 10000         # for computing the Band gap
-        SCF_GUESS:     RESTART
         OUTER_SCF:
           MAX_SCF:   10              # ROBUST: more than the Standard protocol
           EPS_SCF:   1.0E-7
