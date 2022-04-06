@@ -31,6 +31,12 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         },
         'precise': {
             'description': 'high level of accuracy'
+        },
+        'oxides_validation': {
+            'description': 'high level of accuracy. Used for validating oxide results for common-workflows'
+        },
+        'verification-pbe-v1': {
+            'description': 'high level of accuracy. Used for validating oxide results for common-workflows'
         }
     }
 
@@ -54,6 +60,9 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         spec.inputs['spin_type'].valid_type = ChoiceType((SpinType.NONE, SpinType.COLLINEAR))
         spec.inputs['relax_type'].valid_type = ChoiceType((RelaxType.NONE, RelaxType.POSITIONS))
         spec.inputs['electronic_type'].valid_type = ChoiceType((ElectronicType.METAL, ElectronicType.INSULATOR))
+        spec.inputs['protocol'].valid_type = ChoiceType(
+            ('fast', 'moderate', 'precise', 'oxides_validation', 'verification-pbe-v1')
+        )
         spec.input('engines.inpgen.code', valid_type=orm.Code, serializer=orm.load_code)
         spec.input('engines.inpgen.options', valid_type=dict, required=False)
         spec.inputs['engines']['relax']['code'].valid_type = CodeType('fleur.fleur')
@@ -138,8 +147,15 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             raise ValueError(f'relaxation type `{relax_type.value}` is not supported')
 
         # We reduce the number of sigfigs for the cell and atom positions accounts for less
-        #  numerical inpgen errors during relaxation and accuracy is still enough for this purpose
-        settings = orm.Dict(dict={'significant_figures_cell': 9, 'significant_figures_position': 9})
+        # numerical inpgen errors during relaxation and accuracy is still enough for this purpose
+        # We also currently assume that all common-workflow protocols exist in fleur
+        settings = orm.Dict(
+            dict={
+                'significant_figures_cell': 9,
+                'significant_figures_position': 9,
+                'profile': protocol['inpgen-protocol']
+            }
+        )
 
         wf_para = orm.Dict(dict=wf_para_dict)
 
@@ -153,24 +169,30 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 'forcemix': 'straight'
             },
             'use_relax_xml': True,
-            'serial': False,
             'mode': relaxation_mode,
         }
         protocol_scf_para = protocol.get('scf', {})
-        kmax = protocol_scf_para.pop('k_max_cutoff', None)
+        kmax = protocol_scf_para.pop('k_max_cutoff', None)  # for now always None, later consider clean up
 
         if molecule:  # We want to use only one kpoint, can be overwritten by user input
             protocol_scf_para['kpoints_distance'] = 100000000
             # In addition we might want to use a different basis APW+LO?
 
         wf_para_scf_dict = recursive_merge(default_scf, protocol_scf_para)
-        wf_para_scf = orm.Dict(dict=wf_para_scf_dict)
 
         if reference_workchain is not None:
             parameters = get_parameters(reference_workchain)
+            if 'kpt' in parameters.get_dict():
+                wf_para_scf_dict.pop('kpoints_distance', None)
+                if protocol_scf_para.get('kpoints_force_gamma', False):
+                    parameters = parameters.get_dict()
+                    parameters['kpt']['gamma'] = True
+                    parameters = orm.Dict(dict=parameters)
+
+        wf_para_scf = orm.Dict(dict=wf_para_scf_dict)
 
         # User specification overrides previous workchain!
-        if 'calc_parameters' in kwargs.keys():
+        if 'calc_parameters' in kwargs:
             parameters = kwargs.pop('calc_parameters')
 
         parameters, structure = prepare_calc_parameters(parameters, spin_type, magnetization_per_site, structure, kmax)
@@ -298,7 +320,7 @@ def get_parameters(reference_workchain):
     # Be aware that this parameter node is incomplete. LOs and econfig is
     # currently missing for example, also we do not reuse the same kpoints.
     # the density is likely the same, but the set may vary.
-    parameters = fleurinp.get_parameterdata_ncf()  # This is not a calcfunction!
+    parameters = fleurinp.get_parameterdata_ncf(write_ids=False)  # This is not a calcfunction!
 
     return parameters
 
