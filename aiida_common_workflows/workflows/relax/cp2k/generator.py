@@ -264,6 +264,12 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         ## Redefining stress threshold.
         if threshold_stress is not None:
             parameters['MOTION']['CELL_OPT']['PRESSURE_TOLERANCE'] = f'[GPa] {threshold_stress * EV_A3_TO_GPA}'
+
+        ## Lowering runtime by 5 minutes to let CP2K gracefully finish the calculation.
+        walltime = engines['relax']['options']['max_wallclock_seconds']
+        walltime = max(300, walltime - 300)
+        parameters['GLOBAL']['WALLTIME'] = walltime
+
         builder.cp2k.parameters = orm.Dict(dict=parameters)
 
         # Switch on the resubmit_unconverged_geometry which is disabled by default.
