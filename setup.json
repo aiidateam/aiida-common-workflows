@@ -62,6 +62,7 @@
         "aiida.workflows": [
             "common_workflows.dissociation_curve = aiida_common_workflows.workflows.dissociation:DissociationCurveWorkChain",
             "common_workflows.eos = aiida_common_workflows.workflows.eos:EquationOfStateWorkChain",
+            "common_workflows.relax_and_bands = aiida_common_workflows.workflows.common_workflows.relax_and_bands:RelaxAndBandsWorkChain",
             "common_workflows.relax.abinit = aiida_common_workflows.workflows.relax.abinit.workchain:AbinitCommonRelaxWorkChain",
             "common_workflows.relax.bigdft = aiida_common_workflows.workflows.relax.bigdft.workchain:BigDftCommonRelaxWorkChain",
             "common_workflows.relax.castep = aiida_common_workflows.workflows.relax.castep.workchain:CastepCommonRelaxWorkChain",
