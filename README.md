@@ -1,5 +1,6 @@
 # AiiDA common workflows (ACWF) package: `aiida-common-workflows`
 ![AiiDA common workflows](docs/source/images/calculator.jpg)
+<sup><sub>(Image © Giovanni Pizzi, 2021)</sub></sup>
 
 The AiiDA common workflows (ACWF) project provides computational workflows, implemented in [AiiDA](https://www.aiida.net), to compute various material properties using any of the quantum engines that implement it.
 The distinguishing feature is that the interfaces of the AiiDA common workflows are uniform, independent of the quantum engine that is used underneath to perform the material property simulations.
