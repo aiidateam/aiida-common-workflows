@@ -16,6 +16,9 @@ def get_ts_energy(common_relax_workchain):
     from aiida.common import LinkType
     from aiida.orm import WorkChainNode
     from aiida.plugins import WorkflowFactory
+    from masci_tools.io.io_fleurxml import load_outxml
+    from masci_tools.util.constants import HTR_TO_EV
+    from masci_tools.util.schema_dict_util import evaluate_attribute
 
     if not isinstance(common_relax_workchain, WorkChainNode):
         return ValueError('The input is not a workchain (instance of `WorkChainNode`)')
@@ -23,8 +26,26 @@ def get_ts_energy(common_relax_workchain):
         return ValueError('The input workchain is not a `FleurCommonRelaxWorkChain`')
 
     fleur_relax_wc = common_relax_workchain.get_outgoing(link_type=LinkType.CALL_WORK).one().node
-    output_parameters = fleur_relax_wc.outputs.last_scf.last_calc.output_parameters
+    fleur_calc_out = fleur_relax_wc.outputs.last_scf.last_calc
 
-    ts = output_parameters['ts_energy']  #pylint: disable=invalid-name
+    output_parameters = fleur_calc_out.output_parameters
+    ts = None  #pylint: disable=invalid-name
+    if 'ts_energy' in output_parameters.keys():
+        ts = output_parameters['ts_energy']  #pylint: disable=invalid-name
+    elif fleur_relax_wc.is_finished_ok:
+        #This check makes sure that the parsing worked before so we don't get
+        #nasty surprises in load_outxml
+
+        with fleur_calc_out.retrieved.open('out.xml', 'rb') as file:
+            xmltree, schema_dict = load_outxml(file)
+        try:
+            ts_all = evaluate_attribute(
+                xmltree, schema_dict, 'value', tag_name='tkbtimesentropy', iteration_path=True, list_return=True
+            )
+        except ValueError:
+            pass
+        else:
+            if ts_all:
+                ts = ts_all[-1] * HTR_TO_EV  #pylint: disable=invalid-name
 
     return ts
