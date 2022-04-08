@@ -273,7 +273,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         builder.cp2k.parameters = orm.Dict(dict=parameters)
 
         # Switch on the resubmit_unconverged_geometry which is disabled by default.
-        builder.handler_overrides = orm.Dict(dict={'resubmit_unconverged_geometry': True})
+        builder.handler_overrides = orm.Dict(dict={'restart_incomplete_calculation': True})
 
         # Files.
         builder.cp2k.file = get_file_section()
