@@ -271,15 +271,40 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         parameters['GLOBAL']['WALLTIME'] = walltime
 
         # setup a CELL_REF
-        try:
-            scale_factor = parameters.pop('cell_ref_scale_factor')
-        except KeyError:
-            pass  # if the protocol does not specify a CELL_REF factor, ignore it (CP2K will use the structure cell)
+
+        if reference_workchain:
+            try:
+                return reference_workchain.inputs.cp2k.parameters['FORCE_EVAL']['SUBSYS']['CELL']['CELL_REF']
+            except KeyError:
+                # if there is a reference workchain and it has a CELL_REF, use that one,
+                # but do not add one if the reference does not have one
+                pass
         else:
-            # otherwise, create necessary subdicts (unlikely to exist since CELL is written based on the structure)
-            parameters['FORCE_EVAL'].setdefault('SUBSYS', {}).setdefault('CELL', {})['CELL_REF'] = self._get_cell_ref(
-                structure, reference_workchain, scale_factor
-            )
+            # if not, check whether the structure is is a rescaled one in the EOS workchain,
+            # indicating that we need to define a CELL_REF for consistency. Use the cell_ref_scale_factor
+            # defined in the protocol if available, otherwise use the unscaled cell as a reference.
+            scale_factor = parameters.pop('cell_ref_scale_factor', 1.0)
+
+            try:
+                parent_structure = structure.creator.inputs.structure
+                # verify that the function is the scale_structure from the common_workflows.eos:
+                if not (
+                    structure.creator.label == 'scale_structure' and
+                    'common_workflows.eos' in structure.creator.caller.process_type
+                ):
+                    # unfortunately this detection breaks on a refactoring and ties it to the eos workchain,
+                    # not doing this kind of checking might add wrong cell_ref
+                    raise AttributeError
+            except AttributeError:
+                # if we're not looking at a rescaled structure from the eos workchain,
+                # ignore it (CP2K will use the structure cell)
+                pass
+            else:
+                # otherwise, create necessary subdicts (unlikely to exist since CELL is written based on the structure)
+                parameters['FORCE_EVAL'].setdefault('SUBSYS', {}).setdefault('CELL',
+                                                                             {})['CELL_REF'] = self._get_cell_ref(
+                                                                                 parent_structure, scale_factor
+                                                                             )
 
         builder.cp2k.parameters = orm.Dict(dict=parameters)
 
@@ -324,16 +349,8 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         return None
 
     @staticmethod
-    def _get_cell_ref(structure, reference_workchain, scale_factor):
-        """If the reference_workchain specifies a CELL_REF, return that one, otherwise generate one"""
-
-        if reference_workchain and 'cp2k__parameters' in reference_workchain.inputs:
-            try:
-                return reference_workchain.inputs.cp2k__parameters['FORCE_EVAL']['SUBSYS']['CELL']['CELL_REF']
-            except KeyError:
-                # here we assume that the ref_cell_scale_factor is the same for both the reference
-                # workchain and any subsequent workchains
-                pass
+    def _get_cell_ref(structure, scale_factor):
+        """Generate a CELL_REF based on the given structure and scale_factor"""
 
         cell = [[v * scale_factor**(1 / 3) for v in row] for row in structure.cell]
 
