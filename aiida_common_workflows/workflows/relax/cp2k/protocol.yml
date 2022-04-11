@@ -116,6 +116,7 @@ moderate:
 precise:
   description: 'Protocol to relax a structure with high precision at higher computational cost.'
   kpoints_distance: 0.06
+  cell_ref_scale_factor: 1.2766      #=1.2/0.94, assumption: ref.workchain starts at lowest scale of 0.94 for EOS
   basis_pseudo: dzvp-pbe-gth.yml
   GLOBAL:
     PRINT_LEVEL: MEDIUM              #default: MEDIUM. Important to have the correct parsing

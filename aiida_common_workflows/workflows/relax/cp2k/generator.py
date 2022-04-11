@@ -200,7 +200,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             builder.cp2k.kpoints = kpoints
 
         # Removing description.
-        _ = parameters.pop('description')
+        del parameters['description']
 
         magnetization_tags = None
 
@@ -270,6 +270,17 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         walltime = max(300, walltime - 300)
         parameters['GLOBAL']['WALLTIME'] = walltime
 
+        # setup a CELL_REF
+        try:
+            scale_factor = parameters.pop('cell_ref_scale_factor')
+        except KeyError:
+            pass  # if the protocol does not specify a CELL_REF factor, ignore it (CP2K will use the structure cell)
+        else:
+            # otherwise, create necessary subdicts (unlikely to exist since CELL is written based on the structure)
+            parameters['FORCE_EVAL'].setdefault('SUBSYS', {}).setdefault('CELL', {})['CELL_REF'] = self._get_cell_ref(
+                structure, reference_workchain, scale_factor
+            )
+
         builder.cp2k.parameters = orm.Dict(dict=parameters)
 
         # Switch on the resubmit_unconverged_geometry which is disabled by default.
@@ -311,3 +322,23 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             kpoints_mesh.set_kpoints_mesh_from_density(distance=kpoints_distance)
             return kpoints_mesh
         return None
+
+    @staticmethod
+    def _get_cell_ref(structure, reference_workchain, scale_factor):
+        """If the reference_workchain specifies a CELL_REF, return that one, otherwise generate one"""
+
+        if reference_workchain and 'cp2k__parameters' in reference_workchain.inputs:
+            try:
+                return reference_workchain.inputs.cp2k__parameters['FORCE_EVAL']['SUBSYS']['CELL']['CELL_REF']
+            except KeyError:
+                # here we assume that the ref_cell_scale_factor is the same for both the reference
+                # workchain and any subsequent workchains
+                pass
+
+        cell = [[v * scale_factor**(1 / 3) for v in row] for row in structure.cell]
+
+        # start with an A, B, C:
+        cell_ref = {idx: f'[angstrom] {row[0]:<15} {row[1]:<15} {row[2]:<15}' for idx, row in zip('ABC', cell)}
+        # then add periodicity information matching the structure
+        cell_ref['PERIODIC'] = ''.join(axis * enabled for axis, enabled in zip('XYZ', structure.pbc))
+        return cell_ref
