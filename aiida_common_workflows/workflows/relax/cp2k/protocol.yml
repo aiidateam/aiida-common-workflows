@@ -345,6 +345,7 @@ fast:
 verification-PBE-v1-DZVP-GTH:
   description: 'Protocol to relax a structure with high precision at higher computational cost.'
   kpoints_distance: 0.06
+  cell_ref_scale_factor: 1.2766      #=1.2/0.94, assumption: ref.workchain starts at lowest scale of 0.94 for EOS
   basis_pseudo: dzvp-pbe-gth.yml
   GLOBAL:
     EXTENDED_FFT_LENGTHS:   True
@@ -467,6 +468,7 @@ verification-PBE-v1-DZVP-GTH:
 verification-PBE-v1-DZVP-GTH-rev:
   description: 'Protocol to relax a structure with high precision at higher computational cost.'
   kpoints_distance: 0.06
+  cell_ref_scale_factor: 1.2766      #=1.2/0.94, assumption: ref.workchain starts at lowest scale of 0.94 for EOS
   basis_pseudo: dzvp-pbe-gth-rev.yml
   GLOBAL:
     EXTENDED_FFT_LENGTHS:   True
@@ -589,6 +591,7 @@ verification-PBE-v1-DZVP-GTH-rev:
 verification-PBE-v1-TZV2P-GTH:
   description: 'Protocol to relax a structure with high precision at higher computational cost.'
   kpoints_distance: 0.06
+  cell_ref_scale_factor: 1.2766      #=1.2/0.94, assumption: ref.workchain starts at lowest scale of 0.94 for EOS
   basis_pseudo: tzv2p-pbe-gth.yml
   GLOBAL:
     EXTENDED_FFT_LENGTHS:   True
