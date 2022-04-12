@@ -93,7 +93,7 @@ verification-PBE-v1:
             max_meta_iterations: 5
 
         base:
-            pseudos_family: 'C19'
+            pseudos_family: 'C19V2'
             max_iterations: 5
             kpoints_spacing: 0.06    # K point spacing in A^-1, not the A^-1 2Pi that CASTEP defaults to
             ensure_gamma_centering: True   # Ensure that the kpoint grid is Gamma-centered
