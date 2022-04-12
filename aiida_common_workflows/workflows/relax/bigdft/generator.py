@@ -98,22 +98,24 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                     'itermax': 3,
                     'idsx': 0,
                     'gnrm_cv': 1e-8,
-                    'hgrids': 0.3
+                    'hgrids': 0.3,
+                    'disablesym': 'no'
                 },
                 'mix': {
-                    'iscf': 7,
+                    'iscf': 17,
                     'itrpmax': 200,
-                    'rpnrm_cv': 1e-12,
-                    'tel': 1e-3,
-                    'alphamix': 0.5,
-                    'norbsempty': 1000,
+                    'rpnrm_cv': 1.E-12,
+                    'norbsempty': 120,
+                    'tel': 0.00225,
+                    'occopt': 2,
+                    'alphamix': 0.8,
                     'alphadiis': 1.0
                 }
             },
             'inputdict_linear': {
                 'import': 'linear'
             },
-            'kpoints_distance': 40
+            'kpoints_distance': 94
         },
         'precise': {
             'description': 'This profile should be chosen if highly accurate energy differences are required.',
