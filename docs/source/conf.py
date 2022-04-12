@@ -18,7 +18,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'AiiDA common workflows'
+project = 'AiiDA common workflows (ACWF)'
 copyright = 'The AiiDA team.'
 author = 'The AiiDA team'
 

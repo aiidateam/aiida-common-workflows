@@ -47,6 +47,9 @@ class FleurCommonRelaxWorkChain(CommonRelaxWorkChain):
         if 'optimized_structure' in outputs:
             self.out('relaxed_structure', outputs.optimized_structure)
 
+        if 'last_scf' in outputs:
+            self.out('remote_folder', outputs.last_scf.last_calc.remote_folder)
+
         output_parameters = outputs.output_relax_wc_para
         out_para_dict = output_parameters.get_dict()
         if 'total_magnetic_moment_cell' in out_para_dict:
