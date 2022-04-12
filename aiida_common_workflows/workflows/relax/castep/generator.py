@@ -18,6 +18,7 @@ from aiida_common_workflows.generators import ChoiceType, CodeType
 from ..generator import CommonRelaxInputGenerator
 
 # pylint: disable=import-outside-toplevel, too-many-branches, too-many-statements
+KNOWN_BUILTIN_FAMILIES = ('C19', 'NCP19', 'QC5', 'C17', 'C9')
 
 __all__ = ('CastepCommonRelaxInputGenerator',)
 
@@ -411,8 +412,12 @@ def generate_inputs_calculation(
     return dictionary
 
 
-def ensure_otfg_family(family_name):
-    """Add common OTFG families if they do not exist"""
+def ensure_otfg_family(family_name, force_update=False):
+    """
+    Add common OTFG families if they do not exist
+    NOTE: CASTEP also supports UPF families, but it is not enabled here, since no UPS based protocol
+    has been implemented.
+    """
 
     from aiida.common import NotExistent
     from aiida_castep.data.otfg import upload_otfg_family
@@ -420,9 +425,29 @@ def ensure_otfg_family(family_name):
     # Ensure family name is a str
     if isinstance(family_name, orm.Str):
         family_name = family_name.value
-
     try:
         OTFGGroup.objects.get(label=family_name)
     except NotExistent:
-        description = f"CASTEP built-in on-the-fly generated pseudos libraray '{family_name}'"
-        upload_otfg_family([family_name], family_name, description, stop_if_existing=True)
+        has_family = False
+    else:
+        has_family = True
+
+    # Check if it is builtin family
+    if family_name in KNOWN_BUILTIN_FAMILIES:
+        if not has_family:
+            description = f"CASTEP built-in on-the-fly generated pseudos libraray '{family_name}'"
+            upload_otfg_family([family_name], family_name, description, stop_if_existing=True)
+        return
+
+    # Not an known family - check if it in the additional settings list
+    # Load configuration from the settings
+    with open(str(pathlib.Path(__file__).parent / 'additional_otfg_families.yml')) as handle:
+        additional = yaml.safe_load(handle)
+
+    if family_name in additional:
+        if not has_family or force_update:
+            description = f"Modified CASTEP built-in on-the-fly generated pseudos libraray '{family_name}'"
+            upload_otfg_family(additional[family_name], family_name, description, stop_if_existing=False)
+    elif not has_family:
+        # No family found - and it is not recognized
+        raise RuntimeError(f"Family name '{family_name}' is not recognized!")
