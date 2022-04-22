@@ -1,119 +1,187 @@
 fast:
     name: "fast"
     description: "Protocol to relax a structure with low precision at minimal computational cost for testing purposes."
-    pseudo_family: "PseudoDojo/1.0/PBE/SR/standard/jthxml"
+    pseudo_family: "PseudoDojo/0.4/PBE/SR/standard/psp8"
     cutoff_stringency: "low"
     base:
         kpoints_distance: 0.25
         abinit:
             parameters:
-                nshiftk: 1
-                shiftk: [[0.0, 0.0, 0.0]]
                 nstep: 100
-                # tolerances
+                # Tolerances
                 tolvrs: 1.0e-7 # Ha
                 chkprim: 0 # To allow for non-primitive unit cells
                 chksymbreak: 0 # No check on the symmetries of the k-points
                 autoparal: 1 # Run Abinit's built-in automatic parallelization
-                # default to relaxing atoms only
-                optcell: 0 # do not optimize the cell, Abinit default
-                ionmov: 22 # optimize ionic positions with L-BFGS
-                dilatmx: 1.00 # don't book additional memory for basis set enlargement, Abinit default
-                ecutsm: 0.00 # don't smear the energy cutoff, Abinit default
-                # default to metallic treatment
+                # Default to relaxing atoms only
+                optcell: 0 # Don't optimize the cell, Abinit default
+                ionmov: 22 # Optimize ionic positions with L-BFGS
+                dilatmx: 1.00 # Don't book additional memory for basis set enlargement, Abinit default
+                ecutsm: 0.00 # Don't smear the energy cutoff, Abinit default
+                # Default to metallic treatment
                 occopt: 7 # Gaussian smearing
-                fband: 2.00 # increase the number of bands to > fband * natoms
+                fband: 2.00 # Increase the number of bands to > fband * natoms
                 tsmear: 0.008 # Ha
-                # default to no spin treatment
-                nspinor: 1 # no spin-orbit coupling, Abinit default
-                nsppol: 1 # no spin-polarization, Abinit default
-                nspden: 1 # no spin-magnetization, Abinit default
+                # Default to no spin treatment
+                nspinor: 1 # No spin-orbit coupling, Abinit default
+                nsppol: 1 # No spin-polarization, Abinit default
+                nspden: 1 # No spin-magnetization, Abinit default
+                # Diagonalization
+                rmm_diis: 1 # Faster diagonalization algorithm
 
 moderate:
     name: "moderate"
     description: "Protocol to relax a structure with normal precision at moderate computational cost."
-    pseudo_family: "PseudoDojo/1.0/PBE/SR/standard/jthxml"
+    pseudo_family: "PseudoDojo/0.4/PBE/SR/standard/psp8"
     cutoff_stringency: "normal"
     base:
         kpoints_distance: 0.20
         abinit:
             parameters:
-                nshiftk: 1
-                shiftk: [[0.0, 0.0, 0.0]]
                 nstep: 200
-                # tolerances
+                # Tolerances
                 tolvrs: 1.0e-9 # Ha
                 chkprim: 0 # To allow for non-primitive unit cells
                 chksymbreak: 0 # No check on the symmetries of the k-points
                 autoparal: 1 # Run Abinit's built-in automatic parallelization
-                # default to relaxing atoms only
-                optcell: 0 # do not optimize the cell, Abinit default
-                ionmov: 22 # optimize ionic positions with L-BFGS
-                dilatmx: 1.00 # don't book additional memory for basis set enlargement, Abinit default
-                ecutsm: 0.00 # don't smear the energy cutoff, Abinit default
-                # default to metallic treatment
+                # Default to relaxing atoms only
+                optcell: 0 # Don't optimize the cell, Abinit default
+                ionmov: 22 # Optimize ionic positions with L-BFGS
+                dilatmx: 1.00 # Don't book additional memory for basis set enlargement, Abinit default
+                ecutsm: 0.00 # Don't smear the energy cutoff, Abinit default
+                # Default to metallic treatment
                 occopt: 7 # Gaussian smearing
-                fband: 2.00 # increase the number of bands to > fband * natoms
+                fband: 2.00 # Increase the number of bands to > fband * natoms
                 tsmear: 0.008 # Ha
-                # default to no spin treatment
-                nspinor: 1 # no spin-orbit coupling, Abinit default
-                nsppol: 1 # no spin-polarization, Abinit default
-                nspden: 1 # no spin-magnetization, Abinit default
+                # Default to no spin treatment
+                nspinor: 1 # No spin-orbit coupling, Abinit default
+                nsppol: 1 # No spin-polarization, Abinit default
+                nspden: 1 # No spin-magnetization, Abinit default
+                # Diagonalization
+                rmm_diis: 1 # Faster diagonalization algorithm
 
 precise:
     name: "precise"
     description: "Protocol to relax a structure with high precision at higher computational cost."
-    pseudo_family: "PseudoDojo/1.0/PBE/SR/standard/jthxml"
+    pseudo_family: "PseudoDojo/0.4/PBE/SR/stringent/psp8"
     cutoff_stringency: "high"
     base:
         kpoints_distance: 0.04
         abinit:
             parameters:
-                nshiftk: 1
-                shiftk: [[0.0, 0.0, 0.0]]
                 nstep: 300
-                # tolerances
+                # Tolerances
                 tolvrs: 1.0e-10 # Ha
                 chkprim: 0 # To allow for non-primitive unit cells
                 chksymbreak: 0 # No check on the symmetries of the k-points
                 autoparal: 1 # Run Abinit's built-in automatic parallelization
-                # default to relaxing atoms only
-                optcell: 0 # do not optimize the cell, Abinit default
-                ionmov: 22 # optimize ionic positions with L-BFGS
-                dilatmx: 1.00 # don't book additional memory for basis set enlargement, Abinit default
-                ecutsm: 0.00 # don't smear the energy cutoff, Abinit default
-                # default to metallic treatment
+                # Default to relaxing atoms only
+                optcell: 0 # Don't optimize the cell, Abinit default
+                ionmov: 22 # Optimize ionic positions with L-BFGS
+                dilatmx: 1.00 # Don't book additional memory for basis set enlargement, Abinit default
+                ecutsm: 0.00 # Don't smear the energy cutoff, Abinit default
+                # Default to metallic treatment
                 occopt: 7 # Gaussian smearing
-                fband: 2.00 # increase the number of bands to > fband * natoms
+                fband: 2.00 # Increase the number of bands to > fband * natoms
                 tsmear: 0.0005 # Ha
-                # default to no spin treatment
-                nspinor: 1 # no spin-orbit coupling, Abinit default
-                nsppol: 1 # no spin-polarization, Abinit default
-                nspden: 1 # no spin-magnetization, Abinit default
+                # Default to no spin treatment
+                nspinor: 1 # No spin-orbit coupling, Abinit default
+                nsppol: 1 # No spin-polarization, Abinit default
+                nspden: 1 # No spin-magnetization, Abinit default
+                # Diagonalization
+                rmm_diis: 0  # Use CG for stability
 
-oxides_validation:
-    name: "oxides_validation"
-    description: "Protocol used for the common workflows oxides project."
-    pseudo_family: "PseudoDojo/1.0/PBE/SR/standard/jthxml"
-    cutoff_stringency: "high"
+verification-PBE-v1-PAW-11:
+    name: "verification-PBE-v1-PAW-11"
+    description: "Protocol used for oxides verification with PBE exchange-correlation, version 1 with JTH PAW v1.1 pseudopotentials"
+    pseudo_family: "JTH/1.1/PBE"
+    cutoff_stringency: "high_times_2"
     base:
-        kpoints_distance: 0.04 # [1/Å]
+        kpoints_distance: 0.06 # [1/AA]
         abinit:
             parameters:
-                nshiftk: 1 # Number of k-grid shifts
-                shiftk: [[0.0, 0.0, 0.0]] # 0-shift
-                nstep: 300 # Max. no. of SCF steps
+                nstep: 500 # Max. no. of SCF steps
+                # Tolerances
                 tolvrs: 1.0e-10 # Tolerance on the potential residual [Ha]
                 chkprim: 0 # Disable checking if the lattice is primitive
                 chksymbreak: 0 # Disable check for broken k-point symmetry
                 autoparal: 1 # Enable automatic parallelization
+                # Relax atomic positions
                 optcell: 0 # [DEFAULT] No cell optimization
                 ionmov: 22 # Atomic position optimization with L-BFGS
                 dilatmx: 1.0 # [DEFAULT] Don't book additional memory for basis set enlargement
                 ecutsm: 0.0 # Kinetic energy cutoff smearing [Ha]
+                # Treat with smearing
                 occopt: 3 # Fermi-Dirac smearing
-                fband: 2.0 # no. of bands > fband * no. of atoms
+                fband: 1.5 # No. of bands > fband * no. of atoms
                 tsmear: 0.00225 # 0.0045 Ry [Ha]
+                # No spin treatment
+                nspinor: 1 # [DEFAULT] No spin-orbit coupling
+                nsppol: 1 # [DEFAULT] No spin-polarization
+                nspden: 1
+                # PAW
+                pawovlp: 10.0 # Increase the allowed PAW overlap from 5% to 10%
+                # Diagonalization
+                rmm_diis: 0 # Use CG for PAW pseudopotentials
+
+verification-PBE-v1-NC-04:
+    name: "verification-PBE-v1-NC-04"
+    description: "Protocol used for oxides verification with PBE exchange-correlation, version 1 with PseudoDojo NC v0.4 pseudopotentials"
+    pseudo_family: "PseudoDojo/0.4/PBE/SR/standard/psp8"
+    cutoff_stringency: "high"
+    base:
+        kpoints_distance: 0.06 # [1/AA]
+        abinit:
+            parameters:
+                nstep: 500 # Max. no. of SCF steps
+                # Tolerances
+                tolvrs: 1.0e-10 # Tolerance on the potential residual [Ha]
+                chkprim: 0 # Disable checking if the lattice is primitive
+                chksymbreak: 0 # Disable check for broken k-point symmetry
+                autoparal: 1 # Enable automatic parallelization
+                # Relax atomic positions
+                optcell: 0 # [DEFAULT] No cell optimization
+                ionmov: 22 # Atomic position optimization with L-BFGS
+                dilatmx: 1.0 # [DEFAULT] Don't book additional memory for basis set enlargement
+                ecutsm: 0.0 # Kinetic energy cutoff smearing [Ha]
+                # Treat with smearing
+                occopt: 3 # Fermi-Dirac smearing
+                fband: 1.5 # No. of bands > fband * no. of atoms
+                tsmear: 0.00225 # 0.0045 Ry [Ha]
+                # No spin treatment
                 nspinor: 1 # [DEFAULT] No spin-orbit coupling
                 nsppol: 1 # [DEFAULT] No spin-polarization
                 nspden: 1 # [DEFAULT] No spin-magnetization
+                # Diagonalization
+                rmm_diis: 1 # Faster diagonalization algorithm
+
+verification-PBE-v1-NC-05b:
+    name: "verification-PBE-v1-NC-05b"
+    description: "Protocol used for oxides verification with PBE exchange-correlation, version 1 with PseudoDojo NC v0.5b1 pseudopotentials"
+    pseudo_family: "PseudoDojo/0.5b1/PBE/SR/standard/psp8"
+    cutoff_stringency: "high_plus_20_ha"
+    base:
+        kpoints_distance: 0.06 # [1/AA]
+        abinit:
+            parameters:
+                nstep: 500 # Max. no. of SCF steps
+                # Tolerances
+                tolvrs: 1.0e-10 # Tolerance on the potential residual [Ha]
+                chkprim: 0 # Disable checking if the lattice is primitive
+                chksymbreak: 0 # Disable check for broken k-point symmetry
+                autoparal: 1 # Enable automatic parallelization
+                # Relax atomic positions
+                optcell: 0 # [DEFAULT] No cell optimization
+                ionmov: 22 # Atomic position optimization with L-BFGS
+                dilatmx: 1.0 # [DEFAULT] Don't book additional memory for basis set enlargement
+                ecutsm: 0.0 # Kinetic energy cutoff smearing [Ha]
+                # Treat with smearing
+                occopt: 3 # Fermi-Dirac smearing
+                fband: 1.5 # No. of bands > fband * no. of atoms
+                tsmear: 0.00225 # 0.0045 Ry [Ha]
+                # No spin treatment
+                nspinor: 1 # [DEFAULT] No spin-orbit coupling
+                nsppol: 1 # [DEFAULT] No spin-polarization
+                nspden: 1 # [DEFAULT] No spin-magnetization
+                # Diagonalization
+                rmm_diis: 1 # Faster diagonalization algorithm

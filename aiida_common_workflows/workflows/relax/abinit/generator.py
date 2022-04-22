@@ -6,6 +6,7 @@ import pathlib
 import typing as t
 import warnings
 
+# pylint: disable=wrong-import-order
 from aiida import engine, orm, plugins
 from aiida.common import exceptions
 import numpy as np
@@ -162,8 +163,7 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         if relax_type == RelaxType.NONE:
             builder.abinit['parameters']['ionmov'] = 0  # do not move the ions, Abinit default
         elif relax_type == RelaxType.POSITIONS:
-            # protocol defaults to POSITIONS
-            pass
+            builder.abinit['parameters']['ionmov'] = 22  # optimize ionic positions with L-BFGS=
         elif relax_type == RelaxType.POSITIONS_CELL:
             builder.abinit['parameters']['optcell'] = 2  # fully optimize the cell geometry
             builder.abinit['parameters']['dilatmx'] = 1.15  # book additional mem. for p.w. basis exp.
@@ -230,10 +230,9 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         # ElectronicType
         if electronic_type == ElectronicType.UNKNOWN:
-            # protocol defaults to UNKNOWN, which is metallic with Gaussian smearing
-            pass
+            builder.abinit['parameters']['occopt'] = 7  # Gaussian
         elif electronic_type == ElectronicType.METAL:
-            builder.abinit['parameters']['occopt'] = 5  # Marzari-Vanderbilt Cold II smearing
+            builder.abinit['parameters']['occopt'] = 3  # Fermi-Dirac
         elif electronic_type == ElectronicType.INSULATOR:
             # LATER: Support magnetization with insulators
             if spin_type not in [SpinType.NONE, SpinType.SPIN_ORBIT]:
