@@ -155,8 +155,8 @@ verification-PBE-v1-NC-04:
                 # Diagonalization
                 rmm_diis: 1 # Faster diagonalization algorithm
 
-verification-PBE-v1-NC-05b:
-    name: "verification-PBE-v1-NC-05b"
+verification-PBE-v1-NC-05b1:
+    name: "verification-PBE-v1-NC-05b1"
     description: "Protocol used for oxides verification with PBE exchange-correlation, version 1 with PseudoDojo NC v0.5b1 pseudopotentials"
     pseudo_family: "PseudoDojo/0.5b1/PBE/SR/standard/psp8"
     cutoff_stringency: "high_plus_20_ha"

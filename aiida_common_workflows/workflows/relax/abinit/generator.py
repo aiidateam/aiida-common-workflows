@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for ABINIT."""
+# pylint: disable=wrong-import-order,unused-import
 import collections
 import copy
 import pathlib
 import typing as t
 import warnings
 
-# pylint: disable=wrong-import-order
 from aiida import engine, orm, plugins
 from aiida.common import exceptions
 import numpy as np
@@ -52,6 +52,10 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         spec.inputs['electronic_type'].valid_type = ChoiceType(
             (ElectronicType.METAL, ElectronicType.INSULATOR, ElectronicType.UNKNOWN)
         )
+        spec.inputs['protocol'].valid_type = ChoiceType((
+            'fast', 'moderate', 'precise', 'verification-PBE-v1-PAW-11', 'verification-PBE-v1-NC-04',
+            'verification-PBE-v1-NC-05b1'
+        ))
         spec.inputs['engines']['relax']['code'].valid_type = CodeType('abinit')
 
     def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:

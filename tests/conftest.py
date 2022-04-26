@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=redefined-outer-name
+# pylint: disable=redefined-outer-name,wrong-import-order
 """Configuration and fixtures for unit test suite."""
 import io
 import os
@@ -240,6 +240,28 @@ def generate_upf_data():
 
 
 @pytest.fixture(scope='session')
+def generate_psp8_data():
+    """Return a `Psp8Data` instance for the given element."""
+
+    def _generate_psp8_data(element):
+        """Return `UpfData` node."""
+        from textwrap import dedent
+
+        from aiida_pseudo.data.pseudo import Psp8Data
+        element_z_map = {element['symbol']: z for z, element in elements.items()}
+        atomic_number = element_z_map.get(element, 119)
+        content = dedent(
+            f"""O ONCVPSP-0.0.0.0 r_core= 0.00000 0.00000 0.00000
+            {atomic_number:0.5f} 0.00000 000000 zatom,zion,pspd
+            """
+        )
+        stream = io.BytesIO(content.encode('utf-8'))
+        return Psp8Data(stream, filename=f'{element}.psp8')
+
+    return _generate_psp8_data
+
+
+@pytest.fixture(scope='session')
 def generate_psml_data():
     """Return a `PsmlData` instance for the given element."""
 
@@ -325,12 +347,12 @@ def sssp(generate_upf_data):
 
 
 @pytest.fixture(scope='session')
-def pseudo_dojo(generate_jthxml_data):
+def pseudo_dojo(generate_psp8_data):
     """Create a PseudoDojo pseudo potential family from scratch."""
     from aiida import plugins
 
     PseudoDojoFamily = plugins.GroupFactory('pseudo.family.pseudo_dojo')  # pylint: disable=invalid-name
-    label = 'PseudoDojo/1.0/PBE/SR/standard/jthxml'
+    label = 'PseudoDojo/0.4/PBE/SR/standard/psp8'
 
     try:
         family = PseudoDojoFamily.objects.get(label=label)
@@ -345,17 +367,17 @@ def pseudo_dojo(generate_jthxml_data):
         for values in elements.values():
 
             element = values['symbol']
-            upf = generate_jthxml_data(element)
+            psp8 = generate_psp8_data(element)
             filename = os.path.join(dirpath, f'{element}.jthxml')
 
             with open(filename, 'w+b') as handle:
-                with upf.open(mode='rb') as source:
+                with psp8.open(mode='rb') as source:
                     handle.write(source.read())
                     handle.flush()
 
             cutoffs_dict['normal'][element] = {'cutoff_wfc': 30., 'cutoff_rho': 240.}
 
-        family = PseudoDojoFamily.create_from_folder(dirpath, label, pseudo_type=plugins.DataFactory('pseudo.jthxml'))
+        family = PseudoDojoFamily.create_from_folder(dirpath, label, pseudo_type=plugins.DataFactory('pseudo.psp8'))
 
     for stringency, cutoffs in cutoffs_dict.items():
         family.set_cutoffs(cutoffs, stringency, unit='Eh')
