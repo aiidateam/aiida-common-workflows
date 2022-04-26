@@ -20,6 +20,6 @@ def get_ts_energy(common_relax_workchain):
         return ValueError('The input workchain is not a `CommonWorkflowAbinitWorkChain`')
 
     abinit_base_wc = common_relax_workchain.get_outgoing(link_type=LinkType.CALL_WORK).one().node
-    e_entropy = abinit_base_wc.outputs.output_parameters['e_entropy']  # eV
+    e_entropy = -abinit_base_wc.outputs.output_parameters['e_entropy']  # eV
 
     return e_entropy
