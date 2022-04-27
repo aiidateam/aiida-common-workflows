@@ -18,6 +18,7 @@ from aiida_common_workflows.generators import ChoiceType, CodeType
 from ..generator import CommonRelaxInputGenerator
 
 # pylint: disable=import-outside-toplevel, too-many-branches, too-many-statements
+KNOWN_BUILTIN_FAMILIES = ('C19', 'NCP19', 'QC5', 'C17', 'C9')
 
 __all__ = ('CastepCommonRelaxInputGenerator',)
 
@@ -46,6 +47,13 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         The ports defined on the specification are the inputs that will be accepted by the ``get_builder`` method.
         """
         super().define(spec)
+        spec.input(
+            'protocol',
+            valid_type=ChoiceType(('fast', 'moderate', 'precise', 'verification-PBE-v1')),
+            default='moderate',
+            help='The protocol to use for the automated input generation. This value indicates the level of precision '
+            'of the results and computational cost that the input parameters will be selected for.',
+        )
         spec.inputs['spin_type'].valid_type = ChoiceType((SpinType.NONE, SpinType.COLLINEAR, SpinType.NON_COLLINEAR))
         spec.inputs['relax_type'].valid_type = ChoiceType(tuple(RelaxType))
         spec.inputs['electronic_type'].valid_type = ChoiceType((ElectronicType.METAL, ElectronicType.INSULATOR))
@@ -73,7 +81,7 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         # Because the subsequent generators may modify this dictionary and convert things
         # to AiiDA types, here we make a full copy of the original protocol
-        protocol = copy.deepcopy(self.get_protocol(protocol))
+        protocol = copy.deepcopy(self._protocols[protocol])
         code = engines['relax']['code']
 
         override = {'base': {'calc': {'metadata': {'options': engines['relax']['options']}}}}
@@ -161,11 +169,13 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         # Raise the cut off energy for very soft pseudopotentials
         # this is because the small basis set will give rise to errors in EOS / variable volume
         # relaxation even with the "fine" option
-        with open(str(pathlib.Path(__file__).parent / 'soft_elements.yml')) as fhandle:
-            soft_elements = yaml.safe_load(fhandle)
-        symbols = [kind.symbol for kind in structure.kinds]
-        if all(sym in soft_elements for sym in symbols):
-            param['cut_off_energy'] = 326  # eV, approximately 12 Ha
+        if 'cut_off_energy' not in protocol['relax']['base']['calc']['parameters']:
+            with open(str(pathlib.Path(__file__).parent / 'soft_elements.yml')) as fhandle:
+                soft_elements = yaml.safe_load(fhandle)
+            symbols = [kind.symbol for kind in structure.kinds]
+            if all(sym in soft_elements for sym in symbols):
+                param['cut_off_energy'] = 326  # eV, approximately 12 Ha
+                param.pop('basis_precision', None)
 
         # Apply the overrides
         if param:
@@ -342,7 +352,8 @@ def generate_inputs_base(
         'kpoints_spacing': orm.Float(merged['kpoints_spacing'] / 2 / pi),
         'max_iterations': orm.Int(merged['max_iterations']),
         'pseudos_family': orm.Str(otfg_family.label),
-        'calc': calc_dictionary
+        'calc': calc_dictionary,
+        'ensure_gamma_centering': orm.Bool(merged.get('ensure_gamma_centering', False)),
     }
 
     return dictionary
@@ -401,8 +412,12 @@ def generate_inputs_calculation(
     return dictionary
 
 
-def ensure_otfg_family(family_name):
-    """Add common OTFG families if they do not exist"""
+def ensure_otfg_family(family_name, force_update=False):
+    """
+    Add common OTFG families if they do not exist
+    NOTE: CASTEP also supports UPF families, but it is not enabled here, since no UPS based protocol
+    has been implemented.
+    """
 
     from aiida.common import NotExistent
     from aiida_castep.data.otfg import upload_otfg_family
@@ -410,9 +425,29 @@ def ensure_otfg_family(family_name):
     # Ensure family name is a str
     if isinstance(family_name, orm.Str):
         family_name = family_name.value
-
     try:
         OTFGGroup.objects.get(label=family_name)
     except NotExistent:
-        description = f"CASTEP built-in on-the-fly generated pseudos libraray '{family_name}'"
-        upload_otfg_family([family_name], family_name, description, stop_if_existing=True)
+        has_family = False
+    else:
+        has_family = True
+
+    # Check if it is builtin family
+    if family_name in KNOWN_BUILTIN_FAMILIES:
+        if not has_family:
+            description = f"CASTEP built-in on-the-fly generated pseudos libraray '{family_name}'"
+            upload_otfg_family([family_name], family_name, description, stop_if_existing=True)
+        return
+
+    # Not an known family - check if it in the additional settings list
+    # Load configuration from the settings
+    with open(str(pathlib.Path(__file__).parent / 'additional_otfg_families.yml')) as handle:
+        additional = yaml.safe_load(handle)
+
+    if family_name in additional:
+        if not has_family or force_update:
+            description = f"Modified CASTEP built-in on-the-fly generated pseudos libraray '{family_name}'"
+            upload_otfg_family(additional[family_name], family_name, description, stop_if_existing=False)
+    elif not has_family:
+        # No family found - and it is not recognized
+        raise RuntimeError(f"Family name '{family_name}' is not recognized!")
