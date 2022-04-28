@@ -49,7 +49,7 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         super().define(spec)
         spec.input(
             'protocol',
-            valid_type=ChoiceType(('fast', 'moderate', 'precise', 'verification-PBE-v1', 'verification-PBE-v1-mk2')),
+            valid_type=ChoiceType(('fast', 'moderate', 'precise', 'verification-PBE-v1', 'verification-PBE-v1-a0')),
             default='moderate',
             help='The protocol to use for the automated input generation. This value indicates the level of precision '
             'of the results and computational cost that the input parameters will be selected for.',

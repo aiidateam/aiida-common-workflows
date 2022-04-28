@@ -85,8 +85,8 @@ fast:
                     geom_stress_tol: 0.1
 
 
-verification-PBE-v1:
-    name: 'verification-PBE-v1'
+verification-PBE-v1-a0:
+    name: 'verification-PBE-v1-a0'
     description: 'Protocol for the oxides validation study.'
     relax:
         relax_options:
@@ -125,8 +125,8 @@ verification-PBE-v1:
                     ADDITIONAL_RETRIEVE_TEMPORARY_LIST: ["aiida.castep_bin"]
 
 
-verification-PBE-v1-mk2:
-    name: 'verification-PBE-v1-mk2'
+verification-PBE-v1:
+    name: 'verification-PBE-v1'
     description: 'Protocol for the oxides validation study.'
     relax:
         relax_options:
