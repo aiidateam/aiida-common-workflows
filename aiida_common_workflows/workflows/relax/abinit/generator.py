@@ -54,7 +54,7 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         )
         spec.inputs['protocol'].valid_type = ChoiceType((
             'fast', 'moderate', 'precise', 'verification-PBE-v1-PAW-11', 'verification-PBE-v1-NC-04',
-            'verification-PBE-v1-NC-05b1'
+            'verification-PBE-v1-NC-05b1', 'verification-PBE-v1-PD-experiment-ne-high', 'verification-PBE-v1-PD-experiment-ne-plain'
         ))
         spec.inputs['engines']['relax']['code'].valid_type = CodeType('abinit')
 
@@ -285,6 +285,8 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             new_kpoints.set_cell_from_structure(structure)
             new_kpoints.set_kpoints_mesh(previous_kpoints_mesh, previous_kpoints_offset)
             builder.kpoints = new_kpoints
+            if 'kpoints_distance' in builder:
+                del builder.kpoints_distance
 
             # ensure same k-points shift
             shiftk = reference_workchain.inputs.abinit__parameters.get_dict().get('shiftk', None)
