@@ -64,6 +64,7 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         The ports defined on the specification are the inputs that will be accepted by the ``get_builder`` method.
         """
         super().define(spec)
+        spec.inputs['protocol'].valid_type = ChoiceType(('fast', 'moderate', 'precise', 'verification-PBE-v1'))
         spec.inputs['spin_type'].valid_type = ChoiceType((SpinType.NONE, SpinType.COLLINEAR))
         spec.inputs['relax_type'].valid_type = ChoiceType(
             (RelaxType.NONE, RelaxType.POSITIONS, RelaxType.POSITIONS_CELL, RelaxType.POSITIONS_SHAPE)
@@ -160,20 +161,10 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         with the parameters is returned.
         """
         parameters = self._protocols[key]['parameters'].copy()
-
-        #We fix the `mesh-sizes` to the one of reference_workchain, we need to access
-        #the underline SiestaBaseWorkChain. Also we `return` as the heuristics can only
-        #modify the meshcutoff. THIS SHOULD BE CHECKED IF FEATURES ADDED TO ATOM HEURISTICS
-        if reference_workchain is not None:
-            from aiida.orm import WorkChainNode
-            siesta_base_outs = reference_workchain.get_outgoing(node_class=WorkChainNode).one().node.outputs
-            mesh = siesta_base_outs.output_parameters.attributes['mesh']
-            parameters['mesh-sizes'] = f'[{mesh[0]} {mesh[1]} {mesh[2]}]'
-            try:
-                parameters.pop('mesh-cutoff')
-            except KeyError:
-                pass
-            return parameters
+        for par in self._protocols[key]['parameters']:
+            if 'block' in par:
+                parameters['%' + par] = self._protocols[key]['parameters'][par]
+                parameters.pop(par)
 
         if 'atomic_heuristics' in self._protocols[key]:  # pylint: disable=too-many-nested-blocks
             atomic_heuristics = self._protocols[key]['atomic_heuristics']
@@ -211,9 +202,24 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                                 raise RuntimeError(
                                     f'Wrong `mesh-cutoff` units for heuristc {kind.symbol} of protocol {key}'
                                 ) from exc
+                    if 'grid-sampling' in cust_param:
+                        parameters['%block GridCellSampling'
+                                   ] = cust_param['grid-sampling'] + '\n%endblock GridCellSampling'
 
             if meshcut_glob is not None:
                 parameters['mesh-cutoff'] = f'{meshcut_glob} {meshcut_units}'
+
+        #We fix the `mesh-sizes` to the one of reference_workchain, we need to access
+        #the underline SiestaBaseWorkChain.
+        if reference_workchain is not None:
+            from aiida.orm import WorkChainNode
+            siesta_base_outs = reference_workchain.get_outgoing(node_class=WorkChainNode).one().node.outputs
+            mesh = siesta_base_outs.output_parameters.attributes['mesh']
+            parameters['mesh-sizes'] = f'[{mesh[0]} {mesh[1]} {mesh[2]}]'
+            try:
+                parameters.pop('mesh-cutoff')
+            except KeyError:
+                pass
 
         return parameters
 
