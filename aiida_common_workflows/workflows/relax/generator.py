@@ -5,7 +5,7 @@ import abc
 from aiida import orm, plugins
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
-from aiida_common_workflows.generators import InputGenerator
+from aiida_common_workflows.generators import ChoiceType, InputGenerator
 from aiida_common_workflows.protocol import ProtocolRegistry
 
 __all__ = ('CommonRelaxInputGenerator',)
@@ -32,7 +32,7 @@ class CommonRelaxInputGenerator(InputGenerator, ProtocolRegistry, metaclass=abc.
         )
         spec.input(
             'protocol',
-            # valid_type=ChoiceType(('fast', 'moderate', 'precise', 'oxides_validation', 'pseudodojo_experiments')),
+            valid_type=ChoiceType(('fast', 'moderate', 'precise')),
             default='moderate',
             help='The protocol to use for the automated input generation. This value indicates the level of precision '
             'of the results and computational cost that the input parameters will be selected for.',
