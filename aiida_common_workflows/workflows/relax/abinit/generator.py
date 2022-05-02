@@ -54,7 +54,8 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         )
         spec.inputs['protocol'].valid_type = ChoiceType((
             'fast', 'moderate', 'precise', 'verification-PBE-v1-PAW-11', 'verification-PBE-v1-NC-04',
-            'verification-PBE-v1-NC-05b1', 'verification-PBE-v1-PD-experiment-ne-high', 'verification-PBE-v1-PD-experiment-ne-plain'
+            'verification-PBE-v1-NC-05b1', 'verification-PBE-v1-PD-experiment-ne-high',
+            'verification-PBE-v1-PD-experiment-ne-plain'
         ))
         spec.inputs['engines']['relax']['code'].valid_type = CodeType('abinit')
 
