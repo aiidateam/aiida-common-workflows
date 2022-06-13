@@ -60,31 +60,35 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
     _default_protocol = 'moderate'
     _protocols = {
         'fast': {
-            'description': 'This profile should be chosen if speed is more important than accuracy.',
+            'description': 'This profile should be chosen if accurate forces are required, but there is no need for '
+            'extremely accurate energies.',
             'inputdict_cubic': {
+                'logfile': 'Yes',
                 'dft': {
                     'ixc': 'PBE',
                     'ncong': 2,
                     'rmult': [10, 8],
                     'itermax': 3,
                     'idsx': 0,
-                    'gnrm_cv': 1e-7,
-                    'hgrids': 0.45
+                    'gnrm_cv': 1e-8,
+                    'hgrids': 0.4,
+                    'disablesym': 'no'
                 },
                 'mix': {
-                    'iscf': 7,
+                    'iscf': 17,
                     'itrpmax': 200,
-                    'rpnrm_cv': 1e-10,
-                    'tel': 1e-3,
-                    'alphamix': 0.5,
-                    'norbsempty': 1000,
+                    'rpnrm_cv': 1.E-12,
+                    'norbsempty': 120,
+                    'tel': 0.00225,
+                    'occopt': 2,
+                    'alphamix': 0.8,
                     'alphadiis': 1.0
                 }
             },
-            'inputdic_linear': {
-                'import': 'linear_fast'
+            'inputdict_linear': {
+                'import': 'linear'
             },
-            'kpoints_distance': 20
+            'kpoints_distance': 94
         },
         'moderate': {
             'description': 'This profile should be chosen if accurate forces are required, but there is no need for '
@@ -257,6 +261,12 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             builder.pseudos = orm.List()
             psprel = [os.path.normpath(os.path.relpath(i)) for i in psp]
             builder.pseudos.extend(psprel)
+        # # update the dict with acwf parameters for further treating
+        # acwf_params = {'electronic_type': electronic_type.value,
+        #                'relax_type': relax_type.value,
+        #                'spin_type': spin_type.value,
+        #                'protocol': protocol}
+        # inputdict['acwf_params'] = acwf_params
         builder.parameters = BigDFTParameters(dict=inputdict)
         builder.code = engines[relaxation_schema]['code']
         run_opts = {'options': engines[relaxation_schema]['options']}
