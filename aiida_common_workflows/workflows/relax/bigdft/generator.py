@@ -18,6 +18,15 @@ StructureData = plugins.DataFactory('structure')
 def ortho_struct(input_struct):
     """Create and update a dict to pass to transform_to_orthorombic,
       and then get back data to the input dict """
+
+    try:
+        with open('last_structure.txt', 'r') as o:
+            last_struct = o.readlines()[0]
+
+        print(f'operating on structure {last_struct}')
+    except FileNotFoundError:
+        pass
+
     dico = dict()
     dico['name'] = input_struct.sites[0].kind_name
     dico['a'] = round(input_struct.cell_lengths[0], 6)
@@ -37,6 +46,8 @@ def ortho_struct(input_struct):
             dico[str(i + 1)] = list(site.frac_coords)
         else:
             dico[str(i + 1)] = (site.coords[0] / dico['a'], site.coords[1] / dico['b'], site.coords[2] / dico['c'])
+    # import copy
+    # dico_inp = copy.deepcopy(dico)
     BigDFTParameters.transform_to_orthorombic(dico)
     output = input_struct.clone()
     output.clear_sites()
@@ -88,9 +99,40 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             'inputdict_linear': {
                 'import': 'linear'
             },
-            'kpoints_distance': 94
+            'kpoints_distance': 142
         },
         'moderate': {
+            'description': 'This profile should be chosen if accurate forces are required, but there is no need for '
+            'extremely accurate energies.',
+            'inputdict_cubic': {
+                'logfile': 'Yes',
+                'dft': {
+                    'ixc': 'PBE',
+                    'ncong': 2,
+                    'rmult': [10, 8],
+                    'itermax': 3,
+                    'idsx': 0,
+                    'gnrm_cv': 1e-8,
+                    'hgrids': 0.4,
+                    'disablesym': 'no'
+                },
+                'mix': {
+                    'iscf': 17,
+                    'itrpmax': 200,
+                    'rpnrm_cv': 1.E-12,
+                    'norbsempty': 120,
+                    'tel': 0.00225,
+                    'occopt': 2,
+                    'alphamix': 0.8,
+                    'alphadiis': 1.0
+                }
+            },
+            'inputdict_linear': {
+                'import': 'linear'
+            },
+            'kpoints_distance': 274
+        },
+        'precise': {
             'description': 'This profile should be chosen if accurate forces are required, but there is no need for '
             'extremely accurate energies.',
             'inputdict_cubic': {
@@ -119,33 +161,7 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             'inputdict_linear': {
                 'import': 'linear'
             },
-            'kpoints_distance': 94
-        },
-        'precise': {
-            'description': 'This profile should be chosen if highly accurate energy differences are required.',
-            'inputdict_cubic': {
-                'dft': {
-                    'ixc': 'PBE',
-                    'ncong': 2,
-                    'rmult': [10, 8],
-                    'itermax': 3,
-                    'idsx': 0,
-                    'gnrm_cv': 1e-8,
-                    'hgrids': 0.15
-                },
-                'mix': {
-                    'iscf': 7,
-                    'itrpmax': 200,
-                    'rpnrm_cv': 1e-12,
-                    'tel': 1e-3,
-                    'alphamix': 0.5,
-                    'norbsempty': 1000,
-                    'alphadiis': 1.0
-                }
-            },
-            'inputdict_linear': {
-                'import': 'linear_accurate'
-            },
+            'kpoints_distance': 274
         }
     }
 
@@ -276,3 +292,17 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             builder.relax.threshold_forces = orm.Float(threshold_forces)
 
         return builder
+
+def print_dict(d, indent = 0):
+
+    indent_str = ' ' * indent
+
+    if isinstance(d, dict):
+        for k, v in d.items():
+            print(f'{indent_str}{k}:')
+            print_dict(v, indent + 1)
+    elif hasattr(d, '__iter__') and not isinstance(d, str):
+        for item in d:
+            print_dict(item, indent + 1)
+    else:
+        print(f'{indent_str}{d}')
