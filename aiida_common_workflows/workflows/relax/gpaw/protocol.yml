@@ -1,55 +1,6 @@
-precise:
-  name: 'precise'
-  description: 'Protocol to relax a structure with high precision at higher computational cost.'
-  parameters:
-    calculator:
-      name: 'gpaw'
-      args:
-        xc: 'PBE'
-        gpts:
-          '@function': 'h2gpts'
-          args: {'h': 0.12}
-        convergence:
-          energy: 0.0000000001
-          density: 0.000001
-        occupations:
-          name: 'marzari-vanderbilt'
-          width: 0.1
-    optimizer:
-      name: 'BFGS'
-  kpoint_distance: 0.1
-
-moderate:
-  name: 'moderate'
-  description: 'Protocol to relax a structure with high precision at higher computational cost.'
-  parameters:
-    calculator:
-      name: 'gpaw'
-      args:
-        gpts:
-          '@function': 'h2gpts'
-          args: {'h': 0.18}
-        convergence:
-          energy: 0.0000000001
-    optimizer:
-      name: 'BFGS'
-  kpoint_distance: 0.15
-
-precise_lcao:
-  name: 'precise_lcao'
-  description: 'Protocal to relax a structure with high precision with LCAO basis.'
-  parameters:
-    calculator:
-      name : 'gpaw'
-      args :
-          mode  : 'lcao'
-          basis : 'dzp'
-    optimizer:
-      name: 'BFGS'
-
-precise_pw:
-  name: 'precise_pw'
-  description: 'Protocol to relax a structure with high precision at higher computational cost.'
+oxides_validation:
+  name: 'oxides_validation'
+  description: 'Protocol to run oxides validation study.'
   parameters:
     calculator:
       name: 'gpaw'
@@ -59,12 +10,32 @@ precise_pw:
           '@function': 'PW'
           args:
             ecut: 800
+        occupations:
+          name: 'fermi-dirac'
+          width: 0.06122
+    optimizer:
+      name: 'BFGS'
+    kpoints_options:
+      gamma: True
+  kpoint_distance: 0.06
+
+moderate:
+  name: 'moderate'
+  description: 'Protocol to run oxides validation study.'
+  parameters:
+    calculator:
+      name: 'gpaw'
+      args:
+        xc: 'PBE'
+        gpts:
+          '@function': 'PW'
+          args: {'ecut': 600}
         convergence:
           energy: 0.0000000001
           density: 0.000001
         occupations:
-          name: 'marzari-vanderbilt'
-          width: 0.1
+          name: 'fermi-dirac'
+          width: 0.0612
     optimizer:
       name: 'BFGS'
-  kpoint_distance: 0.1
+  kpoint_distance: 0.04

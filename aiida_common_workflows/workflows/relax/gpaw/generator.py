@@ -133,11 +133,6 @@ class GPAWCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         if relax_type == RelaxType.NONE:
             parameters.pop('optimizer', {})
 
-        # Add the cell parameter to the gpts options
-        if 'pw' not in protocol['name']:
-            parameters['calculator']['args']['gpts']['args']['cell_cv'] = structure.cell
-            parameters['extra_imports'] = [['gpaw.utilities', 'h2gpts']]
-
         # Set the kpoint grid from the density in the protocol
         kpoints = plugins.DataFactory('array.kpoints')()
         kpoints.set_cell_from_structure(structure)
