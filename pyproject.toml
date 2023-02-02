@@ -15,12 +15,11 @@ classifiers = [
     'Operating System :: POSIX :: Linux',
     'Operating System :: MacOS :: MacOS X',
     'Programming Language :: Python',
-    'Programming Language :: Python :: 3.7',
     'Programming Language :: Python :: 3.8',
     'Programming Language :: Python :: 3.9',
 ]
 keywords = ['aiida', 'workflows']
-requires-python = '>=3.7'
+requires-python = '>=3.8'
 dependencies = [
     'abipy',
     'aiida-abinit~=0.2.0a1',
