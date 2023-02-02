@@ -126,7 +126,7 @@ For the eos workflow:
 
 .. code:: console
 
-    aiida-common-workflows launch eos <OPTIONS> -- <ENGINE>
+    acwf launch eos <OPTIONS> -- <ENGINE>
 
 The available ``<ENGINE>`` and ``<OPTIONS>`` are the same of the :ref:`relaxation CLI <relax-cli>`, with the exception of the ``-P`` option and a limitation on the allowed relaxation types.
 
