@@ -43,6 +43,7 @@ requires-python = '>=3.9'
 'common_workflows.relax.gpaw' = 'aiida_common_workflows.workflows.relax.gpaw.workchain:GpawCommonRelaxWorkChain'
 'common_workflows.relax.nwchem' = 'aiida_common_workflows.workflows.relax.nwchem.workchain:NwchemCommonRelaxWorkChain'
 'common_workflows.relax.orca' = 'aiida_common_workflows.workflows.relax.orca.workchain:OrcaCommonRelaxWorkChain'
+'common_workflows.relax.pyscf' = 'aiida_common_workflows.workflows.relax.pyscf.workchain:PyscfCommonRelaxWorkChain'
 'common_workflows.relax.quantum_espresso' = 'aiida_common_workflows.workflows.relax.quantum_espresso.workchain:QuantumEspressoCommonRelaxWorkChain'
 'common_workflows.relax.siesta' = 'aiida_common_workflows.workflows.relax.siesta.workchain:SiestaCommonRelaxWorkChain'
 'common_workflows.relax.vasp' = 'aiida_common_workflows.workflows.relax.vasp.workchain:VaspCommonRelaxWorkChain'
@@ -64,6 +65,7 @@ all_plugins = [
   'aiida-gaussian~=2.0',
   'aiida-nwchem~=3.0',
   'aiida-orca~=0.6.0',
+  'aiida-pyscf~=0.5.1',
   'aiida-quantumespresso~=4.4',
   'aiida-siesta~=2.0',
   'aiida-vasp~=3.1',
@@ -104,6 +106,9 @@ orca = [
 ]
 pre-commit = [
   'pre-commit~=3.6'
+]
+pyscf = [
+  'aiida-pyscf~=0.5.1'
 ]
 quantum_espresso = [
   'aiida-quantumespresso~=4.4'

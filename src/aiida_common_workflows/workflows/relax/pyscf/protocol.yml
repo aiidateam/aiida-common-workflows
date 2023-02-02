@@ -1,0 +1,35 @@
+fast:
+  description: Protocol to relax a structure with low precision at minimal computational cost for testing purposes.
+  parameters:
+    mean_field:
+      method: UKS
+    structure:
+      basis: def2-svp
+    optimizer:
+      solver: geomeTRIC
+      convergence_parameters:
+        convergence_energy: 1E-6
+moderate:
+  description: Protocol to relax a structure with normal precision at moderate computational cost.
+  parameters:
+    mean_field:
+      method: UKS
+      xc: pbe
+    structure:
+      basis: def2-tzvp
+    optimizer:
+      solver: geomeTRIC
+      # convergence_parameters:
+      #     convergence_energy: 1E-6
+precise:
+  description: Protocol to relax a structure with high precision at higher computational cost.
+  parameters:
+    mean_field:
+      method: UHF
+      # xc: 'pbe'
+    structure:
+      basis: def2-qzvp
+    optimizer:
+      solver: geomeTRIC
+      # convergence_parameters:
+      #     convergence_energy: 1E-6

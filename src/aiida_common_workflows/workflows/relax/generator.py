@@ -59,7 +59,7 @@ class CommonRelaxInputGenerator(InputGenerator, ProtocolRegistry, metaclass=abc.
         )
         spec.input(
             'magnetization_per_site',
-            valid_type=list,
+            valid_type=(list, tuple),
             required=False,
             help='The initial magnetization of the system. Should be a list of floats, where each float represents the '
             'spin polarization in units of electrons, meaning the difference between spin up and spin down '
