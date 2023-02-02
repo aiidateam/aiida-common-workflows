@@ -53,7 +53,7 @@ def get_free_energy(parameters):
     Return the free energy from the given parameters node.
     The free energy reported by CASTEP is the one that is consistent with the forces.
     """
-    return orm.Float(parameters.get_attribute('free_energy'))
+    return orm.Float(parameters.base.attributes.get('free_energy'))
 
 
 @calcfunction
@@ -62,7 +62,7 @@ def get_total_magnetization(parameters):
     Return the free energy from the given parameters node.
     The free energy reported by CASTEP is the one that is consistent with the forces.
     """
-    return orm.Float(parameters.get_attribute('spin_density'))
+    return orm.Float(parameters.base.attributes.get('spin_density'))
 
 
 class CastepCommonRelaxWorkChain(CommonRelaxWorkChain):

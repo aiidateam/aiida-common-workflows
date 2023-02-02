@@ -3,6 +3,7 @@
 """Configuration and fixtures for unit test suite."""
 import io
 import os
+import pathlib
 import tempfile
 
 from aiida import engine
@@ -23,7 +24,7 @@ def with_database(aiida_profile):
 @pytest.fixture
 def with_clean_database(with_database):
     """Fixture to clear the database before yielding to the test."""
-    with_database.reset_db()
+    with_database.clear_profile()
     yield
 
 
@@ -105,7 +106,8 @@ def generate_structure():
     def _generate_structure(symbols=None):
         from aiida.plugins import DataFactory
 
-        structure = DataFactory('structure')()
+        structure = DataFactory('core.structure')()
+        structure.set_cell([[1, 0, 0], [0, 1, 0], [0, 0, 1]])  # Set an arbitrary cell so the volume is not zero
 
         valid_symbols = [value['symbol'] for value in elements.values()]
 
@@ -134,8 +136,8 @@ def generate_code(aiida_localhost):
         aiida_localhost.set_default_mpiprocs_per_machine(1)
 
         label = ''.join(random.choice(string.ascii_letters) for _ in range(16))
-        code = DataFactory('code')(
-            label=label, input_plugin_name=entry_point, remote_computer_exec=[aiida_localhost, '/bin/bash']
+        code = DataFactory('core.code.installed')(
+            label=label, default_calc_job_plugin=entry_point, computer=aiida_localhost, filepath_executable='/bin/bash'
         )
         return code
 
@@ -178,15 +180,17 @@ def generate_eos_node(generate_structure):
 
         for index in range(5):
             structure = generate_structure().store()
-            structure.add_incoming(node, link_type=LinkType.RETURN, link_label=f'structures__{index}')
+            structure.base.links.add_incoming(node, link_type=LinkType.RETURN, link_label=f'structures__{index}')
 
             if include_energy:
                 energy = Float(index).store()
-                energy.add_incoming(node, link_type=LinkType.RETURN, link_label=f'total_energies__{index}')
+                energy.base.links.add_incoming(node, link_type=LinkType.RETURN, link_label=f'total_energies__{index}')
 
             if include_magnetization:
                 magnetization = Float(index).store()
-                magnetization.add_incoming(node, link_type=LinkType.RETURN, link_label=f'total_magnetizations__{index}')
+                magnetization.base.links.add_incoming(
+                    node, link_type=LinkType.RETURN, link_label=f'total_magnetizations__{index}'
+                )
 
         node.set_exit_status(0)
 
@@ -207,16 +211,18 @@ def generate_dissociation_curve_node():
 
         for index in range(5):
             distance = Float(index / 10).store()
-            distance.add_incoming(node, link_type=LinkType.RETURN, link_label=f'distances__{index}')
+            distance.base.links.add_incoming(node, link_type=LinkType.RETURN, link_label=f'distances__{index}')
 
             # `include_energy` can be set to False to test cases with missing outputs
             if include_energy:
                 energy = Float(index).store()
-                energy.add_incoming(node, link_type=LinkType.RETURN, link_label=f'total_energies__{index}')
+                energy.base.links.add_incoming(node, link_type=LinkType.RETURN, link_label=f'total_energies__{index}')
 
             if include_magnetization:
                 magnetization = Float(index).store()
-                magnetization.add_incoming(node, link_type=LinkType.RETURN, link_label=f'total_magnetizations__{index}')
+                magnetization.base.links.add_incoming(
+                    node, link_type=LinkType.RETURN, link_label=f'total_magnetizations__{index}'
+                )
 
         node.set_exit_status(0)
 
@@ -252,7 +258,7 @@ def generate_psml_data():
         content = dedent(
             f"""<?xml version="1.0" encoding="UTF-8" ?>
             <psml version="1.1" energy_unit="hartree" length_unit="bohr">
-            <pseudo-atom-spec atomic-label="{element}" atomic-number="2"></pseudo-atom-spec>
+            <pseudo-atom-spec atomic-label="{element}" atomic-number="2" z-pseudo="1.0"></pseudo-atom-spec>
             </psml>
             """
         )
@@ -306,10 +312,10 @@ def sssp(generate_upf_data):
     from aiida.plugins import GroupFactory
 
     SsspFamily = GroupFactory('pseudo.family.sssp')  # pylint: disable=invalid-name
-    label = 'SSSP/1.1/PBE/efficiency'
+    label = 'SSSP/1.3/PBEsol/efficiency'
 
     try:
-        family = SsspFamily.objects.get(label=label)
+        family = SsspFamily.collection.get(label=label)
     except exceptions.NotExistent:
         pass
     else:
@@ -331,7 +337,7 @@ def sssp(generate_upf_data):
 
             cutoffs_dict['normal'][element] = {'cutoff_wfc': 30., 'cutoff_rho': 240.}
 
-        family = SsspFamily.create_from_folder(dirpath, label)
+        family = SsspFamily.create_from_folder(pathlib.Path(dirpath), label)
 
     for stringency, cutoffs in cutoffs_dict.items():
         family.set_cutoffs(cutoffs, stringency, unit='Ry')
@@ -348,7 +354,7 @@ def pseudo_dojo_jthxml_family(generate_jthxml_data):
     label = 'PseudoDojo/1.0/PBE/SR/standard/jthxml'
 
     try:
-        family = PseudoDojoFamily.objects.get(label=label)
+        family = PseudoDojoFamily.collection.get(label=label)
     except exceptions.NotExistent:
         pass
     else:
@@ -370,7 +376,9 @@ def pseudo_dojo_jthxml_family(generate_jthxml_data):
 
             cutoffs_dict['normal'][element] = {'cutoff_wfc': 30., 'cutoff_rho': 240.}
 
-        family = PseudoDojoFamily.create_from_folder(dirpath, label, pseudo_type=plugins.DataFactory('pseudo.jthxml'))
+        family = PseudoDojoFamily.create_from_folder(
+            pathlib.Path(dirpath), label, pseudo_type=plugins.DataFactory('pseudo.jthxml')
+        )
 
     for stringency, cutoffs in cutoffs_dict.items():
         family.set_cutoffs(cutoffs, stringency, unit='Eh')
@@ -387,7 +395,7 @@ def pseudo_dojo_psp8_family(generate_psp8_data):  # pylint: disable=too-many-loc
     label = 'PseudoDojo/0.41/PBE/SR/standard/psp8'
 
     try:
-        family = PseudoDojoFamily.objects.get(label=label)
+        family = PseudoDojoFamily.collection.get(label=label)
     except exceptions.NotExistent:
         pass
     else:
@@ -409,7 +417,9 @@ def pseudo_dojo_psp8_family(generate_psp8_data):  # pylint: disable=too-many-loc
 
             cutoffs_dict['normal'][element] = {'cutoff_wfc': 30., 'cutoff_rho': 240.}
 
-        family = PseudoDojoFamily.create_from_folder(dirpath, label, pseudo_type=plugins.DataFactory('pseudo.psp8'))
+        family = PseudoDojoFamily.create_from_folder(
+            pathlib.Path(dirpath), label, pseudo_type=plugins.DataFactory('pseudo.psp8')
+        )
 
     for stringency, cutoffs in cutoffs_dict.items():
         family.set_cutoffs(cutoffs, stringency, unit='Eh')
@@ -427,7 +437,7 @@ def psml_family(generate_psml_data):
     label = 'PseudoDojo/0.4/PBE/FR/standard/psml'
 
     try:
-        family = PseudoPotentialFamily.objects.get(label=label)
+        family = PseudoPotentialFamily.collection.get(label=label)
     except exceptions.NotExistent:
         pass
     else:
@@ -445,6 +455,6 @@ def psml_family(generate_psml_data):
                     handle.write(source.read())
                     handle.flush()
 
-        family = PseudoPotentialFamily.create_from_folder(dirpath, label, pseudo_type=PsmlData)
+        family = PseudoPotentialFamily.create_from_folder(pathlib.Path(dirpath), label, pseudo_type=PsmlData)
 
     return family

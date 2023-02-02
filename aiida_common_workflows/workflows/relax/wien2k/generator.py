@@ -12,7 +12,7 @@ from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('Wien2kCommonRelaxInputGenerator',)
 
-StructureData = plugins.DataFactory('structure')
+StructureData = plugins.DataFactory('core.structure')
 
 
 class Wien2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
@@ -84,7 +84,7 @@ class Wien2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             inpdict['-nometal'] = True
         if reference_workchain:  # ref. workchain is passed as input
             # derive Rmt's from the ref. workchain and pass as input
-            w2k_wchain = reference_workchain.get_outgoing(node_class=orm.WorkChainNode).one().node
+            w2k_wchain = reference_workchain.base.links.get_outgoing(node_class=orm.WorkChainNode).one().node
             ref_wrkchn_res_dict = w2k_wchain.outputs.workchain_result.get_dict()
             rmt = ref_wrkchn_res_dict['Rmt']
             atm_lbl = ref_wrkchn_res_dict['atom_labels']

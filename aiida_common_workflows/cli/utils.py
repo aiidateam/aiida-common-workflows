@@ -16,7 +16,7 @@ def echo_process_results(node):
     from aiida.common.links import LinkType
 
     class_name = node.process_class.__name__
-    outputs = node.get_outgoing(link_type=(LinkType.CREATE, LinkType.RETURN)).all()
+    outputs = node.base.links.get_outgoing(link_type=(LinkType.CREATE, LinkType.RETURN)).all()
 
     if node.is_finished and node.exit_message:
         state = f'{node.process_state.value} [{node.exit_status}] `{node.exit_message}`'
@@ -78,13 +78,13 @@ def get_code_from_list_or_database(codes, entry_point: str):
     :param entry_point: calculation job entry point name.
     :return: a ``Code`` instance configured for the given entry point or ``None``.
     """
-    from aiida.orm import Code, QueryBuilder
+    from aiida.orm import InstalledCode, QueryBuilder
 
     for entry in codes:
-        if entry.get_attribute('input_plugin') == entry_point:
+        if entry.default_calc_job_plugin == entry_point:
             return entry
 
-    result = QueryBuilder().append(Code, filters={'attributes.input_plugin': entry_point}).first()
+    result = QueryBuilder().append(InstalledCode, filters={'attributes.input_plugin': entry_point}).first()
 
     if result is not None:
         return result[0]

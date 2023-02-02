@@ -18,30 +18,29 @@ classifiers = [
     'Programming Language :: Python :: 3.9',
 ]
 keywords = ['aiida', 'workflows']
-requires-python = '>=3.9,<3.10'
+requires-python = '>=3.9'
 dependencies = [
     'abipy==0.9.6',
-    'aiida-abinit~=0.4.0',
-    'aiida-bigdft~=0.2.6',
-    'aiida-castep~=1.2',
-    'aiida-core[atomic_tools]~=1.6',
-    'aiida-cp2k~=1.6',
-    'aiida-fleur~=1.3',
-    'aiida-gaussian',
-    'aiida-nwchem~=2.1',
-    'aiida-orca',
-    'aiida-pseudo==0.6.5',
-    'aiida-quantumespresso~=3.4,>=3.4.1',
-    'aiida-siesta~=1.2',
-    'aiida-vasp~=2.2',
-    'aiida-wien2k~=0.1.1',
-    'aiida-ase',
-    'pymatgen>=2022.1.20',
-    'numpy<1.24.0',
-    'sqlalchemy<1.4',
+    'aiida-ase~=3.0',
+    'aiida-abinit~=0.5.0',
+    'aiida-bigdft~=0.3.0',
+    'aiida-castep~=2.0',
+    'aiida-core[atomic_tools]~=2.1',
+    'aiida-cp2k~=2.0',
+    'aiida-fleur~=2.0',
+    'aiida-gaussian~=2.0',
+    'aiida-nwchem~=3.0',
+    'aiida-orca~=0.6.0',
+    'aiida-pseudo~=1.0',
+    'aiida-quantumespresso~=4.4',
+    'aiida-siesta~=2.0',
+    'aiida-vasp~=3.1',
+    'aiida-wien2k~=0.2.0',
     'ase!=3.20.*',
+    'masci-tools~=0.9',
+    'numpy<1.24.0',
     'pint~=0.16',
-    'masci-tools~=0.9'
+    'pymatgen>=2022.1.20',
 ]
 
 [project.urls]
@@ -61,7 +60,7 @@ docs = [
 ]
 pre-commit = [
     'pre-commit~=2.2',
-    'pylint~=2.7.0',
+    'pylint~=2.16.0',
 ]
 tests = [
     'pytest~=7.2',
@@ -128,11 +127,10 @@ disable = [
     'import-outside-toplevel',
     'inconsistent-return-statements',
     'too-many-arguments',
-    'bad-continuation',
     'duplicate-code',
     'no-member',
     'too-few-public-methods',
-    "wrong-import-order"
+    'wrong-import-order'
 ]
 
 [tool.pytest.ini_options]
@@ -150,6 +148,8 @@ filterwarnings = [
     'ignore::PendingDeprecationWarning:monty:',
     'ignore::PendingDeprecationWarning:pymatgen:',
     'ignore::PendingDeprecationWarning:ruamel:',
+    'ignore:Creating AiiDA configuration folder.*:UserWarning',
+    'ignore:Object of type .* not in session, .* operation along .* will not proceed:sqlalchemy.exc.SAWarning',
 ]
 
 [tool.yapf]

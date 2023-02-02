@@ -132,7 +132,7 @@ def test_calc_generator(nacl, castep_code, with_otfg):
         }
     }
     override = {'calc': {'parameters': {'cut_off_energy': 220}}}
-    otfg = OTFGGroup.objects.get(label='C19')
+    otfg = OTFGGroup.collection.get(label='C19')
     generated = generate_inputs_calculation(protcol, castep_code, nacl, otfg, override)
 
     assert 'structure' in generated
@@ -154,7 +154,7 @@ def test_base_generator(castep_code, nacl, with_otfg):
         }
     }
     override = {'calc': {'parameters': {'cut_off_energy': 220}, 'metadata': {'label': 'test'}}}
-    otfg = OTFGGroup.objects.get(label='C19')
+    otfg = OTFGGroup.collection.get(label='C19')
     generated = generate_inputs_base(protcol, castep_code, nacl, otfg, override)
 
     assert 'structure' in generated['calc']
@@ -185,7 +185,7 @@ def test_relax_generator(castep_code, nacl, with_otfg):
             }
         }
     }
-    otfg = OTFGGroup.objects.get(label='C19')
+    otfg = OTFGGroup.collection.get(label='C19')
     generated = generate_inputs_relax(protocol, castep_code, nacl, otfg, override)
 
     assert 'structure' in generated
@@ -249,16 +249,16 @@ def test_otfg_upload(with_otfg):
 
     # Initial upload
     ensure_otfg_family('C19V2')
-    assert OTFGGroup.objects.get(label='C19V2')
+    assert OTFGGroup.collection.get(label='C19V2')
 
     # Second call should not error
     ensure_otfg_family('C19V2')
-    assert OTFGGroup.objects.get(label='C19V2')
+    assert OTFGGroup.collection.get(label='C19V2')
 
     # Second call with forced update
     ensure_otfg_family('C19V2', force_update=True)
 
-    group = OTFGGroup.objects.get(label='C19V2')
+    group = OTFGGroup.collection.get(label='C19V2')
     found = False
     for node in group.nodes:
         if node.element == 'La':

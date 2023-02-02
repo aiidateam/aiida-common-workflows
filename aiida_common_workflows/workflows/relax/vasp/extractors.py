@@ -19,7 +19,7 @@ def get_ts_energy(common_relax_workchain):
     if common_relax_workchain.process_class != WorkflowFactory('common_workflows.relax.vasp'):
         return ValueError('The input workchain is not a `VaspCommonRelaxWorkChain`')
 
-    vasp_wc = common_relax_workchain.get_outgoing(link_type=LinkType.CALL_WORK).one().node
+    vasp_wc = common_relax_workchain.base.links.get_outgoing(link_type=LinkType.CALL_WORK).one().node
     energies = vasp_wc.outputs.energies
     energy_free = energies.get_array('energy_free_electronic')[0]
     energy_no_entropy = energies.get_array('energy_no_entropy')[0]

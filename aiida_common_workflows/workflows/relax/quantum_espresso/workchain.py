@@ -30,8 +30,8 @@ def extract_from_trajectory(trajectory):
 @calcfunction
 def extract_from_parameters(parameters):
     """Return the total energy and optionally the total magnetization from the given parameters node."""
-    total_energy = parameters.get_attribute('energy')
-    total_magnetization = parameters.get_attribute('total_magnetization', None)
+    total_energy = parameters.base.attributes.get('energy')
+    total_magnetization = parameters.base.attributes.get('total_magnetization', None)
 
     results = {'total_energy': orm.Float(total_energy)}
 
@@ -55,7 +55,7 @@ class QuantumEspressoCommonRelaxWorkChain(CommonRelaxWorkChain):
         forces, stress = extract_from_trajectory(outputs.output_trajectory).values()
 
         try:
-            total_energy, total_magnetization = result
+            total_energy, total_magnetization = result  # pylint: disable=unbalanced-dict-unpacking
         except ValueError:
             total_energy, total_magnetization = list(result)[0], None
 

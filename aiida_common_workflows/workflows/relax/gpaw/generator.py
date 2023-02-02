@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for GPAW."""
+from __future__ import annotations
+
 import pathlib
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Tuple
 
 from aiida import engine, orm, plugins
 import yaml
@@ -12,7 +14,7 @@ from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('GpawCommonRelaxInputGenerator',)
 
-StructureData = plugins.DataFactory('structure')
+StructureData = plugins.DataFactory('core.structure')
 
 
 class GpawCommonRelaxInputGenerator(CommonRelaxInputGenerator):
@@ -38,7 +40,7 @@ class GpawCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
     def _initialize_protocols(self):
         """Initialize the protocols class attribute by parsing them from the protocols configuration file."""
-        with open(str(pathlib.Path(__file__).parent / 'protocol.yml'), encoding='UTF-8') as handle:
+        with open(str(pathlib.Path(__file__).parent / 'protocol.yml'), encoding='utf-8') as handle:
             self._protocols = yaml.safe_load(handle)
 
     def _construct_builder( # pylint: disable=arguments-differ,too-many-locals
@@ -47,10 +49,10 @@ class GpawCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         engines: Dict[str, Any],
         *,
         protocol: str = None,
-        relax_type: Union[RelaxType, str] = RelaxType.POSITIONS,
-        electronic_type: Union[ElectronicType, str] = ElectronicType.METAL,
-        spin_type: Union[SpinType, str] = SpinType.NONE,
-        magnetization_per_site: Union[List[float], Tuple[float]] = None,
+        relax_type: RelaxType | str = RelaxType.POSITIONS,
+        electronic_type: ElectronicType | str = ElectronicType.METAL,
+        spin_type: SpinType | str = SpinType.NONE,
+        magnetization_per_site: List[float] | Tuple[float] | None = None,
         threshold_forces: float = None,
         threshold_stress: float = None,
         reference_workchain=None,
@@ -111,11 +113,13 @@ class GpawCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         if relax_type == RelaxType.NONE:
             parameters.pop('optimizer', {})
 
-        kpoints = plugins.DataFactory('array.kpoints')()
+        kpoints = plugins.DataFactory('core.array.kpoints')()
         kpoints.set_cell_from_structure(structure)
         if reference_workchain:
             previous_kpoints = reference_workchain.inputs.kpoints
-            kpoints.set_kpoints_mesh(previous_kpoints.get_attribute('mesh'), previous_kpoints.get_attribute('offset'))
+            kpoints.set_kpoints_mesh(
+                previous_kpoints.base.attributes.get('mesh'), previous_kpoints.base.attributes.get('offset')
+            )
         else:
             kpoints.set_kpoints_mesh_from_density(protocol['kpoint_distance'])
 

@@ -15,7 +15,7 @@ from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('FleurCommonRelaxInputGenerator',)
 
-StructureData = plugins.DataFactory('structure')
+StructureData = plugins.DataFactory('core.structure')
 
 
 class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
@@ -47,7 +47,7 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
     def _initialize_protocols(self):
         """Initialize the protocols class attribute by parsing them from the configuration file."""
-        with open(str(pathlib.Path(__file__).parent / 'protocol.yml')) as handle:
+        with open(str(pathlib.Path(__file__).parent / 'protocol.yml'), encoding='utf-8') as handle:
             self._protocols = yaml.safe_load(handle)
 
     @classmethod

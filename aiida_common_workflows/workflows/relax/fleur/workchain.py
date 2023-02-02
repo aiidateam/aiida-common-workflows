@@ -24,13 +24,13 @@ def get_forces_from_trajectory(trajectory):  # pylint: disable=unused-argument
 @calcfunction
 def get_total_energy(parameters):
     """Calcfunction to get total energy from relax output"""
-    return orm.Float(parameters.get_attribute('energy'))
+    return orm.Float(parameters.base.attributes.get('energy'))
 
 
 @calcfunction
 def get_total_magnetization(parameters):
     """Return the total magnetic moment of the cell from the given parameters node."""
-    return orm.Float(parameters.get_attribute('total_magnetic_moment_cell'))
+    return orm.Float(parameters.base.attributes.get('total_magnetic_moment_cell'))
 
 
 class FleurCommonRelaxWorkChain(CommonRelaxWorkChain):

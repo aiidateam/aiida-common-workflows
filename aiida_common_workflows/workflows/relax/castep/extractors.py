@@ -28,7 +28,7 @@ def get_ts_energy(common_relax_workchain):
     if common_relax_workchain.process_class != CastepCommonRelaxWorkChain:
         return ValueError('The input workchain is not a `CastepCommonRelaxWorkChain`')
 
-    castep_base_wc = common_relax_workchain.get_outgoing(link_type=LinkType.CALL_WORK).one().node
+    castep_base_wc = common_relax_workchain.base.links.get_outgoing(link_type=LinkType.CALL_WORK).one().node
     e_ks = castep_base_wc.outputs.output_parameters['total energy']
     free_e = castep_base_wc.outputs.output_parameters['free energy']
 

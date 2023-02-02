@@ -13,7 +13,7 @@ from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('SiestaCommonRelaxInputGenerator',)
 
-StructureData = plugins.DataFactory('structure')
+StructureData = plugins.DataFactory('core.structure')
 
 
 class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
@@ -54,7 +54,7 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         """Initialize the protocols class attribute by parsing them from the configuration file."""
         _filepath = os.path.join(os.path.dirname(__file__), 'protocol.yml')
 
-        with open(_filepath) as _thefile:
+        with open(_filepath, encoding='utf-8') as _thefile:
             self._protocols = yaml.full_load(_thefile)
 
     @classmethod
@@ -98,7 +98,7 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         pseudo_family = self._protocols[protocol]['pseudo_family']
         try:
-            orm.Group.objects.get(label=pseudo_family)
+            orm.Group.collection.get(label=pseudo_family)
         except exceptions.NotExistent as exc:
             raise ValueError(
                 f'protocol `{protocol}` requires `pseudo_family` with name {pseudo_family} '
@@ -213,8 +213,8 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         #the underline SiestaBaseWorkChain.
         if reference_workchain is not None:
             from aiida.orm import WorkChainNode
-            siesta_base_outs = reference_workchain.get_outgoing(node_class=WorkChainNode).one().node.outputs
-            mesh = siesta_base_outs.output_parameters.attributes['mesh']
+            siesta_base_outs = reference_workchain.base.links.get_outgoing(node_class=WorkChainNode).one().node.outputs
+            mesh = siesta_base_outs.output_parameters.base.attributes.get('mesh')
             parameters['mesh-sizes'] = f'[{mesh[0]} {mesh[1]} {mesh[2]}]'
             parameters.pop('mesh-cutoff', None)
 
@@ -281,7 +281,9 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             kpoints_mesh = KpointsData()
             kpoints_mesh.set_cell_from_structure(structure)
             previous_wc_kp = reference_workchain.inputs.kpoints
-            kpoints_mesh.set_kpoints_mesh(previous_wc_kp.get_attribute('mesh'), previous_wc_kp.get_attribute('offset'))
+            kpoints_mesh.set_kpoints_mesh(
+                previous_wc_kp.base.attributes.get('mesh'), previous_wc_kp.base.attributes.get('offset')
+            )
             return kpoints_mesh
 
         if 'kpoints' in self._protocols[key]:

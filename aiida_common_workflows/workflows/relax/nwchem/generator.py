@@ -14,7 +14,7 @@ from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('NwchemCommonRelaxInputGenerator',)
 
-StructureData = plugins.DataFactory('structure')
+StructureData = plugins.DataFactory('core.structure')
 
 HA_BOHR_TO_EV_A = 51.42208619083232
 
@@ -31,7 +31,7 @@ class NwchemCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
     def _initialize_protocols(self):
         """Initialize the protocols class attribute by parsing them from the configuration file."""
-        with open(pathlib.Path(__file__).parent / 'protocol.yml') as handle:
+        with open(pathlib.Path(__file__).parent / 'protocol.yml', encoding='utf-8') as handle:
             self._protocols = yaml.safe_load(handle)
 
     @classmethod
@@ -78,7 +78,7 @@ class NwchemCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         else:
             reciprocal_axes_lengths = np.linalg.norm(np.linalg.inv(structure.cell), axis=1)
             kpoints = np.ceil(reciprocal_axes_lengths / target_spacing).astype(int).tolist()
-            parameters['nwpw']['monkhorst-pack'] = '{} {} {}'.format(*kpoints)
+            parameters['nwpw']['monkhorst-pack'] = '{} {} {}'.format(*kpoints)  # pylint: disable=consider-using-f-string
 
         # Relaxation type
         if relax_type == RelaxType.POSITIONS:

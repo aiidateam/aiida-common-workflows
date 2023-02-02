@@ -57,6 +57,6 @@ class SiestaCommonRelaxWorkChain(CommonRelaxWorkChain):
         res_dict = get_forces_and_stress(self.ctx.workchain.outputs.forces_and_stress)
         self.out('forces', res_dict['forces'])
         self.out('stress', res_dict['stress'])
-        if 'stot' in self.ctx.workchain.outputs.output_parameters.attributes:
+        if 'stot' in self.ctx.workchain.outputs.output_parameters.base.attributes.all:
             self.out('total_magnetization', get_magn(self.ctx.workchain.outputs.output_parameters))
         self.out('remote_folder', self.ctx.workchain.outputs.remote_folder)

@@ -22,7 +22,7 @@ HA_TO_EV = 27.211396
 @calcfunction
 def get_total_energy(parameters):
     """Return the total energy from the given parameters node."""
-    return orm.Float(parameters.get_attribute('energy') * HA_TO_EV)
+    return orm.Float(parameters.base.attributes.get('energy') * HA_TO_EV)
 
 
 @calcfunction

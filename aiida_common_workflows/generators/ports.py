@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """Modules with resources to define specific port types for input generator specifications."""
+from __future__ import annotations
+
 import typing as t
 
 from aiida.engine import InputPort
@@ -30,7 +32,7 @@ class ChoiceType:
         """
         valid_types = tuple({type(choice) for choice in choices})
         self.choices: t.Sequence[t.Any] = choices
-        self.valid_type: t.Tuple[t.Any] = valid_types if len(valid_types) > 1 else valid_types[0]
+        self.valid_type: tuple[t.Any] = valid_types if len(valid_types) > 1 else valid_types[0]
 
 
 class InputGeneratorPort(InputPort):
@@ -45,7 +47,7 @@ class InputGeneratorPort(InputPort):
         self.valid_type = valid_type
 
     @Port.valid_type.setter
-    def valid_type(self, valid_type: t.Optional[t.Any]) -> None:
+    def valid_type(self, valid_type: t.Any | None) -> None:
         """Set the valid value type for this port.
 
         :param valid_type: the value valid type.
@@ -60,15 +62,15 @@ class InputGeneratorPort(InputPort):
 
         self._valid_type = valid_type
 
-    def validate(self, value: t.Any, breadcrumbs: t.Sequence[str] = ()) -> t.Optional[PortValidationError]:
+    def validate(self, value: t.Any, breadcrumbs: t.Sequence[str] = ()) -> PortValidationError | None:
         """Validate the value by calling the super followed by checking it against the choices if defined."""
         result = super().validate(value, breadcrumbs)
 
         if result is not None:
             return result
 
-        if self.code_entry_point is not None and value.get_input_plugin_name() != self.code_entry_point:
-            return f'invalid entry point `{value.get_input_plugin_name()}` for `Code{value}`.'
+        if self.code_entry_point is not None and value.default_calc_job_plugin != self.code_entry_point:
+            return f'invalid entry point `{value.default_calc_job_plugin}` for `Code{value}`.'
 
         if value is not UNSPECIFIED and self.choices is not None and value not in self.choices:
             choices = [str(value) for value in self.choices]

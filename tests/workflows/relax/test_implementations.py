@@ -23,7 +23,7 @@ def test_spec(workchain):
 
     required_ports = {
         'structure': {
-            'valid_type': plugins.DataFactory('structure')
+            'valid_type': plugins.DataFactory('core.structure')
         },
         'protocol': {
             'valid_type': str

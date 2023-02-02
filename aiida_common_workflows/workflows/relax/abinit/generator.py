@@ -19,7 +19,7 @@ from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('AbinitCommonRelaxInputGenerator',)
 
-StructureData = plugins.DataFactory('structure')
+StructureData = plugins.DataFactory('core.structure')
 
 
 class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
@@ -34,7 +34,7 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
     def _initialize_protocols(self):
         """Initialize the protocols class attribute by parsing them from the configuration file."""
-        with open(str(pathlib.Path(__file__).parent / 'protocol.yml')) as handle:
+        with open(str(pathlib.Path(__file__).parent / 'protocol.yml'), encoding='utf-8') as handle:
             self._protocols = yaml.safe_load(handle)
 
     @classmethod
@@ -76,7 +76,7 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         pseudo_family_label = protocol.pop('pseudo_family')
         try:
-            pseudo_family = orm.Group.objects.get(label=pseudo_family_label)
+            pseudo_family = orm.Group.collection.get(label=pseudo_family_label)
         except exceptions.NotExistent as exception:
             raise ValueError(
                 f'required pseudo family `{pseudo_family_label}` is not installed. '

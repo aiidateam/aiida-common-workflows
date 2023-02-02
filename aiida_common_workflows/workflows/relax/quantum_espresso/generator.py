@@ -13,7 +13,7 @@ from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('QuantumEspressoCommonRelaxInputGenerator',)
 
-StructureData = plugins.DataFactory('structure')
+StructureData = plugins.DataFactory('core.structure')
 
 
 def create_magnetic_allotrope(structure, magnetization_per_site):
@@ -197,7 +197,7 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             builder.base['pw']['parameters'] = orm.Dict(dict=parameters)
 
         if reference_workchain:
-            relax = reference_workchain.get_outgoing(node_class=orm.WorkChainNode).one().node
+            relax = reference_workchain.base.links.get_outgoing(node_class=orm.WorkChainNode).one().node
             base = sorted(relax.called, key=lambda x: x.ctime)[-1]
             calc = sorted(base.called, key=lambda x: x.ctime)[-1]
             kpoints = calc.inputs.kpoints
