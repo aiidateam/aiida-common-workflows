@@ -30,6 +30,7 @@
         "aiida-siesta>=1.2.0",
         "aiida-vasp",
         "pymatgen<=2021.3.3",
+        "numpy<1.24.0",
         "sqlalchemy<1.4",
         "ase!=3.20.*",
         "pint~=0.16",
