@@ -1,3 +1,0 @@
-recursive-exclude tests *
-recursive-include aiida_common_workflows/common/data *
-recursive-include aiida_common_workflows/workflows/relax *
