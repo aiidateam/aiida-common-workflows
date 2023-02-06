@@ -71,6 +71,7 @@ tests = [
 
 [project.scripts]
 aiida-common-workflows = 'aiida_common_workflows.cli:cmd_root'
+acwf = 'aiida_common_workflows.cli:cmd_root'
 
 [project.entry-points.'aiida.workflows']
 'common_workflows.dissociation_curve' = 'aiida_common_workflows.workflows.dissociation:DissociationCurveWorkChain'
