@@ -7,7 +7,7 @@ from aiida.common import exceptions
 from aiida.engine import WorkChain, append_, calcfunction
 from aiida.plugins import WorkflowFactory
 
-from aiida_common_workflows.workflows.relax.generator import RelaxType, SpinType, ElectronicType
+from aiida_common_workflows.workflows.relax.generator import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChain
 
 
@@ -22,7 +22,7 @@ def validate_inputs(value, _):
     generator = process_class.get_input_generator()
 
     try:
-        generator.get_builder(value['structure'], **value['generator_inputs'])
+        generator.get_builder(structure=value['structure'], **value['generator_inputs'])
     except Exception as exc:  # pylint: disable=broad-except
         return f'`{generator.__class__.__name__}.get_builder()` fails for the provided `generator_inputs`: {exc}'
 
@@ -81,12 +81,14 @@ class EquationOfStateWorkChain(WorkChain):
         # yapf: disable
         super().define(spec)
         spec.input('structure', valid_type=orm.StructureData, help='The structure at equilibrium volume.')
-        spec.input('scale_factors', valid_type=orm.List, required=False, validator=validate_scale_factors,
+        spec.input('scale_factors', valid_type=orm.List, required=False,
+            validator=validate_scale_factors, serializer=orm.to_aiida_type,
             help='The list of scale factors at which the volume and total energy of the structure should be computed.')
-        spec.input('scale_count', valid_type=orm.Int, default=lambda: orm.Int(7), validator=validate_scale_count,
+        spec.input('scale_count', valid_type=orm.Int, default=lambda: orm.Int(7),
+            validator=validate_scale_count, serializer=orm.to_aiida_type,
             help='The number of points to compute for the equation of state.')
         spec.input('scale_increment', valid_type=orm.Float, default=lambda: orm.Float(0.02),
-            validator=validate_scale_increment,
+            validator=validate_scale_increment, serializer=orm.to_aiida_type,
             help='The relative difference between consecutive scaling factors.')
         spec.input_namespace('generator_inputs',
             help='The inputs that will be passed to the input generator of the specified `sub_process`.')
@@ -127,20 +129,23 @@ class EquationOfStateWorkChain(WorkChain):
     def get_scale_factors(self):
         """Return the list of scale factors."""
         if 'scale_factors' in self.inputs:
-            return self.inputs.scale_factors
+            return tuple(self.inputs.scale_factors)
 
         count = self.inputs.scale_count.value
         increment = self.inputs.scale_increment.value
-        return [orm.Float(1 + i * increment - (count - 1) * increment / 2) for i in range(count)]
+        return tuple(float(1 + i * increment - (count - 1) * increment / 2) for i in range(count))
 
     def get_sub_workchain_builder(self, scale_factor, reference_workchain=None):
         """Return the builder for the relax workchain."""
         structure = scale_structure(self.inputs.structure, scale_factor)
         process_class = WorkflowFactory(self.inputs.sub_process_class)
 
+        base_inputs = {'structure': structure}
+        if reference_workchain is not None:
+            base_inputs['reference_workchain'] = reference_workchain
+
         builder = process_class.get_input_generator().get_builder(
-            structure,
-            reference_workchain=reference_workchain,
+            **base_inputs,
             **self.inputs.generator_inputs
         )
         builder._update(**self.inputs.get('sub_process', {}))  # pylint: disable=protected-access
@@ -149,7 +154,7 @@ class EquationOfStateWorkChain(WorkChain):
 
     def run_init(self):
         """Run the first workchain."""
-        scale_factor = self.get_scale_factors()[0]
+        scale_factor = orm.Float(self.get_scale_factors()[0])
         builder, structure = self.get_sub_workchain_builder(scale_factor)
         self.report(f'submitting `{builder.process_class.__name__}` for scale_factor `{scale_factor}`')
         self.ctx.reference_workchain = self.submit(builder)
@@ -166,14 +171,16 @@ class EquationOfStateWorkChain(WorkChain):
         """Run the sub process at each scale factor to compute the structure volume and total energy."""
         for scale_factor in self.get_scale_factors()[1:]:
             reference_workchain = self.ctx.reference_workchain
-            builder, structure = self.get_sub_workchain_builder(scale_factor, reference_workchain=reference_workchain)
+            builder, structure = self.get_sub_workchain_builder(
+                orm.Float(scale_factor), reference_workchain=reference_workchain
+            )
             self.report(f'submitting `{builder.process_class.__name__}` for scale_factor `{scale_factor}`')
             self.ctx.structures.append(structure)
             self.to_context(children=append_(self.submit(builder)))
 
     def inspect_eos(self):
         """Inspect all children workflows to make sure they finished successfully."""
-        if any([not child.is_finished_ok for child in self.ctx.children]):
+        if any(not child.is_finished_ok for child in self.ctx.children):
             return self.exit_codes.ERROR_SUB_PROCESS_FAILED.format(cls=self.inputs.sub_process_class)  # pylint: disable=no-member
 
         for index, child in enumerate(self.ctx.children):

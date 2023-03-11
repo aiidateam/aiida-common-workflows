@@ -2,8 +2,8 @@
 """Tests for the :mod:`aiida_common_workflows.cli.plot` module."""
 from pathlib import Path
 
-import pytest
 import matplotlib.pyplot as plt
+import pytest
 
 from aiida_common_workflows.cli import plot
 

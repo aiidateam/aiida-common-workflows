@@ -3,6 +3,7 @@
 from aiida import orm
 from aiida.engine import calcfunction
 from aiida.plugins import WorkflowFactory
+import pint
 
 from ..workchain import CommonRelaxWorkChain
 from .generator import QuantumEspressoCommonRelaxInputGenerator
@@ -13,11 +14,15 @@ __all__ = ('QuantumEspressoCommonRelaxWorkChain',)
 @calcfunction
 def extract_from_trajectory(trajectory):
     """Return the forces and stress arrays from the given trajectory data."""
+    ureg = pint.UnitRegistry()
+
     forces = orm.ArrayData()
     forces.set_array(name='forces', array=trajectory.get_array('forces')[-1])
 
+    stress_gpa = trajectory.get_array('stress')[-1] * ureg.GPa
+
     stress = orm.ArrayData()
-    stress.set_array(name='stress', array=trajectory.get_array('stress')[-1])
+    stress.set_array(name='stress', array=stress_gpa.to(ureg.electron_volt / ureg.angstrom**3).magnitude)
 
     return {'forces': forces, 'stress': stress}
 

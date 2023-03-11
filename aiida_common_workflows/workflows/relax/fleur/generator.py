@@ -2,15 +2,15 @@
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for FLEUR."""
 import collections
 import pathlib
-from typing import Any, Dict, List, Tuple, Union
+import typing as t
+
+from aiida import engine, orm, plugins
+from aiida.common.constants import elements as PeriodicTableElements
 import yaml
 
-from aiida import engine
-from aiida import orm
-from aiida import plugins
-from aiida.common.constants import elements as PeriodicTableElements
-
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
+from aiida_common_workflows.generators import ChoiceType, CodeType
+
 from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('FleurCommonRelaxInputGenerator',)
@@ -31,33 +31,13 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         },
         'precise': {
             'description': 'high level of accuracy'
-        }
-    }
-
-    _engine_types = {
-        'relax': {
-            'code_plugin': 'fleur.fleur',
-            'description': 'The code to perform the relaxation.'
         },
-        'inpgen': {
-            'code_plugin': 'fleur.inpgen',
-            'description': 'The code to generate the input files for FLEUR.'
+        'oxides_validation': {
+            'description': 'high level of accuracy. Used for validating oxide results for common-workflows'
+        },
+        'verification-pbe-v1': {
+            'description': 'high level of accuracy. Used for validating oxide results for common-workflows'
         }
-    }
-
-    _relax_types = {
-        RelaxType.NONE: 'Do not relax forces, just run a SCF workchain.',
-        RelaxType.POSITIONS: 'Relax only the atomic positions while keeping the cell fixed.'
-        # RelaxType.POSITIONS_CELL: 'Relax both atomic positions and the cell.'
-        # currently not supported by Fleur
-    }
-    _spin_types = {
-        SpinType.NONE: 'Non magnetic calculation, forcefully switch it off in FLEUR.',
-        SpinType.COLLINEAR: 'Magnetic calculation with collinear spins'
-    }
-    _electronic_types = {
-        ElectronicType.METAL: 'For FLEUR, metals and insulators are equally treated',
-        ElectronicType.INSULATOR: 'For FLEUR, metals and insulators are equally treated'
     }
 
     def __init__(self, *args, **kwargs):
@@ -70,79 +50,48 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         with open(str(pathlib.Path(__file__).parent / 'protocol.yml')) as handle:
             self._protocols = yaml.safe_load(handle)
 
-    def get_builder(
-        self,
-        structure: StructureData,
-        engines: Dict[str, Any],
-        *,
-        protocol: str = None,
-        relax_type: Union[RelaxType, str] = RelaxType.POSITIONS,
-        electronic_type: Union[ElectronicType, str] = ElectronicType.METAL,
-        spin_type: Union[SpinType, str] = SpinType.NONE,
-        magnetization_per_site: Union[List[float], Tuple[float]] = None,
-        threshold_forces: float = None,
-        threshold_stress: float = None,
-        reference_workchain=None,
-        **kwargs
-    ) -> engine.ProcessBuilder:
-        """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
+    @classmethod
+    def define(cls, spec):
+        """Define the specification of the input generator.
 
-        :param structure: the structure to be relaxed.
-        :param engines: a dictionary containing the computational resources for the relaxation.
-        :param protocol: the protocol to use when determining the workchain inputs.
-        :param relax_type: the type of relaxation to perform.
-        :param electronic_type: the electronic character that is to be used for the structure.
-        :param spin_type: the spin polarization type to use for the calculation.
-        :param magnetization_per_site: a list with the initial spin polarization for each site. Float or integer in
-            units of electrons. If not defined, the builder will automatically define the initial magnetization if and
-            only if `spin_type != SpinType.NONE`.
-        :param threshold_forces: target threshold for the forces in eV/Å.
-        :param threshold_stress: target threshold for the stress in eV/Å^3.
-        :param reference_workchain: a <Code>RelaxWorkChain node.
-        :param kwargs: any inputs that are specific to the plugin.
-        :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
+        The ports defined on the specification are the inputs that will be accepted by the ``get_builder`` method.
         """
-        # pylint: disable=too-many-locals
-        # pylint: disable=too-many-branches
-        # pylint: disable=too-many-statements
-        protocol = protocol or self.get_default_protocol_name()
-
-        super().get_builder(
-            structure,
-            engines,
-            protocol=protocol,
-            relax_type=relax_type,
-            electronic_type=electronic_type,
-            spin_type=spin_type,
-            magnetization_per_site=magnetization_per_site,
-            threshold_forces=threshold_forces,
-            threshold_stress=threshold_stress,
-            reference_workchain=reference_workchain,
-            **kwargs
+        super().define(spec)
+        spec.inputs['spin_type'].valid_type = ChoiceType((SpinType.NONE, SpinType.COLLINEAR))
+        spec.inputs['relax_type'].valid_type = ChoiceType((RelaxType.NONE, RelaxType.POSITIONS))
+        spec.inputs['electronic_type'].valid_type = ChoiceType((ElectronicType.METAL, ElectronicType.INSULATOR))
+        spec.inputs['protocol'].valid_type = ChoiceType(
+            ('fast', 'moderate', 'precise', 'oxides_validation', 'verification-pbe-v1')
         )
-        # pylint: disable=too-many-locals
+        spec.input('engines.inpgen.code', valid_type=orm.Code, serializer=orm.load_code)
+        spec.input('engines.inpgen.options', valid_type=dict, required=False)
+        spec.inputs['engines']['relax']['code'].valid_type = CodeType('fleur.fleur')
+        spec.inputs['engines']['inpgen']['code'].valid_type = CodeType('fleur.inpgen')
 
-        if isinstance(electronic_type, str):
-            electronic_type = ElectronicType(electronic_type)
+    def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:
+        """Construct a process builder based on the provided keyword arguments.
 
-        if isinstance(relax_type, str):
-            relax_type = RelaxType(relax_type)
-
-        if isinstance(spin_type, str):
-            spin_type = SpinType(spin_type)
+        The keyword arguments will have been validated against the input generator specification.
+        """
+        # pylint: disable=too-many-branches,too-many-statements,too-many-locals
+        structure = kwargs['structure']
+        engines = kwargs['engines']
+        protocol = kwargs['protocol']
+        spin_type = kwargs['spin_type']
+        relax_type = kwargs['relax_type']
+        magnetization_per_site = kwargs.get('magnetization_per_site', None)
+        threshold_forces = kwargs.get('threshold_forces', None)
+        threshold_stress = kwargs.get('threshold_stress', None)
+        reference_workchain = kwargs.get('reference_workchain', None)
 
         inpgen_code = engines['inpgen']['code']
         fleur_code = engines['relax']['code']
-        if not isinstance(inpgen_code, orm.Code):
-            inpgen_code = orm.load_code(inpgen_code)
-        if not isinstance(fleur_code, orm.Code):
-            fleur_code = orm.load_code(fleur_code)
         options = engines['relax'].get('options', {})
         options_scf = orm.Dict(dict=options)
         # Checks if protocol exists
         if protocol not in self.get_protocol_names():
             import warnings
-            warnings.warn('no protocol implemented with name {}, using default moderate'.format(protocol))
+            warnings.warn(f'no protocol implemented with name {protocol}, using default moderate')
             protocol = self.get_default_protocol_name()
         else:
             protocol = self.get_protocol(protocol)
@@ -195,11 +144,18 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             wf_para_dict['relax_iter'] = 0
             wf_para_dict['relaxation_type'] = None
         else:
-            raise ValueError('relaxation type `{}` is not supported'.format(relax_type.value))
+            raise ValueError(f'relaxation type `{relax_type.value}` is not supported')
 
         # We reduce the number of sigfigs for the cell and atom positions accounts for less
-        #  numerical inpgen errors during relaxation and accuracy is still enough for this purpose
-        settings = orm.Dict(dict={'significant_figures_cell': 9, 'significant_figures_position': 9})
+        # numerical inpgen errors during relaxation and accuracy is still enough for this purpose
+        # We also currently assume that all common-workflow protocols exist in fleur
+        settings = orm.Dict(
+            dict={
+                'significant_figures_cell': 9,
+                'significant_figures_position': 9,
+                'profile': protocol['inpgen-protocol']
+            }
+        )
 
         wf_para = orm.Dict(dict=wf_para_dict)
 
@@ -213,24 +169,30 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 'forcemix': 'straight'
             },
             'use_relax_xml': True,
-            'serial': False,
             'mode': relaxation_mode,
         }
         protocol_scf_para = protocol.get('scf', {})
-        kmax = protocol_scf_para.pop('k_max_cutoff', None)
+        kmax = protocol_scf_para.pop('k_max_cutoff', None)  # for now always None, later consider clean up
 
         if molecule:  # We want to use only one kpoint, can be overwritten by user input
             protocol_scf_para['kpoints_distance'] = 100000000
             # In addition we might want to use a different basis APW+LO?
 
         wf_para_scf_dict = recursive_merge(default_scf, protocol_scf_para)
-        wf_para_scf = orm.Dict(dict=wf_para_scf_dict)
 
         if reference_workchain is not None:
             parameters = get_parameters(reference_workchain)
+            if 'kpt' in parameters.get_dict():
+                wf_para_scf_dict.pop('kpoints_distance', None)
+                if protocol_scf_para.get('kpoints_force_gamma', False):
+                    parameters = parameters.get_dict()
+                    parameters['kpt']['gamma'] = True
+                    parameters = orm.Dict(dict=parameters)
+
+        wf_para_scf = orm.Dict(dict=wf_para_scf_dict)
 
         # User specification overrides previous workchain!
-        if 'calc_parameters' in kwargs.keys():
+        if 'calc_parameters' in kwargs:
             parameters = kwargs.pop('calc_parameters')
 
         parameters, structure = prepare_calc_parameters(parameters, spin_type, magnetization_per_site, structure, kmax)
@@ -336,8 +298,8 @@ def get_parameters(reference_workchain):
                                Fleur CalcJob or Inpgen CalcJob.
     :return: Dict node of parameters ready to use, or None
     """
-    from aiida.plugins import WorkflowFactory
     from aiida.common.exceptions import NotExistent
+    from aiida.plugins import WorkflowFactory
     from aiida_fleur.tools.common_fleur_wf import find_last_submitted_workchain
 
     fleur_scf_wc = WorkflowFactory('fleur.scf')
@@ -358,13 +320,13 @@ def get_parameters(reference_workchain):
     # Be aware that this parameter node is incomplete. LOs and econfig is
     # currently missing for example, also we do not reuse the same kpoints.
     # the density is likely the same, but the set may vary.
-    parameters = fleurinp.get_parameterdata_ncf()  # This is not a calcfunction!
+    parameters = fleurinp.get_parameterdata_ncf(write_ids=False)  # This is not a calcfunction!
 
     return parameters
 
 
 # Same code as in Quantum_espresso generator.py could be moved somewhere else and imported
-def recursive_merge(left: Dict[str, Any], right: Dict[str, Any]) -> Dict[str, Any]:
+def recursive_merge(left: t.Dict[str, t.Any], right: t.Dict[str, t.Any]) -> t.Dict[str, t.Any]:
     """Recursively merge two dictionaries into a single dictionary.
 
     :param left: first dictionary.

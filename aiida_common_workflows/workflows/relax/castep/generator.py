@@ -2,21 +2,23 @@
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for CASTEP"""
 import collections
 import copy
-import pathlib
 from math import pi
-from typing import Any, Dict, List, Tuple, Union
-import yaml
+import pathlib
+import typing as t
 
-from aiida import engine
-from aiida import orm
-from aiida import plugins
+from aiida import engine, orm, plugins
 from aiida.common import exceptions
 from aiida_castep.data import get_pseudos_from_structure
 from aiida_castep.data.otfg import OTFGGroup
+import yaml
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
+from aiida_common_workflows.generators import ChoiceType, CodeType
+
 from ..generator import CommonRelaxInputGenerator
+
 # pylint: disable=import-outside-toplevel, too-many-branches, too-many-statements
+KNOWN_BUILTIN_FAMILIES = ('C19', 'NCP19', 'QC5', 'C17', 'C9')
 
 __all__ = ('CastepCommonRelaxInputGenerator',)
 
@@ -27,33 +29,6 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
     """Input generator for the `CastepCommonRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
-    _engine_types = {'relax': {'code_plugin': 'castep.castep', 'description': 'The code to perform the relaxation.'}}
-    _relax_types = {
-        RelaxType.POSITIONS: 'Relax only the atomic positions while keeping the cell fixed.',
-        RelaxType.POSITIONS_CELL: 'Relax both atomic positions and the cell.',
-        RelaxType.POSITIONS_SHAPE: 'Relax both atomic positions and the shape of the cell, keeping the volume fixed.',
-        RelaxType.POSITIONS_VOLUME:
-        'Relax both atomic positions and the volume of the cell, keeping the cell shape fixed.',
-        RelaxType.NONE: 'Do not do any relaxation.',
-        RelaxType.CELL: 'Only relax the cell with the scaled positions of atoms are kept fixed.',
-        RelaxType.SHAPE: 'Only relax the shape of the cell.',
-        RelaxType.VOLUME: 'Only relax the volume of the cell.',
-    }
-    _spin_types = {
-        SpinType.NONE: 'No spin polarisation',
-        SpinType.COLLINEAR: 'Collinear spin polarisation',
-        SpinType.NON_COLLINEAR: 'Non-collinear spin. Symmetry is disabled by default.',
-        # For now SOC requires special tabulated pseudopotentials (not the on-the-fly generated ones)
-        # SpinType.SPIN_ORBIT: 'Non-collinear spin with spin-orbit coupling. Symmetry is disabled by default'
-    }
-    _electronic_types = {
-        ElectronicType.METAL:
-        'Allow variable occupation and use density mixing method with increased k-point density.',
-        ElectronicType.INSULATOR:
-        'Interally treated as metals, since density mixing is often more efficient for insulators.',
-        ElectronicType.AUTOMATIC:
-        'Interally treated as metals, since density mixing is often more efficient for insulators.'
-    }
 
     def __init__(self, *args, **kwargs):
         """Construct an instance of the input generator, validating the class attributes."""
@@ -65,63 +40,40 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         with open(str(pathlib.Path(__file__).parent / 'protocol.yml')) as handle:
             self._protocols = yaml.safe_load(handle)
 
-    def get_builder(
-        self,
-        structure: StructureData,
-        engines: Dict[str, Any],
-        *,
-        protocol: str = None,
-        relax_type: Union[RelaxType, str] = RelaxType.POSITIONS,
-        electronic_type: Union[ElectronicType, str] = ElectronicType.METAL,
-        spin_type: Union[SpinType, str] = SpinType.NONE,
-        magnetization_per_site: Union[List[float], Tuple[float]] = None,
-        threshold_forces: float = None,
-        threshold_stress: float = None,
-        reference_workchain=None,
-        **kwargs
-    ) -> engine.ProcessBuilder:
-        """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
+    @classmethod
+    def define(cls, spec):
+        """Define the specification of the input generator.
 
-        :param structure: the structure to be relaxed.
-        :param engines: a dictionary containing the computational resources for the relaxation.
-        :param protocol: the protocol to use when determining the workchain inputs.
-        :param relax_type: the type of relaxation to perform.
-        :param electronic_type: the electronic character that is to be used for the structure.
-        :param spin_type: the spin polarization type to use for the calculation.
-        :param magnetization_per_site: a list with the initial spin polarization for each site. Float or integer in
-            units of electrons. If not defined, the builder will automatically define the initial magnetization if and
-            only if `spin_type != SpinType.NONE`.
-        :param threshold_forces: target threshold for the forces in eV/Å.
-        :param threshold_stress: target threshold for the stress in eV/Å^3.
-        :param reference_workchain: a <Code>RelaxWorkChain node.
-        :param kwargs: any inputs that are specific to the plugin.
-        :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
+        The ports defined on the specification are the inputs that will be accepted by the ``get_builder`` method.
         """
-        # pylint: disable=too-many-locals
-        protocol = protocol or self.get_default_protocol_name()
-
-        super().get_builder(
-            structure,
-            engines,
-            protocol=protocol,
-            relax_type=relax_type,
-            electronic_type=electronic_type,
-            spin_type=spin_type,
-            magnetization_per_site=magnetization_per_site,
-            threshold_forces=threshold_forces,
-            threshold_stress=threshold_stress,
-            reference_workchain=reference_workchain,
-            **kwargs
+        super().define(spec)
+        spec.input(
+            'protocol',
+            valid_type=ChoiceType(('fast', 'moderate', 'precise', 'verification-PBE-v1', 'verification-PBE-v1-a0')),
+            default='moderate',
+            help='The protocol to use for the automated input generation. This value indicates the level of precision '
+            'of the results and computational cost that the input parameters will be selected for.',
         )
+        spec.inputs['spin_type'].valid_type = ChoiceType((SpinType.NONE, SpinType.COLLINEAR, SpinType.NON_COLLINEAR))
+        spec.inputs['relax_type'].valid_type = ChoiceType(tuple(RelaxType))
+        spec.inputs['electronic_type'].valid_type = ChoiceType((ElectronicType.METAL, ElectronicType.INSULATOR))
+        spec.inputs['engines']['relax']['code'].valid_type = CodeType('castep.castep')
 
-        if isinstance(electronic_type, str):
-            electronic_type = ElectronicType(electronic_type)
+    def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:
+        """Construct a process builder based on the provided keyword arguments.
 
-        if isinstance(relax_type, str):
-            relax_type = RelaxType(relax_type)
-
-        if isinstance(spin_type, str):
-            spin_type = SpinType(spin_type)
+        The keyword arguments will have been validated against the input generator specification.
+        """
+        # pylint: disable=too-many-branches,too-many-statements,too-many-locals
+        structure = kwargs['structure']
+        engines = kwargs['engines']
+        protocol = kwargs['protocol']
+        spin_type = kwargs['spin_type']
+        relax_type = kwargs['relax_type']
+        magnetization_per_site = kwargs.get('magnetization_per_site', None)
+        threshold_forces = kwargs.get('threshold_forces', None)
+        threshold_stress = kwargs.get('threshold_stress', None)
+        reference_workchain = kwargs.get('reference_workchain', None)
 
         # Taken from http://greif.geo.berkeley.edu/~driver/conversions.html
         # 1 eV/Angstrom3 = 160.21766208 GPa
@@ -165,7 +117,7 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             param['fix_all_ions'] = True
             param['cell_constraints'] = ['1 1 1', '0 0 0']
         else:
-            raise ValueError('relaxation type `{}` is not supported'.format(relax_type.value))
+            raise ValueError(f'relaxation type `{relax_type.value}` is not supported')
 
         # Process the spin types
         if spin_type == SpinType.COLLINEAR:
@@ -182,7 +134,7 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         elif spin_type == SpinType.NONE:
             param['spin_polarized'] = False
         else:
-            raise ValueError('Spin type `{}` is not supported'.format(spin_type.value))
+            raise ValueError(f'Spin type `{spin_type.value}` is not supported')
 
         # Process the initial magnetic moments
         if magnetization_per_site:
@@ -194,7 +146,7 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             elif isinstance(magnetization_per_site[0], dict):
                 raise ValueError('Dictionary style initialisation is not supported yet')
             else:
-                raise ValueError('Unsupported `magnetization_per_site` format {}'.format(magnetization_per_site[0]))
+                raise ValueError(f'Unsupported `magnetization_per_site` format {magnetization_per_site[0]}')
         elif spin_type == SpinType.COLLINEAR:
             # Initialise with FM spin arrangement
             override['base']['calc']['settings'] = {'SPINS': [1.0] * len(structure.sites)}
@@ -217,11 +169,13 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         # Raise the cut off energy for very soft pseudopotentials
         # this is because the small basis set will give rise to errors in EOS / variable volume
         # relaxation even with the "fine" option
-        with open(str(pathlib.Path(__file__).parent / 'soft_elements.yml')) as fhandle:
-            soft_elements = yaml.safe_load(fhandle)
-        symbols = [kind.symbol for kind in structure.kinds]
-        if all([sym in soft_elements for sym in symbols]):
-            param['cut_off_energy'] = 326  # eV, approximately 12 Ha
+        if 'cut_off_energy' not in protocol['relax']['base']['calc']['parameters']:
+            with open(str(pathlib.Path(__file__).parent / 'soft_elements.yml')) as fhandle:
+                soft_elements = yaml.safe_load(fhandle)
+            symbols = [kind.symbol for kind in structure.kinds]
+            if all(sym in soft_elements for sym in symbols):
+                param['cut_off_energy'] = 326  # eV, approximately 12 Ha
+                param.pop('basis_precision', None)
 
         # Apply the overrides
         if param:
@@ -255,7 +209,7 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         return builder
 
 
-def recursive_merge(left: Dict[str, Any], right: Dict[str, Any]) -> Dict[str, Any]:
+def recursive_merge(left: t.Dict[str, t.Any], right: t.Dict[str, t.Any]) -> t.Dict[str, t.Any]:
     """Recursively merge two dictionaries into a single dictionary.
 
     :param left: first dictionary.
@@ -276,11 +230,11 @@ def recursive_merge(left: Dict[str, Any], right: Dict[str, Any]) -> Dict[str, An
 
 def generate_inputs(
     process_class: engine.Process,
-    protocol: Dict,
+    protocol: t.Dict,
     code: orm.Code,
     structure: orm.StructureData,
-    override: Dict[str, Any] = None
-) -> Dict[str, Any]:
+    override: t.Dict[str, t.Any] = None
+) -> t.Dict[str, t.Any]:
     """Generate the input parameters for the given workchain type for a given code, structure and pseudo family.
 
     The override argument can be used to pass a dictionary with values for specific inputs that should override the
@@ -316,12 +270,6 @@ def generate_inputs(
 
     type_check(structure, orm.StructureData)
 
-    if not isinstance(code, orm.Code):
-        try:
-            code = orm.load_code(code)
-        except (exceptions.MultipleObjectsError, exceptions.NotExistent) as exception:
-            raise ValueError('could not load the code {}: {}'.format(code, exception)) from exception
-
     if process_class == CastepCalculation:
         protocol = protocol['relax']['base']['calc']
         dictionary = generate_inputs_calculation(protocol, code, structure, otfg_family, override)
@@ -332,18 +280,18 @@ def generate_inputs(
         protocol = protocol['relax']
         dictionary = generate_inputs_relax(protocol, code, structure, otfg_family, override)
     else:
-        raise NotImplementedError('process class {} is not supported'.format(process_class))
+        raise NotImplementedError(f'process class {process_class} is not supported')
 
     return dictionary
 
 
 def generate_inputs_relax(
-    protocol: Dict,
+    protocol: t.Dict,
     code: orm.Code,
     structure: orm.StructureData,
     otfg_family: OTFGGroup,
-    override: Dict[str, Any] = None
-) -> Dict[str, Any]:
+    override: t.Dict[str, t.Any] = None
+) -> t.Dict[str, t.Any]:
     """Generate the inputs for the `CastepCommonRelaxWorkChain` for a given code, structure and pseudo potential family.
 
     :param protocol: the dictionary with protocol inputs.
@@ -374,12 +322,12 @@ def generate_inputs_relax(
 
 
 def generate_inputs_base(
-    protocol: Dict,
+    protocol: t.Dict,
     code: orm.Code,
     structure: orm.StructureData,
     otfg_family: OTFGGroup,
-    override: Dict[str, Any] = None
-) -> Dict[str, Any]:
+    override: t.Dict[str, t.Any] = None
+) -> t.Dict[str, t.Any]:
     """Generate the inputs for the `CastepBaseWorkChain` for a given code, structure and pseudo potential family.
 
     :param protocol: the dictionary with protocol inputs.
@@ -404,19 +352,20 @@ def generate_inputs_base(
         'kpoints_spacing': orm.Float(merged['kpoints_spacing'] / 2 / pi),
         'max_iterations': orm.Int(merged['max_iterations']),
         'pseudos_family': orm.Str(otfg_family.label),
-        'calc': calc_dictionary
+        'calc': calc_dictionary,
+        'ensure_gamma_centering': orm.Bool(merged.get('ensure_gamma_centering', False)),
     }
 
     return dictionary
 
 
 def generate_inputs_calculation(
-    protocol: Dict,
+    protocol: t.Dict,
     code: orm.Code,
     structure: orm.StructureData,
     otfg_family: OTFGGroup,
-    override: Dict[str, Any] = None
-) -> Dict[str, Any]:
+    override: t.Dict[str, t.Any] = None
+) -> t.Dict[str, t.Any]:
     """Generate the inputs for the `CastepCalculation` for a given code, structure and pseudo potential family.
 
     :param protocol: the dictionary with protocol inputs.
@@ -463,8 +412,12 @@ def generate_inputs_calculation(
     return dictionary
 
 
-def ensure_otfg_family(family_name):
-    """Add common OTFG families if they do not exist"""
+def ensure_otfg_family(family_name, force_update=False):
+    """
+    Add common OTFG families if they do not exist
+    NOTE: CASTEP also supports UPF families, but it is not enabled here, since no UPS based protocol
+    has been implemented.
+    """
 
     from aiida.common import NotExistent
     from aiida_castep.data.otfg import upload_otfg_family
@@ -472,9 +425,29 @@ def ensure_otfg_family(family_name):
     # Ensure family name is a str
     if isinstance(family_name, orm.Str):
         family_name = family_name.value
-
     try:
         OTFGGroup.objects.get(label=family_name)
     except NotExistent:
-        description = f"CASTEP built-in on-the-fly generated pseudos libraray '{family_name}'"
-        upload_otfg_family([family_name], family_name, description, stop_if_existing=True)
+        has_family = False
+    else:
+        has_family = True
+
+    # Check if it is builtin family
+    if family_name in KNOWN_BUILTIN_FAMILIES:
+        if not has_family:
+            description = f"CASTEP built-in on-the-fly generated pseudos libraray '{family_name}'"
+            upload_otfg_family([family_name], family_name, description, stop_if_existing=True)
+        return
+
+    # Not an known family - check if it in the additional settings list
+    # Load configuration from the settings
+    with open(str(pathlib.Path(__file__).parent / 'additional_otfg_families.yml')) as handle:
+        additional = yaml.safe_load(handle)
+
+    if family_name in additional:
+        if not has_family or force_update:
+            description = f"Modified CASTEP built-in on-the-fly generated pseudos libraray '{family_name}'"
+            upload_otfg_family(additional[family_name], family_name, description, stop_if_existing=False)
+    elif not has_family:
+        # No family found - and it is not recognized
+        raise RuntimeError(f"Family name '{family_name}' is not recognized!")

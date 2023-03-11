@@ -26,11 +26,10 @@ jobs:
                 python-version: 3.8
 
         -   name: Install python dependencies
-            run: pip install .[pre-commit,tests]
+            run: pip install .[docs,pre-commit,tests]
 
         -   name: Run pre-commit
-            run:
-                pre-commit run --all-files || ( git status --short ; git diff ; exit 1 )
+            run: pre-commit run --all-files || ( git status --short ; git diff ; exit 1 )
 
     tests:
 
@@ -39,7 +38,7 @@ jobs:
 
         strategy:
             matrix:
-                python-version: [3.7, 3.8, 3.9]
+                python-version: ['3.8', '3.9', '3.10']
 
         services:
             rabbitmq:
@@ -71,5 +70,4 @@ jobs:
                 reentry scan
 
         -   name: Run pytest
-            run:
-                pytest -sv tests
+            run: pytest -sv tests

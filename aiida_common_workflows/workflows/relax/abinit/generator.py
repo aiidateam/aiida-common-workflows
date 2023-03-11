@@ -3,17 +3,18 @@
 import collections
 import copy
 import pathlib
-from typing import Any, Dict, List, Tuple, Union
+import typing as t
 import warnings
-
-import yaml
-from pymatgen.core import units
-import numpy as np
 
 from aiida import engine, orm, plugins
 from aiida.common import exceptions
+import numpy as np
+from pymatgen.core import units
+import yaml
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
+from aiida_common_workflows.generators import ChoiceType, CodeType
+
 from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('AbinitCommonRelaxInputGenerator',)
@@ -25,25 +26,6 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
     """Input generator for the `AbinitCommonRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
-    _engine_types = {'relax': {'code_plugin': 'abinit', 'description': 'The code to perform the relaxation.'}}
-    _relax_types = {
-        RelaxType.NONE: 'Fix the atomic positions, cell volume, and cell shape.',
-        RelaxType.POSITIONS: 'Relax the atomic positions at fixed cell volume and shape.',
-        RelaxType.POSITIONS_CELL: 'Relax the atomic positions, cell volume, and cell shape.',
-        RelaxType.POSITIONS_VOLUME: 'Relax the atomic positions and cell volume at fixed cell shape.',
-        RelaxType.POSITIONS_SHAPE: 'Relax the atomic positions and cell shape at fixed cell volume.'
-    }
-    _spin_types = {
-        SpinType.NONE: 'Do not enable any magnetization or spin-orbit coupling.',
-        SpinType.COLLINEAR: 'Enable collinear magnetization. You must provide magnetization_per_site.',
-        SpinType.NON_COLLINEAR: 'Enable non-collinear magnetization with spin-orbit coupling (spinor w.f.s).',
-        SpinType.SPIN_ORBIT: 'Enable spin-orbit coupling (spinor w.f.s) without magnetization.'
-    }
-    _electronic_types = {
-        ElectronicType.METAL: 'Treat the system as metallic by allowing occupations to change, ' \
-            'using Fermi-Dirac smearing, and adding additional bands.',
-        ElectronicType.INSULATOR: 'Treat the system as an insulator with fixed integer occupations.'
-    }
 
     def __init__(self, *args, **kwargs):
         """Construct an instance of the input generator, validating the class attributes."""
@@ -55,63 +37,38 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         with open(str(pathlib.Path(__file__).parent / 'protocol.yml')) as handle:
             self._protocols = yaml.safe_load(handle)
 
-    def get_builder(
-        self,
-        structure: StructureData,
-        engines: Dict[str, Any],
-        *,
-        protocol: str = None,
-        relax_type: Union[RelaxType, str] = RelaxType.POSITIONS,
-        electronic_type: Union[ElectronicType, str] = ElectronicType.METAL,
-        spin_type: Union[SpinType, str] = SpinType.NONE,
-        magnetization_per_site: Union[List[float], Tuple[float]] = None,
-        threshold_forces: float = None,
-        threshold_stress: float = None,
-        reference_workchain=None,
-        **kwargs
-    ) -> engine.ProcessBuilder:
-        """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
+    @classmethod
+    def define(cls, spec):
+        """Define the specification of the input generator.
 
-        :param structure: the structure to be relaxed.
-        :param engines: a dictionary containing the computational resources for the relaxation.
-        :param protocol: the protocol to use when determining the workchain inputs.
-        :param relax_type: the type of relaxation to perform.
-        :param electronic_type: the electronic character that is to be used for the structure.
-        :param spin_type: the spin polarization type to use for the calculation.
-        :param magnetization_per_site: a list with the initial spin polarization for each site. Float or integer in
-            units of electrons. If not defined, the builder will automatically define the initial magnetization if and
-            only if `spin_type != SpinType.NONE`.
-        :param threshold_forces: target threshold for the forces in eV/Å.
-        :param threshold_stress: target threshold for the stress in eV/Å^3.
-        :param reference_workchain: a <Code>CommonRelaxWorkChain node.
-        :param kwargs: any inputs that are specific to the plugin.
-        :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
+        The ports defined on the specification are the inputs that will be accepted by the ``get_builder`` method.
         """
-        # pylint: disable=too-many-locals,too-many-branches,too-many-statements
-        protocol = protocol or self.get_default_protocol_name()
-
-        super().get_builder(
-            structure,
-            engines,
-            protocol=protocol,
-            relax_type=relax_type,
-            electronic_type=electronic_type,
-            spin_type=spin_type,
-            magnetization_per_site=magnetization_per_site,
-            threshold_forces=threshold_forces,
-            threshold_stress=threshold_stress,
-            reference_workchain=reference_workchain,
-            **kwargs
+        super().define(spec)
+        spec.inputs['spin_type'].valid_type = ChoiceType(tuple(SpinType))
+        spec.inputs['relax_type'].valid_type = ChoiceType([
+            t for t in RelaxType if t not in (RelaxType.VOLUME, RelaxType.SHAPE, RelaxType.CELL)
+        ])
+        spec.inputs['electronic_type'].valid_type = ChoiceType(
+            (ElectronicType.METAL, ElectronicType.INSULATOR, ElectronicType.UNKNOWN)
         )
+        spec.inputs['engines']['relax']['code'].valid_type = CodeType('abinit')
 
-        if isinstance(electronic_type, str):
-            electronic_type = ElectronicType(electronic_type)
+    def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:
+        """Construct a process builder based on the provided keyword arguments.
 
-        if isinstance(relax_type, str):
-            relax_type = RelaxType(relax_type)
-
-        if isinstance(spin_type, str):
-            spin_type = SpinType(spin_type)
+        The keyword arguments will have been validated against the input generator specification.
+        """
+        # pylint: disable=too-many-branches,too-many-statements,too-many-locals
+        structure = kwargs['structure']
+        engines = kwargs['engines']
+        protocol = kwargs['protocol']
+        spin_type = kwargs['spin_type']
+        relax_type = kwargs['relax_type']
+        electronic_type = kwargs['electronic_type']
+        magnetization_per_site = kwargs.get('magnetization_per_site', None)
+        threshold_forces = kwargs.get('threshold_forces', None)
+        threshold_stress = kwargs.get('threshold_stress', None)
+        reference_workchain = kwargs.get('reference_workchain', None)
 
         protocol = copy.deepcopy(self.get_protocol(protocol))
         code = engines['relax']['code']
@@ -183,7 +140,7 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             )  # Remove tolvrs; we will use force tolerance for SCF
             # Set k-points to gamma-point
             protocol['base']['kpoints'] = [1, 1, 1]
-            protocol['base']['abinit']['parameters']['shiftk'] = [[0, 0, 0]]
+            # protocol['base']['abinit']['parameters']['shiftk'] = [[0, 0, 0]]
             protocol['base']['abinit']['parameters']['nkpt'] = 1
             # Set a force tolerance for SCF convergence
             protocol['base']['abinit']['parameters']['toldff'] = threshold_f * 1.0e-1
@@ -210,14 +167,17 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         elif relax_type == RelaxType.POSITIONS_CELL:
             builder.abinit['parameters']['optcell'] = 2  # fully optimize the cell geometry
             builder.abinit['parameters']['dilatmx'] = 1.15  # book additional mem. for p.w. basis exp.
+            builder.abinit['parameters']['ecutsm'] = 0.5  # Ha, smearing on the energy cutoff
         elif relax_type == RelaxType.POSITIONS_VOLUME:
             builder.abinit['parameters']['optcell'] = 1  # optimize volume only
             builder.abinit['parameters']['dilatmx'] = 1.15  # book additional mem. for p.w. basis exp.
+            builder.abinit['parameters']['ecutsm'] = 0.5  # Ha, smearing on the energy cutoff
         elif relax_type == RelaxType.POSITIONS_SHAPE:
             builder.abinit['parameters']['optcell'] = 3  # constant-volume optimization of cell geometry
             builder.abinit['parameters']['dilatmx'] = 1.05  # book additional mem. for p.w. basis exp.
+            builder.abinit['parameters']['ecutsm'] = 0.5  # Ha, smearing on the energy cutoff
         else:
-            raise ValueError('relax type `{}` is not supported'.format(relax_type.value))
+            raise ValueError(f'relax type `{relax_type.value}` is not supported')
 
         # SpinType
         if spin_type == SpinType.NONE:
@@ -266,20 +226,22 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             builder.abinit['parameters']['nspinor'] = 2  # w.f. as spinors
             builder.abinit['parameters']['kptopt'] = 4  # no time-reversal symmetry
         else:
-            raise ValueError('spin type `{}` is not supported'.format(spin_type.value))
+            raise ValueError(f'spin type `{spin_type.value}` is not supported')
 
         # ElectronicType
-        if electronic_type == ElectronicType.METAL:
-            # protocal defaults to METAL
+        if electronic_type == ElectronicType.UNKNOWN:
+            # protocol defaults to UNKNOWN, which is metallic with Gaussian smearing
             pass
+        elif electronic_type == ElectronicType.METAL:
+            builder.abinit['parameters']['occopt'] = 5  # Marzari-Vanderbilt Cold II smearing
         elif electronic_type == ElectronicType.INSULATOR:
             # LATER: Support magnetization with insulators
             if spin_type not in [SpinType.NONE, SpinType.SPIN_ORBIT]:
-                raise ValueError('`spin_type` {} is not supported for insulating systems.'.format(spin_type.value))
-            builder.abinit['parameters']['occopt'] = 1  # fixed occupations, Abinit default
+                raise ValueError(f'`spin_type` {spin_type.value} is not supported for insulating systems.')
+            builder.abinit['parameters']['occopt'] = 1  # Fixed occupations, Abinit default
             builder.abinit['parameters']['fband'] = 0.125  # Abinit default
         else:
-            raise ValueError('electronic type `{}` is not supported'.format(electronic_type.value))
+            raise ValueError(f'electronic type `{electronic_type.value}` is not supported')
 
         # Continue force and stress thresholds from above (see molecule treatment)
         builder.abinit['parameters']['tolmxf'] = threshold_f
@@ -335,11 +297,11 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
 def generate_inputs(
     process_class: engine.Process,
-    protocol: Dict,
+    protocol: t.Dict,
     code: orm.Code,
     structure: StructureData,
-    override: Dict[str, Any] = None
-) -> Dict[str, Any]:
+    override: t.Dict[str, t.Any] = None
+) -> t.Dict[str, t.Any]:
     """Generate the input parameters for the given workchain type for a given code and structure.
 
     The override argument can be used to pass a dictionary with values for specific inputs that should override the
@@ -365,13 +327,6 @@ def generate_inputs(
 
     type_check(structure, orm.StructureData)
 
-    if not isinstance(code, orm.Code):
-        try:
-            code = orm.load_code(code)
-        except (exceptions.MultipleObjectsError, exceptions.NotExistent) as exception:
-            msg = f'could not load the code {code}'
-            raise ValueError(msg) from exception
-
     if process_class == AbinitCalculation:
         protocol = protocol['abinit']
         dictionary = generate_inputs_calculation(protocol, code, structure, override)
@@ -379,12 +334,12 @@ def generate_inputs(
         protocol = protocol['base']
         dictionary = generate_inputs_base(protocol, code, structure, override)
     else:
-        raise NotImplementedError('process class {} is not supported'.format(process_class))
+        raise NotImplementedError(f'process class {process_class} is not supported')
 
     return dictionary
 
 
-def recursive_merge(left: Dict[str, Any], right: Dict[str, Any]) -> Dict[str, Any]:
+def recursive_merge(left: t.Dict[str, t.Any], right: t.Dict[str, t.Any]) -> t.Dict[str, t.Any]:
     """Recursively merge two dictionaries into a single dictionary.
 
     :param left: first dictionary.
@@ -402,10 +357,12 @@ def recursive_merge(left: Dict[str, Any], right: Dict[str, Any]) -> Dict[str, An
     return merged
 
 
-def generate_inputs_base(protocol: Dict,
-                         code: orm.Code,
-                         structure: StructureData,
-                         override: Dict[str, Any] = None) -> Dict[str, Any]:
+def generate_inputs_base(
+    protocol: t.Dict,
+    code: orm.Code,
+    structure: StructureData,
+    override: t.Dict[str, t.Any] = None
+) -> t.Dict[str, t.Any]:
     """Generate the inputs for the `AbinitBaseWorkChain` for a given code, structure and pseudo potential family.
 
     :param protocol: the dictionary with protocol inputs.
@@ -433,8 +390,11 @@ def generate_inputs_base(protocol: Dict,
 
 
 def generate_inputs_calculation(
-    protocol: Dict, code: orm.Code, structure: StructureData, override: Dict[str, Any] = None
-) -> Dict[str, Any]:
+    protocol: t.Dict,
+    code: orm.Code,
+    structure: StructureData,
+    override: t.Dict[str, t.Any] = None
+) -> t.Dict[str, t.Any]:
     """Generate the inputs for the `AbinitCalculation` for a given code, structure and pseudo potential family.
 
     :param protocol: the dictionary with protocol inputs.
@@ -456,7 +416,7 @@ def generate_inputs_calculation(
     return dictionary
 
 
-def get_initial_magnetization(structure: StructureData) -> List[float]:
+def get_initial_magnetization(structure: StructureData) -> t.List[float]:
     """Generate a guess for initial magnetization using a magnetic moment mapping.
 
     See the function for elements with known magnetization guesses. If a gues is not known, 0.01 is used

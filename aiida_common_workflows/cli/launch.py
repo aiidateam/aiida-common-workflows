@@ -2,13 +2,13 @@
 """Commands to launch common workflows."""
 import functools
 
+from aiida.cmdline.params import types
 import click
 
-from aiida.cmdline.params import types
 from aiida_common_workflows.plugins import get_workflow_entry_point_names, load_workflow_entry_point
+
+from . import options, utils
 from .root import cmd_root
-from . import options
-from . import utils
 
 
 def validate_engine_options(engine_options, all_engines):
@@ -47,6 +47,7 @@ def cmd_launch():
 @options.THRESHOLD_STRESS()
 @options.NUMBER_MACHINES()
 @options.NUMBER_MPI_PROCS_PER_MACHINE()
+@options.NUMBER_CORES_PER_MPIPROC()
 @options.WALLCLOCK_SECONDS()
 @options.DAEMON()
 @options.MAGNETIZATION_PER_SITE()
@@ -55,8 +56,8 @@ def cmd_launch():
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
 def cmd_relax(  # pylint: disable=too-many-branches
     plugin, structure, codes, protocol, relax_type, electronic_type, spin_type, threshold_forces, threshold_stress,
-    number_machines, number_mpi_procs_per_machine, wallclock_seconds, daemon, magnetization_per_site,
-    reference_workchain, engine_options, show_engines
+    number_machines, number_mpi_procs_per_machine, number_cores_per_mpiproc, wallclock_seconds, daemon,
+    magnetization_per_site, reference_workchain, engine_options, show_engines
 ):
     """Relax a crystal structure using the common relax workflow for one of the existing plugin implementations.
 
@@ -65,11 +66,11 @@ def cmd_relax(  # pylint: disable=too-many-branches
     If no code is installed for at least one of the calculation engines, the command will fail.
     Use the `--show-engine` flag to display the required calculation engines for the selected plugin workflow.
     """
-    # pylint: disable=too-many-locals
+    # pylint: disable=too-many-locals,too-many-statements
     process_class = load_workflow_entry_point('relax', plugin)
     generator = process_class.get_input_generator()
 
-    number_engines = len(generator.get_engine_types())
+    number_engines = len(generator.spec().inputs['engines'])
 
     if number_machines is None:
         number_machines = [1] * number_engines
@@ -84,6 +85,12 @@ def cmd_relax(  # pylint: disable=too-many-branches
         raise click.BadParameter(
             f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
             param_hint='--number-mpi-procs-per-machine'
+        )
+
+    if number_cores_per_mpiproc is not None and len(number_cores_per_mpiproc) != number_engines:
+        raise click.BadParameter(
+            f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
+            param_hint='--number-cores-per-mpiproc'
         )
 
     if wallclock_seconds is None:
@@ -102,27 +109,25 @@ def cmd_relax(  # pylint: disable=too-many-branches
         raise click.BadParameter(message, param_hint='protocol')
 
     if show_engines:
-        for engine in generator.get_engine_types():
-            schema = generator.get_engine_type_schema(engine)
+        for engine, port in generator.spec().inputs['engines'].items():
             click.secho(engine, fg='red', bold=True)
-            click.echo('Required code plugin: {}'.format(schema['code_plugin']))
-            click.echo('Engine description:   {}'.format(schema['description']))
+            click.echo(f'Required code plugin: {port["code"].entry_point}')
+            click.echo(f'Engine description:   {port.help}')
 
         return
 
-    validate_engine_options(engine_options, generator.get_engine_types())
+    validate_engine_options(engine_options, generator.spec().inputs['engines'])
 
     engines = {}
 
-    for index, engine in enumerate(generator.get_engine_types()):
-        schema = generator.get_engine_type_schema(engine)
-        code_plugin = schema['code_plugin']
-
-        code = utils.get_code_from_list_or_database(codes or [], code_plugin)
+    for index, engine in enumerate(generator.spec().inputs['engines']):
+        port = generator.spec().inputs['engines'][engine]
+        entry_point = port['code'].code_entry_point
+        code = utils.get_code_from_list_or_database(codes or [], entry_point)
 
         if code is None:
             raise click.UsageError(
-                f'could not find a configured code for the plugin `{code_plugin}`. '
+                f'could not find a configured code for the plugin `{entry_point}`. '
                 'Either provide it with the -X option or make sure such a code is configured in the DB.'
             )
 
@@ -141,18 +146,31 @@ def cmd_relax(  # pylint: disable=too-many-branches
             if number_mpi_procs_per_machine[index] > 1:
                 engines[engine]['options']['withmpi'] = True
 
-    builder = generator.get_builder(
-        structure,
-        engines,
-        protocol=protocol,
-        relax_type=relax_type,
-        threshold_forces=threshold_forces,
-        threshold_stress=threshold_stress,
-        electronic_type=electronic_type,
-        spin_type=spin_type,
-        magnetization_per_site=magnetization_per_site,
-        reference_workchain=reference_workchain,
-    )
+        if number_cores_per_mpiproc is not None:
+            engines[engine]['options']['resources']['num_cores_per_mpiproc'] = number_cores_per_mpiproc[index]
+
+    inputs = {
+        'structure': structure,
+        'engines': engines,
+        'protocol': protocol,
+        'spin_type': spin_type,
+        'relax_type': relax_type,
+        'electronic_type': electronic_type,
+    }
+
+    if threshold_forces is not None:
+        inputs['threshold_forces'] = threshold_forces
+
+    if threshold_stress is not None:
+        inputs['threshold_stress'] = threshold_stress
+
+    if magnetization_per_site is not None:
+        inputs['magnetization_per_site'] = magnetization_per_site
+
+    if reference_workchain is not None:
+        inputs['reference_workchain'] = reference_workchain
+
+    builder = generator.get_builder(**inputs)
     utils.launch_process(builder, daemon)
 
 
@@ -168,15 +186,16 @@ def cmd_relax(  # pylint: disable=too-many-branches
 @options.THRESHOLD_STRESS()
 @options.NUMBER_MACHINES()
 @options.NUMBER_MPI_PROCS_PER_MACHINE()
+@options.NUMBER_CORES_PER_MPIPROC()
 @options.WALLCLOCK_SECONDS()
 @options.DAEMON()
 @options.MAGNETIZATION_PER_SITE()
 @options.ENGINE_OPTIONS()
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
-def cmd_eos(  # pylint: disable=too-many-branches
+def cmd_eos(  # pylint: disable=too-many-branches,too-many-statements
     plugin, structure, codes, protocol, relax_type, electronic_type, spin_type, threshold_forces, threshold_stress,
-    number_machines, number_mpi_procs_per_machine, wallclock_seconds, daemon, magnetization_per_site, engine_options,
-    show_engines
+    number_machines, number_mpi_procs_per_machine, number_cores_per_mpiproc, wallclock_seconds, daemon,
+    magnetization_per_site, engine_options, show_engines
 ):
     """Compute the equation of state of a crystal structure using the common relax workflow.
 
@@ -192,7 +211,7 @@ def cmd_eos(  # pylint: disable=too-many-branches
     process_class = load_workflow_entry_point('relax', plugin)
     generator = process_class.get_input_generator()
 
-    number_engines = len(generator.get_engine_types())
+    number_engines = len(generator.spec().inputs['engines'])
 
     if number_machines is None:
         number_machines = [1] * number_engines
@@ -207,6 +226,12 @@ def cmd_eos(  # pylint: disable=too-many-branches
         raise click.BadParameter(
             f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
             param_hint='--number-mpi-procs-per-machine'
+        )
+
+    if number_cores_per_mpiproc is not None and len(number_cores_per_mpiproc) != number_engines:
+        raise click.BadParameter(
+            f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
+            param_hint='--number-cores-per-mpiproc'
         )
 
     if wallclock_seconds is None:
@@ -225,26 +250,25 @@ def cmd_eos(  # pylint: disable=too-many-branches
         raise click.BadParameter(message, param_hint='protocol')
 
     if show_engines:
-        for engine in generator.get_engine_types():
-            schema = generator.get_engine_type_schema(engine)
+        for engine, port in generator.spec().inputs['engines'].items():
             click.secho(engine, fg='red', bold=True)
-            click.echo('Required code plugin: {}'.format(schema['code_plugin']))
-            click.echo('Engine description:   {}'.format(schema['description']))
+            click.echo(f'Required code plugin: {port["code"].entry_point}')
+            click.echo(f'Engine description:   {port.help}')
 
         return
 
-    validate_engine_options(engine_options, generator.get_engine_types())
+    validate_engine_options(engine_options, generator.spec().inputs['engines'])
 
     engines = {}
 
-    for index, engine in enumerate(generator.get_engine_types()):
-        schema = generator.get_engine_type_schema(engine)
-        code_plugin = schema['code_plugin']
-        code = utils.get_code_from_list_or_database(codes or [], code_plugin)
+    for index, engine in enumerate(generator.spec().inputs['engines']):
+        port = generator.spec().inputs['engines'][engine]
+        entry_point = port['code'].code_entry_point
+        code = utils.get_code_from_list_or_database(codes or [], entry_point)
 
         if code is None:
             raise click.UsageError(
-                f'could not find a configured code for the plugin `{code_plugin}`. '
+                f'could not find a configured code for the plugin `{entry_point}`. '
                 'Either provide it with the -X option or make sure such a code is configured in the DB.'
             )
 
@@ -262,6 +286,9 @@ def cmd_eos(  # pylint: disable=too-many-branches
             engines[engine]['options']['resources']['num_mpiprocs_per_machine'] = number_mpi_procs_per_machine[index]
             if number_mpi_procs_per_machine[index] > 1:
                 engines[engine]['options']['withmpi'] = True
+
+        if number_cores_per_mpiproc is not None:
+            engines[engine]['options']['resources']['num_cores_per_mpiproc'] = number_cores_per_mpiproc[index]
 
     inputs = {
         'structure': structure,
@@ -296,6 +323,7 @@ def cmd_eos(  # pylint: disable=too-many-branches
 @options.SPIN_TYPE()
 @options.NUMBER_MACHINES()
 @options.NUMBER_MPI_PROCS_PER_MACHINE()
+@options.NUMBER_CORES_PER_MPIPROC()
 @options.WALLCLOCK_SECONDS()
 @options.DAEMON()
 @options.MAGNETIZATION_PER_SITE()
@@ -303,6 +331,7 @@ def cmd_eos(  # pylint: disable=too-many-branches
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
 def cmd_dissociation_curve(  # pylint: disable=too-many-branches
     plugin, structure, codes, protocol, electronic_type, spin_type, number_machines, number_mpi_procs_per_machine,
+    number_cores_per_mpiproc,
     wallclock_seconds, daemon, magnetization_per_site, engine_options, show_engines
 ):
     """Compute the dissociation curve of a diatomic molecule using the common relax workflow.
@@ -323,7 +352,7 @@ def cmd_dissociation_curve(  # pylint: disable=too-many-branches
     process_class = load_workflow_entry_point('relax', plugin)
     generator = process_class.get_input_generator()
 
-    number_engines = len(generator.get_engine_types())
+    number_engines = len(generator.spec().inputs['engines'])
 
     if number_machines is None:
         number_machines = [1] * number_engines
@@ -338,6 +367,12 @@ def cmd_dissociation_curve(  # pylint: disable=too-many-branches
         raise click.BadParameter(
             f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
             param_hint='--number-mpi-procs-per-machine'
+        )
+
+    if number_cores_per_mpiproc is not None and len(number_cores_per_mpiproc) != number_engines:
+        raise click.BadParameter(
+            f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
+            param_hint='--number-cores-per-mpiproc'
         )
 
     if wallclock_seconds is None:
@@ -356,27 +391,25 @@ def cmd_dissociation_curve(  # pylint: disable=too-many-branches
         raise click.BadParameter(message, param_hint='protocol')
 
     if show_engines:
-        for engine in generator.get_engine_types():
-            schema = generator.get_engine_type_schema(engine)
+        for engine, port in generator.spec().inputs['engines'].items():
             click.secho(engine, fg='red', bold=True)
-            click.echo('Required code plugin: {}'.format(schema['code_plugin']))
-            click.echo('Engine description:   {}'.format(schema['description']))
+            click.echo(f'Required code plugin: {port["code"].entry_point}')
+            click.echo(f'Engine description:   {port.help}')
 
         return
 
-    validate_engine_options(engine_options, generator.get_engine_types())
+    validate_engine_options(engine_options, generator.spec().inputs['engines'].keys())
 
     engines = {}
 
-    for index, engine in enumerate(generator.get_engine_types()):
-        schema = generator.get_engine_type_schema(engine)
-        code_plugin = schema['code_plugin']
-
-        code = utils.get_code_from_list_or_database(codes or [], code_plugin)
+    for index, engine in enumerate(generator.spec().inputs['engines']):
+        port = generator.spec().inputs['engines'][engine]
+        entry_point = port['code'].code_entry_point
+        code = utils.get_code_from_list_or_database(codes or [], entry_point)
 
         if code is None:
             raise click.UsageError(
-                f'could not find a configured code for the plugin `{code_plugin}`. '
+                f'could not find a configured code for the plugin `{entry_point}`. '
                 'Either provide it with the -X option or make sure such a code is configured in the DB.'
             )
 
@@ -394,6 +427,9 @@ def cmd_dissociation_curve(  # pylint: disable=too-many-branches
             engines[engine]['options']['resources']['num_mpiprocs_per_machine'] = number_mpi_procs_per_machine[index]
             if number_mpi_procs_per_machine[index] > 1:
                 engines[engine]['options']['withmpi'] = True
+
+        if number_cores_per_mpiproc is not None:
+            engines[engine]['options']['resources']['num_cores_per_mpiproc'] = number_cores_per_mpiproc[index]
 
     inputs = {
         'molecule': structure,

@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 """Commands to plot results from a workflow."""
-import click
-
 from aiida.cmdline.params import arguments
 from aiida.cmdline.utils import echo
 from aiida.plugins import WorkflowFactory
+import click
 
-from .root import cmd_root
 from . import options
+from .root import cmd_root
 
 EquationOfStateWorkChain = WorkflowFactory('common_workflows.eos')
 DissociationCurveWorkChain = WorkflowFactory('common_workflows.dissociation_curve')
@@ -26,9 +25,9 @@ def cmd_plot():
 def cmd_plot_eos(workflow, precisions, print_table, output_file):
     """Plot the results from an `EquationOfStateWorkChain`."""
     # pylint: disable=too-many-locals
+    from aiida.common import LinkType
     from tabulate import tabulate
 
-    from aiida.common import LinkType
     from aiida_common_workflows.common.visualization.eos import get_eos_plot
 
     if workflow.process_class is not EquationOfStateWorkChain:
@@ -99,8 +98,9 @@ def cmd_plot_eos(workflow, precisions, print_table, output_file):
 def cmd_plot_dissociation_curve(workflow, precisions, print_table, output_file):
     """Plot the results from a `DissociationCurveWorkChain`."""
     # pylint: disable=too-many-locals
-    from tabulate import tabulate
     from aiida.common import LinkType
+    from tabulate import tabulate
+
     from aiida_common_workflows.common.visualization.dissociation import get_dissociation_plot
 
     if workflow.process_class is not DissociationCurveWorkChain:

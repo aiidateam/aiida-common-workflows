@@ -2,15 +2,15 @@
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for CP2K."""
 import collections
 import pathlib
-from typing import Any, Dict, List, Tuple, Union
-import yaml
-import numpy as np
+import typing as t
 
-from aiida import engine
-from aiida import orm
-from aiida import plugins
+from aiida import engine, orm, plugins
+import numpy as np
+import yaml
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
+from aiida_common_workflows.generators import ChoiceType, CodeType
+
 from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('Cp2kCommonRelaxInputGenerator',)
@@ -81,7 +81,7 @@ def tags_and_magnetization(structure, magnetization_per_site):
     return structure, None
 
 
-def guess_multiplicity(structure: StructureData, magnetization_per_site: List[float] = None):
+def guess_multiplicity(structure: StructureData, magnetization_per_site: t.List[float] = None):
     """Get total spin multiplicity from atomic magnetizations."""
     spin_multiplicity = 1
     if magnetization_per_site:
@@ -134,20 +134,6 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
     """Input generator for the `Cp2kRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
-    _engine_types = {'relax': {'code_plugin': 'cp2k', 'description': 'The code to perform the relaxation.'}}
-    _relax_types = {
-        RelaxType.NONE: 'No relaxation performed.',
-        RelaxType.POSITIONS: 'Relax only the atomic positions while keeping the cell fixed.',
-        RelaxType.POSITIONS_CELL: 'Relax both atomic positions and the cell.'
-    }
-    _spin_types = {
-        SpinType.NONE: 'Non magnetic calculation.',
-        SpinType.COLLINEAR: 'Magnetic calculation with collinear spins.'
-    }
-    _electronic_types = {
-        ElectronicType.METAL: 'Use smearing (default).',
-        ElectronicType.INSULATOR: 'Do not use smearing.'
-    }
 
     def __init__(self, *args, **kwargs):
         """Construct an instance of the input generator, validating the class attributes."""
@@ -159,63 +145,36 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         with open(pathlib.Path(__file__).parent / 'protocol.yml') as handle:
             self._protocols = yaml.safe_load(handle)
 
-    def get_builder(
-        self,
-        structure: StructureData,
-        engines: Dict[str, Any],
-        *,
-        protocol: str = None,
-        relax_type: Union[RelaxType, str] = RelaxType.POSITIONS,
-        electronic_type: Union[ElectronicType, str] = ElectronicType.METAL,
-        spin_type: Union[SpinType, str] = SpinType.NONE,
-        magnetization_per_site: Union[List[float], Tuple[float]] = None,
-        threshold_forces: float = None,
-        threshold_stress: float = None,
-        reference_workchain=None,
-        **kwargs
-    ) -> engine.ProcessBuilder:
-        """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
+    @classmethod
+    def define(cls, spec):
+        """Define the specification of the input generator.
 
-        :param structure: the structure to be relaxed.
-        :param engines: a dictionary containing the computational resources for the relaxation.
-        :param protocol: the protocol to use when determining the workchain inputs.
-        :param relax_type: the type of relaxation to perform.
-        :param electronic_type: the electronic character that is to be used for the structure.
-        :param spin_type: the spin polarization type to use for the calculation.
-        :param magnetization_per_site: a list with the initial spin polarization for each site. Float or integer in
-            units of electrons. If not defined, the builder will automatically define the initial magnetization if and
-            only if `spin_type != SpinType.NONE`.
-        :param threshold_forces: target threshold for the forces in eV/Å.
-        :param threshold_stress: target threshold for the stress in eV/Å^3.
-        :param reference_workchain: a <Code>RelaxWorkChain node.
-        :param kwargs: any inputs that are specific to the plugin.
-        :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
+        The ports defined on the specification are the inputs that will be accepted by the ``get_builder`` method.
         """
-        # pylint: disable=too-many-locals,too-many-statements,too-many-branches
-        protocol = protocol or self.get_default_protocol_name()
-
-        super().get_builder(
-            structure,
-            engines,
-            protocol=protocol,
-            relax_type=relax_type,
-            electronic_type=electronic_type,
-            spin_type=spin_type,
-            magnetization_per_site=magnetization_per_site,
-            threshold_forces=threshold_forces,
-            threshold_stress=threshold_stress,
-            reference_workchain=reference_workchain,
-            **kwargs
+        super().define(spec)
+        spec.inputs['spin_type'].valid_type = ChoiceType((SpinType.NONE, SpinType.COLLINEAR))
+        spec.inputs['relax_type'].valid_type = ChoiceType(
+            (RelaxType.NONE, RelaxType.POSITIONS, RelaxType.POSITIONS_CELL)
         )
+        spec.inputs['electronic_type'].valid_type = ChoiceType((ElectronicType.METAL, ElectronicType.INSULATOR))
+        spec.inputs['engines']['relax']['code'].valid_type = CodeType('cp2k')
 
-        if isinstance(electronic_type, str):
-            electronic_type = ElectronicType(electronic_type)
+    def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:
+        """Construct a process builder based on the provided keyword arguments.
 
-        if isinstance(relax_type, str):
-            relax_type = RelaxType(relax_type)
-
-        if isinstance(spin_type, str):
-            spin_type = SpinType(spin_type)
+        The keyword arguments will have been validated against the input generator specification.
+        """
+        # pylint: disable=too-many-branches,too-many-statements,too-many-locals
+        structure = kwargs['structure']
+        engines = kwargs['engines']
+        protocol = kwargs['protocol']
+        spin_type = kwargs['spin_type']
+        relax_type = kwargs['relax_type']
+        electronic_type = kwargs['electronic_type']
+        magnetization_per_site = kwargs.get('magnetization_per_site', None)
+        threshold_forces = kwargs.get('threshold_forces', None)
+        threshold_stress = kwargs.get('threshold_stress', None)
+        reference_workchain = kwargs.get('reference_workchain', None)
 
         # The builder.
         builder = self.process_class.get_builder()
@@ -310,7 +269,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         )
 
         # CP2K code.
-        builder.cp2k.code = orm.load_code(engines['relax']['code'])
+        builder.cp2k.code = engines['relax']['code']
 
         # Run options.
         builder.cp2k.metadata.options = engines['relax']['options']

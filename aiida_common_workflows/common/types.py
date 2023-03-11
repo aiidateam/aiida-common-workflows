@@ -33,3 +33,4 @@ class ElectronicType(Enum):
     AUTOMATIC = 'automatic'
     METAL = 'metal'
     INSULATOR = 'insulator'
+    UNKNOWN = 'unknown'

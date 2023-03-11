@@ -8,14 +8,14 @@ import matplotlib.pyplot as plt
 def get_dissociation_plot(
     distances: typing.List[float],
     energies: typing.List[float],
-    unit_distance: str = 'Å^3',
+    unit_distance: str = 'Å',
     unit_energy: str = 'eV'
 ) -> plt:
     """Plot the dissociation curve for a given set of distances and energies.
 
     :param distances: list of cell volumes.
     :param energies: list of energies.
-    :param unit_distance: unit of volume, default is [Å^3].
+    :param unit_distance: unit of distance, default is [Å].
     :param unit_energy: unit of energy, default is [eV].
     """
     if len(distances) != len(energies):

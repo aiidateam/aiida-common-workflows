@@ -2,8 +2,8 @@
 """Module with base wrapper workchain for common structure relaxation workchains."""
 from abc import ABCMeta, abstractmethod
 
-from aiida.engine import WorkChain, ToContext
-from aiida.orm import StructureData, ArrayData, TrajectoryData, Float
+from aiida.engine import ToContext, WorkChain
+from aiida.orm import ArrayData, Float, RemoteData, StructureData, TrajectoryData
 
 from .generator import CommonRelaxInputGenerator
 
@@ -51,6 +51,8 @@ class CommonRelaxWorkChain(WorkChain, metaclass=ABCMeta):
             help='Total energy in eV.')
         spec.output('total_magnetization', valid_type=Float, required=False,
             help='Total magnetization in Bohr magnetons.')
+        spec.output('remote_folder', valid_type=RemoteData, required=False,
+            help='Folder of the last run calculation.')
         spec.exit_code(400, 'ERROR_SUB_PROCESS_FAILED',
             message='The `{cls}` workchain failed with exit status {exit_status}.')
 
@@ -61,11 +63,13 @@ class CommonRelaxWorkChain(WorkChain, metaclass=ABCMeta):
 
     def inspect_workchain(self):
         """Inspect the terminated workchain."""
+        cls = self._process_class.__name__
         if not self.ctx.workchain.is_finished_ok:
-            cls = self._process_class.__name__
             exit_status = self.ctx.workchain.exit_status
-            self.report('the `{}` failed with exit status {}'.format(cls, exit_status))
+            self.report(f'{cls}<{self.ctx.workchain.pk}> failed with exit status {exit_status}.')
             return self.exit_codes.ERROR_SUB_PROCESS_FAILED.format(cls=cls, exit_status=exit_status)
+
+        self.report(f'{cls}<{self.ctx.workchain.pk}> finished successfully.')
 
     @abstractmethod
     def convert_outputs(self):

@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for Quantum ESPRESSO."""
-from typing import Any, Dict, List, Tuple, Union
-
-from aiida import engine
-from aiida import orm
-from aiida import plugins
+from aiida import engine, orm, plugins
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
+from aiida_common_workflows.generators import ChoiceType, CodeType
+
 from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('QuantumEspressoCommonRelaxInputGenerator',)
@@ -63,27 +61,7 @@ def create_magnetic_allotrope(structure, magnetization_per_site):
 
 
 class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
-    """Input generator for the `QuantumEspressoCommonRelaxWorkChain`."""
-
-    _engine_types = {
-        'relax': {
-            'code_plugin': 'quantumespresso.pw',
-            'description': 'The code to perform the relaxation.'
-        }
-    }
-    _relax_types = {
-        relax_type: '...'
-        for relax_type in RelaxType
-        if relax_type not in (RelaxType.VOLUME, RelaxType.POSITIONS_VOLUME)
-    }
-    _spin_types = {
-        SpinType.NONE: 'Treat the system without spin polarization.',
-        SpinType.COLLINEAR: 'Treat the system with spin polarization.'
-    }
-    _electronic_types = {
-        ElectronicType.METAL: 'Treat the system as a metal with smeared occupations.',
-        ElectronicType.INSULATOR: 'Treat the system as an insulator with fixed occupations.'
-    }
+    """Input generator for the common relax workflow implementation of Quantum ESPRESSO."""
 
     def __init__(self, *args, **kwargs):
         """Construct an instance of the input generator, validating the class attributes."""
@@ -100,57 +78,39 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         self._default_protocol = self.process_class.get_default_protocol()
         self._protocols = self.process_class.get_available_protocols()
 
-    def get_builder(
-        self,
-        structure: StructureData,
-        engines: Dict[str, Any],
-        *,
-        protocol: str = None,
-        relax_type: Union[RelaxType, str] = RelaxType.POSITIONS,
-        electronic_type: Union[ElectronicType, str] = ElectronicType.METAL,
-        spin_type: Union[SpinType, str] = SpinType.NONE,
-        magnetization_per_site: Union[List[float], Tuple[float]] = None,
-        threshold_forces: float = None,
-        threshold_stress: float = None,
-        reference_workchain=None,
-        **kwargs
-    ) -> engine.ProcessBuilder:
-        """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
+    @classmethod
+    def define(cls, spec):
+        """Define the specification of the input generator.
 
-        :param structure: the structure to be relaxed.
-        :param engines: a dictionary containing the computational resources for the relaxation.
-        :param protocol: the protocol to use when determining the workchain inputs.
-        :param relax_type: the type of relaxation to perform.
-        :param electronic_type: the electronic character that is to be used for the structure.
-        :param spin_type: the spin polarization type to use for the calculation.
-        :param magnetization_per_site: a list with the initial spin polarization for each site. Float or integer in
-            units of electrons. If not defined, the builder will automatically define the initial magnetization if and
-            only if `spin_type != SpinType.NONE`.
-        :param threshold_forces: target threshold for the forces in eV/Å.
-        :param threshold_stress: target threshold for the stress in eV/Å^3.
-        :param reference_workchain: a <Code>RelaxWorkChain node.
-        :param kwargs: any inputs that are specific to the plugin.
-        :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
+        The ports defined on the specification are the inputs that will be accepted by the ``get_builder`` method.
         """
-        # pylint: disable=too-many-locals,too-many-branches
+        super().define(spec)
+        spec.inputs['spin_type'].valid_type = ChoiceType((SpinType.NONE, SpinType.COLLINEAR))
+        spec.inputs['relax_type'].valid_type = ChoiceType(
+            tuple(t for t in RelaxType if t not in (RelaxType.VOLUME, RelaxType.POSITIONS_VOLUME))
+        )
+        spec.inputs['electronic_type'].valid_type = ChoiceType((ElectronicType.METAL, ElectronicType.INSULATOR))
+        spec.inputs['engines']['relax']['code'].valid_type = CodeType('quantumespresso.pw')
+
+    def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:
+        """Construct a process builder based on the provided keyword arguments.
+
+        The keyword arguments will have been validated against the input generator specification.
+        """
+        # pylint: disable=too-many-branches,too-many-statements,too-many-locals
         from aiida_quantumespresso.common import types
         from qe_tools import CONSTANTS
 
-        protocol = protocol or self.get_default_protocol_name()
-
-        super().get_builder(
-            structure,
-            engines,
-            protocol=protocol,
-            relax_type=relax_type,
-            electronic_type=electronic_type,
-            spin_type=spin_type,
-            magnetization_per_site=magnetization_per_site,
-            threshold_forces=threshold_forces,
-            threshold_stress=threshold_stress,
-            reference_workchain=reference_workchain,
-            **kwargs
-        )
+        structure = kwargs['structure']
+        engines = kwargs['engines']
+        protocol = kwargs['protocol']
+        spin_type = kwargs['spin_type']
+        relax_type = kwargs['relax_type']
+        electronic_type = kwargs['electronic_type']
+        magnetization_per_site = kwargs.get('magnetization_per_site', None)
+        threshold_forces = kwargs.get('threshold_forces', None)
+        threshold_stress = kwargs.get('threshold_stress', None)
+        reference_workchain = kwargs.get('reference_workchain', None)
 
         if isinstance(electronic_type, str):
             electronic_type = types.ElectronicType(electronic_type)
@@ -183,6 +143,13 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             protocol=protocol,
             overrides={
                 'base': {
+                    'pw': {
+                        'metadata': {
+                            'options': engines['relax']['options']
+                        }
+                    }
+                },
+                'base_final_scf': {
                     'pw': {
                         'metadata': {
                             'options': engines['relax']['options']
