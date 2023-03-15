@@ -15,9 +15,7 @@ def extract_forces_from_array(array):
     """Return the forces and stress arrays from the given trajectory data."""
     forces = orm.ArrayData()
     forces.set_array(name='forces', array=array.get_array('forces'))
-
-    return {'forces': forces}
-
+    return forces
 
 @calcfunction
 def extract_total_energy_from_parameters(parameters):
@@ -25,9 +23,7 @@ def extract_total_energy_from_parameters(parameters):
     energy_cont = parameters.get_attribute('energy_contributions')
     total_energy =  energy_cont['xc'] + energy_cont['local'] + energy_cont['kinetic']
     total_energy += energy_cont['external'] + energy_cont['potential'] + energy_cont['entropy (-st)']
-    results = {'total_energy': orm.Float(total_energy)}
-
-    return results
+    return orm.Float(total_energy)
 
 
 class GPAWCommonRelaxWorkChain(CommonRelaxWorkChain):
@@ -40,8 +36,8 @@ class GPAWCommonRelaxWorkChain(CommonRelaxWorkChain):
         """Convert the outputs of the sub workchain to the common output specification."""
         outputs = self.ctx.workchain.outputs
 
-        total_energy, = extract_from_parameters(outputs.parameters).values()
-        forces, = extract_from_array(outputs.array).values()
+        total_energy = extract_total_energy_from_parameters(outputs.parameters)
+        forces = extract_total_energy_from_parameters(outputs.array)
 
         if 'output_structure' in outputs:
             self.out('relaxed_structure', outputs.output_structure)
