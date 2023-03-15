@@ -5,9 +5,9 @@ from aiida.engine import calcfunction
 from aiida.plugins import WorkflowFactory
 
 from ..workchain import CommonRelaxWorkChain
-from .generator import GPAWCommonRelaxInputGenerator
+from .generator import GpawCommonRelaxInputGenerator
 
-__all__ = ('GPAWCommonRelaxWorkChain',)
+__all__ = ('GpawCommonRelaxWorkChain',)
 
 
 @calcfunction
@@ -27,11 +27,11 @@ def extract_total_energy_from_parameters(parameters):
     return orm.Float(total_energy)
 
 
-class GPAWCommonRelaxWorkChain(CommonRelaxWorkChain):
+class GpawCommonRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for GPAW."""
 
     _process_class = WorkflowFactory('ase.gpaw.base')
-    _generator_class = GPAWCommonRelaxInputGenerator
+    _generator_class = GpawCommonRelaxInputGenerator
 
     def convert_outputs(self):
         """Convert the outputs of the sub workchain to the common output specification."""

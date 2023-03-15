@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for GPAW."""
-from typing import Any, Dict, List, Tuple, Union
 import pathlib
+from typing import Any, Dict, List, Tuple, Union
+
+from aiida import engine, orm, plugins
 import yaml
-from aiida import engine
-from aiida import orm
-from aiida import plugins
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
+
 from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('GpawCommonRelaxInputGenerator',)
@@ -15,7 +15,7 @@ __all__ = ('GpawCommonRelaxInputGenerator',)
 StructureData = plugins.DataFactory('core.structure')
 
 
-class GPAWCommonRelaxInputGenerator(CommonRelaxInputGenerator):
+class GpawCommonRelaxInputGenerator(CommonRelaxInputGenerator):  # pylint: disable=abstract-method
     """Input generator for the `GPAWCommonRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
@@ -38,10 +38,10 @@ class GPAWCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
     def _initialize_protocols(self):
         """Initialize the protocols class attribute by parsing them from the protocols configuration file."""
-        with open(str(pathlib.Path(__file__).parent / 'protocol.yml')) as handle:
+        with open(str(pathlib.Path(__file__).parent / 'protocol.yml'), encoding='UTF-8') as handle:
             self._protocols = yaml.safe_load(handle)
 
-    def get_builder(
+    def get_builder( # pylint: disable=arguments-differ,too-many-locals
         self,
         structure: StructureData,
         engines: Dict[str, Any],
@@ -75,7 +75,7 @@ class GPAWCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         """
         protocol = protocol or self.get_default_protocol_name()
 
-        super().get_builder(
+        super().get_builder( # pylint: disable=too-many-function-args
             structure,
             engines,
             protocol=protocol,
@@ -143,7 +143,7 @@ class GPAWCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         builder.kpoints = kpoints
 
-        builder.gpaw.parameters = orm.Dict(parameters)
+        builder.gpaw.parameters = orm.Dict(parameters)  # pylint: disable=too-many-function-args
 
         builder.gpaw.metadata.options = engines['relax']['options']
 
