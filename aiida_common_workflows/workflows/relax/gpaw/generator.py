@@ -10,9 +10,9 @@ from aiida import plugins
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from ..generator import CommonRelaxInputGenerator
 
-__all__ = ('GPAWCommonRelaxInputGenerator',)
+__all__ = ('GpawCommonRelaxInputGenerator',)
 
-StructureData = plugins.DataFactory('structure')
+StructureData = plugins.DataFactory('core.structure')
 
 
 class GPAWCommonRelaxInputGenerator(CommonRelaxInputGenerator):
@@ -73,7 +73,6 @@ class GPAWCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         :param kwargs: any inputs that are specific to the plugin.
         :return: a `aiida.engine.processes.ProcessBuilder` instance ready to be submitted.
         """
-        # pylint: disable=too-many-locals,too-many-branches
         protocol = protocol or self.get_default_protocol_name()
 
         super().get_builder(
@@ -144,7 +143,7 @@ class GPAWCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         builder.kpoints = kpoints
 
-        builder.gpaw.parameters = orm.Dict(dict=parameters)
+        builder.gpaw.parameters = orm.Dict(parameters)
 
         builder.gpaw.metadata.options = engines['relax']['options']
 

@@ -11,7 +11,7 @@ __all__ = ('GPAWCommonRelaxWorkChain',)
 
 
 @calcfunction
-def extract_from_array(array):
+def extract_forces_from_array(array):
     """Return the forces and stress arrays from the given trajectory data."""
     forces = orm.ArrayData()
     forces.set_array(name='forces', array=array.get_array('forces'))
@@ -20,7 +20,7 @@ def extract_from_array(array):
 
 
 @calcfunction
-def extract_from_parameters(parameters):
+def extract_total_energy_from_parameters(parameters):
     """Return the total energy from the given parameters node."""
     energy_cont = parameters.get_attribute('energy_contributions')
     total_energy =  energy_cont['xc'] + energy_cont['local'] + energy_cont['kinetic']
