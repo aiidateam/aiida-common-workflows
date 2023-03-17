@@ -12,7 +12,7 @@ from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('GpawCommonRelaxInputGenerator',)
 
-StructureData = plugins.DataFactory('core.structure')
+StructureData = plugins.DataFactory('structure')
 
 
 class GpawCommonRelaxInputGenerator(CommonRelaxInputGenerator):  # pylint: disable=abstract-method
