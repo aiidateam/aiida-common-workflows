@@ -30,9 +30,6 @@ moderate:
         gpts:
           '@function': 'PW'
           args: {'ecut': 600}
-        convergence:
-          energy: 0.0000000001
-          density: 0.000001
         occupations:
           name: 'fermi-dirac'
           width: 0.0612
