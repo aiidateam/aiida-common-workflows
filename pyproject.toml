@@ -131,6 +131,7 @@ disable = [
     'duplicate-code',
     'no-member',
     'too-few-public-methods',
+    'bad-continuation',
 ]
 
 [tool.pytest.ini_options]
