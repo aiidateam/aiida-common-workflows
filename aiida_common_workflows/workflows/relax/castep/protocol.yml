@@ -146,7 +146,7 @@ verification-PBE-v1-dojo-a0:
                     snap_to_symmetry: true
                     calculate_stress: true
                     # This cut off energy has no effect as the cutoff_stringency takes the precedence
-                    # The actual cut off energy used depends on the speices involved in the calculation
+                    # The actual cut off energy used depends on the species involved in the calculation
                     cut_off_energy: 800
                     write_otfg: false
                     opt_strategy: speed
@@ -187,8 +187,49 @@ verification-PBE-v1-dojo-a1:
                     snap_to_symmetry: true
                     calculate_stress: true
                     # This cut off energy has no effect as the cutoff_stringency takes the precedence
-                    # The actual cut off energy used depends on the speices involved in the calculation
+                    # The actual cut off energy used depends on the species involved in the calculation
                     cut_off_energy: 800
+                    write_otfg: false
+                    opt_strategy: speed
+                    write_bib: false
+                    write_checkpoint: minimal
+                    finite_basis_corr: none   # No finite basis corr as we are NOT moving any atoms....
+                    max_scf_cycles: 100
+                    elec_energy_tol: 1e-8
+                    geom_force_tol: 0.03
+                    geom_energy_tol: 1.0e-5
+                    geom_stress_tol: 0.05
+                    grid_scale: 2
+                    fine_grid_scale: 4 # Include a finer charge grid, despite normal converging potentials
+                    # Revised smearing scheme for the oxide validation project
+                    smearing_width: 0.06122561905370023   # Equivalent to 0.0045 Ry
+                    smearing_scheme: FERMIDIRAC
+                    perc_extra_bands: 80
+                settings:
+                    ADDITIONAL_RETRIEVE_TEMPORARY_LIST: ["aiida.castep_bin"]
+
+verification-PBE-v1-dojo-a2:
+    name: 'verification-PBE-dojo-a2'
+    description: 'Protocol for the oxides validation study using PseudoDojo with trimmed Upf potentials'
+    cutoff_stringency: "high"
+    relax:
+        relax_options:
+            max_meta_iterations: 5
+
+        base:
+            pseudos_family: 'PseudoDojo/0.4/PBE/SR/standard/upf-trimmed-600'
+            max_iterations: 5
+            kpoints_spacing: 0.06    # K point spacing in A^-1, not the A^-1 2Pi that CASTEP defaults to
+            ensure_gamma_centering: True   # Ensure that the kpoint grid is Gamma-centered
+            calc:
+                parameters:
+                    task: geometryoptimisation
+                    xc_functional: pbe
+                    symmetry_generate: true
+                    snap_to_symmetry: true
+                    calculate_stress: true
+                    # This cut off energy has no effect as the cutoff_stringency takes the precedence
+                    # The actual cut off energy used depends on the species involved in the calculation
                     write_otfg: false
                     opt_strategy: speed
                     write_bib: false

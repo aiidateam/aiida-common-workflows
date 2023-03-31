@@ -4,6 +4,7 @@ import collections
 import copy
 from math import pi
 import pathlib
+import re
 import typing as t
 
 from aiida import engine, orm, plugins
@@ -59,6 +60,7 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 'verification-PBE-v1-a0',
                 'verification-PBE-v1-dojo-a0',
                 'verification-PBE-v1-dojo-a1',
+                'verification-PBE-v1-dojo-a2',
                 'verification-PBE-v1-qc5-a0',
             )),
             default='moderate',
@@ -209,6 +211,28 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 # as CASTEP cannot infer default
                 # basis-related settings
                 cutoff, _ = pseudo_group.get_recommended_cutoffs(
+                    structure=structure, stringency=protocol['cutoff_stringency'], unit='eV'
+                )
+                cutoff = np.ceil(cutoff)
+                if not param:
+                    override['base']['calc']['parameters'] = {}
+                override['base']['calc']['parameters']['cut_off_energy'] = cutoff
+                override['base']['calc']['parameters'].pop('basis_precision', None)
+
+            # CASTEP does not truncate the data when reading in the potentials in order to
+            # reduced the numerical noise. This results in significant error for certain elements
+            # such as Cu. Abinit (with which the potentials are initially tested with) applies
+            # a filter of 6 a_0 for truncating the data. The routine below allows passing through
+            # 'trimmed' version of the dojo potentials while still using the recommanded cut offs
+            # The trimmed potentials may be uploaded as separated UpfGroup with a suffix like "-trimmed-600"
+            if '-trimmed' in pseudo_group.label:
+                dojo_group_label = re.sub('(-trimmed.*$)', '', pseudo_group.label)
+                dojo_group = orm.Group.objects.get(label=dojo_group_label)
+                # Using aiida_pseudo interface
+                # In this case we also have to set the cut off energy based on the protocol,
+                # as CASTEP cannot infer default
+                # basis-related settings
+                cutoff, _ = dojo_group.get_recommended_cutoffs(
                     structure=structure, stringency=protocol['cutoff_stringency'], unit='eV'
                 )
                 cutoff = np.ceil(cutoff)
