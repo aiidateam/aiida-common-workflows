@@ -24,7 +24,6 @@ requires-python = '>=3.8'
 dependencies = [
     'abipy',
     'aiida-abinit~=0.4.0',
-    'aiida-bigdft>=0.2.6',
     'aiida-castep>=1.2.0a5',
     'aiida-core[atomic_tools]~=1.6',
     'aiida-cp2k~=1.3',
