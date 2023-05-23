@@ -286,12 +286,14 @@ def generate_jthxml_data():
 
 
 @pytest.fixture(scope='session')
-def sssp(generate_upf_data):
+def sssp(aiida_profile, generate_upf_data):
     """Create an SSSP pseudo potential family from scratch."""
     from aiida.plugins import GroupFactory
 
+    aiida_profile.clear_profile()
+
     SsspFamily = GroupFactory('pseudo.family.sssp')  # pylint: disable=invalid-name
-    label = 'SSSP/1.1/PBE/efficiency'
+    label = 'SSSP/1.2/PBEsol/efficiency'
 
     try:
         family = SsspFamily.objects.get(label=label)
@@ -306,6 +308,12 @@ def sssp(generate_upf_data):
         for values in elements.values():
 
             element = values['symbol']
+
+            actinides = ('Ac', 'Th', 'Pa', 'U', 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr')
+
+            if element in actinides:
+                continue
+
             upf = generate_upf_data(element)
             filename = os.path.join(dirpath, f'{element}.upf')
 

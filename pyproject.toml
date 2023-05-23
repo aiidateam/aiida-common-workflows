@@ -22,26 +22,28 @@ classifiers = [
 keywords = ['aiida', 'workflows']
 requires-python = '>=3.8'
 dependencies = [
-    'abipy',
-    'aiida-abinit~=0.4.0',
-    'aiida-bigdft>=0.2.6',
-    'aiida-castep>=1.2.0a5',
-    'aiida-core[atomic_tools]~=2.1',
-    'aiida-cp2k~=1.3',
-    'aiida-fleur>=1.3.0',
-    'aiida-gaussian',
-    'aiida-nwchem>=2.1.0',
-    'aiida-orca',
-    'aiida-pseudo>=0.6.0',
-    'aiida-quantumespresso~=3.4,>=3.4.1',
-    'aiida-siesta>=1.2.0',
-    'aiida-vasp',
+    # 'abipy',
+    # 'aiida-abinit~=0.4.0',
+    # 'aiida-bigdft>=0.2.6',
+    # 'aiida-castep>=1.2.0a5',
+    # 'aiida-core[atomic_tools]~=2.1',
+    # 'aiida-cp2k~=1.3',
+    # 'aiida-fleur>=1.3.0',
+    # 'aiida-gaussian',
+    # 'aiida-nwchem>=2.1.0',
+    # 'aiida-orca',
+    'aiida-phonopy~=1.1,>=1.1.2',
+    'aiida-pseudo>=1.0.0',
+    # 'aiida-quantumespresso~=3.4,>=3.4.1',
+    # 'aiida-siesta>=1.2.0',
+    # 'aiida-vasp',
     'pymatgen>=2022.1.20',
     'numpy<1.24.0',
-    'sqlalchemy<1.4',
+    # 'sqlalchemy<1.4',
     'ase!=3.20.*',
     'pint~=0.16',
-    'masci-tools~=0.9'
+    'masci-tools~=0.9',
+    'spglib',
 ]
 
 [project.urls]
@@ -76,6 +78,7 @@ acwf = 'aiida_common_workflows.cli:cmd_root'
 [project.entry-points.'aiida.workflows']
 'common_workflows.dissociation_curve' = 'aiida_common_workflows.workflows.dissociation:DissociationCurveWorkChain'
 'common_workflows.eos' = 'aiida_common_workflows.workflows.eos:EquationOfStateWorkChain'
+'common_workflows.phonons.frozen_phonons' = 'aiida_common_workflows.workflows.phonons.frozen_phonons:FrozenPhononsWorkChain'
 'common_workflows.relax.abinit' = 'aiida_common_workflows.workflows.relax.abinit.workchain:AbinitCommonRelaxWorkChain'
 'common_workflows.relax.bigdft' = 'aiida_common_workflows.workflows.relax.bigdft.workchain:BigDftCommonRelaxWorkChain'
 'common_workflows.relax.castep' = 'aiida_common_workflows.workflows.relax.castep.workchain:CastepCommonRelaxWorkChain'
