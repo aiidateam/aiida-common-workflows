@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=undefined-variable
+# pylint: disable=undefined-variable,cyclic-import
 """Module with the implementations of the common structure relaxation workchain for Quantum ESPRESSO."""
 from .generator import *
 from .workchain import *
