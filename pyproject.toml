@@ -132,6 +132,7 @@ disable = [
     'duplicate-code',
     'no-member',
     'too-few-public-methods',
+    "wrong-import-order"
 ]
 
 [tool.pytest.ini_options]

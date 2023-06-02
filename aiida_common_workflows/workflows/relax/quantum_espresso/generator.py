@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for Quantum ESPRESSO."""
+from importlib import resources
+
 from aiida import engine, orm, plugins
+from aiida_quantumespresso.workflows.protocols.utils import recursive_merge
+import yaml
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
@@ -70,13 +74,17 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         if process_class is not None:
             self._default_protocol = process_class._process_class.get_default_protocol()
             self._protocols = process_class._process_class.get_available_protocols()
+            self._protocols.update({key: value['description'] for key, value in self._load_local_protocols().items()})
 
         super().__init__(*args, **kwargs)
 
-    def _initialize_protocols(self):
-        """Initialize the protocols class attribute by parsing them from the configuration file."""
-        self._default_protocol = self.process_class.get_default_protocol()
-        self._protocols = self.process_class.get_available_protocols()
+    @staticmethod
+    def _load_local_protocols():
+        """Load the protocols defined in the ``aiida-common-workflows`` package."""
+        from .. import quantum_espresso
+        with resources.open_text(quantum_espresso, 'protocol.yml') as handle:
+            protocol_dict = yaml.safe_load(handle)
+        return protocol_dict
 
     @classmethod
     def define(cls, spec):
@@ -85,6 +93,7 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         The ports defined on the specification are the inputs that will be accepted by the ``get_builder`` method.
         """
         super().define(spec)
+        spec.inputs['protocol'].valid_type = ChoiceType(('fast', 'moderate', 'precise', 'verification-pbe-v1'))
         spec.inputs['spin_type'].valid_type = ChoiceType((SpinType.NONE, SpinType.COLLINEAR))
         spec.inputs['relax_type'].valid_type = ChoiceType(
             tuple(t for t in RelaxType if t not in (RelaxType.VOLUME, RelaxType.POSITIONS_VOLUME))
@@ -97,7 +106,7 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         The keyword arguments will have been validated against the input generator specification.
         """
-        # pylint: disable=too-many-branches,too-many-statements,too-many-locals
+        # pylint: disable=too-many-branches,too-many-statements,too-many-locals,protected-access
         from aiida_quantumespresso.common import types
         from qe_tools import CONSTANTS
 
@@ -137,26 +146,38 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         else:
             initial_magnetic_moments = None
 
-        builder = self.process_class._process_class.get_builder_from_protocol(  # pylint: disable=protected-access
+        # Currently, the `aiida-quantumespresso` workflows will expect one of the basic protocols to be passed to the
+        # `get_builder_from_protocol()` method. Here, we switch to using the default protocol for the
+        # `aiida-quantumespresso` plugin and pass the local protocols as `overrides`.
+        if protocol not in self.process_class._process_class.get_available_protocols():
+            overrides = self._load_local_protocols()[protocol]
+            protocol = self._default_protocol
+        else:
+            overrides = {}
+
+        options_overrides = {
+            'base': {
+                'pw': {
+                    'metadata': {
+                        'options': engines['relax']['options']
+                    }
+                }
+            },
+            'base_final_scf': {
+                'pw': {
+                    'metadata': {
+                        'options': engines['relax']['options']
+                    }
+                }
+            },
+        }
+        overrides = recursive_merge(overrides, options_overrides)
+
+        builder = self.process_class._process_class.get_builder_from_protocol(
             engines['relax']['code'],
             structure,
             protocol=protocol,
-            overrides={
-                'base': {
-                    'pw': {
-                        'metadata': {
-                            'options': engines['relax']['options']
-                        }
-                    }
-                },
-                'base_final_scf': {
-                    'pw': {
-                        'metadata': {
-                            'options': engines['relax']['options']
-                        }
-                    }
-                },
-            },
+            overrides=overrides,
             relax_type=relax_type,
             electronic_type=electronic_type,
             spin_type=spin_type,
@@ -191,6 +212,6 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         # Currently the builder is set for the `PwRelaxWorkChain`, but we should return one for the wrapper workchain
         # `QuantumEspressoCommonRelaxWorkChain` for which this input generator is built
-        builder._process_class = self.process_class  # pylint: disable=protected-access
+        builder._process_class = self.process_class
 
         return builder
