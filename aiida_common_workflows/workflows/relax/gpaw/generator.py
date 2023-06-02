@@ -15,8 +15,8 @@ __all__ = ('GpawCommonRelaxInputGenerator',)
 StructureData = plugins.DataFactory('structure')
 
 
-class GpawCommonRelaxInputGenerator(CommonRelaxInputGenerator):  # pylint: disable=abstract-method
-    """Input generator for the `GPAWCommonRelaxWorkChain`."""
+class GpawCommonRelaxInputGenerator(CommonRelaxInputGenerator):
+    """Input generator for the `GpawCommonRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
     _engine_types = {'relax': {'code_plugin': 'ase.ase', 'description': 'The code to perform the relaxation.'}}
@@ -41,7 +41,7 @@ class GpawCommonRelaxInputGenerator(CommonRelaxInputGenerator):  # pylint: disab
         with open(str(pathlib.Path(__file__).parent / 'protocol.yml'), encoding='UTF-8') as handle:
             self._protocols = yaml.safe_load(handle)
 
-    def get_builder( # pylint: disable=arguments-differ,too-many-locals
+    def _construct_builder( # pylint: disable=arguments-differ,too-many-locals
         self,
         structure: StructureData,
         engines: Dict[str, Any],
@@ -91,31 +91,16 @@ class GpawCommonRelaxInputGenerator(CommonRelaxInputGenerator):  # pylint: disab
 
         if isinstance(electronic_type, str):
             electronic_type = ElectronicType(electronic_type)
-        else:
-            electronic_type = ElectronicType(electronic_type.value)
 
         if isinstance(relax_type, str):
             relax_type = RelaxType(relax_type)
-        else:
-            relax_type = RelaxType(relax_type.value)
 
         if isinstance(spin_type, str):
             spin_type = SpinType(spin_type)
-        else:
-            spin_type = SpinType(spin_type.value)
 
-        if protocol is None:
-            protocol = self._default_protocol
         protocol = self.get_protocol(protocol)
 
-        builder = self.process_class.get_builder()
-
-        builder.structure = structure
-
-        builder.gpaw.code = engines['relax']['code']
-
         parameters = protocol['parameters']
-
         parameters['atoms_getters'] = [
             'temperature',
             ['forces', {
@@ -134,10 +119,11 @@ class GpawCommonRelaxInputGenerator(CommonRelaxInputGenerator):  # pylint: disab
         else:
             kpoints.set_kpoints_mesh_from_density(protocol['kpoint_distance'])
 
+        builder = self.process_class.get_builder()
+        builder.structure = structure
         builder.kpoints = kpoints
-
-        builder.gpaw.parameters = orm.Dict(parameters)  # pylint: disable=too-many-function-args
-
+        builder.gpaw.code = engines['relax']['code']
+        builder.gpaw.parameters = orm.Dict(dict=parameters)
         builder.gpaw.metadata.options = engines['relax']['options']
 
         return builder
