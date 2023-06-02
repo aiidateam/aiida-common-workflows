@@ -104,24 +104,18 @@ class GpawCommonRelaxInputGenerator(CommonRelaxInputGenerator):  # pylint: disab
         else:
             spin_type = SpinType(spin_type.value)
 
-        # Get the protocol that we want to use
         if protocol is None:
             protocol = self._default_protocol
         protocol = self.get_protocol(protocol)
 
-        # Set the builder
         builder = self.process_class.get_builder()
 
-        # Set the structure
         builder.structure = structure
 
-        # Set the code
         builder.gpaw.code = engines['relax']['code']
 
-        # Set the parameters
         parameters = protocol['parameters']
 
-        # Make sure that a few useful things are stored
         parameters['atoms_getters'] = [
             'temperature',
             ['forces', {
@@ -132,7 +126,6 @@ class GpawCommonRelaxInputGenerator(CommonRelaxInputGenerator):  # pylint: disab
         if relax_type == RelaxType.NONE:
             parameters.pop('optimizer', {})
 
-        # Set the kpoint grid from the density in the protocol
         kpoints = plugins.DataFactory('array.kpoints')()
         kpoints.set_cell_from_structure(structure)
         if reference_workchain:

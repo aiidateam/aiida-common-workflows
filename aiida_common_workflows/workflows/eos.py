@@ -156,7 +156,6 @@ class EquationOfStateWorkChain(WorkChain):
         """
         Run the first workchain.
 
-
         This is run for the first (usually the smallest) volume in the set of scale factors,
         which is then used as a reference workchain for all other calculations.
         Each plugin should then reuse the relevant parameters from this reference
