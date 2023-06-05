@@ -1,6 +1,110 @@
 [build-system]
-requires = ["setuptools>=40.8.0", "wheel", "fastentrypoints~=0.12"]
-build-backend = "setuptools.build_meta"
+requires = ['flit_core >=3.4,<4']
+build-backend = 'flit_core.buildapi'
+
+[project]
+name = 'aiida-common-workflows'
+dynamic = ['description', 'version']
+authors = [{name = 'The AiiDA team', email = 'developers@aiida.net'}]
+readme = 'README.md'
+license = {file = 'LICENSE.txt'}
+classifiers = [
+    'Development Status :: 4 - Beta',
+    'Framework :: AiiDA',
+    'License :: OSI Approved :: MIT License',
+    'Operating System :: POSIX :: Linux',
+    'Operating System :: MacOS :: MacOS X',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+]
+keywords = ['aiida', 'workflows']
+requires-python = '>=3.8'
+dependencies = [
+    'abipy',
+    'aiida-abinit~=0.4.0',
+    'aiida-bigdft>=0.2.6',
+    'aiida-castep>=1.2.0a5',
+    'aiida-core[atomic_tools]~=1.6',
+    'aiida-cp2k~=1.3',
+    'aiida-fleur>=1.3.0',
+    'aiida-gaussian',
+    'aiida-nwchem>=2.1.0',
+    'aiida-orca',
+    'aiida-pseudo>=0.6.0',
+    'aiida-quantumespresso~=3.4,>=3.4.1',
+    'aiida-siesta>=1.2.0',
+    'aiida-vasp',
+    'aiida-ase',
+    'pymatgen>=2022.1.20',
+    'numpy<1.24.0',
+    'sqlalchemy<1.4',
+    'ase!=3.20.*',
+    'pint~=0.16',
+    'masci-tools~=0.9'
+]
+
+[project.urls]
+Home = 'https://github.com/aiidateam/aiida-common-workflows'
+Source = 'https://github.com/aiidateam/aiida-common-workflows'
+Documentation = 'https://aiida-common-workflows.readthedocs.io'
+
+[project.optional-dependencies]
+docs = [
+    'docutils~=0.15.2',
+    'pygments~=2.5',
+    'pydata-sphinx-theme~=0.4.0',
+    'sphinx~=3.2',
+    'sphinx-panels~=0.5.0',
+    'sphinxcontrib-details-directive~=0.1.0',
+    'sphinx-copybutton~=0.3.0'
+]
+pre-commit = [
+    'pre-commit~=2.2',
+    'pylint~=2.5.2',
+]
+tests = [
+    'pytest~=7.2',
+    'pgtest~=1.3,>=1.3.1',
+    'pytest-regressions~=1.0'
+]
+
+[project.scripts]
+aiida-common-workflows = 'aiida_common_workflows.cli:cmd_root'
+acwf = 'aiida_common_workflows.cli:cmd_root'
+
+[project.entry-points.'aiida.workflows']
+'common_workflows.dissociation_curve' = 'aiida_common_workflows.workflows.dissociation:DissociationCurveWorkChain'
+'common_workflows.eos' = 'aiida_common_workflows.workflows.eos:EquationOfStateWorkChain'
+'common_workflows.relax.abinit' = 'aiida_common_workflows.workflows.relax.abinit.workchain:AbinitCommonRelaxWorkChain'
+'common_workflows.relax.bigdft' = 'aiida_common_workflows.workflows.relax.bigdft.workchain:BigDftCommonRelaxWorkChain'
+'common_workflows.relax.castep' = 'aiida_common_workflows.workflows.relax.castep.workchain:CastepCommonRelaxWorkChain'
+'common_workflows.relax.cp2k' = 'aiida_common_workflows.workflows.relax.cp2k.workchain:Cp2kCommonRelaxWorkChain'
+'common_workflows.relax.fleur' = 'aiida_common_workflows.workflows.relax.fleur.workchain:FleurCommonRelaxWorkChain'
+'common_workflows.relax.gaussian' = 'aiida_common_workflows.workflows.relax.gaussian.workchain:GaussianCommonRelaxWorkChain'
+'common_workflows.relax.nwchem' = 'aiida_common_workflows.workflows.relax.nwchem.workchain:NwchemCommonRelaxWorkChain'
+'common_workflows.relax.orca' = 'aiida_common_workflows.workflows.relax.orca.workchain:OrcaCommonRelaxWorkChain'
+'common_workflows.relax.quantum_espresso' = 'aiida_common_workflows.workflows.relax.quantum_espresso.workchain:QuantumEspressoCommonRelaxWorkChain'
+'common_workflows.relax.siesta' = 'aiida_common_workflows.workflows.relax.siesta.workchain:SiestaCommonRelaxWorkChain'
+'common_workflows.relax.vasp' = 'aiida_common_workflows.workflows.relax.vasp.workchain:VaspCommonRelaxWorkChain'
+'common_workflows.relax.gpaw' = 'aiida_common_workflows.workflows.relax.gpaw.workchain:GpawCommonRelaxWorkChain'
+'common_workflows.bands.siesta' = 'aiida_common_workflows.workflows.bands.siesta.workchain:SiestaCommonBandsWorkChain'
+
+[tool.flit.module]
+name = 'aiida_common_workflows'
+
+[tool.flit.sdist]
+exclude = [
+    '.gitignore',
+    '.github/',
+    'docs/',
+    'tests/',
+]
+
+[tool.flynt]
+line-length = 120
+fail-on-change = true
 
 [tool.isort]
 force_sort_within_sections = true
@@ -8,40 +112,49 @@ include_trailing_comma = true
 line_length = 120
 multi_line_output = 3
 
+[tool.pydocstyle]
+ignore = [
+    'D104',
+    'D202',
+    'D203',
+    'D213'
+]
+
 [tool.pylint.format]
 max-line-length = 120
 
 [tool.pylint.messages_control]
 disable = [
-    "import-outside-toplevel",
-    "inconsistent-return-statements",
-    "too-many-arguments",
-    "bad-continuation",
-    "duplicate-code",
-    "no-member",
-    "too-few-public-methods",
+    'import-outside-toplevel',
+    'inconsistent-return-statements',
+    'too-many-arguments',
+    'bad-continuation',
+    'duplicate-code',
+    'no-member',
+    'too-few-public-methods',
+    "wrong-import-order"
 ]
 
 [tool.pytest.ini_options]
 testpaths = [
-    "tests",
+    'tests',
 ]
 filterwarnings = [
-    "ignore::DeprecationWarning:abipy:",
-    "ignore::DeprecationWarning:ase:",
-    "ignore::DeprecationWarning:frozendict:",
-    "ignore::DeprecationWarning:past:",
-    "ignore::DeprecationWarning:sqlalchemy_utils:",
-    "ignore::DeprecationWarning:reentry:",
-    "ignore::DeprecationWarning:pkg_resources:",
-    "ignore::PendingDeprecationWarning:monty:",
-    "ignore::PendingDeprecationWarning:pymatgen:",
-    "ignore::PendingDeprecationWarning:ruamel:",
+    'ignore::DeprecationWarning:abipy:',
+    'ignore::DeprecationWarning:ase:',
+    'ignore::DeprecationWarning:frozendict:',
+    'ignore::DeprecationWarning:past:',
+    'ignore::DeprecationWarning:sqlalchemy_utils:',
+    'ignore::DeprecationWarning:reentry:',
+    'ignore::DeprecationWarning:pkg_resources:',
+    'ignore::PendingDeprecationWarning:monty:',
+    'ignore::PendingDeprecationWarning:pymatgen:',
+    'ignore::PendingDeprecationWarning:ruamel:',
 ]
 
 [tool.yapf]
 align_closing_bracket_with_visual_indent = true
-based_on_style = "google"
+based_on_style = 'google'
 coalesce_brackets = true
 column_limit = 120
 dedent_closing_brackets = true
