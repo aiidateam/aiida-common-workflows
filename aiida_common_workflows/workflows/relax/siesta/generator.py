@@ -161,10 +161,10 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         with the parameters is returned.
         """
         parameters = self._protocols[key]['parameters'].copy()
-        for par in self._protocols[key]['parameters']:
+        for par, value in self._protocols[key]['parameters'].items():
             if 'block' in par:
-                parameters['%' + par] = self._protocols[key]['parameters'][par]
-                parameters.pop(par)
+                parameters['%' + par] = value 
+                parameters.pop(par, None)
 
         if 'atomic_heuristics' in self._protocols[key]:  # pylint: disable=too-many-nested-blocks
             atomic_heuristics = self._protocols[key]['atomic_heuristics']
@@ -216,10 +216,7 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             siesta_base_outs = reference_workchain.get_outgoing(node_class=WorkChainNode).one().node.outputs
             mesh = siesta_base_outs.output_parameters.attributes['mesh']
             parameters['mesh-sizes'] = f'[{mesh[0]} {mesh[1]} {mesh[2]}]'
-            try:
-                parameters.pop('mesh-cutoff')
-            except KeyError:
-                pass
+            parameters.pop('mesh-cutoff', None)
 
         return parameters
 
