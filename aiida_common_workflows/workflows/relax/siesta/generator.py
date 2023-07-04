@@ -163,7 +163,7 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         parameters = self._protocols[key]['parameters'].copy()
         for par, value in self._protocols[key]['parameters'].items():
             if 'block' in par:
-                parameters['%' + par] = value 
+                parameters['%' + par] = value
                 parameters.pop(par, None)
 
         if 'atomic_heuristics' in self._protocols[key]:  # pylint: disable=too-many-nested-blocks
