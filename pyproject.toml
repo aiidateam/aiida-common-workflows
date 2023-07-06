@@ -35,6 +35,7 @@ dependencies = [
     'aiida-quantumespresso~=3.4,>=3.4.1',
     'aiida-siesta>=1.2.0',
     'aiida-vasp',
+    'aiida-ase',
     'pymatgen>=2022.1.20',
     'numpy<1.24.0',
     'sqlalchemy<1.4',
@@ -86,6 +87,7 @@ acwf = 'aiida_common_workflows.cli:cmd_root'
 'common_workflows.relax.quantum_espresso' = 'aiida_common_workflows.workflows.relax.quantum_espresso.workchain:QuantumEspressoCommonRelaxWorkChain'
 'common_workflows.relax.siesta' = 'aiida_common_workflows.workflows.relax.siesta.workchain:SiestaCommonRelaxWorkChain'
 'common_workflows.relax.vasp' = 'aiida_common_workflows.workflows.relax.vasp.workchain:VaspCommonRelaxWorkChain'
+'common_workflows.relax.gpaw' = 'aiida_common_workflows.workflows.relax.gpaw.workchain:GpawCommonRelaxWorkChain'
 'common_workflows.bands.siesta' = 'aiida_common_workflows.workflows.bands.siesta.workchain:SiestaCommonBandsWorkChain'
 
 [tool.flit.module]
@@ -129,6 +131,7 @@ disable = [
     'duplicate-code',
     'no-member',
     'too-few-public-methods',
+    "wrong-import-order"
 ]
 
 [tool.pytest.ini_options]
