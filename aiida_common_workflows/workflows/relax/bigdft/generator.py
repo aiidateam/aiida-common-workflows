@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for BigDFT."""
+import os
+
 from aiida import engine, orm, plugins
 from aiida.engine import calcfunction
 
@@ -210,11 +212,6 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         if threshold_forces is not None:
             builder.relax.threshold_forces = orm.Float(threshold_forces)
-
-        print('#### debug ####')
-        for item in builder:
-            print(item, getattr(builder, item))
-        print('#### debug ####')
 
         return builder
 
