@@ -15,7 +15,9 @@ __all__ = ('VaspCommonRelaxWorkChain',)
 def get_stress(stress):
     """Return the final stress array."""
     stress_data = orm.ArrayData()
-    stress_data.set_array(name='stress', array=stress.get_array('final'))
+    stress_kbar = stress.get_array('final')
+    stress_ev_per_angstr3 = stress_kbar / 1602.1766208
+    stress_data.set_array(name='stress', array=stress_ev_per_angstr3)
 
     return stress_data
 
@@ -30,11 +32,10 @@ def get_forces(forces):
 
 
 @calcfunction
-def get_total_extrapolated_energy(energies):
-    """Return the total extrapolated energy from the energies array."""
-    # We extract by default the energies of the last electronic step, unless special flags are set.
-    total_extrapolated_energy = energies.get_array('energy_extrapolated')[0]
-    total_energy = orm.Float(total_extrapolated_energy)
+def get_total_free_energy(energies):
+    """Return the total free energy from the energies array."""
+    total_free_energy = energies.get_array('energy_free_electronic')[0]
+    total_energy = orm.Float(total_free_energy)
 
     return total_energy
 
@@ -43,6 +44,7 @@ def get_total_extrapolated_energy(energies):
 def get_total_cell_magnetic_moment(misc):
     """Return the total cell magnetic moment."""
     magnetization = misc.get_dict()['magnetization']
+
     if not magnetization:
         # If list is empty, we have no magnetization
         magnetization = 0.0
@@ -69,6 +71,6 @@ class VaspCommonRelaxWorkChain(CommonRelaxWorkChain):
             # relaxation was not requested.
             pass
         self.out('total_magnetization', get_total_cell_magnetic_moment(self.ctx.workchain.outputs.misc))
-        self.out('total_energy', get_total_extrapolated_energy(self.ctx.workchain.outputs.energies))
+        self.out('total_energy', get_total_free_energy(self.ctx.workchain.outputs.energies))
         self.out('forces', get_forces(self.ctx.workchain.outputs.forces))
         self.out('stress', get_stress(self.ctx.workchain.outputs.stress))
