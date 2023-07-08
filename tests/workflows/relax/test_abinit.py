@@ -27,14 +27,14 @@ def default_builder_inputs(generate_code, generate_structure):
     }
 
 
-@pytest.mark.usefixtures('pseudo_dojo')
+@pytest.mark.usefixtures('pseudo_dojo_jthxml_family')
 def test_get_builder(default_builder_inputs):
     """Test the ``get_builder`` with default arguments."""
     builder = GENERATOR.get_builder(**default_builder_inputs)
     assert isinstance(builder, engine.ProcessBuilder)
 
 
-@pytest.mark.usefixtures('pseudo_dojo')
+@pytest.mark.usefixtures('pseudo_dojo_jthxml_family')
 @pytest.mark.skip('Running this test will fail with an `UnroutableError` in `kiwipy`.')
 def test_submit(default_builder_inputs):
     """Test submitting the builder returned by ``get_builder`` called with default arguments.
@@ -45,7 +45,7 @@ def test_submit(default_builder_inputs):
     engine.submit(builder)
 
 
-@pytest.mark.usefixtures('pseudo_dojo')
+@pytest.mark.usefixtures('pseudo_dojo_jthxml_family')
 def test_supported_electronic_types(default_builder_inputs):
     """Test calling ``get_builder`` for the supported ``electronic_types``."""
     inputs = default_builder_inputs
@@ -56,7 +56,7 @@ def test_supported_electronic_types(default_builder_inputs):
         assert isinstance(builder, engine.ProcessBuilder)
 
 
-@pytest.mark.usefixtures('pseudo_dojo')
+@pytest.mark.usefixtures('pseudo_dojo_jthxml_family')
 def test_supported_relax_types(default_builder_inputs):
     """Test calling ``get_builder`` for the supported ``relax_types``."""
     inputs = default_builder_inputs
@@ -67,7 +67,7 @@ def test_supported_relax_types(default_builder_inputs):
         assert isinstance(builder, engine.ProcessBuilder)
 
 
-@pytest.mark.usefixtures('pseudo_dojo')
+@pytest.mark.usefixtures('pseudo_dojo_jthxml_family')
 @pytest.mark.filterwarnings('ignore: input magnetization per site was None')
 def test_supported_spin_types(default_builder_inputs):
     """Test calling ``get_builder`` for the supported ``spin_types``."""

@@ -4,4 +4,4 @@
 from .generator import *
 from .workchain import *
 
-__all__ = (generator.__all__ + workchain.__all__)
+__all__ = generator.__all__ + workchain.__all__
