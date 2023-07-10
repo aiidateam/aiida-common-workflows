@@ -286,6 +286,21 @@ def generate_jthxml_data():
 
 
 @pytest.fixture(scope='session')
+def generate_psp8_data():
+    """Return a ``Psp8Data`` instance for the given element."""
+
+    def _generate_psp8_data(element, zatom):
+        """Return ``Psp8Data`` node."""
+        from aiida_pseudo.data.pseudo import Psp8Data
+
+        content = f'{zatom:0.8f}    {zatom:0.8f}    000000'
+        stream = io.BytesIO(content.encode('utf-8'))
+        return Psp8Data(stream, filename=f'{element}.psp8')
+
+    return _generate_psp8_data
+
+
+@pytest.fixture(scope='session')
 def sssp(generate_upf_data):
     """Create an SSSP pseudo potential family from scratch."""
     from aiida.plugins import GroupFactory
@@ -325,8 +340,8 @@ def sssp(generate_upf_data):
 
 
 @pytest.fixture(scope='session')
-def pseudo_dojo(generate_jthxml_data):
-    """Create a PseudoDojo pseudo potential family from scratch."""
+def pseudo_dojo_jthxml_family(generate_jthxml_data):
+    """Create a PseudoDojo JTH-XML pseudo potential family from scratch."""
     from aiida import plugins
 
     PseudoDojoFamily = plugins.GroupFactory('pseudo.family.pseudo_dojo')  # pylint: disable=invalid-name
@@ -356,6 +371,45 @@ def pseudo_dojo(generate_jthxml_data):
             cutoffs_dict['normal'][element] = {'cutoff_wfc': 30., 'cutoff_rho': 240.}
 
         family = PseudoDojoFamily.create_from_folder(dirpath, label, pseudo_type=plugins.DataFactory('pseudo.jthxml'))
+
+    for stringency, cutoffs in cutoffs_dict.items():
+        family.set_cutoffs(cutoffs, stringency, unit='Eh')
+
+    return family
+
+
+@pytest.fixture(scope='session')
+def pseudo_dojo_psp8_family(generate_psp8_data):  # pylint: disable=too-many-locals
+    """Create a PseudoDojo PSP8 pseudo potential family from scratch."""
+    from aiida import plugins
+
+    PseudoDojoFamily = plugins.GroupFactory('pseudo.family.pseudo_dojo')  # pylint: disable=invalid-name
+    label = 'PseudoDojo/0.41/PBE/SR/standard/psp8'
+
+    try:
+        family = PseudoDojoFamily.objects.get(label=label)
+    except exceptions.NotExistent:
+        pass
+    else:
+        return family
+
+    cutoffs_dict = {'normal': {}}
+
+    with tempfile.TemporaryDirectory() as dirpath:
+        for (element_number, element_info) in elements.items():
+
+            element = element_info['symbol']
+            upf = generate_psp8_data(element, float(element_number))
+            filename = os.path.join(dirpath, f'{element}.psp8')
+
+            with open(filename, 'w+b') as handle:
+                with upf.open(mode='rb') as source:
+                    handle.write(source.read())
+                    handle.flush()
+
+            cutoffs_dict['normal'][element] = {'cutoff_wfc': 30., 'cutoff_rho': 240.}
+
+        family = PseudoDojoFamily.create_from_folder(dirpath, label, pseudo_type=plugins.DataFactory('pseudo.psp8'))
 
     for stringency, cutoffs in cutoffs_dict.items():
         family.set_cutoffs(cutoffs, stringency, unit='Eh')
