@@ -250,7 +250,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             run_type = 'ENERGY_FORCE'
         else:
             raise ValueError(f'Relax type `{relax_type.value}` is not supported')
-        parameters['GLOBAL']['RUN_TYPE'] = run_type
+        parameters.setdefault('GLOBAL', {})['RUN_TYPE'] = run_type
 
         # Redefining forces threshold.
         if threshold_forces is not None:
@@ -327,7 +327,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         if reference_workchain and 'cp2k__parameters' in reference_workchain.inputs:
             try:
-                return reference_workchain.inputs.cp2k__parameters['FORCE_EVAL']['SUBSYS']['CELL']['CELL_REF']
+                return reference_workchain.inputs.cp2k.parameters['FORCE_EVAL']['SUBSYS']['CELL']['CELL_REF']
             except KeyError:
                 # here we assume that the ref_cell_scale_factor is the same for both the reference
                 # workchain and any subsequent workchains
