@@ -205,7 +205,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         magnetization_tags = None
 
         # Metal or insulator.
-        ## If metal then add smearing, unoccupied orbitals, and employ diagonalization.
+        # If metal then add smearing, unoccupied orbitals, and employ diagonalization.
         if electronic_type == ElectronicType.METAL:
             parameters['FORCE_EVAL']['DFT']['SCF']['SMEAR'] = {
                 '_': 'ON',
@@ -223,14 +223,14 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             parameters['FORCE_EVAL']['DFT']['SCF']['ADDED_MOS'] = 20
             parameters['FORCE_EVAL']['DFT']['SCF']['CHOLESKY'] = 'OFF'
 
-        ## If insulator then employ OT.
+        # If insulator then employ OT.
         elif electronic_type == ElectronicType.INSULATOR:
             parameters['FORCE_EVAL']['DFT']['SCF']['OT'] = {
                 'PRECONDITIONER': 'FULL_SINGLE_INVERSE',
                 'MINIMIZER': 'CG',
             }
 
-        ## Magnetic calculation.
+        # Magnetic calculation.
         if spin_type == SpinType.NONE:
             parameters['FORCE_EVAL']['DFT']['UKS'] = False
             if magnetization_per_site is not None:
@@ -242,11 +242,11 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             structure, magnetization_tags = tags_and_magnetization(structure, magnetization_per_site)
             parameters['FORCE_EVAL']['DFT']['MULTIPLICITY'] = guess_multiplicity(structure, magnetization_per_site)
 
-        ## Starting magnetization.
+        # Starting magnetization.
         basis_pseudo = parameters.pop('basis_pseudo')
         dict_merge(parameters, get_kinds_section(structure, basis_pseudo, magnetization_tags))
 
-        ## Relaxation type.
+        # Relaxation type.
         if relax_type == RelaxType.POSITIONS:
             run_type = 'GEO_OPT'
         elif relax_type == RelaxType.POSITIONS_CELL:
@@ -257,26 +257,26 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             raise ValueError(f'Relax type `{relax_type.value}` is not supported')
         parameters['GLOBAL']['RUN_TYPE'] = run_type
 
-        ## Redefining forces threshold.
+        # Redefining forces threshold.
         if threshold_forces is not None:
             parameters['MOTION'][run_type]['MAX_FORCE'] = f'[eV/angstrom] {threshold_forces}'
 
-        ## Redefining stress threshold.
+        # Redefining stress threshold.
         if threshold_stress is not None:
             parameters['MOTION']['CELL_OPT']['PRESSURE_TOLERANCE'] = f'[GPa] {threshold_stress * EV_A3_TO_GPA}'
 
-        ## Lowering runtime by 5 minutes to let CP2K gracefully finish the calculation.
+        # Lowering runtime by 5 minutes to let CP2K gracefully finish the calculation.
         walltime = engines['relax']['options']['max_wallclock_seconds']
         walltime = max(300, walltime - 300)
         parameters['GLOBAL']['WALLTIME'] = walltime
 
-        # setup a CELL_REF
+        # Setup a CELL_REF.
         try:
             scale_factor = parameters.pop('cell_ref_scale_factor')
         except KeyError:
-            pass  # if the protocol does not specify a CELL_REF factor, ignore it (CP2K will use the structure cell)
+            pass  # If the protocol does not specify a CELL_REF factor, ignore it (CP2K will use the structure cell).
         else:
-            # otherwise, create necessary subdicts (unlikely to exist since CELL is written based on the structure)
+            # Otherwise, create necessary subdicts (unlikely to exist since CELL is written based on the structure)
             parameters['FORCE_EVAL'].setdefault('SUBSYS', {}).setdefault('CELL', {})['CELL_REF'] = self._get_cell_ref(
                 structure, reference_workchain, scale_factor
             )
