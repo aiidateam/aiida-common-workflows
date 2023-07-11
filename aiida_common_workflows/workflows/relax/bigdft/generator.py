@@ -214,17 +214,3 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             builder.relax.threshold_forces = orm.Float(threshold_forces)
 
         return builder
-
-def print_dict(d, prefix: str = '', indent = 0):
-
-    indent_str = '    ' * indent
-
-    if isinstance(d, dict):
-        for k, v in d.items():
-            print(f'{indent_str}{k}:')
-            print_dict(v, indent = indent + 1)
-    elif hasattr(d, '__iter__') and not isinstance(d, str):
-        for item in d:
-            print_dict(item, prefix = '- ', indent = indent)
-    else:
-        print(f'{indent_str}{prefix}{d}')
