@@ -191,7 +191,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         # Protocol input.
         protocol_dict = self.get_protocol(protocol)
-        parameters = protocol_dict.pop("input")
+        parameters = protocol_dict.pop('input')
 
         # Kpoints.
         kpoints_distance = protocol_dict.pop('kpoints_distance', None)
