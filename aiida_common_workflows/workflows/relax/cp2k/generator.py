@@ -189,18 +189,16 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         # The builder.
         builder = self.process_class.get_builder()
 
-        # Input parameters.
-        parameters = self.get_protocol(protocol)
+        # Protocol input.
+        protocol_dict = self.get_protocol(protocol)
+        parameters = protocol_dict.pop("input")
 
         # Kpoints.
-        kpoints_distance = parameters.pop('kpoints_distance', None)
+        kpoints_distance = protocol_dict.pop('kpoints_distance', None)
         kpoints = self._get_kpoints(kpoints_distance, structure, reference_workchain)
         mesh, _ = kpoints.get_kpoints_mesh()
         if mesh != [1, 1, 1]:
             builder.cp2k.kpoints = kpoints
-
-        # Removing description.
-        del parameters['description']
 
         magnetization_tags = None
 
@@ -243,7 +241,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             parameters['FORCE_EVAL']['DFT']['MULTIPLICITY'] = guess_multiplicity(structure, magnetization_per_site)
 
         # Starting magnetization.
-        basis_pseudo = parameters.pop('basis_pseudo')
+        basis_pseudo = protocol_dict.pop('basis_pseudo')
         dict_merge(parameters, get_kinds_section(structure, basis_pseudo, magnetization_tags))
 
         # Relaxation type.
@@ -275,7 +273,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         # Setup a CELL_REF.
         try:
-            scale_factor = parameters.pop('cell_ref_scale_factor')
+            scale_factor = protocol_dict.pop('cell_ref_scale_factor')
         except KeyError:
             pass  # If the protocol does not specify a CELL_REF factor, ignore it (CP2K will use the structure cell).
         else:
