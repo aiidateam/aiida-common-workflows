@@ -50,7 +50,7 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             'inputdict_linear': {
                 'import': 'linear'
             },
-            'kpoints_distance': 142
+            'kpoints_distance': 142  # Equivalent length of K-space resolution (Bohr)
         },
         'moderate': {
             'description': 'This profile should be chosen if accurate forces are required, but there is no need for '
