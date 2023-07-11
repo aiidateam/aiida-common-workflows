@@ -117,16 +117,12 @@ def get_file_section():
     with open(pathlib.Path(__file__).parent / 'GTH_POTENTIALS', 'rb') as handle:
         potential = orm.SinglefileData(file=handle)
 
-    with open(pathlib.Path(__file__).parent / 'GTH_POTENTIALS_PSI', 'rb') as handle:
-        potential_rev = orm.SinglefileData(file=handle)
-
     return {
         'basis_molopt': basis_molopt,
         'basis_molopt_uzh': basis_molopt_uzh,
         'basis_molopt_ucl': basis_molopt_ucl,
         'basis_gth': basis_gth,
         'potential': potential,
-        'potential_rev': potential_rev
     }
 
 
