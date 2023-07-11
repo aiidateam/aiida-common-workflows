@@ -266,9 +266,12 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             parameters['MOTION']['CELL_OPT']['PRESSURE_TOLERANCE'] = f'[GPa] {threshold_stress * EV_A3_TO_GPA}'
 
         # Lowering runtime by 5 minutes to let CP2K gracefully finish the calculation.
-        walltime = engines['relax']['options']['max_wallclock_seconds']
-        walltime = max(300, walltime - 300)
-        parameters['GLOBAL']['WALLTIME'] = walltime
+        try:
+            walltime = engines['relax']['options']['max_wallclock_seconds']
+            walltime = max(300, walltime - 300)
+            parameters['GLOBAL']['WALLTIME'] = walltime
+        except KeyError:
+            pass
 
         # Setup a CELL_REF.
         try:
