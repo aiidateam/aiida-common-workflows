@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for BigDFT."""
-import os
-
 from aiida import engine, orm, plugins
-from aiida.engine import calcfunction
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
