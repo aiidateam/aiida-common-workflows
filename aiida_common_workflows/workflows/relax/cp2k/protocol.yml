@@ -1,335 +1,469 @@
 moderate:
   description: 'Protocol to relax a structure with normal precision at moderate computational cost.'
   kpoints_distance: 0.5
-  GLOBAL:
-    PRINT_LEVEL: MEDIUM              #default: MEDIUM. Important to have the correct parsing
-  FORCE_EVAL:
-    METHOD:         QUICKSTEP
-    STRESS_TENSOR:  ANALYTICAL
-    PRINT:
-      FORCES:
-        FILENAME: requested-forces
-        ADD_LAST: SYMBOLIC
-    DFT:
-      BASIS_SET_FILE_NAME:
-        - GTH_BASIS_SETS
-        - BASIS_MOLOPT
-        - BASIS_MOLOPT_UCL
-      POTENTIAL_FILE_NAME:
-        -  GTH_POTENTIALS
-      UKS:          False
-      CHARGE:       0
-      MGRID:
-        CUTOFF:      600
-        REL_CUTOFF:  40
-        NGRIDS:      4
-      QS:
-        METHOD: GPW
-        EPS_DEFAULT:   1.0E-12
-        EXTRAPOLATION: ASPC
-
-      SCF:
-        MAX_SCF:       20
-        EPS_SCF:       1.0E-7
-        MAX_ITER_LUMO: 10000
-        OUTER_SCF:
-          MAX_SCF:   30
-          EPS_SCF:   1.0E-7
-      XC:
-        XC_FUNCTIONAL:
-          PBE:
-            PARAMETRIZATION: ORIG
+  basis_pseudo: dzvp-pbe-gth.yml
+  input:
+    GLOBAL:
+      PRINT_LEVEL: MEDIUM              #default: MEDIUM. Important to have the correct parsing
+    FORCE_EVAL:
+      METHOD:         QUICKSTEP
+      STRESS_TENSOR:  ANALYTICAL
       PRINT:
-        MO_CUBES:
-          WRITE_CUBE: F
+        FORCES:
+          FILENAME: requested-forces
           ADD_LAST: SYMBOLIC
+      DFT:
+        BASIS_SET_FILE_NAME:
+          - BASIS_MOLOPT
+          - BASIS_MOLOPT_UZH
+          - BASIS_MOLOPT_UCL
+          - GTH_BASIS_SETS
+        POTENTIAL_FILE_NAME:
+          - GTH_POTENTIALS
+        UKS:          False
+        CHARGE:       0
+        MGRID:
+          CUTOFF:      600
+          REL_CUTOFF:  40
+          NGRIDS:      4
+        QS:
+          METHOD: GPW
+          EPS_DEFAULT:   1.0E-12
+          EXTRAPOLATION: ASPC
+
+        SCF:
+          MAX_SCF:       20
+          EPS_SCF:       1.0E-7
+          MAX_ITER_LUMO: 10000
+          OUTER_SCF:
+            MAX_SCF:   30
+            EPS_SCF:   1.0E-7
+        XC:
+          XC_FUNCTIONAL:
+            PBE:
+              PARAMETRIZATION: ORIG
+        PRINT:
+          MO_CUBES:
+            WRITE_CUBE: F
+            ADD_LAST: SYMBOLIC
+            EACH:
+              CELL_OPT: 0
+              GEO_OPT: 0
+              MD: 0
+            NHOMO: 1  # all eigenvalues are dumped anyway
+            NLUMO: 1  # specified neigenvalues are dupmed
+          MULLIKEN:
+            _: 'ON'
+            ADD_LAST: SYMBOLIC
+            EACH:
+              CELL_OPT: 0
+              GEO_OPT: 0
+              MD: 0
+          LOWDIN:
+            _: 'OFF'
+          HIRSHFELD:
+            _: 'OFF'
+    MOTION:
+      PRINT:
+        TRAJECTORY:
+          FORMAT: DCD_ALIGNED_CELL
           EACH:
-            CELL_OPT: 0
-            GEO_OPT: 0
-            MD: 0
-          NHOMO: 1  # all eigenvalues are dumped anyway
-          NLUMO: 1  # specified neigenvalues are dupmed
-        MULLIKEN:
+            CELL_OPT: 1
+            GEO_OPT: 1
+            MD: 1
+        RESTART:
+          BACKUP_COPIES: 0
+          EACH:
+            CELL_OPT: 1
+            GEO_OPT: 1
+            MD: 1
+        RESTART_HISTORY:
+          _: 'OFF'
+        CELL:
+          _: 'OFF'
+        VELOCITIES:
+          _: 'OFF'
+        FORCES:
           _: 'ON'
-          ADD_LAST: SYMBOLIC
-          EACH:
-            CELL_OPT: 0
-            GEO_OPT: 0
-            MD: 0
-        LOWDIN:
-          _: 'OFF'
-        HIRSHFELD:
-          _: 'OFF'
-  MOTION:
-    PRINT:
-      TRAJECTORY:
-        FORMAT: DCD_ALIGNED_CELL
-        EACH:
-          CELL_OPT: 1
-          GEO_OPT: 1
-          MD: 1
-      RESTART:
-        BACKUP_COPIES: 0
-        EACH:
-          CELL_OPT: 1
-          GEO_OPT: 1
-          MD: 1
-      RESTART_HISTORY:
-        _: 'OFF'
-      CELL:
-        _: 'OFF'
-      VELOCITIES:
-        _: 'OFF'
-      FORCES:
-        _: 'ON'
-      STRESS:
-        _: 'ON'
-    GEO_OPT:
-      TYPE: MINIMIZATION                     #default: MINIMIZATION
-      OPTIMIZER: BFGS                        #default: BFGS
-      MAX_ITER:  1000                        #default: 200
-      MAX_DR:    "[bohr] 0.0030"             #default: [bohr] 0.0030
-      RMS_DR:    "[bohr] 0.0015"             #default: [bohr] 0.0015
-      MAX_FORCE: "[bohr^-1*hartree] 0.00045" #default: [bohr^-1*hartree] 0.00045
-      RMS_FORCE: "[bohr^-1*hartree] 0.00030" #default: [bohr^-1*hartree] 0.00030
-      BFGS:
-          TRUST_RADIUS: "[angstrom] 0.25"      #default: [angstrom] 0.25
+        STRESS:
+          _: 'ON'
+      GEO_OPT:
+        TYPE: MINIMIZATION                     #default: MINIMIZATION
+        OPTIMIZER: BFGS                        #default: BFGS
+        MAX_ITER:  1000                        #default: 200
+        MAX_DR:    "[bohr] 0.0030"             #default: [bohr] 0.0030
+        RMS_DR:    "[bohr] 0.0015"             #default: [bohr] 0.0015
+        MAX_FORCE: "[bohr^-1*hartree] 0.00045" #default: [bohr^-1*hartree] 0.00045
+        RMS_FORCE: "[bohr^-1*hartree] 0.00030" #default: [bohr^-1*hartree] 0.00030
+        BFGS:
+            TRUST_RADIUS: "[angstrom] 0.25"      #default: [angstrom] 0.25
 
-    CELL_OPT:
-      TYPE: DIRECT_CELL_OPT                   #default: DIRECT_CELL_OPT
-      EXTERNAL_PRESSURE:  "[bar] 0.0"
-      PRESSURE_TOLERANCE: "[bar] 100"         #default: 100
-      KEEP_ANGLES:   False
-      KEEP_SYMMETRY: False
-      OPTIMIZER: BFGS                         #default: BFGS
-      MAX_ITER:  1000                         #default: 200
-      MAX_DR:    "[bohr] 0.0030"              #default: [bohr] 0.0030
-      RMS_DR:    "[bohr] 0.0015"              #default: [bohr] 0.0015
-      MAX_FORCE: "[bohr^-1*hartree] 0.00045"  #default: [bohr^-1*hartree] 0.00045
-      RMS_FORCE: "[bohr^-1*hartree] 0.00030"  #default: [bohr^-1*hartree] 0.00030
-      BFGS:
-        TRUST_RADIUS: "[angstrom] 0.5"
-
+      CELL_OPT:
+        TYPE: DIRECT_CELL_OPT                   #default: DIRECT_CELL_OPT
+        EXTERNAL_PRESSURE:  "[bar] 0.0"
+        PRESSURE_TOLERANCE: "[bar] 100"         #default: 100
+        KEEP_ANGLES:   False
+        KEEP_SYMMETRY: False
+        OPTIMIZER: BFGS                         #default: BFGS
+        MAX_ITER:  1000                         #default: 200
+        MAX_DR:    "[bohr] 0.0030"              #default: [bohr] 0.0030
+        RMS_DR:    "[bohr] 0.0015"              #default: [bohr] 0.0015
+        MAX_FORCE: "[bohr^-1*hartree] 0.00045"  #default: [bohr^-1*hartree] 0.00045
+        RMS_FORCE: "[bohr^-1*hartree] 0.00030"  #default: [bohr^-1*hartree] 0.00030
+        BFGS:
+          TRUST_RADIUS: "[angstrom] 0.5"
 
 precise:
   description: 'Protocol to relax a structure with high precision at higher computational cost.'
-  kpoints_distance: 0.1
-  GLOBAL:
-    PRINT_LEVEL: MEDIUM              #default: MEDIUM. Important to have the correct parsing
-  FORCE_EVAL:
-    METHOD:         QUICKSTEP
-    STRESS_TENSOR:  ANALYTICAL
-    PRINT:
-      FORCES:
-        FILENAME: requested-forces
-        ADD_LAST: SYMBOLIC
-    DFT:
-      BASIS_SET_FILE_NAME:
-        - GTH_BASIS_SETS
-        - BASIS_MOLOPT
-        - BASIS_MOLOPT_UCL
-      POTENTIAL_FILE_NAME:
-        -  GTH_POTENTIALS
-      UKS:          False
-      CHARGE:       0
-      MGRID:
-        CUTOFF:      1000
-        REL_CUTOFF:  50
-        NGRIDS:      3               # Set to 1 for an extremely precise grid
-      QS:
-        METHOD: GPW
-        EPS_DEFAULT:   1.0E-16
-        EXTRAPOLATION: ASPC
-        # MAP_CONSISTENT: ".TRUE."   # Enable this for an extremely precise grid
-      SCF:
-        MAX_SCF:       300           # ROBUST: optimum compromise
-        EPS_SCF:       1.0E-8
-        MAX_ITER_LUMO: 10000         # for computing the Band gap
-        OUTER_SCF:
-          MAX_SCF:   10              # ROBUST: more than the Standard protocol
-          EPS_SCF:   1.0E-8
-      XC:
-        XC_FUNCTIONAL:
-          PBE:
-            PARAMETRIZATION: ORIG
+  kpoints_distance: 0.06
+  cell_ref_scale_factor: 1.2766      #=1.2/0.94, assumption: ref.workchain starts at lowest scale of 0.94 for EOS
+  basis_pseudo: dzvp-pbe-gth.yml
+  input:
+    GLOBAL:
+      PRINT_LEVEL: MEDIUM              #default: MEDIUM. Important to have the correct parsing
+    FORCE_EVAL:
+      METHOD:         QUICKSTEP
+      STRESS_TENSOR:  ANALYTICAL
       PRINT:
-        MO_CUBES:
-          WRITE_CUBE: F
+        FORCES:
+          FILENAME: requested-forces
           ADD_LAST: SYMBOLIC
+      DFT:
+        BASIS_SET_FILE_NAME:
+          - BASIS_MOLOPT
+          - BASIS_MOLOPT_UZH
+          - BASIS_MOLOPT_UCL
+          - GTH_BASIS_SETS
+        POTENTIAL_FILE_NAME:
+          - GTH_POTENTIALS
+        UKS:          False
+        CHARGE:       0
+        MGRID:
+          CUTOFF:      2400
+          REL_CUTOFF:  80
+          NGRIDS:      4               # Set to 1 for an extremely precise grid
+        QS:
+          METHOD: GPW
+          EPS_DEFAULT:   1.0E-16
+          EXTRAPOLATION: ASPC
+        SCF:
+          MAX_SCF:       300           # ROBUST: optimum compromise
+          EPS_SCF:       1.0E-7
+          MAX_ITER_LUMO: 10000         # for computing the Band gap
+          OUTER_SCF:
+            MAX_SCF:   10              # ROBUST: more than the Standard protocol
+            EPS_SCF:   1.0E-7
+        XC:
+          XC_FUNCTIONAL:
+            PBE:
+              PARAMETRIZATION: ORIG
+        PRINT:
+          MO:
+            _: 'OFF'
+            ADD_LAST: SYMBOLIC
+            EIGENVALUES: ON
+            OCCUPATION_NUMBERS: ON
+            NDIGITS: 12
+            EACH:
+              CELL_OPT: 0
+              GEO_OPT: 0
+              MD: 0
+              QS_SCF: 0
+          MULLIKEN:
+            _: 'ON'
+            ADD_LAST: SYMBOLIC
+            EACH:
+              CELL_OPT: 0
+              GEO_OPT: 0
+              MD: 0
+          LOWDIN:
+            _: 'OFF'
+          HIRSHFELD:
+            _: 'OFF'
+    MOTION:
+      PRINT:
+        TRAJECTORY:
+          FORMAT: DCD_ALIGNED_CELL
           EACH:
-            CELL_OPT: 0
-            GEO_OPT: 0
-            MD: 0
-          NHOMO: 1  # all eigenvalues are dumped anyway
-          NLUMO: 1  # specified neigenvalues are dupmed
-        MULLIKEN:
+            CELL_OPT: 1
+            GEO_OPT: 1
+            MD: 1
+        RESTART:
+          BACKUP_COPIES: 0
+          EACH:
+            CELL_OPT: 1
+            GEO_OPT: 1
+            MD: 1
+        RESTART_HISTORY:
+          _: 'OFF'
+        CELL:
+          _: 'OFF'
+        VELOCITIES:
+          _: 'OFF'
+        FORCES:
           _: 'ON'
-          ADD_LAST: SYMBOLIC
-          EACH:
-            CELL_OPT: 0
-            GEO_OPT: 0
-            MD: 0
-        LOWDIN:
-          _: 'OFF'
-        HIRSHFELD:
-          _: 'OFF'
-  MOTION:
-    PRINT:
-      TRAJECTORY:
-        FORMAT: DCD_ALIGNED_CELL
-        EACH:
-          CELL_OPT: 1
-          GEO_OPT: 1
-          MD: 1
-      RESTART:
-        BACKUP_COPIES: 0
-        EACH:
-          CELL_OPT: 1
-          GEO_OPT: 1
-          MD: 1
-      RESTART_HISTORY:
-        _: 'OFF'
-      CELL:
-        _: 'OFF'
-      VELOCITIES:
-        _: 'OFF'
-      FORCES:
-        _: 'ON'
-      STRESS:
-        _: 'ON'
-    GEO_OPT:
-      TYPE: MINIMIZATION                     #default: MINIMIZATION
-      OPTIMIZER: BFGS                        #default: BFGS
-      MAX_ITER:  1000                        #default: 200
-      MAX_DR:    "[bohr] 0.0030"             #default: [bohr] 0.0030
-      RMS_DR:    "[bohr] 0.0015"             #default: [bohr] 0.0015
-      MAX_FORCE: "[bohr^-1*hartree] 0.00045" #default: [bohr^-1*hartree] 0.00045
-      RMS_FORCE: "[bohr^-1*hartree] 0.00030" #default: [bohr^-1*hartree] 0.00030
-      BFGS:
-          TRUST_RADIUS: "[angstrom] 0.25"      #default: [angstrom] 0.25
-    CELL_OPT:
-      TYPE: DIRECT_CELL_OPT                   #default: DIRECT_CELL_OPT
-      EXTERNAL_PRESSURE:  "[bar] 0.0"
-      PRESSURE_TOLERANCE: "[bar] 100"         #default: 100
-      KEEP_ANGLES:   False
-      KEEP_SYMMETRY: False
-      OPTIMIZER: BFGS                         #default: BFGS
-      MAX_ITER:  1000                         #default: 200
-      MAX_DR:    "[bohr] 0.0030"              #default: [bohr] 0.0030
-      RMS_DR:    "[bohr] 0.0015"              #default: [bohr] 0.0015
-      MAX_FORCE: "[bohr^-1*hartree] 0.00045"  #default: [bohr^-1*hartree] 0.00045
-      RMS_FORCE: "[bohr^-1*hartree] 0.00030"  #default: [bohr^-1*hartree] 0.00030
-      BFGS:
-        TRUST_RADIUS: "[angstrom] 0.5"
+        STRESS:
+          _: 'ON'
+      GEO_OPT:
+        TYPE: MINIMIZATION                     #default: MINIMIZATION
+        OPTIMIZER: BFGS                        #default: BFGS
+        MAX_ITER:  1000                        #default: 200
+        MAX_DR:    "[bohr] 0.0030"             #default: [bohr] 0.0030
+        RMS_DR:    "[bohr] 0.0015"             #default: [bohr] 0.0015
+        MAX_FORCE: "[bohr^-1*hartree] 0.00045" #default: [bohr^-1*hartree] 0.00045
+        RMS_FORCE: "[bohr^-1*hartree] 0.00030" #default: [bohr^-1*hartree] 0.00030
+        BFGS:
+            TRUST_RADIUS: "[angstrom] 0.25"      #default: [angstrom] 0.25
+      CELL_OPT:
+        TYPE: DIRECT_CELL_OPT                   #default: DIRECT_CELL_OPT
+        EXTERNAL_PRESSURE:  "[bar] 0.0"
+        PRESSURE_TOLERANCE: "[bar] 100"         #default: 100
+        KEEP_ANGLES:   False
+        KEEP_SYMMETRY: False
+        OPTIMIZER: BFGS                         #default: BFGS
+        MAX_ITER:  1000                         #default: 200
+        MAX_DR:    "[bohr] 0.0030"              #default: [bohr] 0.0030
+        RMS_DR:    "[bohr] 0.0015"              #default: [bohr] 0.0015
+        MAX_FORCE: "[bohr^-1*hartree] 0.00045"  #default: [bohr^-1*hartree] 0.00045
+        RMS_FORCE: "[bohr^-1*hartree] 0.00030"  #default: [bohr^-1*hartree] 0.00030
+        BFGS:
+          TRUST_RADIUS: "[angstrom] 0.5"
 
 fast:
   description: 'Protocol to relax a structure with low precision at minimal computational cost for testing purposes.'
   kpoints_distance: 1.0
-  GLOBAL:
-    PRINT_LEVEL: MEDIUM              #default: MEDIUM. Important to have the correct parsing
-  FORCE_EVAL:
-    METHOD:         QUICKSTEP
-    STRESS_TENSOR:  ANALYTICAL
-    PRINT:
-      FORCES:
-        FILENAME: requested-forces
-        ADD_LAST: SYMBOLIC
-    DFT:
-      BASIS_SET_FILE_NAME:
-        - GTH_BASIS_SETS
-        - BASIS_MOLOPT
-        - BASIS_MOLOPT_UCL
-      POTENTIAL_FILE_NAME:
-        -  GTH_POTENTIALS
-      UKS:          False
-      CHARGE:       0
-      MGRID:
-        CUTOFF:      400
-        REL_CUTOFF:  30
-        NGRIDS:      4
-      QS:
-        METHOD: GPW
-        EPS_DEFAULT:   1.0E-10
-        EXTRAPOLATION: ASPC
-
-      SCF:
-        MAX_SCF:       20
-        EPS_SCF:       1.0E-6
-        MAX_ITER_LUMO: 10000
-        OUTER_SCF:
-          MAX_SCF:   30
-          EPS_SCF:   1.0E-6
-      XC:
-        XC_FUNCTIONAL:
-          PBE:
-            PARAMETRIZATION: ORIG
+  basis_pseudo: dzvp-pbe-gth.yml
+  input:
+    GLOBAL:
+      PRINT_LEVEL: MEDIUM              #default: MEDIUM. Important to have the correct parsing
+    FORCE_EVAL:
+      METHOD:         QUICKSTEP
+      STRESS_TENSOR:  ANALYTICAL
       PRINT:
-        MO_CUBES:
-          WRITE_CUBE: F
+        FORCES:
+          FILENAME: requested-forces
           ADD_LAST: SYMBOLIC
-          EACH:
-            CELL_OPT: 0
-            GEO_OPT: 0
-            MD: 0
-          NHOMO: 1  # all eigenvalues are dumped anyway
-          NLUMO: 1  # specified neigenvalues are dupmed
-        MULLIKEN:
-          _: 'ON'
-          ADD_LAST: SYMBOLIC
-          EACH:
-            CELL_OPT: 0
-            GEO_OPT: 0
-            MD: 0
-        LOWDIN:
-          _: 'OFF'
-        HIRSHFELD:
-          _: 'OFF'
-  MOTION:
-    PRINT:
-      TRAJECTORY:
-        FORMAT: DCD_ALIGNED_CELL
-        EACH:
-          CELL_OPT: 1
-          GEO_OPT: 1
-          MD: 1
-      RESTART:
-        BACKUP_COPIES: 0
-        EACH:
-          CELL_OPT: 1
-          GEO_OPT: 1
-          MD: 1
-      RESTART_HISTORY:
-        _: 'OFF'
-      CELL:
-        _: 'OFF'
-      VELOCITIES:
-        _: 'OFF'
-      FORCES:
-        _: 'ON'
-      STRESS:
-        _: 'ON'
-    GEO_OPT:
-      TYPE: MINIMIZATION                     #default: MINIMIZATION
-      OPTIMIZER: BFGS                        #default: BFGS
-      MAX_ITER:  1000                        #default: 200
-      MAX_DR:    "[bohr] 0.0030"             #default: [bohr] 0.0030
-      RMS_DR:    "[bohr] 0.0015"             #default: [bohr] 0.0015
-      MAX_FORCE: "[bohr^-1*hartree] 0.00045" #default: [bohr^-1*hartree] 0.00045
-      RMS_FORCE: "[bohr^-1*hartree] 0.00030" #default: [bohr^-1*hartree] 0.00030
-      BFGS:
-          TRUST_RADIUS: "[angstrom] 0.25"      #default: [angstrom] 0.25
+      DFT:
+        BASIS_SET_FILE_NAME:
+          - BASIS_MOLOPT
+          - BASIS_MOLOPT_UZH
+          - BASIS_MOLOPT_UCL
+          - GTH_BASIS_SETS
+        POTENTIAL_FILE_NAME:
+          - GTH_POTENTIALS
+        UKS:          False
+        CHARGE:       0
+        MGRID:
+          CUTOFF:      400
+          REL_CUTOFF:  30
+          NGRIDS:      4
+        QS:
+          METHOD: GPW
+          EPS_DEFAULT:   1.0E-10
+          EXTRAPOLATION: ASPC
 
-    CELL_OPT:
-      TYPE: DIRECT_CELL_OPT                   #default: DIRECT_CELL_OPT
-      EXTERNAL_PRESSURE:  "[bar] 0.0"
-      PRESSURE_TOLERANCE: "[bar] 100"         #default: 100
-      KEEP_ANGLES:   False
-      KEEP_SYMMETRY: False
-      OPTIMIZER: BFGS                         #default: BFGS
-      MAX_ITER:  1000                         #default: 200
-      MAX_DR:    "[bohr] 0.0030"              #default: [bohr] 0.0030
-      RMS_DR:    "[bohr] 0.0015"              #default: [bohr] 0.0015
-      MAX_FORCE: "[bohr^-1*hartree] 0.00045"  #default: [bohr^-1*hartree] 0.00045
-      RMS_FORCE: "[bohr^-1*hartree] 0.00030"  #default: [bohr^-1*hartree] 0.00030
-      BFGS:
-        TRUST_RADIUS: "[angstrom] 0.5"
+        SCF:
+          MAX_SCF:       20
+          EPS_SCF:       1.0E-6
+          MAX_ITER_LUMO: 10000
+          OUTER_SCF:
+            MAX_SCF:   30
+            EPS_SCF:   1.0E-6
+        XC:
+          XC_FUNCTIONAL:
+            PBE:
+              PARAMETRIZATION: ORIG
+        PRINT:
+          MO_CUBES:
+            WRITE_CUBE: F
+            ADD_LAST: SYMBOLIC
+            EACH:
+              CELL_OPT: 0
+              GEO_OPT: 0
+              MD: 0
+            NHOMO: 1  # all eigenvalues are dumped anyway
+            NLUMO: 1  # specified neigenvalues are dupmed
+          MULLIKEN:
+            _: 'ON'
+            ADD_LAST: SYMBOLIC
+            EACH:
+              CELL_OPT: 0
+              GEO_OPT: 0
+              MD: 0
+          LOWDIN:
+            _: 'OFF'
+          HIRSHFELD:
+            _: 'OFF'
+    MOTION:
+      PRINT:
+        TRAJECTORY:
+          FORMAT: DCD_ALIGNED_CELL
+          EACH:
+            CELL_OPT: 1
+            GEO_OPT: 1
+            MD: 1
+        RESTART:
+          BACKUP_COPIES: 0
+          EACH:
+            CELL_OPT: 1
+            GEO_OPT: 1
+            MD: 1
+        RESTART_HISTORY:
+          _: 'OFF'
+        CELL:
+          _: 'OFF'
+        VELOCITIES:
+          _: 'OFF'
+        FORCES:
+          _: 'ON'
+        STRESS:
+          _: 'ON'
+      GEO_OPT:
+        TYPE: MINIMIZATION                     #default: MINIMIZATION
+        OPTIMIZER: BFGS                        #default: BFGS
+        MAX_ITER:  1000                        #default: 200
+        MAX_DR:    "[bohr] 0.0030"             #default: [bohr] 0.0030
+        RMS_DR:    "[bohr] 0.0015"             #default: [bohr] 0.0015
+        MAX_FORCE: "[bohr^-1*hartree] 0.00045" #default: [bohr^-1*hartree] 0.00045
+        RMS_FORCE: "[bohr^-1*hartree] 0.00030" #default: [bohr^-1*hartree] 0.00030
+        BFGS:
+            TRUST_RADIUS: "[angstrom] 0.25"      #default: [angstrom] 0.25
+
+      CELL_OPT:
+        TYPE: DIRECT_CELL_OPT                   #default: DIRECT_CELL_OPT
+        EXTERNAL_PRESSURE:  "[bar] 0.0"
+        PRESSURE_TOLERANCE: "[bar] 100"         #default: 100
+        KEEP_ANGLES:   False
+        KEEP_SYMMETRY: False
+        OPTIMIZER: BFGS                         #default: BFGS
+        MAX_ITER:  1000                         #default: 200
+        MAX_DR:    "[bohr] 0.0030"              #default: [bohr] 0.0030
+        RMS_DR:    "[bohr] 0.0015"              #default: [bohr] 0.0015
+        MAX_FORCE: "[bohr^-1*hartree] 0.00045"  #default: [bohr^-1*hartree] 0.00045
+        RMS_FORCE: "[bohr^-1*hartree] 0.00030"  #default: [bohr^-1*hartree] 0.00030
+        BFGS:
+          TRUST_RADIUS: "[angstrom] 0.5"
+
+verification-pbe-v1:
+  description: 'Protocol to relax a structure with high precision at higher computational cost.'
+  kpoints_distance: 0.06
+  cell_ref_scale_factor: 1.2766      #=1.2/0.94, assumption: ref.workchain starts at lowest scale of 0.94 for EOS
+  basis_pseudo: tzv2p-pbe-gth.yml
+  input:
+    GLOBAL:
+      EXTENDED_FFT_LENGTHS:   True
+      PREFERRED_DIAG_LIBRARY: ScaLAPACK
+      PRINT_LEVEL:            MEDIUM            #default: MEDIUM. Important to have the correct parsing
+    FORCE_EVAL:
+      METHOD:         QUICKSTEP
+      STRESS_TENSOR:  ANALYTICAL
+      PRINT:
+        FORCES:
+          FILENAME: requested-forces
+          ADD_LAST: SYMBOLIC
+      DFT:
+        BASIS_SET_FILE_NAME:
+          - BASIS_MOLOPT
+          - BASIS_MOLOPT_UZH
+          - BASIS_MOLOPT_UCL
+          - GTH_BASIS_SETS
+        POTENTIAL_FILE_NAME:
+          - GTH_POTENTIALS
+        UKS:          False
+        CHARGE:       0
+        MGRID:
+          CUTOFF:      2400
+          REL_CUTOFF:  80
+          NGRIDS:      4               # Set to 1 for an extremely precise grid
+        QS:
+          METHOD: GPW
+          EPS_DEFAULT:   1.0E-16
+          EXTRAPOLATION: ASPC
+        SCF:
+          MAX_SCF:       300           # ROBUST: optimum compromise
+          EPS_SCF:       1.0E-7
+          MAX_ITER_LUMO: 10000         # for computing the Band gap
+          OUTER_SCF:
+            MAX_SCF:   10              # ROBUST: more than the Standard protocol
+            EPS_SCF:   1.0E-7
+          PRINT:
+            RESTART:
+              BACKUP_COPIES: 1
+              LOG_PRINT_KEY: True
+              EACH:
+                QS_SCF: 5
+        XC:
+          XC_FUNCTIONAL:
+            PBE:
+              PARAMETRIZATION: ORIG
+        PRINT:
+          MO:
+            _: 'OFF'
+            ADD_LAST: SYMBOLIC
+            EIGENVALUES: ON
+            OCCUPATION_NUMBERS: ON
+            NDIGITS: 12
+            EACH:
+              CELL_OPT: 0
+              GEO_OPT: 0
+              MD: 0
+              QS_SCF: 0
+          MULLIKEN:
+            _: 'ON'
+            ADD_LAST: SYMBOLIC
+            EACH:
+              CELL_OPT: 0
+              GEO_OPT: 0
+              MD: 0
+          LOWDIN:
+            _: 'OFF'
+          HIRSHFELD:
+            _: 'OFF'
+    MOTION:
+      PRINT:
+        TRAJECTORY:
+          FORMAT: DCD_ALIGNED_CELL
+          EACH:
+            CELL_OPT: 1
+            GEO_OPT: 1
+            MD: 1
+        RESTART:
+          BACKUP_COPIES: 0
+          EACH:
+            CELL_OPT: 1
+            GEO_OPT: 1
+            MD: 1
+        RESTART_HISTORY:
+          _: 'OFF'
+        CELL:
+          _: 'OFF'
+        VELOCITIES:
+          _: 'OFF'
+        FORCES:
+          _: 'ON'
+        STRESS:
+          _: 'ON'
+      GEO_OPT:
+        TYPE: MINIMIZATION                     #default: MINIMIZATION
+        OPTIMIZER: BFGS                        #default: BFGS
+        MAX_ITER:  1000                        #default: 200
+        MAX_DR:    "[bohr] 0.0030"             #default: [bohr] 0.0030
+        RMS_DR:    "[bohr] 0.0015"             #default: [bohr] 0.0015
+        MAX_FORCE: "[bohr^-1*hartree] 0.00045" #default: [bohr^-1*hartree] 0.00045
+        RMS_FORCE: "[bohr^-1*hartree] 0.00030" #default: [bohr^-1*hartree] 0.00030
+        BFGS:
+            TRUST_RADIUS: "[angstrom] 0.25"      #default: [angstrom] 0.25
+      CELL_OPT:
+        TYPE: DIRECT_CELL_OPT                   #default: DIRECT_CELL_OPT
+        EXTERNAL_PRESSURE:  "[bar] 0.0"
+        PRESSURE_TOLERANCE: "[bar] 100"         #default: 100
+        KEEP_ANGLES:   False
+        KEEP_SYMMETRY: False
+        OPTIMIZER: BFGS                         #default: BFGS
+        MAX_ITER:  1000                         #default: 200
+        MAX_DR:    "[bohr] 0.0030"              #default: [bohr] 0.0030
+        RMS_DR:    "[bohr] 0.0015"              #default: [bohr] 0.0015
+        MAX_FORCE: "[bohr^-1*hartree] 0.00045"  #default: [bohr^-1*hartree] 0.00045
+        RMS_FORCE: "[bohr^-1*hartree] 0.00030"  #default: [bohr^-1*hartree] 0.00030
+        BFGS:
+          TRUST_RADIUS: "[angstrom] 0.5"
