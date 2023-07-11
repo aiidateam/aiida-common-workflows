@@ -130,9 +130,9 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         The keyword arguments will have been validated against the input generator specification.
         """
+        # pylint: disable=too-many-branches,too-many-statements,too-many-locals
         import copy
 
-        # pylint: disable=too-many-branches,too-many-statements,too-many-locals
         structure = kwargs['structure']
         engines = kwargs['engines']
         protocol = kwargs['protocol']
@@ -168,8 +168,8 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 hgrids = logfile[0].get('dft').get('hgrids')
             else:
                 hgrids = logfile.get('dft').get('hgrids')
-            hg = hgrids[0] if isinstance(hgrids, list) else hgrids
-            inputdict['dft']['hgrids'] = hg * builder.structure.cell_lengths[0] / \
+            first_hgrid = hgrids[0] if isinstance(hgrids, list) else hgrids
+            inputdict['dft']['hgrids'] = first_hgrid * builder.structure.cell_lengths[0] / \
                 reference_workchain.inputs.structure.cell_lengths[0]
 
         if electronic_type is ElectronicType.METAL:
