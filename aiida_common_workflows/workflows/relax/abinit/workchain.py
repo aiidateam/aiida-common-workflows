@@ -11,12 +11,14 @@ from .generator import AbinitCommonRelaxInputGenerator
 
 __all__ = ('AbinitCommonRelaxWorkChain',)
 
+GPA_TO_EV_A3 = 1 / 160.21766208
+
 
 @calcfunction
 def get_stress(parameters):
     """Return the stress array from the given parameters node."""
     stress = orm.ArrayData()
-    stress.set_array(name='stress', array=np.array(parameters.get_attribute('cart_stress_tensor')))
+    stress.set_array(name='stress', array=np.array(parameters.get_attribute('cart_stress_tensor')) * GPA_TO_EV_A3)
     return stress
 
 

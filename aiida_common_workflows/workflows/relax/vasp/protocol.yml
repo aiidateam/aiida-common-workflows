@@ -1,8 +1,33 @@
+verification-PBE-v1:
+  name: 'verification-PBE-v1'
+  description: 'Protocol for the ACWF study on unaries and oxides'
+  potential_family: 'PBE_lanth_3006'
+  potential_mapping: 'RECOMMENDED_ACWF_LANTH'
+  kpoint_distance: 0.06
+  relax:
+    algo: 'rd'
+    threshold_forces: 0.001
+    steps: 200
+  parameters:
+    prec: 'Accurate'
+    encut: 1000
+    ediff: 0.0000001
+    ismear: -1
+    sigma: 0.0612256413
+    algo: 'Normal'
+    nelmin: 6
+    nelm: 300
+    lmaxmix: 6
+    lasph: True
+    gga_compat: False
+    ncore: 2
+    kpar: 4
+
 precise:
   name: 'precise'
   description: 'Protocol to relax a structure with high precision at higher computational cost.'
   potential_family: 'PBE5.4'
-  potential_mapping: 'DEFAULT_PBE'
+  potential_mapping: 'RECOMMENDED_PBE'
   kpoint_distance: 0.1
   relax:
     algo: 'rd'
@@ -14,7 +39,7 @@ precise:
     ediff: 0.000001
     ismear: 0
     sigma: 0.2
-    algo: 'F'
+    algo: 'Fast'
     nelmin: 6
     nelm: 2000
 
@@ -22,7 +47,7 @@ moderate:
   name: 'moderate'
   description: 'Protocol to relax a structure with normal precision at moderate computational cost.'
   potential_family: 'PBE5.4'
-  potential_mapping: 'DEFAULT_PBE'
+  potential_mapping: 'RECOMMENDED_PBE'
   kpoint_distance: 0.15
   relax:
     algo: 'rd'
@@ -33,7 +58,7 @@ moderate:
     ediff: 0.00001
     ismear: 0
     sigma: 0.2
-    algo: 'F'
+    algo: 'Fast'
     nelmin: 4
     nelm: 2000
 
@@ -41,7 +66,7 @@ fast:
   name: 'fast'
   description: 'Protocol to relax a structure with low precision at minimal computational cost for testing purposes.'
   potential_family: 'PBE5.4'
-  potential_mapping: 'DEFAULT_PBE'
+  potential_mapping: 'RECOMMENDED_PBE'
   kpoint_distance: 0.25
   relax:
     algo: 'cg'
@@ -52,5 +77,5 @@ fast:
     ediff: 0.0001
     ismear: 0
     sigma: 0.2
-    algo: 'V'
+    algo: 'Veryfast'
     nelm: 2000
