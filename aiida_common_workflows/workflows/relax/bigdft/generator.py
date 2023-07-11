@@ -198,12 +198,6 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         # correctly set kpoints from protocol fast and moderate. If precise, use the ones from set_inputfile/set_kpt
         if self.get_protocol(protocol).get('kpoints_distance'):
             inputdict['kpt'] = {'method': 'auto', 'kptrlen': self.get_protocol(protocol).get('kpoints_distance')}
-        # # update the dict with acwf parameters for further treating
-        # acwf_params = {'electronic_type': electronic_type.value,
-        #                'relax_type': relax_type.value,
-        #                'spin_type': spin_type.value,
-        #                'protocol': protocol}
-        # inputdict['acwf_params'] = acwf_params
 
         builder.parameters = BigDFTParameters(dict=inputdict)
         builder.code = engines[relaxation_schema]['code']
