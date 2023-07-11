@@ -70,14 +70,14 @@ For example, if you want to optimize the geometry of a crystal structure using t
 
 .. code:: console
 
-    aiida-common-workflows launch relax -S <STRUCTURE> -X <CODE>  -- <ENGINE>
+    acwf launch relax -S <STRUCTURE> -X <CODE>  -- <ENGINE>
 
 Here, the ``<STRUCTURE>`` should be replaced with the `AiiDA identifier`_ of the `StructureData`_ that needs to be optimized, ``<CODE>`` with the identifier of the `Code`_ that should be used and ``<ENGINE>`` the entry point name of the quantum engine whose workflow implementation should be employed.
 To determine what engine implementations are available, run the command with the ``--help`` flag:
 
 .. code:: console
 
-    aiida-common-workflows launch relax --help
+    acwf launch relax --help
 
 This will also provide information of all other available options.
 Although this command already provides quite a number of options in order to facilitate various use cases, it can never expose the full functionality.

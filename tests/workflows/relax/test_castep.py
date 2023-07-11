@@ -240,3 +240,28 @@ def test_input_generator(castep_code, nacl, si):  # pylint: disable=invalid-name
     )
     assert builder.calc.settings is None
     assert builder.base.kpoints_spacing == pytest.approx(0.023873, abs=1e-6)
+
+
+def test_otfg_upload(with_otfg):
+    """
+    Test uploading customized OTFG family
+    """
+
+    # Initial upload
+    ensure_otfg_family('C19V2')
+    assert OTFGGroup.objects.get(label='C19V2')
+
+    # Second call should not error
+    ensure_otfg_family('C19V2')
+    assert OTFGGroup.objects.get(label='C19V2')
+
+    # Second call with forced update
+    ensure_otfg_family('C19V2', force_update=True)
+
+    group = OTFGGroup.objects.get(label='C19V2')
+    found = False
+    for node in group.nodes:
+        if node.element == 'La':
+            assert node.entry == 'La 2|2.3|5|6|7|50U:60:51:52:43{4f0.1}(qc=4.5)'
+            found = True
+    assert found

@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 """Module with utitlies for the CLI."""
+import sys
+
 import click
 
 
 def echo_process_results(node):
     """Display a formatted table of the outputs registered for the given process node.
+
+    If the node corresponds to a process that was actually run and that did not finish with a zero exit code, this
+    function will call ``sys.exit(1)``.
 
     :param node: the `ProcessNode` of a terminated process.
     """
@@ -31,6 +36,9 @@ def echo_process_results(node):
 
     for triple in sorted(outputs, key=lambda triple: triple.link_label):
         click.echo(f'{triple.link_label:25s} {triple.node.__class__.__name__}<{triple.node.pk}> ')
+
+    if not node.is_finished_ok:
+        sys.exit(1)
 
 
 def launch_process(process, daemon, **inputs):

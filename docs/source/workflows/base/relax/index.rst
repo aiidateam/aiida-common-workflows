@@ -219,7 +219,7 @@ For the relaxation workflow:
 
 .. code:: console
 
-    aiida-common-workflows launch relax <OPTIONS>  -- <ENGINE>
+    acwf launch relax <OPTIONS>  -- <ENGINE>
 
 The available ``<ENGINE>`` are:
 

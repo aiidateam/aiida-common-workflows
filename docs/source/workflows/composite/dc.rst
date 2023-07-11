@@ -128,7 +128,7 @@ For the DC workflow:
 
 .. code:: console
 
-    aiida-common-workflows launch dissociation-curve <OPTIONS> -- <ENGINE>
+    acwf launch dissociation-curve <OPTIONS> -- <ENGINE>
 
 The available ``<ENGINE>`` and ``<OPTIONS>`` are the same of the :ref:`relaxation CLI <relax-cli>`, with the exception of the ``-P`` and ``-r`` option.
 
