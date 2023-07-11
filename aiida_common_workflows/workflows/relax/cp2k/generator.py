@@ -154,10 +154,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         super().define(spec)
         spec.input(
             'protocol',
-            valid_type=ChoiceType((
-                'fast', 'moderate', 'precise', 'verification-PBE-v1-DZVP-GTH', 'verification-PBE-v1-DZVP-GTH-rev',
-                'verification-PBE-v1-TZV2P-GTH'
-            )),
+            valid_type=ChoiceType(('fast', 'moderate', 'precise', 'verification-pbe-v1')),
             default='moderate',
             help='The protocol to use for the automated input generation. This value indicates the level of precision '
             'of the results and computational cost that the input parameters will be selected for.',
