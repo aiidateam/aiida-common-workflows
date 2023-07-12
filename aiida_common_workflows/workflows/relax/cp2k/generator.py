@@ -38,10 +38,10 @@ def dict_merge(dct, merge_dct):
             dct[k] = merge_dct[k]
 
 
-def get_kinds_section(structure: StructureData, magnetization_tags=None):
+def get_kinds_section(structure: StructureData, basis_pseudo: str, magnetization_tags=None):
     """ Write the &KIND sections given the structure and the settings_dict"""
     kinds = []
-    with open(pathlib.Path(__file__).parent / 'atomic_kinds.yml') as fhandle:
+    with open(pathlib.Path(__file__).parent / basis_pseudo, 'rb') as fhandle:
         atom_data = yaml.safe_load(fhandle)
     ase_structure = structure.get_ase()
     symbol_tag = {
@@ -102,31 +102,27 @@ def guess_multiplicity(structure: StructureData, magnetization_per_site: t.List[
 
 def get_file_section():
     """Provide necessary parameter files such as pseudopotientials, basis sets, etc."""
-    with open(pathlib.Path(__file__).parent / 'GTH_BASIS_SETS', 'rb') as handle:
-        basis_gth = orm.SinglefileData(file=handle)
-
     with open(pathlib.Path(__file__).parent / 'BASIS_MOLOPT', 'rb') as handle:
         basis_molopt = orm.SinglefileData(file=handle)
+
+    with open(pathlib.Path(__file__).parent / 'BASIS_MOLOPT_UZH', 'rb') as handle:
+        basis_molopt_uzh = orm.SinglefileData(file=handle)
 
     with open(pathlib.Path(__file__).parent / 'BASIS_MOLOPT_UCL', 'rb') as handle:
         basis_molopt_ucl = orm.SinglefileData(file=handle)
 
+    with open(pathlib.Path(__file__).parent / 'GTH_BASIS_SETS', 'rb') as handle:
+        basis_gth = orm.SinglefileData(file=handle)
+
     with open(pathlib.Path(__file__).parent / 'GTH_POTENTIALS', 'rb') as handle:
         potential = orm.SinglefileData(file=handle)
 
-    with open(pathlib.Path(__file__).parent / 'dftd3.dat', 'rb') as handle:
-        dftd3_params = orm.SinglefileData(file=handle)
-
-    with open(pathlib.Path(__file__).parent / 'xTB_parameters', 'rb') as handle:
-        xtb_params = orm.SinglefileData(file=handle)
-
     return {
-        'basis_gth': basis_gth,
         'basis_molopt': basis_molopt,
+        'basis_molopt_uzh': basis_molopt_uzh,
         'basis_molopt_ucl': basis_molopt_ucl,
+        'basis_gth': basis_gth,
         'potential': potential,
-        'dftd3_params': dftd3_params,
-        'xtb_dat': xtb_params,
     }
 
 
@@ -142,7 +138,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
     def _initialize_protocols(self):
         """Initialize the protocols class attribute by parsing them from the configuration file."""
-        with open(pathlib.Path(__file__).parent / 'protocol.yml') as handle:
+        with open(pathlib.Path(__file__).parent / 'protocol.yml', 'rb') as handle:
             self._protocols = yaml.safe_load(handle)
 
     @classmethod
@@ -152,6 +148,13 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         The ports defined on the specification are the inputs that will be accepted by the ``get_builder`` method.
         """
         super().define(spec)
+        spec.input(
+            'protocol',
+            valid_type=ChoiceType(('fast', 'moderate', 'precise', 'verification-pbe-v1')),
+            default='moderate',
+            help='The protocol to use for the automated input generation. This value indicates the level of precision '
+            'of the results and computational cost that the input parameters will be selected for.',
+        )
         spec.inputs['spin_type'].valid_type = ChoiceType((SpinType.NONE, SpinType.COLLINEAR))
         spec.inputs['relax_type'].valid_type = ChoiceType(
             (RelaxType.NONE, RelaxType.POSITIONS, RelaxType.POSITIONS_CELL)
@@ -179,28 +182,26 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         # The builder.
         builder = self.process_class.get_builder()
 
-        # Input parameters.
-        parameters = self.get_protocol(protocol)
+        # Protocol input.
+        protocol_dict = self.get_protocol(protocol)
+        parameters = protocol_dict.pop('input')
 
         # Kpoints.
-        kpoints_distance = parameters.pop('kpoints_distance', None)
+        kpoints_distance = protocol_dict.pop('kpoints_distance', None)
         kpoints = self._get_kpoints(kpoints_distance, structure, reference_workchain)
         mesh, _ = kpoints.get_kpoints_mesh()
         if mesh != [1, 1, 1]:
             builder.cp2k.kpoints = kpoints
 
-        # Removing description.
-        _ = parameters.pop('description')
-
         magnetization_tags = None
 
         # Metal or insulator.
-        ## If metal then add smearing, unoccupied orbitals, and employ diagonalization.
+        # If metal then add smearing, unoccupied orbitals, and employ diagonalization.
         if electronic_type == ElectronicType.METAL:
             parameters['FORCE_EVAL']['DFT']['SCF']['SMEAR'] = {
                 '_': 'ON',
                 'METHOD': 'FERMI_DIRAC',
-                'ELECTRONIC_TEMPERATURE': '[K] 500',
+                'ELECTRONIC_TEMPERATURE': '[K] 710.5',
             }
             parameters['FORCE_EVAL']['DFT']['SCF']['DIAGONALIZATION'] = {
                 'EPS_ADAPT': '1',
@@ -211,15 +212,16 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 'BETA': '1.5',
             }
             parameters['FORCE_EVAL']['DFT']['SCF']['ADDED_MOS'] = 20
+            parameters['FORCE_EVAL']['DFT']['SCF']['CHOLESKY'] = 'OFF'
 
-        ## If insulator then employ OT.
+        # If insulator then employ OT.
         elif electronic_type == ElectronicType.INSULATOR:
             parameters['FORCE_EVAL']['DFT']['SCF']['OT'] = {
                 'PRECONDITIONER': 'FULL_SINGLE_INVERSE',
                 'MINIMIZER': 'CG',
             }
 
-        ## Magnetic calculation.
+        # Magnetic calculation.
         if spin_type == SpinType.NONE:
             parameters['FORCE_EVAL']['DFT']['UKS'] = False
             if magnetization_per_site is not None:
@@ -231,10 +233,11 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             structure, magnetization_tags = tags_and_magnetization(structure, magnetization_per_site)
             parameters['FORCE_EVAL']['DFT']['MULTIPLICITY'] = guess_multiplicity(structure, magnetization_per_site)
 
-        ## Starting magnetization.
-        dict_merge(parameters, get_kinds_section(structure, magnetization_tags))
+        # Starting magnetization.
+        basis_pseudo = protocol_dict.pop('basis_pseudo')
+        dict_merge(parameters, get_kinds_section(structure, basis_pseudo, magnetization_tags))
 
-        ## Relaxation type.
+        # Relaxation type.
         if relax_type == RelaxType.POSITIONS:
             run_type = 'GEO_OPT'
         elif relax_type == RelaxType.POSITIONS_CELL:
@@ -243,19 +246,39 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             run_type = 'ENERGY_FORCE'
         else:
             raise ValueError(f'Relax type `{relax_type.value}` is not supported')
-        parameters['GLOBAL'] = {'RUN_TYPE': run_type}
+        parameters.setdefault('GLOBAL', {})['RUN_TYPE'] = run_type
 
-        ## Redefining forces threshold.
+        # Redefining forces threshold.
         if threshold_forces is not None:
             parameters['MOTION'][run_type]['MAX_FORCE'] = f'[eV/angstrom] {threshold_forces}'
 
-        ## Redefining stress threshold.
+        # Redefining stress threshold.
         if threshold_stress is not None:
             parameters['MOTION']['CELL_OPT']['PRESSURE_TOLERANCE'] = f'[GPa] {threshold_stress * EV_A3_TO_GPA}'
+
+        # Lowering runtime by 5 minutes to let CP2K gracefully finish the calculation.
+        try:
+            walltime = engines['relax']['options']['max_wallclock_seconds']
+            walltime = max(300, walltime - 300)
+            parameters['GLOBAL']['WALLTIME'] = walltime
+        except KeyError:
+            pass
+
+        # Setup a CELL_REF.
+        try:
+            scale_factor = protocol_dict.pop('cell_ref_scale_factor')
+        except KeyError:
+            pass  # If the protocol does not specify a CELL_REF factor, ignore it (CP2K will use the structure cell).
+        else:
+            # Otherwise, create necessary subdicts (unlikely to exist since CELL is written based on the structure)
+            parameters['FORCE_EVAL'].setdefault('SUBSYS', {}).setdefault('CELL', {})['CELL_REF'] = self._get_cell_ref(
+                structure, reference_workchain, scale_factor
+            )
+
         builder.cp2k.parameters = orm.Dict(dict=parameters)
 
         # Switch on the resubmit_unconverged_geometry which is disabled by default.
-        builder.handler_overrides = orm.Dict(dict={'resubmit_unconverged_geometry': True})
+        builder.handler_overrides = orm.Dict(dict={'restart_incomplete_calculation': True})
 
         # Files.
         builder.cp2k.file = get_file_section()
@@ -293,3 +316,23 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             kpoints_mesh.set_kpoints_mesh_from_density(distance=kpoints_distance)
             return kpoints_mesh
         return None
+
+    @staticmethod
+    def _get_cell_ref(structure, reference_workchain, scale_factor):
+        """If the reference_workchain specifies a CELL_REF, return that one, otherwise generate one"""
+
+        if reference_workchain and 'cp2k__parameters' in reference_workchain.inputs:
+            try:
+                return reference_workchain.inputs.cp2k.parameters['FORCE_EVAL']['SUBSYS']['CELL']['CELL_REF']
+            except KeyError:
+                # here we assume that the ref_cell_scale_factor is the same for both the reference
+                # workchain and any subsequent workchains
+                pass
+
+        cell = [[v * scale_factor**(1 / 3) for v in row] for row in structure.cell]
+
+        # start with an A, B, C:
+        cell_ref = {idx: f'[angstrom] {row[0]:<15} {row[1]:<15} {row[2]:<15}' for idx, row in zip('ABC', cell)}
+        # then add periodicity information matching the structure
+        cell_ref['PERIODIC'] = ''.join(axis * enabled for axis, enabled in zip('XYZ', structure.pbc))
+        return cell_ref
