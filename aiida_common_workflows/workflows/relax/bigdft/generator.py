@@ -110,7 +110,37 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 'import': 'linear'
             },
             'kpoints_distance': 274
-        }
+        },
+        'verification-pbe-v1': {
+            'description': 'Protocol used for bulk run of EoS verification project',
+            'inputdict_cubic': {
+                'logfile': 'Yes',
+                'dft': {
+                    'ixc': 'PBE',
+                    'ncong': 2,
+                    'rmult': [10, 8],
+                    'itermax': 3,
+                    'idsx': 0,
+                    'gnrm_cv': 1e-8,
+                    'hgrids': 0.4,
+                    'disablesym': 'no'
+                },
+                'mix': {
+                    'iscf': 17,
+                    'itrpmax': 200,
+                    'rpnrm_cv': 1.E-12,
+                    'norbsempty': 120,
+                    'tel': 0.00225,
+                    'occopt': 2,
+                    'alphamix': 0.8,
+                    'alphadiis': 1.0
+                }
+            },
+            'inputdict_linear': {
+                'import': 'linear'
+            },
+            'kpoints_distance': 274
+        },
     }
 
     @classmethod
@@ -120,6 +150,8 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         The ports defined on the specification are the inputs that will be accepted by the ``get_builder`` method.
         """
         super().define(spec)
+        spec.inputs['protocol'].valid_type = ChoiceType(
+            ('fast', 'moderate', 'precise', 'verification-PBE-v1'))
         spec.inputs['spin_type'].valid_type = ChoiceType((SpinType.NONE, SpinType.COLLINEAR))
         spec.inputs['relax_type'].valid_type = ChoiceType((RelaxType.NONE, RelaxType.POSITIONS))
         spec.inputs['electronic_type'].valid_type = ChoiceType((ElectronicType.METAL, ElectronicType.INSULATOR))
