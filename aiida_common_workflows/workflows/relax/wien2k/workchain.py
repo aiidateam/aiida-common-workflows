@@ -13,7 +13,7 @@ __all__ = ('Wien2kCommonRelaxWorkChain',)
 @calcfunction
 def get_energy(pardict):
     """Extract the energy from the `workchain_result` dictionary (Ry -> eV)"""
-    return orm.Float(pardict['EtotRyd']*13.605693122994)
+    return orm.Float(pardict['EtotRyd'] * 13.605693122994)
 
 
 class Wien2kCommonRelaxWorkChain(CommonRelaxWorkChain):
