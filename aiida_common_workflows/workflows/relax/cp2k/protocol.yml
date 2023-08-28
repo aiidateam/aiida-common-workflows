@@ -470,7 +470,7 @@ verification-pbe-v1:
 sirius:
   description: 'Protocol to relax a structure with SIRIUS and UPF pseudopotentials'
   kpoints_distance: 0.06
-  basis_pseudo: pseudopotentials.yml
+  basis_pseudo: SSSP/1.2/PBE/precision
   GLOBAL:
     EXTENDED_FFT_LENGTHS:   True
     PREFERRED_DIAG_LIBRARY: ScaLAPACK
