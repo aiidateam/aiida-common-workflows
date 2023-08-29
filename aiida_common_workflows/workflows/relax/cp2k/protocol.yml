@@ -467,7 +467,7 @@ verification-pbe-v1:
         RMS_FORCE: "[bohr^-1*hartree] 0.00030"  #default: [bohr^-1*hartree] 0.00030
         BFGS:
           TRUST_RADIUS: "[angstrom] 0.5"
-sirius:
+verification-pbe-v1-sirius:
   description: 'Protocol to relax a structure with SIRIUS and UPF pseudopotentials'
   kpoints_distance: 0.06
   basis_pseudo: SSSP/1.2/PBE/precision
