@@ -129,6 +129,7 @@ def get_file_section():
         'potential': potential,
     }
 
+
 def get_upf_pseudos_section(structure: StructureData, pseudo_family):
     """Provide the pseudos section to the input."""
     pseudos_group = orm.load_group(pseudo_family)
@@ -248,9 +249,17 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         # Starting magnetization.
         basis_pseudo = protocol_dict.pop('basis_pseudo')
         if 'sirius' in protocol:
-            dict_merge(parameters, get_kinds_section(structure, basis_pseudo=None, magnetization_tags=magnetization_tags, use_sirius=True))
+            dict_merge(
+                parameters,
+                get_kinds_section(structure, basis_pseudo=None, magnetization_tags=magnetization_tags, use_sirius=True)
+            )
         else:
-            dict_merge(parameters, get_kinds_section(structure, basis_pseudo=basis_pseudo, magnetization_tags=magnetization_tags, use_sirius=False))
+            dict_merge(
+                parameters,
+                get_kinds_section(
+                    structure, basis_pseudo=basis_pseudo, magnetization_tags=magnetization_tags, use_sirius=False
+                )
+            )
 
         # Relaxation type.
         if relax_type == RelaxType.POSITIONS:
