@@ -41,7 +41,7 @@ def dict_merge(dct, merge_dct):
 def get_kinds_section(structure: StructureData, basis_pseudo=None, magnetization_tags=None, use_sirius=False):
     """Write the &KIND sections given the structure and the settings_dict."""
     kinds = []
-    if basis_pseudo:
+    if not use_sirius:
         with open(pathlib.Path(__file__).parent / basis_pseudo, 'rb') as fhandle:
             atom_data = yaml.safe_load(fhandle)
     ase_structure = structure.get_ase()
@@ -207,7 +207,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         magnetization_tags = None
 
         # Metal or insulator.
-        if 'sirius' in protocol:
+        if 'sirius' not in protocol:  # It is not possible to disable smearing for sirius.
             # If metal then add smearing, unoccupied orbitals, and employ diagonalization.
             if electronic_type == ElectronicType.METAL:
                 parameters['FORCE_EVAL']['DFT']['SCF']['SMEAR'] = {
@@ -250,7 +250,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         if 'sirius' in protocol:
             dict_merge(parameters, get_kinds_section(structure, basis_pseudo=None, magnetization_tags=magnetization_tags, use_sirius=True))
         else:
-            dict_merge(parameters, get_kinds_section(structure, basis_pseudo=basis_pseudo, magnetization_tags=magnetization_tags, use_sirius=True))
+            dict_merge(parameters, get_kinds_section(structure, basis_pseudo=basis_pseudo, magnetization_tags=magnetization_tags, use_sirius=False))
 
         # Relaxation type.
         if relax_type == RelaxType.POSITIONS:
