@@ -17,12 +17,11 @@ classifiers = [
     'Programming Language :: Python',
     'Programming Language :: Python :: 3.8',
     'Programming Language :: Python :: 3.9',
-    'Programming Language :: Python :: 3.10',
 ]
 keywords = ['aiida', 'workflows']
-requires-python = '>=3.8'
+requires-python = '>=3.8,<3.10'
 dependencies = [
-    'abipy @ git+https://github.com/abinit/abipy.git@develop',
+    'abipy==0.9.6',
     'aiida-abinit~=0.4.0',
     'aiida-bigdft>=0.2.6',
     'aiida-castep>=1.2.0a5',
