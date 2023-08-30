@@ -38,11 +38,12 @@ def dict_merge(dct, merge_dct):
             dct[k] = merge_dct[k]
 
 
-def get_kinds_section(structure: StructureData, basis_pseudo: str, magnetization_tags=None):
-    """ Write the &KIND sections given the structure and the settings_dict"""
+def get_kinds_section(structure: StructureData, basis_pseudo=None, magnetization_tags=None, use_sirius=False):
+    """Write the &KIND sections given the structure and the settings_dict."""
     kinds = []
-    with open(pathlib.Path(__file__).parent / basis_pseudo, 'rb') as fhandle:
-        atom_data = yaml.safe_load(fhandle)
+    if not use_sirius:
+        with open(pathlib.Path(__file__).parent / basis_pseudo, 'rb') as fhandle:
+            atom_data = yaml.safe_load(fhandle)
     ase_structure = structure.get_ase()
     symbol_tag = {
         (symbol, str(tag)) for symbol, tag in zip(ase_structure.get_chemical_symbols(), ase_structure.get_tags())
@@ -50,9 +51,12 @@ def get_kinds_section(structure: StructureData, basis_pseudo: str, magnetization
     for symbol, tag in symbol_tag:
         new_atom = {
             '_': symbol if tag == '0' else symbol + tag,
-            'BASIS_SET': atom_data['basis_set'][symbol],
-            'POTENTIAL': atom_data['pseudopotential'][symbol],
         }
+        if use_sirius:
+            new_atom['POTENTIAL'] = f'UPF {symbol}.json'
+        else:
+            new_atom['BASIS_SET'] = atom_data['basis_set'][symbol]
+            new_atom['POTENTIAL'] = atom_data['pseudopotential'][symbol]
         if magnetization_tags:
             new_atom['MAGNETIZATION'] = magnetization_tags[tag]
         kinds.append(new_atom)
@@ -126,6 +130,12 @@ def get_file_section():
     }
 
 
+def get_upf_pseudos_section(structure: StructureData, pseudo_family):
+    """Provide the pseudos section to the input."""
+    pseudos_group = orm.load_group(pseudo_family)
+    return pseudos_group.get_pseudos(structure=structure)
+
+
 class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
     """Input generator for the `Cp2kRelaxWorkChain`."""
 
@@ -150,7 +160,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         super().define(spec)
         spec.input(
             'protocol',
-            valid_type=ChoiceType(('fast', 'moderate', 'precise', 'verification-pbe-v1')),
+            valid_type=ChoiceType(('fast', 'moderate', 'precise', 'verification-pbe-v1', 'verification-pbe-v1-sirius')),
             default='moderate',
             help='The protocol to use for the automated input generation. This value indicates the level of precision '
             'of the results and computational cost that the input parameters will be selected for.',
@@ -190,52 +200,66 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         kpoints_distance = protocol_dict.pop('kpoints_distance', None)
         kpoints = self._get_kpoints(kpoints_distance, structure, reference_workchain)
         mesh, _ = kpoints.get_kpoints_mesh()
-        if mesh != [1, 1, 1]:
+        if 'sirius' in protocol:
+            parameters['FORCE_EVAL']['PW_DFT']['PARAMETERS']['NGRIDK'] = f'{mesh[0]} {mesh[1]} {mesh[2]}'
+        elif mesh != [1, 1, 1]:
             builder.cp2k.kpoints = kpoints
 
         magnetization_tags = None
 
         # Metal or insulator.
-        # If metal then add smearing, unoccupied orbitals, and employ diagonalization.
-        if electronic_type == ElectronicType.METAL:
-            parameters['FORCE_EVAL']['DFT']['SCF']['SMEAR'] = {
-                '_': 'ON',
-                'METHOD': 'FERMI_DIRAC',
-                'ELECTRONIC_TEMPERATURE': '[K] 710.5',
-            }
-            parameters['FORCE_EVAL']['DFT']['SCF']['DIAGONALIZATION'] = {
-                'EPS_ADAPT': '1',
-            }
-            parameters['FORCE_EVAL']['DFT']['SCF']['MIXING'] = {
-                'METHOD': 'BROYDEN_MIXING',
-                'ALPHA': '0.1',
-                'BETA': '1.5',
-            }
-            parameters['FORCE_EVAL']['DFT']['SCF']['ADDED_MOS'] = 20
-            parameters['FORCE_EVAL']['DFT']['SCF']['CHOLESKY'] = 'OFF'
+        if 'sirius' not in protocol:  # It is not possible to disable smearing for sirius.
+            # If metal then add smearing, unoccupied orbitals, and employ diagonalization.
+            if electronic_type == ElectronicType.METAL:
+                parameters['FORCE_EVAL']['DFT']['SCF']['SMEAR'] = {
+                    '_': 'ON',
+                    'METHOD': 'FERMI_DIRAC',
+                    'ELECTRONIC_TEMPERATURE': '[K] 710.5',
+                }
+                parameters['FORCE_EVAL']['DFT']['SCF']['DIAGONALIZATION'] = {
+                    'EPS_ADAPT': '1',
+                }
+                parameters['FORCE_EVAL']['DFT']['SCF']['MIXING'] = {
+                    'METHOD': 'BROYDEN_MIXING',
+                    'ALPHA': '0.1',
+                    'BETA': '1.5',
+                }
+                parameters['FORCE_EVAL']['DFT']['SCF']['ADDED_MOS'] = 20
+                parameters['FORCE_EVAL']['DFT']['SCF']['CHOLESKY'] = 'OFF'
 
-        # If insulator then employ OT.
-        elif electronic_type == ElectronicType.INSULATOR:
-            parameters['FORCE_EVAL']['DFT']['SCF']['OT'] = {
-                'PRECONDITIONER': 'FULL_SINGLE_INVERSE',
-                'MINIMIZER': 'CG',
-            }
+            # If insulator then employ OT.
+            elif electronic_type == ElectronicType.INSULATOR:
+                parameters['FORCE_EVAL']['DFT']['SCF']['OT'] = {
+                    'PRECONDITIONER': 'FULL_SINGLE_INVERSE',
+                    'MINIMIZER': 'CG',
+                }
 
-        # Magnetic calculation.
-        if spin_type == SpinType.NONE:
-            parameters['FORCE_EVAL']['DFT']['UKS'] = False
-            if magnetization_per_site is not None:
-                import warnings
-                warnings.warn('`magnetization_per_site` will be ignored as `spin_type` is set to SpinType.NONE')
+            # Magnetic calculation. Changing this configuration has no effect on sirius calculations.
+            if spin_type == SpinType.NONE:
+                parameters['FORCE_EVAL']['DFT']['UKS'] = False
+                if magnetization_per_site is not None:
+                    import warnings
+                    warnings.warn('`magnetization_per_site` will be ignored as `spin_type` is set to SpinType.NONE')
 
-        elif spin_type == SpinType.COLLINEAR:
-            parameters['FORCE_EVAL']['DFT']['UKS'] = True
-            structure, magnetization_tags = tags_and_magnetization(structure, magnetization_per_site)
-            parameters['FORCE_EVAL']['DFT']['MULTIPLICITY'] = guess_multiplicity(structure, magnetization_per_site)
+            elif spin_type == SpinType.COLLINEAR:
+                parameters['FORCE_EVAL']['DFT']['UKS'] = True
+                structure, magnetization_tags = tags_and_magnetization(structure, magnetization_per_site)
+                parameters['FORCE_EVAL']['DFT']['MULTIPLICITY'] = guess_multiplicity(structure, magnetization_per_site)
 
         # Starting magnetization.
         basis_pseudo = protocol_dict.pop('basis_pseudo')
-        dict_merge(parameters, get_kinds_section(structure, basis_pseudo, magnetization_tags))
+        if 'sirius' in protocol:
+            dict_merge(
+                parameters,
+                get_kinds_section(structure, basis_pseudo=None, magnetization_tags=magnetization_tags, use_sirius=True)
+            )
+        else:
+            dict_merge(
+                parameters,
+                get_kinds_section(
+                    structure, basis_pseudo=basis_pseudo, magnetization_tags=magnetization_tags, use_sirius=False
+                )
+            )
 
         # Relaxation type.
         if relax_type == RelaxType.POSITIONS:
@@ -281,7 +305,10 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         builder.handler_overrides = orm.Dict(dict={'restart_incomplete_calculation': True})
 
         # Files.
-        builder.cp2k.file = get_file_section()
+        if 'sirius' in protocol:
+            builder.cp2k.pseudos_upf = get_upf_pseudos_section(structure, basis_pseudo)
+        else:
+            builder.cp2k.file = get_file_section()
 
         # Input structure.
         builder.cp2k.structure = structure
