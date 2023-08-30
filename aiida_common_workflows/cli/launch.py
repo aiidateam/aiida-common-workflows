@@ -39,7 +39,7 @@ def cmd_launch():
 @click.argument('plugin', type=types.LazyChoice(functools.partial(get_workflow_entry_point_names, 'relax', True)))
 @options.STRUCTURE()
 @options.CODES()
-@options.PROTOCOL(type=click.Choice(['fast', 'moderate', 'precise']), default='fast')
+@options.PROTOCOL(type=click.Choice(['fast', 'moderate', 'precise', 'verification-pbe-v1']), default='fast')
 @options.RELAX_TYPE()
 @options.ELECTRONIC_TYPE()
 @options.SPIN_TYPE()
