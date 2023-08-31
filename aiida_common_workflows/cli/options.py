@@ -137,7 +137,7 @@ STRUCTURE = options.OverridableOption(
 PROTOCOL = options.OverridableOption(
     '-p',
     '--protocol',
-    type=click.Choice(['fast', 'moderate', 'precise', 'verification-pbe-v1']),
+    type=click.Choice(['fast', 'moderate', 'precise', 'verification-pbe-v1', 'verification-pbe-v1-sirius']),
     default='fast',
     show_default=True,
     help='Select the protocol with which the inputs for the workflow should be generated.'
