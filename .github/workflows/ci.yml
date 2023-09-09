@@ -1,4 +1,4 @@
-name: continuous-integration
+name: ci
 
 on: [push, pull_request]
 
@@ -11,22 +11,18 @@ jobs:
         steps:
         -   uses: actions/checkout@v2
 
-        -   name: Cache python dependencies
-            id: cache-pip
-            uses: actions/cache@v1
+        -   name: Install Python
+            uses: actions/setup-python@v4
             with:
-                path: ~/.cache/pip
-                key: pip-pre-commit-${{ hashFiles('**/setup.json') }}
-                restore-keys:
-                    pip-pre-commit-
+                python-version: '3.8'
+                cache: 'pip'
+                cache-dependency-path: pyproject.toml
 
-        -   name: Set up Python
-            uses: actions/setup-python@v2
-            with:
-                python-version: 3.8
+        -   name: Update pip and install wheel
+            run: pip install -U pip wheel
 
-        -   name: Install python dependencies
-            run: pip install .[docs,pre-commit,tests]
+        -   name: Install Python package and dependencies
+            run: pip install -e .[docs,pre-commit,tests]
 
         -   name: Run pre-commit
             run: pre-commit run --all-files || ( git status --short ; git diff ; exit 1 )
@@ -49,25 +45,20 @@ jobs:
         steps:
         -   uses: actions/checkout@v2
 
-        -   name: Cache python dependencies
-            id: cache-pip
-            uses: actions/cache@v1
-            with:
-                path: ~/.cache/pip
-                key: pip-${{ matrix.python-version }}-tests-${{ hashFiles('**/setup.json') }}
-                restore-keys:
-                    pip-${{ matrix.python-version }}-tests
-
-        -   name: Set up Python ${{ matrix.python-version }}
-            uses: actions/setup-python@v2
+        -   name: Install Python ${{ matrix.python-version }}
+            uses: actions/setup-python@v4
             with:
                 python-version: ${{ matrix.python-version }}
+                cache: 'pip'
+                cache-dependency-path: pyproject.toml
 
-        -   name: Install python dependencies
-            run: |
-                pip install --upgrade setuptools wheel
-                pip install .[tests]
-                reentry scan
+        -   name: Update pip and install wheel
+            run: pip install -U pip wheel
+
+        -   name: Install Python package and dependencies
+            run: pip install -e .[tests] && reentry scan
 
         -   name: Run pytest
+            env:
+                AIIDA_WARN_v3: true
             run: pytest -sv tests
