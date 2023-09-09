@@ -31,7 +31,7 @@ dependencies = [
     'aiida-gaussian',
     'aiida-nwchem>=2.1.0',
     'aiida-orca',
-    'aiida-pseudo>=0.6.0',
+    'aiida-pseudo==0.6.5',
     'aiida-quantumespresso~=3.4,>=3.4.1',
     'aiida-siesta>=1.2.0',
     'aiida-vasp~=2.2',
