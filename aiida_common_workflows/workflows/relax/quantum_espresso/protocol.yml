@@ -1,4 +1,4 @@
-verification-pbe-v1:
+verification-PBE-v1:
   description: Main protocol for the ACWF verification study - SSSP version
   base:
     pseudo_family: &pseudo_family 'SSSP/1.2/PBE/precision'

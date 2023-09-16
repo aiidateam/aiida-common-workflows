@@ -344,7 +344,7 @@ fast:
         BFGS:
           TRUST_RADIUS: "[angstrom] 0.5"
 
-verification-pbe-v1:
+verification-PBE-v1:
   description: 'Protocol to relax a structure with high precision at higher computational cost.'
   kpoints_distance: 0.06
   cell_ref_scale_factor: 1.2766      #=1.2/0.94, assumption: ref.workchain starts at lowest scale of 0.94 for EOS
@@ -467,7 +467,7 @@ verification-pbe-v1:
         RMS_FORCE: "[bohr^-1*hartree] 0.00030"  #default: [bohr^-1*hartree] 0.00030
         BFGS:
           TRUST_RADIUS: "[angstrom] 0.5"
-verification-pbe-v1-sirius:
+verification-PBE-v1-sirius:
   description: 'Protocol to relax a structure with SIRIUS and UPF pseudopotentials'
   kpoints_distance: 0.06
   basis_pseudo: SSSP/1.2/PBE/precision

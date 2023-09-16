@@ -111,7 +111,7 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             },
             'kpoints_distance': 274
         },
-        'verification-pbe-v1': {
+        'verification-PBE-v1': {
             'description': 'Protocol used for bulk run of EoS verification project',
             'inputdict_cubic': {
                 'logfile': 'Yes',

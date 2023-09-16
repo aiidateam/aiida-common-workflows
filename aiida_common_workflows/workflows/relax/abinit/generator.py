@@ -52,7 +52,7 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             (ElectronicType.METAL, ElectronicType.INSULATOR, ElectronicType.UNKNOWN)
         )
         spec.inputs['engines']['relax']['code'].valid_type = CodeType('abinit')
-        spec.inputs['protocol'].valid_type = ChoiceType(('fast', 'moderate', 'precise', 'verification-pbe-v1'))
+        spec.inputs['protocol'].valid_type = ChoiceType(('fast', 'moderate', 'precise', 'verification-PBE-v1'))
 
     def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:
         """Construct a process builder based on the provided keyword arguments.
