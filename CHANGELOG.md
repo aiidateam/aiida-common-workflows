@@ -4,7 +4,7 @@
 
 This is the first stable release of the package.
 It is compatible with AiiDA v1.6 and supports Python 3.8 and 3.9.
-This release adds the `verification-pbe-v1` protocol for the `CommonRelaxWorkChain` as described and used in the study entitled ["How to verify the precision of density-functional-theory implementations via reproducible and universal workflows"](https://arxiv.org/abs/2305.17274).
+This release adds the `verification-PBE-v1` protocol for the `CommonRelaxWorkChain` as described and used in the study entitled ["How to verify the precision of density-functional-theory implementations via reproducible and universal workflows"](https://arxiv.org/abs/2305.17274).
 The abinit, BigDFT, CASTEP, CP2K, Fleur, Quantum ESPRESSO, SIESTA and VASP codes, which had an existing implementation of the `CommonRelaxWorkChain`, added support for this protocol.
 A brand new implementation of the `CommonRelaxWorkChain` is added for the [GPAW](https://wiki.fysik.dtu.dk/gpaw/) and [WIEN2k](http://susi.theochem.tuwien.ac.at/) codes.
 
@@ -12,15 +12,15 @@ A brand new implementation of the `CommonRelaxWorkChain` is added for the [GPAW]
 - `CommonRelaxWorkChain` : Add implementation for GPAW [[fa9c92c]](https://github.com/aiidateam/aiida-common-workflows/commit/fa9c92ce63476ccf91ffe38e5926aaf05f6b64d9)
 - `CommonRelaxWorkChain` : Add implementation for WIEN2k [[3e4014d]](https://github.com/aiidateam/aiida-common-workflows/commit/3e4014d8b38ca944e61d67f29523df37165548b8)
 - Add the `CommonBandsWorkChain` [[aacaca0]](https://github.com/aiidateam/aiida-common-workflows/commit/aacaca00811461ca3c07ea318b7dd26f514178f3)
-- Add the `verification-pbe-v1` protocol for abinit [[c762164]](https://github.com/aiidateam/aiida-common-workflows/commit/c762164b4b4b51f233a91a60dac1d48334406749)
-- Add the `verification-pbe-v1` protocol for BigDFT  [[34ef55f]](https://github.com/aiidateam/aiida-common-workflows/commit/34ef55fea714f6a05ff6b4bdd1b043f29fa3c958)
-- Add the `verification-pbe-v1` protocol for CASTEP [[db0f1ae]](https://github.com/aiidateam/aiida-common-workflows/commit/db0f1ae125e045183f69cd42d09f58fd69c2bff8)
-- Add the `verification-pbe-v1` protocol for CP2K [[7d7cc9f]](https://github.com/aiidateam/aiida-common-workflows/commit/7d7cc9f619e262479a324adea48575c29db53619)
-- Add the `verification-pbe-v1` protocol for Fleur [[ac214b1]](https://github.com/aiidateam/aiida-common-workflows/commit/ac214b127686f330aec05d164bf6e68270ef0ca9)
-- Add the `verification-pbe-v1` protocol for Quantum ESPRESSO [[021672a]](https://github.com/aiidateam/aiida-common-workflows/commit/021672a4dd38934d30b62a8fa6d31a379719856f)
-- Add the `verification-pbe-v1` protocol for SIESTA [[1aa93c4]](https://github.com/aiidateam/aiida-common-workflows/commit/1aa93c4853bd9b64abb7e627b60b5780c3c79a4b)
-- Add the `verification-pbe-v1` protocol for VASP [[a17cd87]](https://github.com/aiidateam/aiida-common-workflows/commit/a17cd871c4ef9a85eb50ec6ae5a231cfa95b522a)
-- Add the `verification-pbe-v1-sirius` protocol for CP2K [[3015631]](https://github.com/aiidateam/aiida-common-workflows/commit/30156316c440f5e9843accb8590d1c34b2ed15f7)
+- Add the `verification-PBE-v1` protocol for abinit [[c762164]](https://github.com/aiidateam/aiida-common-workflows/commit/c762164b4b4b51f233a91a60dac1d48334406749)
+- Add the `verification-PBE-v1` protocol for BigDFT  [[34ef55f]](https://github.com/aiidateam/aiida-common-workflows/commit/34ef55fea714f6a05ff6b4bdd1b043f29fa3c958)
+- Add the `verification-PBE-v1` protocol for CASTEP [[db0f1ae]](https://github.com/aiidateam/aiida-common-workflows/commit/db0f1ae125e045183f69cd42d09f58fd69c2bff8)
+- Add the `verification-PBE-v1` protocol for CP2K [[7d7cc9f]](https://github.com/aiidateam/aiida-common-workflows/commit/7d7cc9f619e262479a324adea48575c29db53619)
+- Add the `verification-PBE-v1` protocol for Fleur [[ac214b1]](https://github.com/aiidateam/aiida-common-workflows/commit/ac214b127686f330aec05d164bf6e68270ef0ca9)
+- Add the `verification-PBE-v1` protocol for Quantum ESPRESSO [[021672a]](https://github.com/aiidateam/aiida-common-workflows/commit/021672a4dd38934d30b62a8fa6d31a379719856f)
+- Add the `verification-PBE-v1` protocol for SIESTA [[1aa93c4]](https://github.com/aiidateam/aiida-common-workflows/commit/1aa93c4853bd9b64abb7e627b60b5780c3c79a4b)
+- Add the `verification-PBE-v1` protocol for VASP [[a17cd87]](https://github.com/aiidateam/aiida-common-workflows/commit/a17cd871c4ef9a85eb50ec6ae5a231cfa95b522a)
+- Add the `verification-PBE-v1-sirius` protocol for CP2K [[3015631]](https://github.com/aiidateam/aiida-common-workflows/commit/30156316c440f5e9843accb8590d1c34b2ed15f7)
 - CLI: Add option to define threads (cores-per-mpiproc) [[f838218]](https://github.com/aiidateam/aiida-common-workflows/commit/f83821898d1746a871373d538d8133f0efd22c1d)
 - CLI: Call `sys.exit` for launch command if process fails [[bb9090a]](https://github.com/aiidateam/aiida-common-workflows/commit/bb9090a8bd8bc703ffaeda42b439dcfeebf55bf5)
 - CLI: Add entry point for CLI as `acwf` [[611c2e6]](https://github.com/aiidateam/aiida-common-workflows/commit/611c2e6ce11c6e9705e3a66e4a43a9e574dc1dd1)

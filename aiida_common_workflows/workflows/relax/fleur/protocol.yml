@@ -67,8 +67,8 @@ oxides_validation:
             forcealpha: 0.50
             forcemix: 'straight'
 
-verification-pbe-v1:
-    name: 'verification-pbe-v1'
+verification-PBE-v1:
+    name: 'verification-PBE-v1'
     inpgen-protocol: 'oxides_validation'
     description: 'Protocol to relax a structure with high precision at higher computational cost. This relies on the "oxides_validation" protocol of the fleur code.'
     relax:

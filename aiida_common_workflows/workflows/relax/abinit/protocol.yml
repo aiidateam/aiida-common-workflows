@@ -88,7 +88,7 @@ precise:
                 nsppol: 1 # no spin-polarization, Abinit default
                 nspden: 1 # no spin-magnetization, Abinit default
 
-verification-pbe-v1:
+verification-PBE-v1:
     name: "verification-PBE-v1"
     description: "Main protocol for the ACWF verification study - PseudoDojo v0.5"
     pseudo_family: "PseudoDojo/0.5/PBE/SR/standard/psp8"

@@ -35,7 +35,7 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         'oxides_validation': {
             'description': 'high level of accuracy. Used for validating oxide results for common-workflows'
         },
-        'verification-pbe-v1': {
+        'verification-PBE-v1': {
             'description': 'high level of accuracy. Used for validating oxide results for common-workflows'
         }
     }
@@ -61,7 +61,7 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         spec.inputs['relax_type'].valid_type = ChoiceType((RelaxType.NONE, RelaxType.POSITIONS))
         spec.inputs['electronic_type'].valid_type = ChoiceType((ElectronicType.METAL, ElectronicType.INSULATOR))
         spec.inputs['protocol'].valid_type = ChoiceType(
-            ('fast', 'moderate', 'precise', 'oxides_validation', 'verification-pbe-v1')
+            ('fast', 'moderate', 'precise', 'oxides_validation', 'verification-PBE-v1')
         )
         spec.input('engines.inpgen.code', valid_type=orm.Code, serializer=orm.load_code)
         spec.input('engines.inpgen.options', valid_type=dict, required=False)
