@@ -1,5 +1,12 @@
 # Change log
 
+## 1.0.1 - 2023-09-16
+
+### Fixes
+
+- Use consistent capitalization in name of `verification-PBE-v1` protocol: PBE should be capitalized [[f4da766]](https://github.com/aiidateam/aiida-common-workflows/commit/f4da766aa34570aef7b60cb488c07bd013a2afc6)
+
+
 ## 1.0.0 - 2023-09-10
 
 This is the first stable release of the package.
