@@ -4,12 +4,15 @@ import collections
 import copy
 from math import pi
 import pathlib
+import re
 import typing as t
 
 from aiida import engine, orm, plugins
 from aiida.common import exceptions
 from aiida_castep.data import get_pseudos_from_structure
 from aiida_castep.data.otfg import OTFGGroup
+from aiida_pseudo.groups.family.pseudo_dojo import PseudoDojoFamily
+import numpy as np
 import yaml
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
@@ -49,7 +52,17 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         super().define(spec)
         spec.input(
             'protocol',
-            valid_type=ChoiceType(('fast', 'moderate', 'precise', 'verification-PBE-v1', 'verification-PBE-v1-a0')),
+            valid_type=ChoiceType((
+                'fast',
+                'moderate',
+                'precise',
+                'verification-PBE-v1',
+                'verification-PBE-v1-a0',
+                'verification-PBE-v1-dojo-a0',
+                'verification-PBE-v1-dojo-a1',
+                'verification-PBE-v1-dojo-a2',
+                'verification-PBE-v1-qc5-a0',
+            )),
             default='moderate',
             help='The protocol to use for the automated input generation. This value indicates the level of precision '
             'of the results and computational cost that the input parameters will be selected for.',
@@ -183,7 +196,50 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         # Ensure the pseudopotential family requested does exist
         pseudos_family = protocol['relax']['base']['pseudos_family']
-        ensure_otfg_family(pseudos_family)
+
+        # Set up pseudopotentials
+        try:
+            pseudo_group = orm.Group.objects.get(label=pseudos_family)
+        except exceptions.NotExistent:
+            # No family found - make this family if possible
+            ensure_otfg_family(pseudos_family)
+        else:
+            # If we are using a family from aiida-pseudos, set the cut off energy accordingly
+            if isinstance(pseudo_group, PseudoDojoFamily):
+                # Using aiida_pseudo interface
+                # In this case we also have to set the cut off energy based on the protocol,
+                # as CASTEP cannot infer default
+                # basis-related settings
+                cutoff, _ = pseudo_group.get_recommended_cutoffs(
+                    structure=structure, stringency=protocol['cutoff_stringency'], unit='eV'
+                )
+                cutoff = np.ceil(cutoff)
+                if not param:
+                    override['base']['calc']['parameters'] = {}
+                override['base']['calc']['parameters']['cut_off_energy'] = cutoff
+                override['base']['calc']['parameters'].pop('basis_precision', None)
+
+            # CASTEP does not truncate the data when reading in the potentials in order to
+            # reduced the numerical noise. This results in significant error for certain elements
+            # such as Cu. Abinit (with which the potentials are initially tested with) applies
+            # a filter of 6 a_0 for truncating the data. The routine below allows passing through
+            # 'trimmed' version of the dojo potentials while still using the recommanded cut offs
+            # The trimmed potentials may be uploaded as separated UpfGroup with a suffix like "-trimmed-600"
+            if '-trimmed' in pseudo_group.label:
+                dojo_group_label = re.sub('(-trimmed.*$)', '', pseudo_group.label)
+                dojo_group = orm.Group.objects.get(label=dojo_group_label)
+                # Using aiida_pseudo interface
+                # In this case we also have to set the cut off energy based on the protocol,
+                # as CASTEP cannot infer default
+                # basis-related settings
+                cutoff, _ = dojo_group.get_recommended_cutoffs(
+                    structure=structure, stringency=protocol['cutoff_stringency'], unit='eV'
+                )
+                cutoff = np.ceil(cutoff)
+                if not param:
+                    override['base']['calc']['parameters'] = {}
+                override['base']['calc']['parameters']['cut_off_energy'] = cutoff
+                override['base']['calc']['parameters'].pop('basis_precision', None)
 
         builder = self.process_class.get_builder()
         inputs = generate_inputs(self.process_class._process_class, protocol, code, structure, override)  # pylint: disable=protected-access
@@ -252,11 +308,12 @@ def generate_inputs(
     # pylint: disable=too-many-arguments,unused-argument
     from aiida.common.lang import type_check
 
+    # Sanity checks for the pseudofamily
     family_name = protocol['relax']['base']['pseudos_family']
     if isinstance(family_name, orm.Str):
         family_name = family_name.value
     try:
-        otfg_family = OTFGGroup.objects.get(label=family_name)
+        otfg_family = orm.Group.objects.get(label=family_name)
     except exceptions.NotExistent as exc:
         raise ValueError(
             'protocol `{}` requires the `{}` `pseudos family` but could not be found.'.format(
