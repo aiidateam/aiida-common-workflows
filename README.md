@@ -40,7 +40,7 @@ SIESTA           | [10.1063/5.0005077](https://doi.org/10.1063/5.0005077) [10.10
 VASP             | [10.1103/physrevb.54.11169](https://doi.org/10.1103/physrevb.54.11169)  [10.1103/physrevb.59.1758](https://doi.org/10.1103/physrevb.59.1758)
 WIEN2k           | [10.1063/1.5143061](https://doi.org/10.1063/1.5143061)
 
-## Examples of use 
+## Examples of use
 
 This AiiDA common workflows package was used as the core engine to run all simulations for the paper:
 
