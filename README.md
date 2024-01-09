@@ -39,3 +39,11 @@ Quantum ESPRESSO | [10.1088/0953-8984/21/39/395502](https://doi.org/10.1088/0953
 SIESTA           | [10.1063/5.0005077](https://doi.org/10.1063/5.0005077) [10.1088/0953-8984/14/11/302](https://doi.org/10.1088/0953-8984/14/11/302)
 VASP             | [10.1103/physrevb.54.11169](https://doi.org/10.1103/physrevb.54.11169)  [10.1103/physrevb.59.1758](https://doi.org/10.1103/physrevb.59.1758)
 WIEN2k           | [10.1063/1.5143061](https://doi.org/10.1063/1.5143061)
+
+## Examples of use 
+
+This AiiDA common workflows package was used as the core engine to run all simulations for the paper:
+
+>  [E. Bosoni et al., *How to verify the precision of density-functional-theory implementations via reproducible and universal workflows*, **Nat. Rev. Phys. 6**, 45 (2024)](https://doi.org/10.1038/s42254-023-00655-3)
+
+The corresponding scripts to run simulations and analyze the data can be found on the [`acwf-verification-scripts` GitHub repository](https://github.com/aiidateam/acwf-verification-scripts).
