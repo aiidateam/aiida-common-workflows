@@ -17,7 +17,7 @@ A typical script for the submission of common DC workflow could look something l
 
     from aiida.orm import List, Dict
     from aiida.engine import submit
-    from aiida.plugin import WorkflowFactory
+    from aiida.plugins import WorkflowFactory
 
     cls = WorkflowFactory('common_workflows.dissociation_curve')
 
