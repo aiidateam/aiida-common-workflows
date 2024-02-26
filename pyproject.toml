@@ -1,79 +1,52 @@
 [build-system]
-requires = ['flit_core >=3.4,<4']
 build-backend = 'flit_core.buildapi'
+requires = ['flit_core >=3.4,<4']
 
 [project]
-name = 'aiida-common-workflows'
-dynamic = ['description', 'version']
 authors = [{name = 'The AiiDA team', email = 'developers@aiida.net'}]
-readme = 'README.md'
-license = {file = 'LICENSE.txt'}
 classifiers = [
-    'Development Status :: 4 - Beta',
-    'Framework :: AiiDA',
-    'License :: OSI Approved :: MIT License',
-    'Operating System :: POSIX :: Linux',
-    'Operating System :: MacOS :: MacOS X',
-    'Programming Language :: Python',
-    'Programming Language :: Python :: 3.9',
-    'Programming Language :: Python :: 3.10',
-    'Programming Language :: Python :: 3.11',
-    'Programming Language :: Python :: 3.12',
+  'Development Status :: 4 - Beta',
+  'Framework :: AiiDA',
+  'License :: OSI Approved :: MIT License',
+  'Operating System :: POSIX :: Linux',
+  'Operating System :: MacOS :: MacOS X',
+  'Programming Language :: Python',
+  'Programming Language :: Python :: 3.9',
+  'Programming Language :: Python :: 3.10',
+  'Programming Language :: Python :: 3.11',
+  'Programming Language :: Python :: 3.12'
 ]
-keywords = ['aiida', 'workflows']
-requires-python = '>=3.9'
 dependencies = [
-    'abipy==0.9.6',
-    'aiida-ase~=3.0',
-    'aiida-abinit~=0.5.0',
-    'aiida-bigdft~=0.3.0',
-    'aiida-castep~=2.0',
-    'aiida-core[atomic_tools]~=2.1',
-    'aiida-cp2k~=2.0',
-    'aiida-fleur~=2.0',
-    'aiida-gaussian~=2.0',
-    'aiida-nwchem~=3.0',
-    'aiida-orca~=0.6.0',
-    'aiida-pseudo~=1.0',
-    'aiida-quantumespresso~=4.4',
-    'aiida-siesta~=2.0',
-    'aiida-vasp~=3.1',
-    'aiida-wien2k~=0.2.0',
-    'ase!=3.20.*',
-    'masci-tools~=0.9',
-    'pint~=0.16',
-    'pymatgen>=2022.1.20',
+  'abipy==0.9.6',
+  'aiida-ase~=3.0',
+  'aiida-abinit~=0.5.0',
+  'aiida-bigdft~=0.3.0',
+  'aiida-castep~=2.0',
+  'aiida-core[atomic_tools]~=2.1',
+  'aiida-cp2k~=2.0',
+  'aiida-fleur~=2.0',
+  'aiida-gaussian~=2.0',
+  'aiida-nwchem~=3.0',
+  'aiida-orca~=0.6.0',
+  'aiida-pseudo~=1.0',
+  'aiida-quantumespresso~=4.4',
+  'aiida-siesta~=2.0',
+  'aiida-vasp~=3.1',
+  'aiida-wien2k~=0.2.0',
+  'ase!=3.20.*',
+  'masci-tools~=0.9',
+  'pint~=0.16',
+  'pymatgen>=2022.1.20'
 ]
-
-[project.urls]
-Home = 'https://github.com/aiidateam/aiida-common-workflows'
-Source = 'https://github.com/aiidateam/aiida-common-workflows'
-Documentation = 'https://aiida-common-workflows.readthedocs.io'
-
-[project.optional-dependencies]
-docs = [
-    'docutils~=0.15.2',
-    'pygments~=2.5',
-    'pydata-sphinx-theme~=0.4.0',
-    'sphinx~=3.2',
-    'sphinx-panels~=0.5.0',
-    'sphinxcontrib-details-directive~=0.1.0',
-    'sphinx-copybutton~=0.3.0'
-]
-pre-commit = [
-    'pre-commit~=3.6',
-]
-tests = [
-    'pytest~=7.2',
-    'pgtest~=1.3,>=1.3.1',
-    'pytest-regressions~=1.0'
-]
-
-[project.scripts]
-aiida-common-workflows = 'aiida_common_workflows.cli:cmd_root'
-acwf = 'aiida_common_workflows.cli:cmd_root'
+dynamic = ['description', 'version']
+keywords = ['aiida', 'workflows']
+license = {file = 'LICENSE.txt'}
+name = 'aiida-common-workflows'
+readme = 'README.md'
+requires-python = '>=3.9'
 
 [project.entry-points.'aiida.workflows']
+'common_workflows.bands.siesta' = 'aiida_common_workflows.workflows.bands.siesta.workchain:SiestaCommonBandsWorkChain'
 'common_workflows.dissociation_curve' = 'aiida_common_workflows.workflows.dissociation:DissociationCurveWorkChain'
 'common_workflows.eos' = 'aiida_common_workflows.workflows.eos:EquationOfStateWorkChain'
 'common_workflows.relax.abinit' = 'aiida_common_workflows.workflows.relax.abinit.workchain:AbinitCommonRelaxWorkChain'
@@ -82,49 +55,95 @@ acwf = 'aiida_common_workflows.cli:cmd_root'
 'common_workflows.relax.cp2k' = 'aiida_common_workflows.workflows.relax.cp2k.workchain:Cp2kCommonRelaxWorkChain'
 'common_workflows.relax.fleur' = 'aiida_common_workflows.workflows.relax.fleur.workchain:FleurCommonRelaxWorkChain'
 'common_workflows.relax.gaussian' = 'aiida_common_workflows.workflows.relax.gaussian.workchain:GaussianCommonRelaxWorkChain'
+'common_workflows.relax.gpaw' = 'aiida_common_workflows.workflows.relax.gpaw.workchain:GpawCommonRelaxWorkChain'
 'common_workflows.relax.nwchem' = 'aiida_common_workflows.workflows.relax.nwchem.workchain:NwchemCommonRelaxWorkChain'
 'common_workflows.relax.orca' = 'aiida_common_workflows.workflows.relax.orca.workchain:OrcaCommonRelaxWorkChain'
 'common_workflows.relax.quantum_espresso' = 'aiida_common_workflows.workflows.relax.quantum_espresso.workchain:QuantumEspressoCommonRelaxWorkChain'
 'common_workflows.relax.siesta' = 'aiida_common_workflows.workflows.relax.siesta.workchain:SiestaCommonRelaxWorkChain'
 'common_workflows.relax.vasp' = 'aiida_common_workflows.workflows.relax.vasp.workchain:VaspCommonRelaxWorkChain'
-'common_workflows.relax.gpaw' = 'aiida_common_workflows.workflows.relax.gpaw.workchain:GpawCommonRelaxWorkChain'
 'common_workflows.relax.wien2k' = 'aiida_common_workflows.workflows.relax.wien2k.workchain:Wien2kCommonRelaxWorkChain'
-'common_workflows.bands.siesta' = 'aiida_common_workflows.workflows.bands.siesta.workchain:SiestaCommonBandsWorkChain'
+
+[project.optional-dependencies]
+docs = [
+  'docutils~=0.15.2',
+  'pygments~=2.5',
+  'pydata-sphinx-theme~=0.4.0',
+  'sphinx~=3.2',
+  'sphinx-panels~=0.5.0',
+  'sphinxcontrib-details-directive~=0.1.0',
+  'sphinx-copybutton~=0.3.0'
+]
+pre-commit = [
+  'pre-commit~=3.6'
+]
+tests = [
+  'pytest~=7.2',
+  'pgtest~=1.3,>=1.3.1',
+  'pytest-regressions~=1.0'
+]
+
+[project.scripts]
+acwf = 'aiida_common_workflows.cli:cmd_root'
+aiida-common-workflows = 'aiida_common_workflows.cli:cmd_root'
+
+[project.urls]
+Documentation = 'https://aiida-common-workflows.readthedocs.io'
+Home = 'https://github.com/aiidateam/aiida-common-workflows'
+Source = 'https://github.com/aiidateam/aiida-common-workflows'
 
 [tool.flit.module]
 name = 'aiida_common_workflows'
 
 [tool.flit.sdist]
 exclude = [
-    '.gitignore',
-    '.github/',
-    'docs/',
-    'tests/',
+  '.gitignore',
+  '.github/',
+  'docs/',
+  'tests/'
 ]
 
 [tool.flynt]
-line-length = 120
 fail-on-change = true
+line-length = 120
+
+[tool.pytest.ini_options]
+filterwarnings = [
+  'ignore::DeprecationWarning:abipy:',
+  'ignore::DeprecationWarning:ase:',
+  'ignore::DeprecationWarning:frozendict:',
+  'ignore::DeprecationWarning:past:',
+  'ignore::DeprecationWarning:sqlalchemy_utils:',
+  'ignore::DeprecationWarning:reentry:',
+  'ignore::DeprecationWarning:pkg_resources:',
+  'ignore::PendingDeprecationWarning:monty:',
+  'ignore::PendingDeprecationWarning:pymatgen:',
+  'ignore::PendingDeprecationWarning:ruamel:',
+  'ignore:Creating AiiDA configuration folder.*:UserWarning',
+  'ignore:Object of type .* not in session, .* operation along .* will not proceed:sqlalchemy.exc.SAWarning'
+]
+testpaths = [
+  'tests'
+]
 
 [tool.ruff]
 ignore = [
-    'PLR2004',  # Magic value used in comparison
-    'PLE0604',  # Invalid object in `__all__`, must contain only strings
-    'F403',  # Star imports unable to detect undefined names
-    'F405',  # Import may be undefined or defined from star imports
+  'PLR2004',  # Magic value used in comparison
+  'PLE0604',  # Invalid object in `__all__`, must contain only strings
+  'F403',  # Star imports unable to detect undefined names
+  'F405'  # Import may be undefined or defined from star imports
 ]
 line-length = 120
 select = [
-    'E',  # pydocstyle
-    'W',  # pydocstyle
-    'F',  # pyflakes
-    'I',  # isort
-    'N',  # pep8-naming
-    'PLC',
-    'PLE',
-    'PLR',
-    'PLW',
-    'RUF'  # ruff
+  'E',  # pydocstyle
+  'W',  # pydocstyle
+  'F',  # pyflakes
+  'I',  # isort
+  'N',  # pep8-naming
+  'PLC',
+  'PLE',
+  'PLR',
+  'PLW',
+  'RUF'  # ruff
 ]
 
 [tool.ruff.format]
@@ -132,22 +151,3 @@ quote-style = 'single'
 
 [tool.ruff.lint.isort]
 known-first-party = ['src']
-
-[tool.pytest.ini_options]
-testpaths = [
-    'tests',
-]
-filterwarnings = [
-    'ignore::DeprecationWarning:abipy:',
-    'ignore::DeprecationWarning:ase:',
-    'ignore::DeprecationWarning:frozendict:',
-    'ignore::DeprecationWarning:past:',
-    'ignore::DeprecationWarning:sqlalchemy_utils:',
-    'ignore::DeprecationWarning:reentry:',
-    'ignore::DeprecationWarning:pkg_resources:',
-    'ignore::PendingDeprecationWarning:monty:',
-    'ignore::PendingDeprecationWarning:pymatgen:',
-    'ignore::PendingDeprecationWarning:ruamel:',
-    'ignore:Creating AiiDA configuration folder.*:UserWarning',
-    'ignore:Object of type .* not in session, .* operation along .* will not proceed:sqlalchemy.exc.SAWarning',
-]

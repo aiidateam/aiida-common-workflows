@@ -1,38 +1,38 @@
 oxides_validation:
-  name: 'oxides_validation'
-  description: 'Protocol to run oxides validation study.'
+  name: oxides_validation
+  description: Protocol to run oxides validation study.
   parameters:
     calculator:
-      name: 'gpaw'
+      name: gpaw
       args:
-        xc: 'PBE'
+        xc: PBE
         mode:
-          '@function': 'PW'
+          '@function': PW
           args:
             ecut: 800
         occupations:
-          name: 'fermi-dirac'
+          name: fermi-dirac
           width: 0.06122
     optimizer:
-      name: 'BFGS'
+      name: BFGS
     kpoints_options:
-      gamma: True
+      gamma: true
   kpoint_distance: 0.06
 
 moderate:
-  name: 'moderate'
-  description: 'Protocol to run oxides validation study.'
+  name: moderate
+  description: Protocol to run oxides validation study.
   parameters:
     calculator:
-      name: 'gpaw'
+      name: gpaw
       args:
-        xc: 'PBE'
+        xc: PBE
         gpts:
-          '@function': 'PW'
-          args: {'ecut': 600}
+          '@function': PW
+          args: {ecut: 600}
         occupations:
-          name: 'fermi-dirac'
+          name: fermi-dirac
           width: 0.0612
     optimizer:
-      name: 'BFGS'
+      name: BFGS
   kpoint_distance: 0.04

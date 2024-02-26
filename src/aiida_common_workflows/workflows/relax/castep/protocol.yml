@@ -1,165 +1,165 @@
 moderate:
-    name: 'moderate'
-    description: 'Protocol to relax a structure with normal precision at moderate computational cost.'
-    relax:
-        relax_options:
-            max_meta_iterations: 5
+  name: moderate
+  description: Protocol to relax a structure with normal precision at moderate computational cost.
+  relax:
+    relax_options:
+      max_meta_iterations: 5
 
-        base:
-            kpoints_spacing: 0.15   # Note that is equivalent to kpoints_mp_spacing  : 0.023873
-            pseudos_family: 'C19'
-            max_iterations: 5
-            calc:
-                parameters:
-                    task: geometryoptimisation
-                    xc_functional: pbe
-                    calculate_stress: true
-                    symmetry_generate: true
-                    snap_to_symmetry: true
-                    basis_precision: fine
-                    write_otfg: false
-                    opt_strategy: speed
-                    write_bib: false
-                    max_scf_cycles: 100
-                    elec_energy_tol: 1e-6
-                    geom_force_tol: 0.05
-                    geom_energy_tol: 2.0e-5
-                    geom_stress_tol: 0.1
+    base:
+      kpoints_spacing: 0.15         # Note that is equivalent to kpoints_mp_spacing  : 0.023873
+      pseudos_family: C19
+      max_iterations: 5
+      calc:
+        parameters:
+          task: geometryoptimisation
+          xc_functional: pbe
+          calculate_stress: true
+          symmetry_generate: true
+          snap_to_symmetry: true
+          basis_precision: fine
+          write_otfg: false
+          opt_strategy: speed
+          write_bib: false
+          max_scf_cycles: 100
+          elec_energy_tol: 1e-6
+          geom_force_tol: 0.05
+          geom_energy_tol: 2.0e-5
+          geom_stress_tol: 0.1
 
 
 precise:
-    name: 'precise'
-    description: 'Protocol to relax a structure with high precision at higher computational cost.'
-    relax:
-        relax_options:
-            max_meta_iterations: 5
+  name: precise
+  description: Protocol to relax a structure with high precision at higher computational cost.
+  relax:
+    relax_options:
+      max_meta_iterations: 5
 
-        base:
-            kpoints_spacing: 0.1   # Equivalent to  `kpoints_mp_spacing : 0.015915`
-            pseudos_family: 'C19'
-            max_iterations: 5
-            calc:
-                parameters:
-                    task: geometryoptimisation
-                    xc_functional: pbe
-                    symmetry_generate: true
-                    snap_to_symmetry: true
-                    calculate_stress: true
-                    basis_precision: precise
-                    write_otfg: false
-                    opt_strategy: speed
-                    write_bib: false
-                    max_scf_cycles: 100
-                    elec_energy_tol: 1e-8
-                    geom_force_tol: 0.03
-                    geom_energy_tol: 1.0e-5
-                    geom_stress_tol: 0.05
-                    grid_scale: 2
-                    fine_grid_scale : 3
+    base:
+      kpoints_spacing: 0.1         # Equivalent to  `kpoints_mp_spacing : 0.015915`
+      pseudos_family: C19
+      max_iterations: 5
+      calc:
+        parameters:
+          task: geometryoptimisation
+          xc_functional: pbe
+          symmetry_generate: true
+          snap_to_symmetry: true
+          calculate_stress: true
+          basis_precision: precise
+          write_otfg: false
+          opt_strategy: speed
+          write_bib: false
+          max_scf_cycles: 100
+          elec_energy_tol: 1e-8
+          geom_force_tol: 0.03
+          geom_energy_tol: 1.0e-5
+          geom_stress_tol: 0.05
+          grid_scale: 2
+          fine_grid_scale: 3
 
 fast:
-    name: 'fast'
-    description: 'Protocol to relax a structure with low precision at minimal computational cost for testing purposes.'
-    relax:
-        relax_options:
-            max_meta_iterations: 5
+  name: fast
+  description: Protocol to relax a structure with low precision at minimal computational cost for testing purposes.
+  relax:
+    relax_options:
+      max_meta_iterations: 5
 
-        base:
-            kpoints_spacing: 0.25    # Equivalent to `kpoints_mp_spacing : 0.039789`
-            pseudos_family: 'QC5'
-            max_iterations: 5
-            calc:
-                parameters:
-                    task: geometryoptimisation
-                    xc_functional: pbe
-                    symmetry_generate: true
-                    snap_to_symmetry: true
-                    calculate_stress: true
-                    basis_precision: medium
-                    write_otfg: false
-                    opt_strategy: speed
-                    write_bib: false
-                    max_scf_cycles: 100
-                    geom_force_tol: 0.05
-                    geom_energy_tol: 2.0e-5
-                    geom_stress_tol: 0.1
+    base:
+      kpoints_spacing: 0.25          # Equivalent to `kpoints_mp_spacing : 0.039789`
+      pseudos_family: QC5
+      max_iterations: 5
+      calc:
+        parameters:
+          task: geometryoptimisation
+          xc_functional: pbe
+          symmetry_generate: true
+          snap_to_symmetry: true
+          calculate_stress: true
+          basis_precision: medium
+          write_otfg: false
+          opt_strategy: speed
+          write_bib: false
+          max_scf_cycles: 100
+          geom_force_tol: 0.05
+          geom_energy_tol: 2.0e-5
+          geom_stress_tol: 0.1
 
 
 verification-PBE-v1-a0:
-    name: 'verification-PBE-v1-a0'
-    description: 'Protocol for the oxides validation study.'
-    relax:
-        relax_options:
-            max_meta_iterations: 5
+  name: verification-PBE-v1-a0
+  description: Protocol for the oxides validation study.
+  relax:
+    relax_options:
+      max_meta_iterations: 5
 
-        base:
-            pseudos_family: 'C19V2'
-            max_iterations: 5
-            kpoints_spacing: 0.06    # K point spacing in A^-1, not the A^-1 2Pi that CASTEP defaults to
-            ensure_gamma_centering: True   # Ensure that the kpoint grid is Gamma-centered
-            calc:
-                parameters:
-                    task: geometryoptimisation
-                    xc_functional: pbe
-                    symmetry_generate: true
-                    snap_to_symmetry: true
-                    calculate_stress: true
-                    cut_off_energy: 800              # Fixed cut off energy for handling both unaries and oxides
-                    write_otfg: false
-                    opt_strategy: speed
-                    write_bib: false
-                    write_checkpoint: minimal
-                    finite_basis_corr: none   # No finite basis corr as we are NOT moving any atoms....
-                    max_scf_cycles: 100
-                    elec_energy_tol: 1e-8
-                    geom_force_tol: 0.03
-                    geom_energy_tol: 1.0e-5
-                    geom_stress_tol: 0.05
-                    grid_scale: 2
-                    fine_grid_scale : 3
+    base:
+      pseudos_family: C19V2
+      max_iterations: 5
+      kpoints_spacing: 0.06          # K point spacing in A^-1, not the A^-1 2Pi that CASTEP defaults to
+      ensure_gamma_centering: true         # Ensure that the kpoint grid is Gamma-centered
+      calc:
+        parameters:
+          task: geometryoptimisation
+          xc_functional: pbe
+          symmetry_generate: true
+          snap_to_symmetry: true
+          calculate_stress: true
+          cut_off_energy: 800                        # Fixed cut off energy for handling both unaries and oxides
+          write_otfg: false
+          opt_strategy: speed
+          write_bib: false
+          write_checkpoint: minimal
+          finite_basis_corr: none             # No finite basis corr as we are NOT moving any atoms....
+          max_scf_cycles: 100
+          elec_energy_tol: 1e-8
+          geom_force_tol: 0.03
+          geom_energy_tol: 1.0e-5
+          geom_stress_tol: 0.05
+          grid_scale: 2
+          fine_grid_scale: 3
                     # Revised smearing scheme for the oxide validation project
-                    smearing_width: 0.06122561905370023   # Equivalent to 0.0045 Ry
-                    smearing_scheme: FERMIDIRAC
-                    perc_extra_bands: 80
-                settings:
-                    ADDITIONAL_RETRIEVE_TEMPORARY_LIST: ["aiida.castep_bin"]
+          smearing_width: 0.06122561905370023             # Equivalent to 0.0045 Ry
+          smearing_scheme: FERMIDIRAC
+          perc_extra_bands: 80
+        settings:
+          ADDITIONAL_RETRIEVE_TEMPORARY_LIST: [aiida.castep_bin]
 
 
 verification-PBE-v1:
-    name: 'verification-PBE-v1'
-    description: 'Protocol for the oxides validation study.'
-    relax:
-        relax_options:
-            max_meta_iterations: 5
+  name: verification-PBE-v1
+  description: Protocol for the oxides validation study.
+  relax:
+    relax_options:
+      max_meta_iterations: 5
 
-        base:
-            pseudos_family: 'C19MK2'
-            max_iterations: 5
-            kpoints_spacing: 0.06    # K point spacing in A^-1, not the A^-1 2Pi that CASTEP defaults to
-            ensure_gamma_centering: True   # Ensure that the kpoint grid is Gamma-centered
-            calc:
-                parameters:
-                    task: geometryoptimisation
-                    xc_functional: pbe
-                    symmetry_generate: true
-                    snap_to_symmetry: true
-                    calculate_stress: true
-                    cut_off_energy: 800              # Fixed cut off energy for handling both unaries and oxides
-                    write_otfg: false
-                    opt_strategy: speed
-                    write_bib: false
-                    write_checkpoint: minimal
-                    finite_basis_corr: none   # No finite basis corr as we are NOT moving any atoms....
-                    max_scf_cycles: 100
-                    elec_energy_tol: 1e-8
-                    geom_force_tol: 0.03
-                    geom_energy_tol: 1.0e-5
-                    geom_stress_tol: 0.05
-                    grid_scale: 2
-                    fine_grid_scale : 3
+    base:
+      pseudos_family: C19MK2
+      max_iterations: 5
+      kpoints_spacing: 0.06          # K point spacing in A^-1, not the A^-1 2Pi that CASTEP defaults to
+      ensure_gamma_centering: true         # Ensure that the kpoint grid is Gamma-centered
+      calc:
+        parameters:
+          task: geometryoptimisation
+          xc_functional: pbe
+          symmetry_generate: true
+          snap_to_symmetry: true
+          calculate_stress: true
+          cut_off_energy: 800                        # Fixed cut off energy for handling both unaries and oxides
+          write_otfg: false
+          opt_strategy: speed
+          write_bib: false
+          write_checkpoint: minimal
+          finite_basis_corr: none             # No finite basis corr as we are NOT moving any atoms....
+          max_scf_cycles: 100
+          elec_energy_tol: 1e-8
+          geom_force_tol: 0.03
+          geom_energy_tol: 1.0e-5
+          geom_stress_tol: 0.05
+          grid_scale: 2
+          fine_grid_scale: 3
                     # Revised smearing scheme for the oxide validation project
-                    smearing_width: 0.06122561905370023   # Equivalent to 0.0045 Ry
-                    smearing_scheme: FERMIDIRAC
-                    perc_extra_bands: 80
-                settings:
-                    ADDITIONAL_RETRIEVE_TEMPORARY_LIST: ["aiida.castep_bin"]
+          smearing_width: 0.06122561905370023             # Equivalent to 0.0045 Ry
+          smearing_scheme: FERMIDIRAC
+          perc_extra_bands: 80
+        settings:
+          ADDITIONAL_RETRIEVE_TEMPORARY_LIST: [aiida.castep_bin]
