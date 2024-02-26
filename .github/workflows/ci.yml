@@ -22,7 +22,7 @@ jobs:
       run: pip install -U pip wheel
 
     - name: Install Python package and dependencies
-      run: pip install -e .[docs,pre-commit,tests]
+      run: pip install -e .[all_plugins,docs,pre-commit,tests]
 
     - name: Run pre-commit
       run: pre-commit run --all-files || ( git status --short ; git diff ; exit 1 )
@@ -56,7 +56,7 @@ jobs:
       run: pip install -U pip wheel
 
     - name: Install Python package and dependencies
-      run: pip install -e .[tests]
+      run: pip install -e .[all_plugins,tests]
 
     - name: Run pytest
       env:
