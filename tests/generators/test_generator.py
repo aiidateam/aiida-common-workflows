@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """Tests for the :mod:`aiida_common_workflows.generators.generator` module."""
+import pytest
 from aiida import orm
 from aiida.plugins import WorkflowFactory
-import pytest
 
 from aiida_common_workflows.generators import InputGenerator
 
@@ -92,8 +92,7 @@ def test_get_builder_mutable_kwargs(generate_input_generator_cls, monkeypatch):
 
 
 def test_get_builder_immutable_kwargs_nested(generate_input_generator_cls, generate_structure):
-    """Test that calling ``get_builder`` does not mutate the ``kwargs`` when they are nodes, even if nested.
-    """
+    """Test that calling ``get_builder`` does not mutate the ``kwargs`` when they are nodes, even if nested."""
     cls = generate_input_generator_cls(inputs_dict={'space.structure': orm.StructureData})
     generator = cls(process_class=WorkflowFactory('common_workflows.relax.siesta'))
 

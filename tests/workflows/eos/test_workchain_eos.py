@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=redefined-outer-name
+
 """Tests for the :mod:`aiida_common_workflows.workflows.eos` module."""
 import copy
 
+import pytest
 from aiida import orm
 from aiida.engine import WorkChain
 from aiida.plugins import WorkflowFactory
-import pytest
 
 from aiida_common_workflows.plugins import get_workflow_entry_point_names
 from aiida_common_workflows.workflows import eos
@@ -40,16 +40,12 @@ def generate_eos_inputs(generate_structure, generate_code):
                 'engines': {
                     'relax': {
                         'code': generate_code('quantumespresso.pw').store(),
-                        'options': {
-                            'resources': {
-                                'num_machines': 1
-                            }
-                        }
+                        'options': {'resources': {'num_machines': 1}},
                     }
                 },
                 'electronic_type': 'metal',
-                'relax_type': 'positions'
-            }
+                'relax_type': 'positions',
+            },
         }
 
     return _generate_eos_inputs
@@ -65,6 +61,7 @@ def test_validate_sub_process_class(ctx):
 def test_validate_sub_process_class_plugins(ctx, common_relax_workchain):
     """Test the `validate_sub_process_class` validator."""
     from aiida_common_workflows.plugins import get_entry_point_name_from_class
+
     assert eos.validate_sub_process_class(get_entry_point_name_from_class(common_relax_workchain).name, ctx) is None
 
 
@@ -74,21 +71,24 @@ def test_validate_inputs_scale(ctx, generate_eos_inputs):
     base_values = generate_eos_inputs()
 
     value = copy.deepcopy(base_values)
-    assert eos.validate_inputs(
-        value, ctx
-    ) == 'neither `scale_factors` nor the pair of `scale_count` and `scale_increment` were defined.'
+    assert (
+        eos.validate_inputs(value, ctx)
+        == 'neither `scale_factors` nor the pair of `scale_count` and `scale_increment` were defined.'
+    )
 
     value = copy.deepcopy(base_values)
     value.update({'scale_count': 2})
-    assert eos.validate_inputs(
-        value, ctx
-    ) == 'neither `scale_factors` nor the pair of `scale_count` and `scale_increment` were defined.'
+    assert (
+        eos.validate_inputs(value, ctx)
+        == 'neither `scale_factors` nor the pair of `scale_count` and `scale_increment` were defined.'
+    )
 
     value = copy.deepcopy(base_values)
     value.update({'scale_increment': 2})
-    assert eos.validate_inputs(
-        value, ctx
-    ) == 'neither `scale_factors` nor the pair of `scale_count` and `scale_increment` were defined.'
+    assert (
+        eos.validate_inputs(value, ctx)
+        == 'neither `scale_factors` nor the pair of `scale_count` and `scale_increment` were defined.'
+    )
 
     value = copy.deepcopy(base_values)
     value.update({'scale_count': 2, 'scale_increment': 0.2})
@@ -137,21 +137,18 @@ def test_validate_scale_increment(ctx):
 def test_validate_relax_type(ctx):
     """Test the `validate_relax_type` validator."""
     assert eos.validate_relax_type(RelaxType.NONE, ctx) is None
-    assert eos.validate_relax_type(
-        RelaxType.CELL, ctx
-    ) == '`generator_inputs.relax_type`. Equation of state and relaxation with variable volume not compatible.'
+    assert (
+        eos.validate_relax_type(RelaxType.CELL, ctx)
+        == '`generator_inputs.relax_type`. Equation of state and relaxation with variable volume not compatible.'
+    )
 
 
 @pytest.mark.parametrize(
-    'scaling_inputs, expected', (
-        ({
-            'scale_factors': [0.98, 1.0, 1.02]
-        }, (0.98, 1.0, 1.02)),
-        ({
-            'scale_count': 3,
-            'scale_increment': 0.02
-        }, (0.98, 1.0, 1.02)),
-    )
+    'scaling_inputs, expected',
+    (
+        ({'scale_factors': [0.98, 1.0, 1.02]}, (0.98, 1.0, 1.02)),
+        ({'scale_count': 3, 'scale_increment': 0.02}, (0.98, 1.0, 1.02)),
+    ),
 )
 @pytest.mark.usefixtures('sssp')
 def test_get_scale_factors(generate_workchain, generate_eos_inputs, scaling_inputs, expected):

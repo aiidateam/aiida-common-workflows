@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """Tests for the :mod:`aiida_common_workflows.workflows.relax.fleur` module."""
-# pylint: disable=redefined-outer-name
-from aiida import engine, plugins
+
 import pytest
+from aiida import engine, plugins
 
 WORKCHAIN = plugins.WorkflowFactory('common_workflows.relax.fleur')
 GENERATOR = WORKCHAIN.get_input_generator()
@@ -16,22 +16,12 @@ def default_builder_inputs(generate_code, generate_structure):
         'engines': {
             'relax': {
                 'code': generate_code('fleur.fleur').store().uuid,
-                'options': {
-                    'resources': {
-                        'num_machines': 1,
-                        'tot_num_mpiprocs': 1
-                    }
-                }
+                'options': {'resources': {'num_machines': 1, 'tot_num_mpiprocs': 1}},
             },
             'inpgen': {
                 'code': generate_code('fleur.inpgen').store().uuid,
-                'options': {
-                    'resources': {
-                        'num_machines': 1,
-                        'tot_num_mpiprocs': 1
-                    }
-                }
-            }
+                'options': {'resources': {'num_machines': 1, 'tot_num_mpiprocs': 1}},
+            },
         },
     }
 

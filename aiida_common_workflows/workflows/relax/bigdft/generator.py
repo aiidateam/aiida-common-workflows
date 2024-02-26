@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for BigDFT."""
+import typing as t
+
 from aiida import engine, plugins
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
@@ -17,7 +19,7 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
     """Input generator for the `BigDftCommonRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
-    _protocols = {
+    _protocols: t.ClassVar = {
         'fast': {
             'description': 'This profile should be chosen if accurate forces are required, but there is no need for '
             'extremely accurate energies.',
@@ -31,23 +33,21 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                     'idsx': 0,
                     'gnrm_cv': 1e-8,
                     'hgrids': 0.4,
-                    'disablesym': 'no'
+                    'disablesym': 'no',
                 },
                 'mix': {
                     'iscf': 17,
                     'itrpmax': 200,
-                    'rpnrm_cv': 1.E-12,
+                    'rpnrm_cv': 1.0e-12,
                     'norbsempty': 120,
                     'tel': 0.00225,
                     'occopt': 2,
                     'alphamix': 0.8,
-                    'alphadiis': 1.0
-                }
+                    'alphadiis': 1.0,
+                },
             },
-            'inputdict_linear': {
-                'import': 'linear'
-            },
-            'kpoints_distance': 142  # Equivalent length of K-space resolution (Bohr)
+            'inputdict_linear': {'import': 'linear'},
+            'kpoints_distance': 142,  # Equivalent length of K-space resolution (Bohr)
         },
         'moderate': {
             'description': 'This profile should be chosen if accurate forces are required, but there is no need for '
@@ -62,23 +62,21 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                     'idsx': 0,
                     'gnrm_cv': 1e-8,
                     'hgrids': 0.4,
-                    'disablesym': 'no'
+                    'disablesym': 'no',
                 },
                 'mix': {
                     'iscf': 17,
                     'itrpmax': 200,
-                    'rpnrm_cv': 1.E-12,
+                    'rpnrm_cv': 1.0e-12,
                     'norbsempty': 120,
                     'tel': 0.00225,
                     'occopt': 2,
                     'alphamix': 0.8,
-                    'alphadiis': 1.0
-                }
+                    'alphadiis': 1.0,
+                },
             },
-            'inputdict_linear': {
-                'import': 'linear'
-            },
-            'kpoints_distance': 274
+            'inputdict_linear': {'import': 'linear'},
+            'kpoints_distance': 274,
         },
         'precise': {
             'description': 'This profile should be chosen if accurate forces are required, but there is no need for '
@@ -93,23 +91,21 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                     'idsx': 0,
                     'gnrm_cv': 1e-8,
                     'hgrids': 0.3,
-                    'disablesym': 'no'
+                    'disablesym': 'no',
                 },
                 'mix': {
                     'iscf': 17,
                     'itrpmax': 200,
-                    'rpnrm_cv': 1.E-12,
+                    'rpnrm_cv': 1.0e-12,
                     'norbsempty': 120,
                     'tel': 0.00225,
                     'occopt': 2,
                     'alphamix': 0.8,
-                    'alphadiis': 1.0
-                }
+                    'alphadiis': 1.0,
+                },
             },
-            'inputdict_linear': {
-                'import': 'linear'
-            },
-            'kpoints_distance': 274
+            'inputdict_linear': {'import': 'linear'},
+            'kpoints_distance': 274,
         },
         'verification-PBE-v1': {
             'description': 'Protocol used for bulk run of EoS verification project',
@@ -123,23 +119,21 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                     'idsx': 0,
                     'gnrm_cv': 1e-8,
                     'hgrids': 0.4,
-                    'disablesym': 'no'
+                    'disablesym': 'no',
                 },
                 'mix': {
                     'iscf': 17,
                     'itrpmax': 200,
-                    'rpnrm_cv': 1.E-12,
+                    'rpnrm_cv': 1.0e-12,
                     'norbsempty': 120,
                     'tel': 0.00225,
                     'occopt': 2,
                     'alphamix': 0.8,
-                    'alphadiis': 1.0
-                }
+                    'alphadiis': 1.0,
+                },
             },
-            'inputdict_linear': {
-                'import': 'linear'
-            },
-            'kpoints_distance': 274
+            'inputdict_linear': {'import': 'linear'},
+            'kpoints_distance': 274,
         },
     }
 
@@ -156,12 +150,12 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         spec.inputs['electronic_type'].valid_type = ChoiceType((ElectronicType.METAL, ElectronicType.INSULATOR))
         spec.inputs['engines']['relax']['code'].valid_type = CodeType('bigdft')
 
-    def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:
+    def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:  # noqa: PLR0912
         """Construct a process builder based on the provided keyword arguments.
 
         The keyword arguments will have been validated against the input generator specification.
         """
-        # pylint: disable=too-many-branches,too-many-statements,too-many-locals
+
         import copy
 
         structure = kwargs['structure']
@@ -192,28 +186,33 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             else:
                 hgrids = logfile.get('dft').get('hgrids')
             first_hgrid = hgrids[0] if isinstance(hgrids, list) else hgrids
-            inputdict['dft']['hgrids'] = first_hgrid * builder.BigDFT.structure.cell_lengths[0] / \
-                reference_workchain.inputs.structure.cell_lengths[0]
+            inputdict['dft']['hgrids'] = (
+                first_hgrid
+                * builder.BigDFT.structure.cell_lengths[0]
+                / reference_workchain.inputs.structure.cell_lengths[0]
+            )
 
         if electronic_type is ElectronicType.METAL:
             if 'mix' not in inputdict:
                 inputdict['mix'] = {}
-            inputdict['mix'].update({
-                'iscf': 17,
-                'itrpmax': 200,
-                'rpnrm_cv': 1.E-12,
-                'norbsempty': 120,
-                'tel': 0.01,
-                'alphamix': 0.8,
-                'alphadiis': 1.0
-            })
+            inputdict['mix'].update(
+                {
+                    'iscf': 17,
+                    'itrpmax': 200,
+                    'rpnrm_cv': 1.0e-12,
+                    'norbsempty': 120,
+                    'tel': 0.01,
+                    'alphamix': 0.8,
+                    'alphadiis': 1.0,
+                }
+            )
         if spin_type is SpinType.NONE:
             inputdict['dft'].update({'nspin': 1})
         elif spin_type is SpinType.COLLINEAR:
             inputdict['dft'].update({'nspin': 2})
 
         if magnetization_per_site:
-            for (i, atom) in enumerate(inputdict['posinp']['positions']):
+            for i, atom in enumerate(inputdict['posinp']['positions']):
                 atom['IGSpin'] = int(magnetization_per_site[i])
         # correctly set kpoints from protocol fast and moderate. If precise, use the ones from set_inputfile/set_kpt
         if self.get_protocol(protocol).get('kpoints_distance'):

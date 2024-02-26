@@ -6,10 +6,7 @@ import matplotlib.pyplot as plt
 
 
 def get_dissociation_plot(
-    distances: typing.List[float],
-    energies: typing.List[float],
-    unit_distance: str = 'Å',
-    unit_energy: str = 'eV'
+    distances: typing.List[float], energies: typing.List[float], unit_distance: str = 'Å', unit_energy: str = 'eV'
 ) -> plt:
     """Plot the dissociation curve for a given set of distances and energies.
 

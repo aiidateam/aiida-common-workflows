@@ -2,9 +2,9 @@
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for SIESTA."""
 import os
 
+import yaml
 from aiida import engine, orm, plugins
 from aiida.common import exceptions
-import yaml
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
@@ -31,8 +31,7 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         def raise_invalid(message):
             raise RuntimeError(f'invalid protocol registry `{self.__class__.__name__}`: ' + message)
 
-        for k, v in self._protocols.items():  # pylint: disable=invalid-name
-
+        for k, v in self._protocols.items():
             if 'parameters' not in v:
                 raise_invalid(f'protocol `{k}` does not define the mandatory key `parameters`')
             if 'mesh-cutoff' in v['parameters']:
@@ -72,12 +71,12 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         spec.inputs['electronic_type'].valid_type = ChoiceType((ElectronicType.METAL, ElectronicType.INSULATOR))
         spec.inputs['engines']['relax']['code'].valid_type = CodeType('siesta.siesta')
 
-    def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:
+    def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:  # noqa: PLR0912,PLR0915
         """Construct a process builder based on the provided keyword arguments.
 
         The keyword arguments will have been validated against the input generator specification.
         """
-        # pylint: disable=too-many-branches,too-many-statements,too-many-locals
+
         structure = kwargs['structure']
         engines = kwargs['engines']
         protocol = kwargs['protocol']
@@ -91,6 +90,7 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         # Checks
         if protocol not in self.get_protocol_names():
             import warnings
+
             warnings.warn(f'no protocol implemented with name {protocol}, using default moderate')
             protocol = self.get_default_protocol_name()
         if 'relax' not in engines:
@@ -110,7 +110,7 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         # Parameters, including scf ...
         parameters = self._get_param(protocol, structure, reference_workchain)
-        #... relax options ...
+        # ... relax options ...
         if relax_type != RelaxType.NONE:
             parameters['md-type-of-run'] = 'cg'
             parameters['md-num-cg-steps'] = 100
@@ -123,12 +123,13 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             parameters['md-max-force-tol'] = str(threshold_forces) + ' eV/Ang'
         if threshold_stress:
             parameters['md-max-stress-tol'] = str(threshold_stress) + ' eV/Ang**3'
-        #... spin options (including initial magentization) ...
+        # ... spin options (including initial magentization) ...
         if spin_type == SpinType.COLLINEAR:
             parameters['spin'] = 'polarized'
         if magnetization_per_site is not None:
             if spin_type == SpinType.NONE:
                 import warnings
+
                 warnings.warn('`magnetization_per_site` will be ignored as `spin_type` is set to SpinType.NONE')
             if spin_type == SpinType.COLLINEAR:
                 in_spin_card = '\n'
@@ -155,7 +156,7 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         return builder
 
-    def _get_param(self, key, structure, reference_workchain):  # pylint: disable=too-many-branches,too-many-locals
+    def _get_param(self, key, structure, reference_workchain):  # noqa: PLR0912
         """
         Method to construct the `parameters` input. Heuristics are applied, a dictionary
         with the parameters is returned.
@@ -166,7 +167,7 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 parameters['%' + par] = value
                 parameters.pop(par, None)
 
-        if 'atomic_heuristics' in self._protocols[key]:  # pylint: disable=too-many-nested-blocks
+        if 'atomic_heuristics' in self._protocols[key]:
             atomic_heuristics = self._protocols[key]['atomic_heuristics']
 
             if 'mesh-cutoff' in parameters:
@@ -203,16 +204,18 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                                     f'Wrong `mesh-cutoff` units for heuristc {kind.symbol} of protocol {key}'
                                 ) from exc
                     if 'grid-sampling' in cust_param:
-                        parameters['%block GridCellSampling'
-                                   ] = cust_param['grid-sampling'] + '\n%endblock GridCellSampling'
+                        parameters['%block GridCellSampling'] = (
+                            cust_param['grid-sampling'] + '\n%endblock GridCellSampling'
+                        )
 
             if meshcut_glob is not None:
                 parameters['mesh-cutoff'] = f'{meshcut_glob} {meshcut_units}'
 
-        #We fix the `mesh-sizes` to the one of reference_workchain, we need to access
-        #the underline SiestaBaseWorkChain.
+        # We fix the `mesh-sizes` to the one of reference_workchain, we need to access
+        # the underline SiestaBaseWorkChain.
         if reference_workchain is not None:
             from aiida.orm import WorkChainNode
+
             siesta_base_outs = reference_workchain.base.links.get_outgoing(node_class=WorkChainNode).one().node.outputs
             mesh = siesta_base_outs.output_parameters.base.attributes.get('mesh')
             parameters['mesh-sizes'] = f'[{mesh[0]} {mesh[1]} {mesh[2]}]'
@@ -220,14 +223,14 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         return parameters
 
-    def _get_basis(self, key, structure):  #pylint: disable=too-many-branches
+    def _get_basis(self, key, structure):  # noqa: PLR0912
         """
         Method to construct the `basis` input.
         Heuristics are applied, a dictionary with the basis is returned.
         """
         basis = self._protocols[key]['basis'].copy()
 
-        if 'atomic_heuristics' in self._protocols[key]:  # pylint: disable=too-many-nested-blocks
+        if 'atomic_heuristics' in self._protocols[key]:
             atomic_heuristics = self._protocols[key]['atomic_heuristics']
 
             pol_dict = {}
@@ -277,6 +280,7 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
     def _get_kpoints(self, key, structure, reference_workchain):
         from aiida.orm import KpointsData
+
         if reference_workchain:
             kpoints_mesh = KpointsData()
             kpoints_mesh.set_cell_from_structure(structure)
@@ -300,4 +304,5 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
     def _get_pseudo_fam(self, key):
         from aiida.orm import Str
+
         return Str(self._protocols[key]['pseudo_family'])

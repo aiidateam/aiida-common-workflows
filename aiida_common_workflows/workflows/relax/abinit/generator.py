@@ -6,11 +6,11 @@ import pathlib
 import typing as t
 import warnings
 
+import numpy as np
+import yaml
 from aiida import engine, orm, plugins
 from aiida.common import exceptions
-import numpy as np
 from pymatgen.core import units
-import yaml
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
@@ -45,21 +45,21 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         """
         super().define(spec)
         spec.inputs['spin_type'].valid_type = ChoiceType(tuple(SpinType))
-        spec.inputs['relax_type'].valid_type = ChoiceType([
-            t for t in RelaxType if t not in (RelaxType.VOLUME, RelaxType.SHAPE, RelaxType.CELL)
-        ])
+        spec.inputs['relax_type'].valid_type = ChoiceType(
+            [t for t in RelaxType if t not in (RelaxType.VOLUME, RelaxType.SHAPE, RelaxType.CELL)]
+        )
         spec.inputs['electronic_type'].valid_type = ChoiceType(
             (ElectronicType.METAL, ElectronicType.INSULATOR, ElectronicType.UNKNOWN)
         )
         spec.inputs['engines']['relax']['code'].valid_type = CodeType('abinit')
         spec.inputs['protocol'].valid_type = ChoiceType(('fast', 'moderate', 'precise', 'verification-PBE-v1'))
 
-    def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:
+    def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:  # noqa: PLR0912,PLR0915
         """Construct a process builder based on the provided keyword arguments.
 
         The keyword arguments will have been validated against the input generator specification.
         """
-        # pylint: disable=too-many-branches,too-many-statements,too-many-locals
+
         structure = kwargs['structure']
         engines = kwargs['engines']
         protocol = kwargs['protocol']
@@ -100,11 +100,9 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         override = {
             'abinit': {
-                'metadata': {
-                    'options': engines['relax']['options']
-                },
+                'metadata': {'options': engines['relax']['options']},
                 'pseudos': pseudo_family.get_pseudos(structure=structure),
-                'parameters': cutoff_parameters
+                'parameters': cutoff_parameters,
             }
         }
 
@@ -148,16 +146,16 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             # Add a model macroscopic dielectric constant
             protocol['base']['abinit']['parameters']['diemac'] = 2.0
 
-            inputs = generate_inputs(self.process_class._process_class, protocol, code, pbc_structure, override)  # pylint: disable=protected-access
+            inputs = generate_inputs(self.process_class._process_class, protocol, code, pbc_structure, override)
         elif False in structure.pbc:
             raise ValueError(
                 f'The input structure has periodic boundary conditions {structure.pbc}, but partial '
                 'periodic boundary conditions are not supported.'
             )
         else:
-            inputs = generate_inputs(self.process_class._process_class, protocol, code, structure, override)  # pylint: disable=protected-access
+            inputs = generate_inputs(self.process_class._process_class, protocol, code, structure, override)
 
-        builder._update(inputs)  # pylint: disable=protected-access
+        builder._update(inputs)
 
         # RelaxType
         if relax_type == RelaxType.NONE:
@@ -201,8 +199,9 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                     'all of the initial magnetizations per site are close to zero; doing a non-spin-polarized '
                     'calculation'
                 )
-            elif ((sum_is_zero and not all_are_zero) or
-                  (not all_non_zero_pos and not all_non_zero_neg)):  # antiferromagnetic
+            elif (sum_is_zero and not all_are_zero) or (
+                not all_non_zero_pos and not all_non_zero_neg
+            ):  # antiferromagnetic
                 print('Detected antiferromagnetic!')
                 builder.abinit['parameters']['nsppol'] = 1  # antiferromagnetic system
                 builder.abinit['parameters']['nspden'] = 2  # scalar spin-magnetization in the z-axis
@@ -267,7 +266,7 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                     orm.CalcFunctionNode,
                     tag='calcfunc',
                     edge_filters={'label': 'create_kpoints_from_distance'},
-                    with_incoming='base'
+                    with_incoming='base',
                 )
                 query_builder.append(orm.KpointsData, tag='kpoints', with_incoming='calcfunc')
                 query_builder.order_by({orm.KpointsData: {'ctime': 'desc'}})
@@ -301,7 +300,7 @@ def generate_inputs(
     protocol: t.Dict,
     code: orm.Code,
     structure: StructureData,
-    override: t.Dict[str, t.Any] = None
+    override: t.Optional[t.Dict[str, t.Any]] = None,
 ) -> t.Dict[str, t.Any]:
     """Generate the input parameters for the given workchain type for a given code and structure.
 
@@ -320,11 +319,11 @@ def generate_inputs(
     :param override: a dictionary to override specific inputs
     :return: input dictionary
     """
-    # pylint: disable=too-many-arguments,unused-argument
+
     from aiida.common.lang import type_check
 
-    AbinitCalculation = plugins.CalculationFactory('abinit')  # pylint: disable=invalid-name
-    AbinitBaseWorkChain = plugins.WorkflowFactory('abinit.base')  # pylint: disable=invalid-name
+    AbinitCalculation = plugins.CalculationFactory('abinit')  # noqa: N806
+    AbinitBaseWorkChain = plugins.WorkflowFactory('abinit.base')  # noqa: N806
 
     type_check(structure, orm.StructureData)
 
@@ -359,10 +358,7 @@ def recursive_merge(left: t.Dict[str, t.Any], right: t.Dict[str, t.Any]) -> t.Di
 
 
 def generate_inputs_base(
-    protocol: t.Dict,
-    code: orm.Code,
-    structure: StructureData,
-    override: t.Dict[str, t.Any] = None
+    protocol: t.Dict, code: orm.Code, structure: StructureData, override: t.Optional[t.Dict[str, t.Any]] = None
 ) -> t.Dict[str, t.Any]:
     """Generate the inputs for the `AbinitBaseWorkChain` for a given code, structure and pseudo potential family.
 
@@ -391,10 +387,7 @@ def generate_inputs_base(
 
 
 def generate_inputs_calculation(
-    protocol: t.Dict,
-    code: orm.Code,
-    structure: StructureData,
-    override: t.Dict[str, t.Any] = None
+    protocol: t.Dict, code: orm.Code, structure: StructureData, override: t.Optional[t.Dict[str, t.Any]] = None
 ) -> t.Dict[str, t.Any]:
     """Generate the inputs for the `AbinitCalculation` for a given code, structure and pseudo potential family.
 
@@ -411,7 +404,7 @@ def generate_inputs_calculation(
         'structure': structure,
         'pseudos': merged['pseudos'],
         'parameters': orm.Dict(dict=merged['parameters']),
-        'metadata': merged.get('metadata', {})
+        'metadata': merged.get('metadata', {}),
     }
 
     return dictionary

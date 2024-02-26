@@ -26,6 +26,6 @@ def get_ts_energy(common_relax_workchain):
     e_ks = siesta_base_wc.outputs.output_parameters['E_KS']
     free_e = siesta_base_wc.outputs.output_parameters['FreeE']
 
-    ts = e_ks - free_e  #pylint: disable=invalid-name
+    ts = e_ks - free_e
 
     return ts

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """Tests for the :mod:`aiida_common_workflows.workflows.relax.quantum_espresso` module."""
-# pylint: disable=redefined-outer-name
-from aiida import engine, plugins
+
 import pytest
+from aiida import engine, plugins
 from qe_tools import CONSTANTS
 
 from aiida_common_workflows.workflows.relax.generator import ElectronicType, RelaxType, SpinType
@@ -19,12 +19,7 @@ def default_builder_inputs(generate_code, generate_structure):
         'engines': {
             'relax': {
                 'code': generate_code('quantumespresso.pw').store().uuid,
-                'options': {
-                    'resources': {
-                        'num_machines': 1,
-                        'tot_num_mpiprocs': 1
-                    }
-                }
+                'options': {'resources': {'num_machines': 1, 'tot_num_mpiprocs': 1}},
             }
         },
     }
@@ -211,6 +206,6 @@ def test_magnetization_per_site(generate_code, generate_structure):
         structure=structure,
         engines=engines,
         magnetization_per_site=magnetization_per_site,
-        spin_type=SpinType.COLLINEAR
+        spin_type=SpinType.COLLINEAR,
     )
     assert builder['base']['pw']['parameters']['SYSTEM']['starting_magnetization'] == {'Si': 0.0, 'Ge': 0.025}

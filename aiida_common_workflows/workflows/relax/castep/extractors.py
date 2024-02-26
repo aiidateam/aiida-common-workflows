@@ -32,6 +32,6 @@ def get_ts_energy(common_relax_workchain):
     e_ks = castep_base_wc.outputs.output_parameters['total energy']
     free_e = castep_base_wc.outputs.output_parameters['free energy']
 
-    ts = e_ks - free_e  #pylint: disable=invalid-name
+    ts = e_ks - free_e
 
     return ts

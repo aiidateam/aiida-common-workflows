@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=abstract-method,arguments-differ,redefined-outer-name
+
 """Tests for the :mod:`aiida_common_workflows.workflows.relax.workchain` module."""
-from aiida.plugins import WorkflowFactory
 import pytest
+from aiida.plugins import WorkflowFactory
 
 from aiida_common_workflows.plugins import get_workflow_entry_point_names
 from aiida_common_workflows.workflows.relax import CommonRelaxInputGenerator

@@ -23,7 +23,7 @@ def validate_inputs(value, _):
 
     try:
         generator.get_builder(structure=value['structure'], **value['generator_inputs'])
-    except Exception as exc:  # pylint: disable=broad-except
+    except Exception as exc:
         return f'`{generator.__class__.__name__}.get_builder()` fails for the provided `generator_inputs`: {exc}'
 
 
@@ -69,7 +69,7 @@ def validate_relax_type(value, _):
 def scale_structure(structure: orm.StructureData, scale_factor: orm.Float) -> orm.StructureData:
     """Scale the structure with the given scaling factor."""
     ase = structure.get_ase().copy()
-    ase.set_cell(ase.get_cell() * float(scale_factor)**(1 / 3), scale_atoms=True)
+    ase.set_cell(ase.get_cell() * float(scale_factor) ** (1 / 3), scale_atoms=True)
     return orm.StructureData(ase=ase)
 
 
@@ -144,11 +144,8 @@ class EquationOfStateWorkChain(WorkChain):
         if reference_workchain is not None:
             base_inputs['reference_workchain'] = reference_workchain
 
-        builder = process_class.get_input_generator().get_builder(
-            **base_inputs,
-            **self.inputs.generator_inputs
-        )
-        builder._update(**self.inputs.get('sub_process', {}))  # pylint: disable=protected-access
+        builder = process_class.get_input_generator().get_builder(**base_inputs, **self.inputs.generator_inputs)
+        builder._update(**self.inputs.get('sub_process', {}))
 
         return builder, structure
 
@@ -172,7 +169,7 @@ class EquationOfStateWorkChain(WorkChain):
         """Check that the first workchain finished successfully or abort the workchain."""
         if not self.ctx.children[0].is_finished_ok:
             self.report('Initial sub process did not finish successful so aborting the workchain.')
-            return self.exit_codes.ERROR_SUB_PROCESS_FAILED.format(cls=self.inputs.sub_process_class)  # pylint: disable=no-member
+            return self.exit_codes.ERROR_SUB_PROCESS_FAILED.format(cls=self.inputs.sub_process_class)
 
     def run_eos(self):
         """Run the sub process at each scale factor to compute the structure volume and total energy."""
@@ -188,7 +185,7 @@ class EquationOfStateWorkChain(WorkChain):
     def inspect_eos(self):
         """Inspect all children workflows to make sure they finished successfully."""
         if any(not child.is_finished_ok for child in self.ctx.children):
-            return self.exit_codes.ERROR_SUB_PROCESS_FAILED.format(cls=self.inputs.sub_process_class)  # pylint: disable=no-member
+            return self.exit_codes.ERROR_SUB_PROCESS_FAILED.format(cls=self.inputs.sub_process_class)
 
         for index, child in enumerate(self.ctx.children):
             try:

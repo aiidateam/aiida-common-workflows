@@ -11,7 +11,7 @@ __all__ = ('FleurCommonRelaxWorkChain',)
 
 
 @calcfunction
-def get_forces_from_trajectory(trajectory):  # pylint: disable=unused-argument
+def get_forces_from_trajectory(trajectory):
     """Calcfunction to get forces from trajectory"""
     forces = orm.ArrayData()
     # currently the fleur relax workchain does not output trajectory data,

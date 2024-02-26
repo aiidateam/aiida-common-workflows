@@ -3,9 +3,9 @@
 import json
 import pathlib
 
+import click
 from aiida.cmdline.params import options, types
 from aiida.cmdline.utils.decorators import with_dbenv
-import click
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 
@@ -23,10 +23,11 @@ DEFAULT_STRUCTURES_MAPPING = {
 def get_workchain_plugins():
     """Return the registered entry point names for the ``CommonRelaxWorkChain``."""
     from aiida.plugins import entry_point
+
     group = 'aiida.workflows'
     entry_point_prefix = 'common_workflows.relax.'
     names = entry_point.get_entry_point_names(group)
-    return {name[len(entry_point_prefix):] for name in names if name.startswith(entry_point_prefix)}
+    return {name[len(entry_point_prefix) :] for name in names if name.startswith(entry_point_prefix)}
 
 
 def get_relax_types_eos():
@@ -100,20 +101,19 @@ class StructureDataParamType(click.Choice):
 
         try:
             structure = StructureData(ase=ase.io.read(filepath))
-        except Exception as exception:  # pylint: disable=broad-except
+        except Exception as exception:
             raise click.BadParameter(
                 f'file `{value}` could not be parsed into a `StructureData`: {exception}'
             ) from exception
 
-        duplicate = QueryBuilder().append(
-            StructureData,
-            filters={
-                'extras._aiida_hash': structure.base.caching._get_hash()  # pylint: disable=protected-access
-            }
-        ).first()
+        duplicate = (
+            QueryBuilder()
+            .append(StructureData, filters={'extras._aiida_hash': structure.base.caching._get_hash()})
+            .first()
+        )
 
         if duplicate:
-            return duplicate[0]  # pylint: disable=unsubscriptable-object
+            return duplicate[0]
 
         return structure
 
@@ -127,7 +127,7 @@ CODES = options.OverridableOption(
     help='One or multiple codes identified by their ID, UUID or label. What codes are required is dependent on the '
     'selected plugin and can be shown using the `--show-engines` option. If no explicit codes are specified, one will '
     'be loaded from the database based on the required input plugins. If multiple codes are matched, a random one will '
-    'be selected.'
+    'be selected.',
 )
 
 STRUCTURE = options.OverridableOption(
@@ -136,7 +136,7 @@ STRUCTURE = options.OverridableOption(
     type=StructureDataParamType(),
     default='Si',
     help='Select a structure: either choose one of the default structures listed above, or an existing `StructureData` '
-    'identifier, or a file on disk with a structure definition that can be parsed by `ase`.'
+    'identifier, or a file on disk with a structure definition that can be parsed by `ase`.',
 )
 
 PROTOCOL = options.OverridableOption(
@@ -145,7 +145,7 @@ PROTOCOL = options.OverridableOption(
     type=click.Choice(['fast', 'moderate', 'precise', 'verification-PBE-v1', 'verification-PBE-v1-sirius']),
     default='fast',
     show_default=True,
-    help='Select the protocol with which the inputs for the workflow should be generated.'
+    help='Select the protocol with which the inputs for the workflow should be generated.',
 )
 
 RELAX_TYPE = options.OverridableOption(
@@ -155,7 +155,7 @@ RELAX_TYPE = options.OverridableOption(
     default='positions',
     show_default=True,
     callback=lambda ctx, param, value: RelaxType(value),
-    help='Select the relax type with which the workflow should be run.'
+    help='Select the relax type with which the workflow should be run.',
 )
 
 ELECTRONIC_TYPE = options.OverridableOption(
@@ -165,7 +165,7 @@ ELECTRONIC_TYPE = options.OverridableOption(
     default='metal',
     show_default=True,
     callback=lambda ctx, param, value: ElectronicType(value),
-    help='Select the electronic type with which the workflow should be run.'
+    help='Select the electronic type with which the workflow should be run.',
 )
 
 SPIN_TYPE = options.OverridableOption(
@@ -175,21 +175,21 @@ SPIN_TYPE = options.OverridableOption(
     default='none',
     show_default=True,
     callback=lambda ctx, param, value: SpinType(value),
-    help='Select the spin type with which the workflow should be run.'
+    help='Select the spin type with which the workflow should be run.',
 )
 
 THRESHOLD_FORCES = options.OverridableOption(
     '--threshold-forces',
     type=click.FLOAT,
     required=False,
-    help='Optional convergence threshold for the forces. Note that not all plugins may support this option.'
+    help='Optional convergence threshold for the forces. Note that not all plugins may support this option.',
 )
 
 THRESHOLD_STRESS = options.OverridableOption(
     '--threshold-stress',
     type=click.FLOAT,
     required=False,
-    help='Optional convergence threshold for the stress. Note that not all plugins may support this option.'
+    help='Optional convergence threshold for the stress. Note that not all plugins may support this option.',
 )
 
 DAEMON = options.OverridableOption(
@@ -197,7 +197,7 @@ DAEMON = options.OverridableOption(
     '--daemon',
     is_flag=True,
     default=False,
-    help='Submit the process to the daemon instead of running it locally.'
+    help='Submit the process to the daemon instead of running it locally.',
 )
 
 WALLCLOCK_SECONDS = options.OverridableOption(
@@ -207,7 +207,7 @@ WALLCLOCK_SECONDS = options.OverridableOption(
     type=click.INT,
     metavar='VALUES',
     required=False,
-    help='Define the wallclock seconds to request for each engine step.'
+    help='Define the wallclock seconds to request for each engine step.',
 )
 
 NUMBER_MACHINES = options.OverridableOption(
@@ -217,7 +217,7 @@ NUMBER_MACHINES = options.OverridableOption(
     type=click.INT,
     metavar='VALUES',
     required=False,
-    help='Define the number of machines to request for each engine step.'
+    help='Define the number of machines to request for each engine step.',
 )
 
 NUMBER_MPI_PROCS_PER_MACHINE = options.OverridableOption(
@@ -227,7 +227,7 @@ NUMBER_MPI_PROCS_PER_MACHINE = options.OverridableOption(
     type=click.INT,
     metavar='VALUES',
     required=False,
-    help='Define the number of MPI processes per machine to request for each engine step.'
+    help='Define the number of MPI processes per machine to request for each engine step.',
 )
 
 NUMBER_CORES_PER_MPIPROC = options.OverridableOption(
@@ -237,7 +237,7 @@ NUMBER_CORES_PER_MPIPROC = options.OverridableOption(
     type=click.INT,
     metavar='VALUES',
     required=False,
-    help='Define the number of cores (threads) per MPI processes to use for each engine step.'
+    help='Define the number of cores (threads) per MPI processes to use for each engine step.',
 )
 
 MAGNETIZATION_PER_SITE = options.OverridableOption(
@@ -245,7 +245,7 @@ MAGNETIZATION_PER_SITE = options.OverridableOption(
     type=click.FLOAT,
     cls=options.MultipleValueOption,
     required=False,
-    help='Optional list containing the initial spin polarization per site in units of electrons.'
+    help='Optional list containing the initial spin polarization per site in units of electrons.',
 )
 
 PRECISIONS = options.OverridableOption(
@@ -254,7 +254,7 @@ PRECISIONS = options.OverridableOption(
     cls=options.MultipleValueOption,
     type=click.INT,
     required=False,
-    help='Specify the precision of floats used when printing them to stdout with the `--print-table` option.'
+    help='Specify the precision of floats used when printing them to stdout with the `--print-table` option.',
 )
 
 PRINT_TABLE = options.OverridableOption(
@@ -266,7 +266,7 @@ REFERENCE_WORKCHAIN = options.OverridableOption(
     '--reference-workchain',
     type=types.WorkflowParamType(),
     required=False,
-    help='An instance of a completed workchain of the same type as would be run for the given plugin.'
+    help='An instance of a completed workchain of the same type as would be run for the given plugin.',
 )
 
 OUTPUT_FILE = options.OverridableOption(
@@ -283,5 +283,5 @@ ENGINE_OPTIONS = options.OverridableOption(
     'with bash escaping, using single quotes, and using instead double quotes for valid JSON strings! The backticks '
     'are here used instead only to delimit code). This will add the `account` option to the "relax" engine. If your '
     'common workflow needs multiple engines, you should pass the options for each engine that you need to modify. '
-    ' Suggestion: use the `--show-engines` option to know which engines are required by this common workflow.'
+    ' Suggestion: use the `--show-engines` option to know which engines are required by this common workflow.',
 )

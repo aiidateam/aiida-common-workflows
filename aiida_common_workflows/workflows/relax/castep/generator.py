@@ -2,27 +2,26 @@
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for CASTEP"""
 import collections
 import copy
-from math import pi
 import pathlib
 import typing as t
+from math import pi
 
+import yaml
 from aiida import engine, orm, plugins
 from aiida.common import exceptions
 from aiida_castep.data import get_pseudos_from_structure
 from aiida_castep.data.otfg import OTFGGroup
-import yaml
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
 
 from ..generator import CommonRelaxInputGenerator
 
-# pylint: disable=import-outside-toplevel, too-many-branches, too-many-statements
 KNOWN_BUILTIN_FAMILIES = ('C19', 'NCP19', 'QC5', 'C17', 'C9')
 
 __all__ = ('CastepCommonRelaxInputGenerator',)
 
-StructureData = plugins.DataFactory('core.structure')  # pylint: disable=invalid-name
+StructureData = plugins.DataFactory('core.structure')
 
 
 class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
@@ -59,12 +58,12 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         spec.inputs['electronic_type'].valid_type = ChoiceType((ElectronicType.METAL, ElectronicType.INSULATOR))
         spec.inputs['engines']['relax']['code'].valid_type = CodeType('castep.castep')
 
-    def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:
+    def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:  # noqa: PLR0912,PLR0915
         """Construct a process builder based on the provided keyword arguments.
 
         The keyword arguments will have been validated against the input generator specification.
         """
-        # pylint: disable=too-many-branches,too-many-statements,too-many-locals
+
         structure = kwargs['structure']
         engines = kwargs['engines']
         protocol = kwargs['protocol']
@@ -127,7 +126,7 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             # Symmetry should be off, unless QUANTISATION_AXIS is supplied
             # that would be too advanced, here I just turn it off
             param.pop('symmetry_generate', None)
-        #elif spin_type == SpinType.SPIN_ORBIT:
+        # elif spin_type == SpinType.SPIN_ORBIT:
         #    param['spin_treatment'] = 'noncollinear'
         #    param['spin_orbit_coupling'] = True
         #    param.pop('symmetry_generate', None)
@@ -157,13 +156,13 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         # Process electronic type
         # for plane-wave DFT density mixing is most efficient for both metal and insulators
         # these days. Here we stick to the default of CASTEP and do nothing here.
-        #if electronic_type == ElectronicType.METAL:
+        # if electronic_type == ElectronicType.METAL:
         #    # Use fine kpoints grid for all metallic calculations
         # No need to do this since the default is spacing is sufficiently fine
         #    override['base']['kpoints_spacing'] = 0.03
-        #elif electronic_type in (ElectronicType.INSULATOR, ElectronicType.AUTOMATIC):
+        # elif electronic_type in (ElectronicType.INSULATOR, ElectronicType.AUTOMATIC):
         #    pass
-        #else:
+        # else:
         #    raise ValueError('Unsupported `electronic_type` {}.'.format(electronic_type))
 
         # Raise the cut off energy for very soft pseudopotentials
@@ -186,7 +185,7 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         ensure_otfg_family(pseudos_family)
 
         builder = self.process_class.get_builder()
-        inputs = generate_inputs(self.process_class._process_class, protocol, code, structure, override)  # pylint: disable=protected-access
+        inputs = generate_inputs(self.process_class._process_class, protocol, code, structure, override)
 
         # Finally, apply the logic for previous workchain
         if reference_workchain:
@@ -204,7 +203,7 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             inputs['calc']['kpoints'] = previous_kpoints
             inputs['base'].pop('kpoints_spacing', None)
 
-        builder._update(inputs)  # pylint: disable=protected-access
+        builder._update(inputs)
 
         return builder
 
@@ -233,7 +232,7 @@ def generate_inputs(
     protocol: t.Dict,
     code: orm.Code,
     structure: orm.StructureData,
-    override: t.Dict[str, t.Any] = None
+    override: t.Optional[t.Dict[str, t.Any]] = None,
 ) -> t.Dict[str, t.Any]:
     """Generate the input parameters for the given workchain type for a given code, structure and pseudo family.
 
@@ -249,7 +248,7 @@ def generate_inputs(
     :param override: a dictionary to override specific inputs
     :return: input dictionary
     """
-    # pylint: disable=too-many-arguments,unused-argument
+
     from aiida.common.lang import type_check
 
     family_name = protocol['relax']['base']['pseudos_family']
@@ -262,9 +261,9 @@ def generate_inputs(
         family = protocol['relax']['base']['pseudos_family']
         raise ValueError(f'protocol `{name}` requires the `{family}` `pseudos family` but could not be found.') from exc
 
-    CastepCalculation = plugins.CalculationFactory('castep.castep')  # pylint: disable=invalid-name
-    CastepBaseWorkChain = plugins.WorkflowFactory('castep.base')  # pylint: disable=invalid-name
-    CastepRelaxWorkChain = plugins.WorkflowFactory('castep.relax')  # pylint: disable=invalid-name
+    CastepCalculation = plugins.CalculationFactory('castep.castep')  # noqa: N806
+    CastepBaseWorkChain = plugins.WorkflowFactory('castep.base')  # noqa: N806
+    CastepRelaxWorkChain = plugins.WorkflowFactory('castep.relax')  # noqa: N806
 
     type_check(structure, orm.StructureData)
 
@@ -288,7 +287,7 @@ def generate_inputs_relax(
     code: orm.Code,
     structure: orm.StructureData,
     otfg_family: OTFGGroup,
-    override: t.Dict[str, t.Any] = None
+    override: t.Optional[t.Dict[str, t.Any]] = None,
 ) -> t.Dict[str, t.Any]:
     """Generate the inputs for the `CastepCommonRelaxWorkChain` for a given code, structure and pseudo potential family.
 
@@ -313,7 +312,7 @@ def generate_inputs_relax(
         'base': merged['base'],
         'calc': calc,
         'structure': structure,
-        'relax_options': orm.Dict(dict=merged['relax_options'])
+        'relax_options': orm.Dict(dict=merged['relax_options']),
     }
 
     return dictionary
@@ -324,7 +323,7 @@ def generate_inputs_base(
     code: orm.Code,
     structure: orm.StructureData,
     otfg_family: OTFGGroup,
-    override: t.Dict[str, t.Any] = None
+    override: t.Optional[t.Dict[str, t.Any]] = None,
 ) -> t.Dict[str, t.Any]:
     """Generate the inputs for the `CastepBaseWorkChain` for a given code, structure and pseudo potential family.
 
@@ -362,7 +361,7 @@ def generate_inputs_calculation(
     code: orm.Code,
     structure: orm.StructureData,
     otfg_family: OTFGGroup,
-    override: t.Dict[str, t.Any] = None
+    override: t.Optional[t.Dict[str, t.Any]] = None,
 ) -> t.Dict[str, t.Any]:
     """Generate the inputs for the `CastepCalculation` for a given code, structure and pseudo potential family.
 
@@ -374,6 +373,7 @@ def generate_inputs_calculation(
     :return: the fully defined input dictionary.
     """
     from aiida_castep.calculations.helper import CastepHelper
+
     override = {} if not override else override.get('calc', {})
     # This merge perserves the merged `parameters` in the override
     merged_calc = recursive_merge(protocol['calc'], override)
@@ -401,7 +401,7 @@ def generate_inputs_calculation(
         'code': code,
         'parameters': orm.Dict(dict=param),
         'pseudos': get_pseudos_from_structure(structure, otfg_family.label),
-        'metadata': merged_calc.get('metadata', {})
+        'metadata': merged_calc.get('metadata', {}),
     }
     # Add the settings input if present
     if 'settings' in merged_calc:

@@ -4,9 +4,9 @@ import collections
 import pathlib
 import typing as t
 
-from aiida import engine, orm, plugins
 import numpy as np
 import yaml
+from aiida import engine, orm, plugins
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
@@ -15,14 +15,14 @@ from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('Cp2kCommonRelaxInputGenerator',)
 
-StructureData = plugins.DataFactory('core.structure')  # pylint: disable=invalid-name
-KpointsData = plugins.DataFactory('core.array.kpoints')  # pylint: disable=invalid-name
+StructureData = plugins.DataFactory('core.structure')
+KpointsData = plugins.DataFactory('core.array.kpoints')
 
 EV_A3_TO_GPA = 160.21766208
 
 
 def dict_merge(dct, merge_dct):
-    """ Taken from https://gist.github.com/angstwad/bf22d1822c38a92ec0a9
+    """Taken from https://gist.github.com/angstwad/bf22d1822c38a92ec0a9
     Recursive dict merge. Inspired by :meth:``dict.update()``, instead of
     updating only top-level keys, dict_merge recurses down into dicts nested
     to an arbitrary depth, updating keys. The ``merge_dct`` is merged into
@@ -32,7 +32,7 @@ def dict_merge(dct, merge_dct):
     :return: None
     """
     for k in merge_dct.keys():
-        if (k in dct and isinstance(dct[k], dict) and isinstance(merge_dct[k], collections.abc.Mapping)):
+        if k in dct and isinstance(dct[k], dict) and isinstance(merge_dct[k], collections.abc.Mapping):
             dict_merge(dct[k], merge_dct[k])
         else:
             dct[k] = merge_dct[k]
@@ -85,7 +85,7 @@ def tags_and_magnetization(structure, magnetization_per_site):
     return structure, None
 
 
-def guess_multiplicity(structure: StructureData, magnetization_per_site: t.List[float] = None):
+def guess_multiplicity(structure: StructureData, magnetization_per_site: t.Optional[t.List[float]] = None):
     """Get total spin multiplicity from atomic magnetizations."""
     spin_multiplicity = 1
     if magnetization_per_site:
@@ -172,12 +172,12 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         spec.inputs['electronic_type'].valid_type = ChoiceType((ElectronicType.METAL, ElectronicType.INSULATOR))
         spec.inputs['engines']['relax']['code'].valid_type = CodeType('cp2k')
 
-    def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:
+    def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:  # noqa: PLR0912,PLR0915
         """Construct a process builder based on the provided keyword arguments.
 
         The keyword arguments will have been validated against the input generator specification.
         """
-        # pylint: disable=too-many-branches,too-many-statements,too-many-locals
+
         structure = kwargs['structure']
         engines = kwargs['engines']
         protocol = kwargs['protocol']
@@ -239,6 +239,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 parameters['FORCE_EVAL']['DFT']['UKS'] = False
                 if magnetization_per_site is not None:
                     import warnings
+
                     warnings.warn('`magnetization_per_site` will be ignored as `spin_type` is set to SpinType.NONE')
 
             elif spin_type == SpinType.COLLINEAR:
@@ -251,14 +252,14 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         if 'sirius' in protocol:
             dict_merge(
                 parameters,
-                get_kinds_section(structure, basis_pseudo=None, magnetization_tags=magnetization_tags, use_sirius=True)
+                get_kinds_section(structure, basis_pseudo=None, magnetization_tags=magnetization_tags, use_sirius=True),
             )
         else:
             dict_merge(
                 parameters,
                 get_kinds_section(
                     structure, basis_pseudo=basis_pseudo, magnetization_tags=magnetization_tags, use_sirius=False
-                )
+                ),
             )
 
         # Relaxation type.
@@ -356,7 +357,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 # workchain and any subsequent workchains
                 pass
 
-        cell = [[v * scale_factor**(1 / 3) for v in row] for row in structure.cell]
+        cell = [[v * scale_factor ** (1 / 3) for v in row] for row in structure.cell]
 
         # start with an A, B, C:
         cell_ref = {idx: f'[angstrom] {row[0]:<15} {row[1]:<15} {row[2]:<15}' for idx, row in zip('ABC', cell)}

@@ -27,7 +27,7 @@ class CommonBandsWorkChain(WorkChain, metaclass=ABCMeta):
 
         :return: input generator
         """
-        return cls._generator_class(process_class=cls)  # pylint: disable=not-callable
+        return cls._generator_class(process_class=cls)
 
     @classmethod
     def define(cls, spec):

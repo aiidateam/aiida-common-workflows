@@ -4,9 +4,9 @@ import collections
 import pathlib
 import typing as t
 
-from aiida import engine, orm, plugins
-from aiida.common.constants import elements as PeriodicTableElements
 import yaml
+from aiida import engine, orm, plugins
+from aiida.common.constants import elements
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
@@ -22,22 +22,16 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
     """Generator of inputs for the `FleurCommonRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
-    _protocols = {
-        'fast': {
-            'description': 'return in a quick way a result that may not be reliable'
-        },
-        'moderate': {
-            'description': 'reliable result (could be published), but no emphasis on convergence'
-        },
-        'precise': {
-            'description': 'high level of accuracy'
-        },
+    _protocols: t.ClassVar = {
+        'fast': {'description': 'return in a quick way a result that may not be reliable'},
+        'moderate': {'description': 'reliable result (could be published), but no emphasis on convergence'},
+        'precise': {'description': 'high level of accuracy'},
         'oxides_validation': {
             'description': 'high level of accuracy. Used for validating oxide results for common-workflows'
         },
         'verification-PBE-v1': {
             'description': 'high level of accuracy. Used for validating oxide results for common-workflows'
-        }
+        },
     }
 
     def __init__(self, *args, **kwargs):
@@ -68,12 +62,12 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         spec.inputs['engines']['relax']['code'].valid_type = CodeType('fleur.fleur')
         spec.inputs['engines']['inpgen']['code'].valid_type = CodeType('fleur.inpgen')
 
-    def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:
+    def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:  # noqa: PLR0912,PLR0915
         """Construct a process builder based on the provided keyword arguments.
 
         The keyword arguments will have been validated against the input generator specification.
         """
-        # pylint: disable=too-many-branches,too-many-statements,too-many-locals
+
         structure = kwargs['structure']
         engines = kwargs['engines']
         protocol = kwargs['protocol']
@@ -91,6 +85,7 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         # Checks if protocol exists
         if protocol not in self.get_protocol_names():
             import warnings
+
             warnings.warn(f'no protocol implemented with name {protocol}, using default moderate')
             protocol = self.get_default_protocol_name()
         else:
@@ -130,7 +125,7 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             'change_mixing_criterion': 0.025,
             'atoms_off': [],
             'run_final_scf': True,  # we always run a final scf after the relaxation
-            'relaxation_type': 'atoms'
+            'relaxation_type': 'atoms',
         }
         wf_para_dict = recursive_merge(default_wf_para, protocol.get('relax', {}))
 
@@ -153,7 +148,7 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             dict={
                 'significant_figures_cell': 9,
                 'significant_figures_position': 9,
-                'profile': protocol['inpgen-protocol']
+                'profile': protocol['inpgen-protocol'],
             }
         )
 
@@ -163,11 +158,7 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             'fleur_runmax': 2,
             'itmax_per_run': 120,
             'force_converged': force_criterion,
-            'force_dict': {
-                'qfix': 2,
-                'forcealpha': 0.75,
-                'forcemix': 'straight'
-            },
+            'force_dict': {'qfix': 2, 'forcealpha': 0.75, 'forcemix': 'straight'},
             'use_relax_xml': True,
             'mode': relaxation_mode,
         }
@@ -206,12 +197,12 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 'options': options_scf,
                 # options do not matter on QM, in general they do...
                 'inpgen': inpgen_code,
-                'fleur': fleur_code
+                'fleur': fleur_code,
             },
-            'wf_parameters': wf_para
+            'wf_parameters': wf_para,
         }
 
-        builder._update(inputs)  # pylint: disable=protected-access
+        builder._update(inputs)
 
         return builder
 
@@ -227,8 +218,8 @@ def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, struc
     :param kmax: int, basis cutoff for the simulations
     :return: orm.Dict
     """
-    # pylint: disable=too-many-locals
-    #parameters_b = None
+
+    # parameters_b = None
 
     # Spin type options
     if spin_type == SpinType.NONE:
@@ -249,10 +240,11 @@ def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, struc
     if magnetization_per_site is not None:
         # Do for now sake we have this. If the structure is not rightly prepared it will run, but
         # the set magnetization will be wrong
-        atomic_numbers = {data['symbol']: num for num, data in PeriodicTableElements.items()}
+        atomic_numbers = {data['symbol']: num for num, data in elements.items()}
 
         if spin_type == SpinType.NONE:
             import warnings
+
             warnings.warn('`magnetization_per_site` will be ignored as `spin_type` is set to SpinType.NONE')
         if spin_type == SpinType.COLLINEAR:
             # add atom lists for each kind and set bmu in muBohr
@@ -272,7 +264,7 @@ def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, struc
                 if kind_name != site_symbol:
                     head = kind_name.rstrip('0123456789')
                     try:
-                        kind_namet = int(kind_name[len(head):])
+                        kind_namet = int(kind_name[len(head) :])
                     except ValueError:
                         kind_namet = 0
                     kind_id = f'{atomic_number}.{kind_namet}'
@@ -282,7 +274,7 @@ def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, struc
             # Better would be a valid parameter data merge from aiida-fleur, to merge atom lists
             # right
             add_parameter_dict = recursive_merge(add_parameter_dict, mag_dict)
-            #structure, parameters_b = break_symmetry(structure, parameterdata=orm.Dict(dict=add_parameter_dict))
+            # structure, parameters_b = break_symmetry(structure, parameterdata=orm.Dict(dict=add_parameter_dict))
 
     new_parameters = orm.Dict(dict=add_parameter_dict)
 
@@ -311,7 +303,7 @@ def get_parameters(reference_workchain):
         last_scf = orm.load_node(last_scf)
     except NotExistent:
         # something went wrong in the previous workchain run
-        #.. we just continue without previous parameters but defaults.
+        # .. we just continue without previous parameters but defaults.
         return None
     if last_scf.process_class is fleur_scf_wc:
         fleurinp = last_scf.outputs.fleurinp

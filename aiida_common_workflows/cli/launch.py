@@ -2,8 +2,8 @@
 """Commands to launch common workflows."""
 import functools
 
-from aiida.cmdline.params import types
 import click
+from aiida.cmdline.params import types
 
 from aiida_common_workflows.plugins import get_workflow_entry_point_names, load_workflow_entry_point
 
@@ -41,7 +41,7 @@ def cmd_launch():
 @options.CODES()
 @options.PROTOCOL(
     type=click.Choice(['fast', 'moderate', 'precise', 'verification-PBE-v1', 'verification-PBE-v1-sirius']),
-    default='fast'
+    default='fast',
 )
 @options.RELAX_TYPE()
 @options.ELECTRONIC_TYPE()
@@ -57,10 +57,25 @@ def cmd_launch():
 @options.REFERENCE_WORKCHAIN()
 @options.ENGINE_OPTIONS()
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
-def cmd_relax(  # pylint: disable=too-many-branches
-    plugin, structure, codes, protocol, relax_type, electronic_type, spin_type, threshold_forces, threshold_stress,
-    number_machines, number_mpi_procs_per_machine, number_cores_per_mpiproc, wallclock_seconds, daemon,
-    magnetization_per_site, reference_workchain, engine_options, show_engines
+def cmd_relax(  # noqa: PLR0912,PLR0913,PLR0915
+    plugin,
+    structure,
+    codes,
+    protocol,
+    relax_type,
+    electronic_type,
+    spin_type,
+    threshold_forces,
+    threshold_stress,
+    number_machines,
+    number_mpi_procs_per_machine,
+    number_cores_per_mpiproc,
+    wallclock_seconds,
+    daemon,
+    magnetization_per_site,
+    reference_workchain,
+    engine_options,
+    show_engines,
 ):
     """Relax a crystal structure using the common relax workflow for one of the existing plugin implementations.
 
@@ -69,7 +84,7 @@ def cmd_relax(  # pylint: disable=too-many-branches
     If no code is installed for at least one of the calculation engines, the command will fail.
     Use the `--show-engine` flag to display the required calculation engines for the selected plugin workflow.
     """
-    # pylint: disable=too-many-locals,too-many-statements
+
     process_class = load_workflow_entry_point('relax', plugin)
     generator = process_class.get_input_generator()
 
@@ -81,19 +96,19 @@ def cmd_relax(  # pylint: disable=too-many-branches
     if len(number_machines) != number_engines:
         raise click.BadParameter(
             f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
-            param_hint='--number-machines'
+            param_hint='--number-machines',
         )
 
     if number_mpi_procs_per_machine is not None and len(number_mpi_procs_per_machine) != number_engines:
         raise click.BadParameter(
             f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
-            param_hint='--number-mpi-procs-per-machine'
+            param_hint='--number-mpi-procs-per-machine',
         )
 
     if number_cores_per_mpiproc is not None and len(number_cores_per_mpiproc) != number_engines:
         raise click.BadParameter(
             f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
-            param_hint='--number-cores-per-mpiproc'
+            param_hint='--number-cores-per-mpiproc',
         )
 
     if wallclock_seconds is None:
@@ -102,7 +117,7 @@ def cmd_relax(  # pylint: disable=too-many-branches
     if len(wallclock_seconds) != number_engines:
         raise click.BadParameter(
             f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
-            param_hint='--wallclock-seconds'
+            param_hint='--wallclock-seconds',
         )
 
     if not generator.is_valid_protocol(protocol):
@@ -195,10 +210,24 @@ def cmd_relax(  # pylint: disable=too-many-branches
 @options.MAGNETIZATION_PER_SITE()
 @options.ENGINE_OPTIONS()
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
-def cmd_eos(  # pylint: disable=too-many-branches,too-many-statements
-    plugin, structure, codes, protocol, relax_type, electronic_type, spin_type, threshold_forces, threshold_stress,
-    number_machines, number_mpi_procs_per_machine, number_cores_per_mpiproc, wallclock_seconds, daemon,
-    magnetization_per_site, engine_options, show_engines
+def cmd_eos(  # noqa: PLR0912,PLR0913,PLR0915
+    plugin,
+    structure,
+    codes,
+    protocol,
+    relax_type,
+    electronic_type,
+    spin_type,
+    threshold_forces,
+    threshold_stress,
+    number_machines,
+    number_mpi_procs_per_machine,
+    number_cores_per_mpiproc,
+    wallclock_seconds,
+    daemon,
+    magnetization_per_site,
+    engine_options,
+    show_engines,
 ):
     """Compute the equation of state of a crystal structure using the common relax workflow.
 
@@ -207,7 +236,7 @@ def cmd_eos(  # pylint: disable=too-many-branches,too-many-statements
     If no code is installed for at least one of the calculation engines, the command will fail.
     Use the `--show-engine` flag to display the required calculation engines for the selected plugin workflow.
     """
-    # pylint: disable=too-many-locals
+
     from aiida_common_workflows.plugins import get_entry_point_name_from_class
     from aiida_common_workflows.workflows.eos import EquationOfStateWorkChain
 
@@ -222,19 +251,19 @@ def cmd_eos(  # pylint: disable=too-many-branches,too-many-statements
     if len(number_machines) != number_engines:
         raise click.BadParameter(
             f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
-            param_hint='--number-machines'
+            param_hint='--number-machines',
         )
 
     if number_mpi_procs_per_machine is not None and len(number_mpi_procs_per_machine) != number_engines:
         raise click.BadParameter(
             f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
-            param_hint='--number-mpi-procs-per-machine'
+            param_hint='--number-mpi-procs-per-machine',
         )
 
     if number_cores_per_mpiproc is not None and len(number_cores_per_mpiproc) != number_engines:
         raise click.BadParameter(
             f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
-            param_hint='--number-cores-per-mpiproc'
+            param_hint='--number-cores-per-mpiproc',
         )
 
     if wallclock_seconds is None:
@@ -243,7 +272,7 @@ def cmd_eos(  # pylint: disable=too-many-branches,too-many-statements
     if len(wallclock_seconds) != number_engines:
         raise click.BadParameter(
             f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
-            param_hint='--wallclock-seconds'
+            param_hint='--wallclock-seconds',
         )
 
     if not generator.is_valid_protocol(protocol):
@@ -332,10 +361,21 @@ def cmd_eos(  # pylint: disable=too-many-branches,too-many-statements
 @options.MAGNETIZATION_PER_SITE()
 @options.ENGINE_OPTIONS()
 @click.option('--show-engines', is_flag=True, help='Show information on the required calculation engines.')
-def cmd_dissociation_curve(  # pylint: disable=too-many-branches
-    plugin, structure, codes, protocol, electronic_type, spin_type, number_machines, number_mpi_procs_per_machine,
+def cmd_dissociation_curve(  # noqa: PLR0912, PLR0913
+    plugin,
+    structure,
+    codes,
+    protocol,
+    electronic_type,
+    spin_type,
+    number_machines,
+    number_mpi_procs_per_machine,
     number_cores_per_mpiproc,
-    wallclock_seconds, daemon, magnetization_per_site, engine_options, show_engines
+    wallclock_seconds,
+    daemon,
+    magnetization_per_site,
+    engine_options,
+    show_engines,
 ):
     """Compute the dissociation curve of a diatomic molecule using the common relax workflow.
 
@@ -347,7 +387,7 @@ def cmd_dissociation_curve(  # pylint: disable=too-many-branches
     If no code is installed for at least one of the calculation engines, the command will fail.
     Use the `--show-engine` flag to display the required calculation engines for the selected plugin workflow.
     """
-    # pylint: disable=too-many-locals
+
     from aiida_common_workflows.plugins import get_entry_point_name_from_class
     from aiida_common_workflows.workflows.dissociation import DissociationCurveWorkChain
     from aiida_common_workflows.workflows.relax.generator import RelaxType
@@ -363,19 +403,19 @@ def cmd_dissociation_curve(  # pylint: disable=too-many-branches
     if len(number_machines) != number_engines:
         raise click.BadParameter(
             f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
-            param_hint='--number-machines'
+            param_hint='--number-machines',
         )
 
     if number_mpi_procs_per_machine is not None and len(number_mpi_procs_per_machine) != number_engines:
         raise click.BadParameter(
             f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
-            param_hint='--number-mpi-procs-per-machine'
+            param_hint='--number-mpi-procs-per-machine',
         )
 
     if number_cores_per_mpiproc is not None and len(number_cores_per_mpiproc) != number_engines:
         raise click.BadParameter(
             f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
-            param_hint='--number-cores-per-mpiproc'
+            param_hint='--number-cores-per-mpiproc',
         )
 
     if wallclock_seconds is None:
@@ -384,7 +424,7 @@ def cmd_dissociation_curve(  # pylint: disable=too-many-branches
     if len(wallclock_seconds) != number_engines:
         raise click.BadParameter(
             f'{process_class.__name__} has {number_engines} engine steps, so requires {number_engines} values',
-            param_hint='--wallclock-seconds'
+            param_hint='--wallclock-seconds',
         )
 
     if not generator.is_valid_protocol(protocol):

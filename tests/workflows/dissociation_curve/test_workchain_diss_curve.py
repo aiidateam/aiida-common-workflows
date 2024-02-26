@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=redefined-outer-name
+
 """Tests for the :mod:`aiida_common_workflows.workflows.dissociation` module."""
 import copy
 
+import pytest
 from aiida import orm
 from aiida.engine import WorkChain
 from aiida.plugins import WorkflowFactory
-import pytest
 
 from aiida_common_workflows.plugins import get_workflow_entry_point_names
 from aiida_common_workflows.workflows import dissociation
@@ -35,9 +35,11 @@ def test_validate_sub_process_class(ctx):
 def test_validate_sub_process_class_plugins(ctx, common_relax_workchain):
     """Test the `validate_sub_process_class` validator."""
     from aiida_common_workflows.plugins import get_entry_point_name_from_class
-    assert dissociation.validate_sub_process_class(
-        get_entry_point_name_from_class(common_relax_workchain).name, ctx
-    ) is None
+
+    assert (
+        dissociation.validate_sub_process_class(get_entry_point_name_from_class(common_relax_workchain).name, ctx)
+        is None
+    )
 
 
 @pytest.mark.usefixtures('sssp')
@@ -48,41 +50,38 @@ def test_validate_inputs_distance(ctx, generate_code, generate_structure):
         'sub_process_class': 'common_workflows.relax.quantum_espresso',
         'generator_inputs': {
             'engines': {
-                'relax': {
-                    'code': generate_code('quantumespresso.pw'),
-                    'options': {
-                        'resources': {
-                            'num_machines': 1
-                        }
-                    }
-                }
+                'relax': {'code': generate_code('quantumespresso.pw'), 'options': {'resources': {'num_machines': 1}}}
             },
-            'spin_type': 'collinear'
-        }
+            'spin_type': 'collinear',
+        },
     }
 
     value = copy.deepcopy(base_values)
-    assert dissociation.validate_inputs(
-        value, ctx
-    ) == 'neither `distances` nor the `distances_count`, `distance_min`, and `distance_max` set were defined.'
+    assert (
+        dissociation.validate_inputs(value, ctx)
+        == 'neither `distances` nor the `distances_count`, `distance_min`, and `distance_max` set were defined.'
+    )
 
     value = copy.deepcopy(base_values)
     value.update({'distances_count': 3, 'distance_min': 0.5})
-    assert dissociation.validate_inputs(
-        value, ctx
-    ) == 'neither `distances` nor the `distances_count`, `distance_min`, and `distance_max` set were defined.'
+    assert (
+        dissociation.validate_inputs(value, ctx)
+        == 'neither `distances` nor the `distances_count`, `distance_min`, and `distance_max` set were defined.'
+    )
 
     value = copy.deepcopy(base_values)
     value.update({'distances_count': 3, 'distance_max': 1.5})
-    assert dissociation.validate_inputs(
-        value, ctx
-    ) == 'neither `distances` nor the `distances_count`, `distance_min`, and `distance_max` set were defined.'
+    assert (
+        dissociation.validate_inputs(value, ctx)
+        == 'neither `distances` nor the `distances_count`, `distance_min`, and `distance_max` set were defined.'
+    )
 
     value = copy.deepcopy(base_values)
     value.update({'distance_max': 2, 'distance_min': 0.5})
-    assert dissociation.validate_inputs(
-        value, ctx
-    ) == 'neither `distances` nor the `distances_count`, `distance_min`, and `distance_max` set were defined.'
+    assert (
+        dissociation.validate_inputs(value, ctx)
+        == 'neither `distances` nor the `distances_count`, `distance_min`, and `distance_max` set were defined.'
+    )
 
     value = copy.deepcopy(base_values)
     value.update({'distance_max': 2, 'distance_min': 0.5, 'distances_count': 3})
@@ -110,17 +109,10 @@ def test_validate_inputs_generator_inputs(ctx, generate_code, generate_structure
         'sub_process_class': 'common_workflows.relax.quantum_espresso',
         'generator_inputs': {
             'engines': {
-                'relax': {
-                    'code': generate_code('quantumespresso.pw'),
-                    'options': {
-                        'resources': {
-                            'num_machines': 1
-                        }
-                    }
-                }
+                'relax': {'code': generate_code('quantumespresso.pw'), 'options': {'resources': {'num_machines': 1}}}
             },
-            'spin_type': 'collinear'
-        }
+            'spin_type': 'collinear',
+        },
     }
 
     assert dissociation.validate_inputs(value, ctx) is None

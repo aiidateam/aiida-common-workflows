@@ -26,7 +26,7 @@ class SiestaCommonBandsInputGenerator(CommonBandsInputGenerator):
 
         The keyword arguments will have been validated against the input generator specification.
         """
-        # pylint: disable=too-many-branches,too-many-statements,too-many-locals
+
         engines = kwargs.get('engines', None)
         parent_folder = kwargs['parent_folder']
         bands_kpoints = kwargs['bands_kpoints']

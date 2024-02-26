@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import pathlib
-from typing import Any, Dict, List, Tuple
+import typing as t
 
-from aiida import engine, orm, plugins
 import yaml
+from aiida import engine, orm, plugins
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 
@@ -21,15 +21,17 @@ class GpawCommonRelaxInputGenerator(CommonRelaxInputGenerator):
     """Input generator for the `GpawCommonRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
-    _engine_types = {'relax': {'code_plugin': 'ase.ase', 'description': 'The code to perform the relaxation.'}}
-    _relax_types = {
+    _engine_types: t.ClassVar = {
+        'relax': {'code_plugin': 'ase.ase', 'description': 'The code to perform the relaxation.'}
+    }
+    _relax_types: t.ClassVar = {
         RelaxType.NONE: 'Do not perform relaxation.',
         RelaxType.POSITIONS: 'Relax only the atomic positions while keeping the cell fixed.',
     }
-    _spin_types = {
+    _spin_types: t.ClassVar = {
         SpinType.NONE: 'Treat the system without spin polarization.',
     }
-    _electronic_types = {
+    _electronic_types: t.ClassVar = {
         ElectronicType.METAL: 'Treat the system as a metal with smeared occupations.',
     }
 
@@ -43,20 +45,20 @@ class GpawCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         with open(str(pathlib.Path(__file__).parent / 'protocol.yml'), encoding='utf-8') as handle:
             self._protocols = yaml.safe_load(handle)
 
-    def _construct_builder( # pylint: disable=arguments-differ,too-many-locals
+    def _construct_builder(  # noqa: PLR0913
         self,
         structure: StructureData,
-        engines: Dict[str, Any],
+        engines: t.Dict[str, t.Any],
         *,
-        protocol: str = None,
+        protocol: t.Optional[str] = None,
         relax_type: RelaxType | str = RelaxType.POSITIONS,
         electronic_type: ElectronicType | str = ElectronicType.METAL,
         spin_type: SpinType | str = SpinType.NONE,
-        magnetization_per_site: List[float] | Tuple[float] | None = None,
-        threshold_forces: float = None,
-        threshold_stress: float = None,
+        magnetization_per_site: t.List[float] | t.Tuple[float] | None = None,
+        threshold_forces: t.Optional[float] = None,
+        threshold_stress: t.Optional[float] = None,
         reference_workchain=None,
-        **kwargs
+        **kwargs,
     ) -> engine.ProcessBuilder:
         """Return a process builder for the corresponding workchain class with inputs set according to the protocol.
 
@@ -77,7 +79,7 @@ class GpawCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         """
         protocol = protocol or self.get_default_protocol_name()
 
-        super().get_builder( # pylint: disable=too-many-function-args
+        super().get_builder(
             structure,
             engines,
             protocol=protocol,
@@ -88,7 +90,7 @@ class GpawCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             threshold_forces=threshold_forces,
             threshold_stress=threshold_stress,
             reference_workchain=reference_workchain,
-            **kwargs
+            **kwargs,
         )
 
         if isinstance(electronic_type, str):
@@ -105,9 +107,7 @@ class GpawCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         parameters = protocol['parameters']
         parameters['atoms_getters'] = [
             'temperature',
-            ['forces', {
-                'apply_constraint': True
-            }],
+            ['forces', {'apply_constraint': True}],
             ['masses', {}],
         ]
         if relax_type == RelaxType.NONE:

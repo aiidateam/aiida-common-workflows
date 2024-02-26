@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 """Tests for the :mod:`aiida_common_workflows.workflows.relax.castep` module."""
-# pylint: disable=abstract-method,arguments-differ,redefined-outer-name,unused-argument
+
 import copy
 
+import pytest
 from aiida import engine, plugins
 from aiida.orm import StructureData
 from aiida.plugins import WorkflowFactory
 from aiida_castep.data.otfg import OTFGGroup
 from ase.build.bulk import bulk
-import pytest
 
 from aiida_common_workflows.workflows.relax.castep.generator import (
     CastepCommonRelaxInputGenerator,
@@ -28,14 +28,14 @@ GENERATOR = WORKCHAIN.get_input_generator()
 
 
 @pytest.fixture
-def nacl(with_database):  # pylint: disable=invalid-name
+def nacl(with_database):
     """Get an NaCl structure"""
     structure = StructureData(ase=bulk('NaCl', 'rocksalt', 4.2))
     return structure
 
 
 @pytest.fixture
-def si(with_database):  # pylint: disable=invalid-name
+def si(with_database):
     """Get an NaCl structure"""
     structure = StructureData(ase=bulk('Si', 'diamond', 5.43))
     return structure
@@ -61,15 +61,7 @@ def default_builder_inputs(generate_code, generate_structure, castep_code):
     return {
         'structure': generate_structure(symbols=('Si',)),
         'engines': {
-            'relax': {
-                'code': castep_code,
-                'options': {
-                    'resources': {
-                        'num_machines': 1,
-                        'tot_num_mpiprocs': 1
-                    }
-                }
-            }
+            'relax': {'code': castep_code, 'options': {'resources': {'num_machines': 1, 'tot_num_mpiprocs': 1}}}
         },
     }
 
@@ -124,12 +116,7 @@ def test_calc_generator(nacl, castep_code, with_otfg):
     """Test the functionality of the calculation generator"""
     protcol = {
         'kpoints_spacing': 0.05,
-        'calc': {
-            'parameters': {
-                'task': 'geometryoptimisation',
-                'basis_precision': 'medium'
-            }
-        }
+        'calc': {'parameters': {'task': 'geometryoptimisation', 'basis_precision': 'medium'}},
     }
     override = {'calc': {'parameters': {'cut_off_energy': 220}}}
     otfg = OTFGGroup.collection.get(label='C19')
@@ -146,12 +133,7 @@ def test_base_generator(castep_code, nacl, with_otfg):
     protcol = {
         'kpoints_spacing': 0.05,
         'max_iterations': 5,
-        'calc': {
-            'parameters': {
-                'task': 'geometryoptimisation',
-                'basis_precision': 'medium'
-            }
-        }
+        'calc': {'parameters': {'task': 'geometryoptimisation', 'basis_precision': 'medium'}},
     }
     override = {'calc': {'parameters': {'cut_off_energy': 220}, 'metadata': {'label': 'test'}}}
     otfg = OTFGGroup.collection.get(label='C19')
@@ -167,22 +149,14 @@ def test_base_generator(castep_code, nacl, with_otfg):
 
 def test_relax_generator(castep_code, nacl, with_otfg):
     """Test for generating the relax namespace"""
-    CastepCommonRelaxWorkChain = WorkflowFactory('castep.relax')  # pylint: disable=invalid-name
-    protocol = CastepCommonRelaxInputGenerator(process_class=CastepCommonRelaxWorkChain
-                                               ).get_protocol('moderate')['relax']
+    CastepCommonRelaxWorkChain = WorkflowFactory('castep.relax')  # noqa: N806
+    protocol = CastepCommonRelaxInputGenerator(process_class=CastepCommonRelaxWorkChain).get_protocol('moderate')[
+        'relax'
+    ]
     override = {
         'base': {
-            'metadata': {
-                'label': 'test'
-            },
-            'calc': {
-                'parameters': {
-                    'cut_off_energy': 220
-                },
-                'metadata': {
-                    'label': 'test'
-                }
-            }
+            'metadata': {'label': 'test'},
+            'calc': {'parameters': {'cut_off_energy': 220}, 'metadata': {'label': 'test'}},
         }
     }
     otfg = OTFGGroup.collection.get(label='C19')
@@ -198,7 +172,7 @@ def test_relax_generator(castep_code, nacl, with_otfg):
     assert generated['base']['metadata']['label'] == 'test'
 
 
-def test_generate_inputs(castep_code, nacl, si):  # pylint: disable=invalid-name
+def test_generate_inputs(castep_code, nacl, si):
     """
     Test for the generator
     """
@@ -214,7 +188,7 @@ def test_generate_inputs(castep_code, nacl, si):  # pylint: disable=invalid-name
     assert 'structure' in output['calc']
 
 
-def test_input_generator(castep_code, nacl, si):  # pylint: disable=invalid-name
+def test_input_generator(castep_code, nacl, si):
     """Test for the input generator"""
     gen = CastepCommonRelaxInputGenerator(process_class=CastepCommonRelaxWorkChain)
     engines = {'relax': {'code': castep_code, 'options': {}}}

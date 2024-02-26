@@ -27,14 +27,14 @@ class CommonBandsInputGenerator(InputGenerator, metaclass=abc.ABCMeta):
             'bands_kpoints',
             valid_type=plugins.DataFactory('core.array.kpoints'),
             required=True,
-            help='The full list of kpoints where to calculate bands, in (direct) coordinates of the reciprocal space.'
+            help='The full list of kpoints where to calculate bands, in (direct) coordinates of the reciprocal space.',
         )
         spec.input(
             'parent_folder',
             valid_type=orm.RemoteData,
             required=True,
             help='Parent folder that contains file to restart from (density matrix, wave-functions..). What is used '
-            'is plugin dependent.'
+            'is plugin dependent.',
         )
         spec.input_namespace(
             'engines',
