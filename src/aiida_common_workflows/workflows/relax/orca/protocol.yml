@@ -1,5 +1,5 @@
 fast:
-  description: 'Minimal basis set for testing purpose!'
+  description: Minimal basis set for testing purpose!
   input_blocks:
     scf:
       convergence: Strong
@@ -10,7 +10,7 @@ fast:
   - LOOSEOPT
   extra_input_keywords: []
 moderate:
-  description: 'Moderate size basis set'
+  description: Moderate size basis set
   input_blocks:
     scf:
       convergence: Tight
@@ -21,7 +21,7 @@ moderate:
   - NORMALOPT
   extra_input_keywords: []
 precise:
-  description: 'Slightly larger basis set for more accurate results?!'
+  description: Slightly larger basis set for more accurate results?!
   input_blocks:
     scf:
       convergence: VeryTight

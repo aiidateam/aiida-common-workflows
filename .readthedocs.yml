@@ -1,17 +1,17 @@
 version: 2
 
 build:
-    apt_packages:
-    -   gfortran  # This is necessary for the `sisl` dependency of `aiida-siesta`
+  apt_packages:
+  - gfortran      # This is necessary for the `sisl` dependency of `aiida-siesta`
 
 python:
-    version: 3.8
-    install:
-    -   method: pip
-        path: .
-        extra_requirements:
-        -   docs
+  version: 3.8
+  install:
+  - method: pip
+    path: .
+    extra_requirements:
+    - docs
 
 sphinx:
-    builder: html
-    fail_on_warning: true
+  builder: html
+  fail_on_warning: true

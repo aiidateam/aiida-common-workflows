@@ -1,25 +1,25 @@
 verification-PBE-v1:
   description: ''
   parameters:
-    xc-functional: "GGA"
-    xc-authors: "PBE"
+    xc-functional: GGA
+    xc-authors: PBE
     max-scf-iterations: 100
     scf-mixer-history: 5
     scf-mixer-weight: 0.1
     scf-dm-tolerance: 1.e-5
-    md-max-force-tol: '0.005 eV/Ang'
-    md-max-stress-tol: '0.7 GPa'
-    solution-method: 'diagon'
-    electronic-temperature: '61 meV'
-    write-forces: True
-    mesh-cutoff: '900 Ry'
-    diag-parallel-over-k: True
+    md-max-force-tol: 0.005 eV/Ang
+    md-max-stress-tol: 0.7 GPa
+    solution-method: diagon
+    electronic-temperature: 61 meV
+    write-forces: true
+    mesh-cutoff: 900 Ry
+    diag-parallel-over-k: true
     block grid-cell-sampling: "\n  0.5 0.0 0.0\n  0.0 0.5 0.0\n  0.0 0.0 0.5\n  0.5 0.5 0.0\n  0.5 0.0 0.5\n  0.0 0.5 0.5\n  0.5 0.5 0.5\n%endblock gridcellsampling"
   basis:
-    pao-split-tail-norm: True
-    reparametrize-pseudos: True
-    restricted-radial-grid: False
-  pseudo_family: 'PseudoDojo/0.4/PBE/FR/standard/psml'
+    pao-split-tail-norm: true
+    reparametrize-pseudos: true
+    restricted-radial-grid: false
+  pseudo_family: PseudoDojo/0.4/PBE/FR/standard/psml
   kpoints:
     distance: 0.06
     offset: [0., 0., 0.]
@@ -112,37 +112,37 @@ verification-PBE-v1:
       basis:
         pao-block: "Cu 6\n  n=3  0  1\n 3.762992\n  n=3  1  1\n 4.912695\n  n=3  2  3\n 8.089686\t 2.635587\t 3.644129\n  n=4  0  3\n 10.825617\t 4.888129\t 6.026683\n  n=4  1  2\n 7.527117\t 6.020636\n  n=4  3  1\n 6.641407"
       parameters:
-        mesh-cutoff: "1500 Ry"
+        mesh-cutoff: 1500 Ry
     Zn:
       basis:
         pao-block: "Zn 6\n  n=3  0  1\n 6.516308\n  n=3  1  1\n 5.49605\n  n=3  2  3\n 7.497071\t 1.284251\t 1.963604\n  n=4  0  3\n 4.097661\t 2.422427\t 3.026947\n  n=4  1  2\n 8.781889\t 5.243206\n  n=4  3  1\n 8.057372"
       parameters:
-        mesh-cutoff: "1500 Ry"
+        mesh-cutoff: 1500 Ry
     Ga:
       basis:
         pao-block: "Ga 5\n  n=3  2  1\n 6.419177\n  n=4  0  3\n 9.982426\t 3.721607\t 4.714842\n  n=4  1  3\n 10.062739\t 5.51816\t 6.919763\n  n=4  2  2\n 4.781549\t 3.95631\n  n=4  3  1\n 3.988246"
       parameters:
-        mesh-cutoff: "1500 Ry"
+        mesh-cutoff: 1500 Ry
     Ge:
       basis:
         pao-block: "Ge 5\n  n=3  2  1\n 6.688272\n  n=4  0  3\n 8.001247\t 2.943044\t 3.835368\n  n=4  1  3\n 11.133263\t 4.155486\t 5.607166\n  n=4  2  2\n 4.321214\t 3.424355\n  n=4  3  1\n 4.028308"
       parameters:
-        mesh-cutoff: "1500 Ry"
+        mesh-cutoff: 1500 Ry
     As:
       basis:
         pao-block: "As 5\n  n=3  2  1\n 7.489512\n  n=4  0  3\n 10.276465\t 3.0209\t 3.797007\n  n=4  1  3\n 13.532446\t 4.168147\t 5.397785\n  n=4  2  2\n 4.570656\t 3.759212\n  n=4  3  1\n 4.607506"
       parameters:
-        mesh-cutoff: "1500 Ry"
+        mesh-cutoff: 1500 Ry
     Se:
       basis:
         pao-block: "Se 5\n  n=3  2  1\n 6.142333\n  n=4  0  3\n 8.59065\t 3.169999\t 3.854643\n  n=4  1  3\n 10.945425\t 4.329907\t 5.392305\n  n=4  2  2\n 4.791186\t 4.138856\n  n=4  3  1\n 4.805548"
       parameters:
-        mesh-cutoff: "1500 Ry"
+        mesh-cutoff: 1500 Ry
     Br:
       basis:
         pao-block: "Br 4\n  n=4  0  3\n 10.328055\t 2.852904\t 3.490306\n  n=4  1  3\n 11.917306\t 3.800786\t 4.771911\n  n=4  2  2\n 4.700669\t 3.842927\n  n=4  3  1\n 4.060811"
       parameters:
-        mesh-cutoff: "1500 Ry"
+        mesh-cutoff: 1500 Ry
     Kr:
       basis:
         pao-block: "Kr 4\n  n=4  0  3\n 8.479534\t 3.008806\t 3.589705\n  n=4  1  3\n 11.786916\t 4.008277\t 4.883216\n  n=4  2  2\n 7.564912\t 6.483805\n  n=4  3  1\n 5.877584"
@@ -183,32 +183,32 @@ verification-PBE-v1:
       basis:
         pao-block: "Cd 6\n  n=4  0  1\n 5.349409\n  n=4  1  1\n 4.996976\n  n=4  2  3\n 8.932688\t 2.317737\t 3.039042\n  n=4  3  1\n 8.462527\n  n=5  0  3\n 7.977248\t 4.588987\t 5.948638\n  n=5  1  2\n 13.532446\t 7.656374"
       parameters:
-        mesh-cutoff: "1500 Ry"
+        mesh-cutoff: 1500 Ry
     In:
       basis:
         pao-block: "In 5\n  n=4  2  1\n 8.122189\n  n=4  3  1\n 4.226917\n  n=5  0  3\n 12.962508\t 3.319664\t 4.430817\n  n=5  1  3\n 11.40387\t 4.795911\t 6.555614\n  n=5  2  2\n 5.237915\t 3.924752"
       parameters:
-        mesh-cutoff: "1500 Ry"
+        mesh-cutoff: 1500 Ry
     Sn:
       basis:
         pao-block: "Sn 5\n  n=4  2  1\n 6.809781\n  n=4  3  1\n 4.360331\n  n=5  0  3\n 9.410031\t 3.417552\t 4.355985\n  n=5  1  3\n 11.846064\t 4.776636\t 6.260441\n  n=5  2  2\n 5.306701\t 4.168147"
       parameters:
-        mesh-cutoff: "1500 Ry"
+        mesh-cutoff: 1500 Ry
     Sb:
       basis:
         pao-block: "Sb 5\n  n=4  2  1\n 6.032541\n  n=4  3  1\n 4.218413\n  n=5  0  3\n 11.657848\t 3.427945\t 4.256775\n  n=5  1  3\n 12.705696\t 4.672512\t 5.960543\n  n=5  2  2\n 5.170263\t 4.184776"
       parameters:
-        mesh-cutoff: "1500 Ry"
+        mesh-cutoff: 1500 Ry
     Te:
       basis:
         pao-block: "Te 5\n  n=4  2  1\n 6.892173\n  n=4  3  1\n 4.273782\n  n=5  0  3\n 9.195737\t 3.582524\t 4.321214\n  n=5  1  3\n 11.324313\t 4.829737\t 5.948638\n  n=5  2  2\n 5.180657\t 4.391133"
       parameters:
-        mesh-cutoff: "1500 Ry"
+        mesh-cutoff: 1500 Ry
     I:
       basis:
         pao-block: "I 4\n  n=4  3  1\n 4.667788\n  n=5  0  3\n 10.825617\t 2.038059\t 2.864432\n  n=5  1  3\n 10.204845\t 2.531842\t 3.717828\n  n=5  2  2\n 10.092974\t 5.52364"
       parameters:
-        mesh-cutoff: "1500 Ry"
+        mesh-cutoff: 1500 Ry
     Xe:
       basis:
         pao-block: "Xe 4\n  n=4  3  1\n 5.853963\n  n=5  0  3\n 9.561964\t 3.448543\t 4.077063\n  n=5  1  3\n 12.416569\t 4.552326\t 5.49057\n  n=5  2  2\n 8.154881\t 6.91296"
@@ -246,120 +246,120 @@ verification-PBE-v1:
       basis:
         pao-block: "Hg 6\n  n=5  0  1\n 6.056918\n  n=5  1  1\n 5.441249\n  n=5  2  3\n 10.526286\t 1.981556\t 2.77108\n  n=5  3  1\n 3.680789\n  n=6  0  3\n 9.095015\t 2.640878\t 3.50429\n  n=6  1  2\n 11.576401\t 6.038588"
       parameters:
-        mesh-cutoff: "1500 Ry"
+        mesh-cutoff: 1500 Ry
     Tl:
       basis:
         pao-block: "Tl 5\n  n=5  2  1\n 10.431989\n  n=5  3  1\n 4.430817\n  n=6  0  3\n 11.834159\t 3.20836\t 4.226917\n  n=6  1  3\n 13.437961\t 5.098265\t 6.996485\n  n=6  2  2\n 5.02211\t 3.86617"
       parameters:
-        mesh-cutoff: "1500 Ry"
+        mesh-cutoff: 1500 Ry
     Pb:
       basis:
         pao-block: "Pb 5\n  n=5  2  1\n 7.866133\n  n=5  3  1\n 4.448581\n  n=6  0  3\n 9.447825\t 3.363128\t 4.235421\n  n=6  1  3\n 12.92358\t 5.118674\t 6.654824\n  n=6  2  2\n 5.463169\t 4.386598"
       parameters:
-        mesh-cutoff: "1500 Ry"
+        mesh-cutoff: 1500 Ry
     Bi:
       basis:
         pao-block: "Bi 5\n  n=5  2  1\n 11.290298\n  n=5  3  1\n 4.616766\n  n=6  0  3\n 10.836388\t 2.572849\t 3.434748\n  n=6  1  3\n 13.119166\t 3.633168\t 5.067652\n  n=6  2  2\n 7.504441\t 5.113572"
       parameters:
-        mesh-cutoff: "1500 Ry"
+        mesh-cutoff: 1500 Ry
     Po:
       basis:
         pao-block: "Po 5\n  n=5  2  1\n 7.656374\n  n=5  3  1\n 9.53324\n  n=6  0  3\n 9.076874\t 3.615027\t 4.312521\n  n=6  1  3\n 11.763294\t 5.25908\t 6.399902\n  n=6  2  2\n 5.726407\t 4.922522"
       parameters:
-        mesh-cutoff: "1500 Ry"
+        mesh-cutoff: 1500 Ry
     Rn:
       basis:
         pao-block: "Rn 5\n  n=5  2  1\n 9.288333\n  n=5  3  1\n 5.06255\n  n=6  0  3\n 9.457274\t 3.816093\t 4.408708\n  n=6  1  3\n 11.989115\t 5.47413\t 6.419177\n  n=6  2  2\n 7.123663\t 6.399902"
 
 moderate:
-  description: 'A standard list of inputs for Siesta. Tested with DeltaTest. No Spin-Orbit support.'
+  description: A standard list of inputs for Siesta. Tested with DeltaTest. No Spin-Orbit support.
   parameters:
-    xc-functional: "GGA"
-    xc-authors: "PBE"
+    xc-functional: GGA
+    xc-authors: PBE
     max-scf-iterations: 50
     scf-mixer-history: 5
     scf-mixer-weight: 0.1
     scf-dm-tolerance: 1.e-4  #1.e-5
-    solution-method: 'diagon'
-    electronic-temperature: '25 meV'
-    write-forces: True
-    mesh-cutoff: '200 Ry'
+    solution-method: diagon
+    electronic-temperature: 25 meV
+    write-forces: true
+    mesh-cutoff: 200 Ry
     write-mulliken-pop: 1
   basis:
-    pao-energy-shift: '50 meV'
-    pao-basis-size: 'DZP'
-  pseudo_family: 'PseudoDojo/0.4/PBE/FR/standard/psml'
+    pao-energy-shift: 50 meV
+    pao-basis-size: DZP
+  pseudo_family: PseudoDojo/0.4/PBE/FR/standard/psml
   kpoints:
     distance: 0.1
     offset: [0., 0., 0.]
   atomic_heuristics:
     Li:
       parameters:
-        mesh-cutoff: '250 Ry'
+        mesh-cutoff: 250 Ry
       basis:
-        polarization: 'non-perturbative'
+        polarization: non-perturbative
     Be:
       parameters:
-        mesh-cutoff: '250 Ry'
+        mesh-cutoff: 250 Ry
       basis:
-        polarization: 'non-perturbative'
+        polarization: non-perturbative
     Na:
       parameters:
-        mesh-cutoff: '250 Ry'
+        mesh-cutoff: 250 Ry
       basis:
-        polarization: 'non-perturbative'
+        polarization: non-perturbative
     Mg:
       parameters:
-        mesh-cutoff: '250 Ry'
+        mesh-cutoff: 250 Ry
       basis:
-        polarization: 'non-perturbative'
+        polarization: non-perturbative
     Mn:
       parameters:
-        mesh-cutoff: '400 Ry'
+        mesh-cutoff: 400 Ry
     Fe:
       parameters:
-        mesh-cutoff: '400 Ry'
+        mesh-cutoff: 400 Ry
     Ag:
       parameters:
-        mesh-cutoff: '300 Ry'
+        mesh-cutoff: 300 Ry
     Ca:
       basis:
         pao-block: "Ca 3 \n  n=3   0   1 \n  3.505 \n n=4   0   2  \n 7.028      0.000 \n n=3   1   1 \n 4.072"
-        split-tail-norm: True
+        split-tail-norm: true
     Sr:
       basis:
         pao-block: "Sr 3 \n  n=4   0   1 \n  3.809 \n n=5   0   2  \n  7.599      0.000  \n n=4   1   1 \n 4.538"
-        split-tail-norm: True
+        split-tail-norm: true
     Ba:
       basis:
         pao-block: "Ba 3 \n  n=5   0   1 \n  4.369 \n n=6   0   2  \n 7.602      0.000 \n n=5   1   1 \n 5.205"
-        split-tail-norm: True
+        split-tail-norm: true
     Sb:
       parameters:
-        mesh-cutoff: '400 Ry'
+        mesh-cutoff: 400 Ry
     Hg:
       basis:
         pao-block: "Hg 4 \n  n=5   0   1 \n  3.568 \n n=6   0   2  \n 6.573  0.0 \n n=5   1   2 \n 4.059  0.0 \n n=5   2  1 \n 5.918"
 
 precise:
-  description: 'A more stringent set of siesta parameters. Never tested.'
+  description: A more stringent set of siesta parameters. Never tested.
   parameters:
-    xc-functional: "GGA"
-    xc-authors: "PBE"
+    xc-functional: GGA
+    xc-authors: PBE
     max-scf-iterations: 100
     scf-mixer-history: 5
     scf-mixer-weight: 0.1
     scf-dm-tolerance: 1.e-5
-    md-max-force-tol: '0.005 eV/Ang'
-    md-max-stress-tol: '0.7 GPa'
-    solution-method: 'diagon'
-    electronic-temperature: '25 meV'
-    write-forces: True
-    mesh-cutoff: '500 Ry'
+    md-max-force-tol: 0.005 eV/Ang
+    md-max-stress-tol: 0.7 GPa
+    solution-method: diagon
+    electronic-temperature: 25 meV
+    write-forces: true
+    mesh-cutoff: 500 Ry
   basis:
-    pao-energy-shift: '50 meV'
-    pao-basis-size: 'DZP'
-  pseudo_family: 'PseudoDojo/0.4/PBE/FR/standard/psml'
+    pao-energy-shift: 50 meV
+    pao-basis-size: DZP
+  pseudo_family: PseudoDojo/0.4/PBE/FR/standard/psml
   kpoints:
     distance: 0.1 #0.062
     offset: [0., 0., 0.]
@@ -369,11 +369,11 @@ precise:
         pao-block: "H 1\n  n=1  0  2  P 1 \n 6.0473 \t 2.5529"
     Li:
       basis:
-        size: 'DZDP'
-        polarization: 'non-perturbative'
+        size: DZDP
+        polarization: non-perturbative
     Be:
       basis:
-        polarization: 'non-perturbative'
+        polarization: non-perturbative
     B:
       basis:
         pao-block: "B 2\n  n=2  0  2 \n 5.9924789\t 2.0\n  n=2  1  2  P 2 \n 7.50444\t 2.9"
@@ -385,7 +385,7 @@ precise:
         pao-block: "N 2\n  n=2  0  3 \n 4.389\t 2.1270\t 3.2669\n  n=2  1  3  P 1 \n 5.496\t 2.0914\t 3.522"
     Na:
       basis:
-        polarization: 'non-perturbative'
+        polarization: non-perturbative
     Mg:
       basis:
         pao-block: "Mg 4\n  n=2  0  1 \n 2.56\n  n=2  1  1 \n 2.9\n  n=3  0  2 \n 8.0855\t 6.8564\n  n=3  1  2 \n 8.0855\t 7.50"
@@ -403,14 +403,14 @@ precise:
         pao-block: "S 3\n  n=3  0  2 \n 4.96485\t 2.51\n  n=3  1  2 \n 6.2177\t 2.51\n  n=3  2  2 \n 6.2177\t 3.6149"
     Cl:
       basis:
-        size: 'DZDP'
+        size: DZDP
     K:
       basis:
-        size: 'TZP'
+        size: TZP
     Ca:
       basis:
         pao-block: "Ca 3 \n  n=3   0   1 \n  3.505 \n n=4   0   2  \n 7.028      0.000 \n n=3   1   1 \n 4.072"
-        split-tail-norm: True
+        split-tail-norm: true
     Sc:
       basis:
         pao-block: "Sc 4\n  n=3  0  1 \n 4.24658\n  n=3  1  1 \n 4.466\n  n=3  2  2 \n 6.8927\t 4.0\n  n=4  0  2  P 1 \n 9.0744\t 4.14"
@@ -421,135 +421,135 @@ precise:
       basis:
         pao-block: "V 4\n  n=3  0  1 \n 3.75\n  n=3  1  1 \n  3.9946\n  n=3  2  2 \n 5.6945\t 3.88\n  n=4  0  2  P 1 \n 8.28546\t 3.17"
       parameters:
-        mesh-cutoff: '850 Ry'
+        mesh-cutoff: 850 Ry
     Cr:
       basis:
-        size: 'TZP'
+        size: TZP
     Mn:
       parameters:
-        mesh-cutoff: '850 Ry'
+        mesh-cutoff: 850 Ry
       basis:
-        size: 'TZP'
+        size: TZP
     Fe:
       basis:
-        size: 'TZP'
+        size: TZP
     Ni:
       parameters:
-        mesh-cutoff: '850 Ry'
+        mesh-cutoff: 850 Ry
       basis:
-        size: 'TZP'
+        size: TZP
     Cu:
       basis:
-        size: 'TZP'
+        size: TZP
     Zn:
       basis:
-        size: 'TZP'
+        size: TZP
     Ga:
       basis:
-        size: 'DZDP'
+        size: DZDP
     Ge:
       basis:
         pao-block: "Ge 3\n  n=4  0  2 \n 5.323265\t 0.0\n  n=4  1  2  P 2 \n 6.06078\t 0.0\n  n=3  2  1 \n 4.224"
     As:
       basis:
-        size: 'TZP'
+        size: TZP
     Se:
       basis:
-        size: 'DZDP'
+        size: DZDP
     Br:
       basis:
-        size: 'TZP'
+        size: TZP
     Rb:
       basis:
-        size: 'TZP'
+        size: TZP
     Sr:
       basis:
         pao-block: "Sr 3 \n  n=4   0   1 \n  3.809 \n n=5   0   2  \n  7.599      0.000  \n n=4   1   1 \n 4.538"
-        split-tail-norm: True
+        split-tail-norm: true
     Zr:
       basis:
-        size: 'TZP'
+        size: TZP
     Nb:
       basis:
-        size: 'TZP'
+        size: TZP
     Mo:
       basis:
-        size: 'TZP'
+        size: TZP
     Tc:
       basis:
-        size: 'TZP'
+        size: TZP
     Ru:
       basis:
-        size: 'TZP'
+        size: TZP
     Rh:
       basis:
-        size: 'TZP'
+        size: TZP
     Pd:
       basis:
-        size: 'TZP'
+        size: TZP
     Ag:
       parameters:
-        mesh-cutoff: '850 Ry'
+        mesh-cutoff: 850 Ry
       basis:
-        size: 'DZDP'
+        size: DZDP
     Cd:
       basis:
-        size: 'TZP'
+        size: TZP
     Sb:
       basis:
-        size: 'DZDP'
+        size: DZDP
     Te:
       basis:
         pao-block: "Te 3\n  n=5  0  3 \n 5.3203\t 3.300\t 3.500\n  n=5  1  3  P 1 \n 6.0497\t 3.3865\t 4.3158\n  n=4  2  1 \n 4.5104"
     I:
       basis:
-        size: 'TZP'
+        size: TZP
     Cs:
       basis:
-        size: 'TZP'
+        size: TZP
     Ba:
       basis:
         pao-block: "Ba 3 \n  n=5   0   1 \n  4.369 \n n=6   0   2  \n 7.602      0.000 \n n=5   1   1 \n 5.205"
-        split-tail-norm: True
+        split-tail-norm: true
     Ta:
       basis:
-        size: 'TZP'
+        size: TZP
     Ir:
       basis:
-        size: 'TZP'
+        size: TZP
     Pt:
       basis:
-        size: 'TZP'
+        size: TZP
     Au:
       basis:
-        size: 'DZDP'
+        size: DZDP
     Hg:
       basis:
         pao-block: "Hg 4 \n  n=5   0   1 \n  3.568 \n n=6   0   2  \n 6.573  0.0 \n n=5   1   1 \n 4.059  0.0 \n n=5   2  2 \n 5.918"
     Pb:
       basis:
-        size: 'TZP'
+        size: TZP
     Po:
       basis:
-        size: 'TZP'
+        size: TZP
 
 fast:
-  description: 'A list of inputs for Siesta for quick exploratory calculations. Never tested! No Spin-Orbit.'
+  description: A list of inputs for Siesta for quick exploratory calculations. Never tested! No Spin-Orbit.
   parameters:
-    xc-functional: "GGA"
-    xc-authors: "PBE"
+    xc-functional: GGA
+    xc-authors: PBE
     max-scf-iterations: 50
     scf-mixer-history: 5
     scf-mixer-weight: 0.1
     scf-dm-tolerance: 1.e-3
-    solution-method: 'diagon'
-    electronic-temperature: '25 meV'
-    write-forces: True
-    mesh-cutoff: '50 Ry'
+    solution-method: diagon
+    electronic-temperature: 25 meV
+    write-forces: true
+    mesh-cutoff: 50 Ry
   basis:
-    pao-energy-shift: '200 meV'
-    pao-basis-size: 'DZ'
-  pseudo_family: 'PseudoDojo/0.4/PBE/FR/standard/psml'
+    pao-energy-shift: 200 meV
+    pao-basis-size: DZ
+  pseudo_family: PseudoDojo/0.4/PBE/FR/standard/psml
   kpoints:
     distance: 0.2
     offset: [0., 0., 0.]
