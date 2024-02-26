@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Utilities to visualize a dissociation curve based on set of distances and energies."""
 import typing
 

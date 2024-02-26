@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Validate that the version in the tag label matches the version of the package."""
 import argparse
 import ast

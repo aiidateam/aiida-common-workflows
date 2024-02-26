@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Module for resources common to the entire `aiida-common-workflows` package."""
 from .types import ElectronicType, RelaxType, SpinType
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Command line interface ``acwf``."""
 import click
 from aiida.cmdline.groups import VerdiCommandGroup

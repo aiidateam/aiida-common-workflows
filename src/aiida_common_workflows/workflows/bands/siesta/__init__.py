@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """Module with the implementations of the common bands workchain for Siesta."""
 from .generator import *
 from .workchain import *

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Equation of state workflow that can use any code plugin implementing the common relax workflow."""
 import inspect
 

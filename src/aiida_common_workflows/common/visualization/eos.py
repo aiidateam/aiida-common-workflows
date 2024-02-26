@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Utilities to fit and visualize a Equation of States based on set of volumes and energies."""
 import typing
 

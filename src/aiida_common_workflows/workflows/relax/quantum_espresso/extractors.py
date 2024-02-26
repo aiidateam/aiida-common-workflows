@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Post-processing extractor functions for the ``QuantumEspressoCommonRelaxWorkChain``.
 """

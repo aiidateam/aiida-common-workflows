@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Module with Spinx extension to facilitate the automatic documentation of common workflows."""
 
 

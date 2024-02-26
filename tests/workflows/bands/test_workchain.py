@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """Tests for the :mod:`aiida_common_workflows.workflows.bands.workchain` module."""
 import pytest
 from aiida.plugins import WorkflowFactory

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Commands to launch common workflows."""
 import functools
 

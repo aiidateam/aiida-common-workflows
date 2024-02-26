@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Module with pre-defined options and defaults for CLI command parameters."""
 import json
 import pathlib

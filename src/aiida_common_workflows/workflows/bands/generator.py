@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Module with base input generator for the common bands workchains."""
 import abc
 

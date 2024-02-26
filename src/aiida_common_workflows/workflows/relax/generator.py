@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Module with base input generator for the common structure relax workchains."""
 import abc
 

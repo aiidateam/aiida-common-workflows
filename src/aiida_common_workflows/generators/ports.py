@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Modules with resources to define specific port types for input generator specifications."""
 from __future__ import annotations
 

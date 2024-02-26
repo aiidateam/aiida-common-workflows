@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Class to define the specification of an input generator."""
 from __future__ import annotations
 

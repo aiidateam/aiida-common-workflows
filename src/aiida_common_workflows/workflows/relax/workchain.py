@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Module with base wrapper workchain for common structure relaxation workchains."""
 from abc import ABCMeta, abstractmethod
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Module with basic type definitions."""
 from enum import Enum
 
