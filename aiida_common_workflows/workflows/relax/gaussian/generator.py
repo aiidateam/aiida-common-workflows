@@ -12,7 +12,7 @@ from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('GaussianCommonRelaxInputGenerator',)
 
-StructureData = plugins.DataFactory('structure')
+StructureData = plugins.DataFactory('core.structure')
 
 EV_TO_EH = 0.03674930814
 ANG_TO_BOHR = 1.88972687
@@ -80,7 +80,7 @@ class GaussianCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         magnetization_per_site = kwargs.get('magnetization_per_site', None)
         threshold_forces = kwargs.get('threshold_forces', None)
 
-        if any(structure.get_attribute_many(['pbc1', 'pbc2', 'pbc3'])):
+        if any(structure.base.attributes.get_many(['pbc1', 'pbc2', 'pbc3'])):
             print('Warning: PBC detected in input structure. It is not supported and thus ignored.')
 
         # -----------------------------------------------------------------
@@ -96,7 +96,7 @@ class GaussianCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             link0_parameters['%mem'] = '2048MB'
         else:
             # If memory is set, specify 80% of it to gaussian
-            link0_parameters['%mem'] = '%dMB' % ((0.8 * options['max_memory_kb']) // 1024)
+            link0_parameters['%mem'] = '%dMB' % ((0.8 * options['max_memory_kb']) // 1024)  # pylint: disable=consider-using-f-string)
 
         # Determine the number of processors that should be specified to Gaussian
         n_proc = None
@@ -112,7 +112,7 @@ class GaussianCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                     n_proc = res['num_machines'] * def_mppm
 
         if n_proc is not None:
-            link0_parameters['%nprocshared'] = '%d' % n_proc
+            link0_parameters['%nprocshared'] = int(n_proc)
         # -----------------------------------------------------------------
         # General route parameters
 
@@ -131,7 +131,7 @@ class GaussianCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 print('Warning: Forces threshold cannot be lower than 1e-6 au.')
                 threshold_forces_au = 1e-6
             threshold_forces_n = int(np.round(threshold_forces_au * 1e6))
-            route_params['iop(1/7=%d)' % threshold_forces_n] = None
+            route_params[f'iop(1/7={threshold_forces_n})'] = None
 
         # -----------------------------------------------------------------
         # Handle spin-polarization

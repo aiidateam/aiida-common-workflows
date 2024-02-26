@@ -15,8 +15,8 @@ from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('Cp2kCommonRelaxInputGenerator',)
 
-StructureData = plugins.DataFactory('structure')  # pylint: disable=invalid-name
-KpointsData = plugins.DataFactory('array.kpoints')  # pylint: disable=invalid-name
+StructureData = plugins.DataFactory('core.structure')  # pylint: disable=invalid-name
+KpointsData = plugins.DataFactory('core.array.kpoints')  # pylint: disable=invalid-name
 
 EV_A3_TO_GPA = 160.21766208
 
@@ -302,7 +302,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         builder.cp2k.parameters = orm.Dict(dict=parameters)
 
         # Switch on the resubmit_unconverged_geometry which is disabled by default.
-        builder.handler_overrides = orm.Dict(dict={'restart_incomplete_calculation': True})
+        builder.handler_overrides = orm.Dict(dict={'restart_incomplete_calculation': {'enabled': True}})
 
         # Files.
         if 'sirius' in protocol:
@@ -334,7 +334,7 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         if reference_workchain and 'cp2k__kpoints' in reference_workchain.inputs:
             kpoints_mesh = KpointsData()
             kpoints_mesh.set_cell_from_structure(structure)
-            kpoints_mesh.set_kpoints_mesh(reference_workchain.inputs.cp2k__kpoints.get_attribute('mesh'))
+            kpoints_mesh.set_kpoints_mesh(reference_workchain.inputs.cp2k__kpoints.base.attributes.get('mesh'))
             return kpoints_mesh
 
         if kpoints_distance:

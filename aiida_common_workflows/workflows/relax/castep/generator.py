@@ -22,7 +22,7 @@ KNOWN_BUILTIN_FAMILIES = ('C19', 'NCP19', 'QC5', 'C17', 'C9')
 
 __all__ = ('CastepCommonRelaxInputGenerator',)
 
-StructureData = plugins.DataFactory('structure')  # pylint: disable=invalid-name
+StructureData = plugins.DataFactory('core.structure')  # pylint: disable=invalid-name
 
 
 class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
@@ -37,7 +37,7 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
     def _initialize_protocols(self):
         """Initialize the protocols class attribute by parsing them from the configuration file."""
-        with open(str(pathlib.Path(__file__).parent / 'protocol.yml')) as handle:
+        with open(str(pathlib.Path(__file__).parent / 'protocol.yml'), encoding='utf-8') as handle:
             self._protocols = yaml.safe_load(handle)
 
     @classmethod
@@ -170,7 +170,7 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         # this is because the small basis set will give rise to errors in EOS / variable volume
         # relaxation even with the "fine" option
         if 'cut_off_energy' not in protocol['relax']['base']['calc']['parameters']:
-            with open(str(pathlib.Path(__file__).parent / 'soft_elements.yml')) as fhandle:
+            with open(str(pathlib.Path(__file__).parent / 'soft_elements.yml'), encoding='utf-8') as fhandle:
                 soft_elements = yaml.safe_load(fhandle)
             symbols = [kind.symbol for kind in structure.kinds]
             if all(sym in soft_elements for sym in symbols):
@@ -256,13 +256,11 @@ def generate_inputs(
     if isinstance(family_name, orm.Str):
         family_name = family_name.value
     try:
-        otfg_family = OTFGGroup.objects.get(label=family_name)
+        otfg_family = OTFGGroup.collection.get(label=family_name)
     except exceptions.NotExistent as exc:
-        raise ValueError(
-            'protocol `{}` requires the `{}` `pseudos family` but could not be found.'.format(
-                protocol['name'], protocol['relax']['base']['pseudos_family']
-            )
-        ) from exc
+        name = protocol['name']
+        family = protocol['relax']['base']['pseudos_family']
+        raise ValueError(f'protocol `{name}` requires the `{family}` `pseudos family` but could not be found.') from exc
 
     CastepCalculation = plugins.CalculationFactory('castep.castep')  # pylint: disable=invalid-name
     CastepBaseWorkChain = plugins.WorkflowFactory('castep.base')  # pylint: disable=invalid-name
@@ -426,7 +424,7 @@ def ensure_otfg_family(family_name, force_update=False):
     if isinstance(family_name, orm.Str):
         family_name = family_name.value
     try:
-        OTFGGroup.objects.get(label=family_name)
+        OTFGGroup.collection.get(label=family_name)
     except NotExistent:
         has_family = False
     else:
@@ -441,7 +439,7 @@ def ensure_otfg_family(family_name, force_update=False):
 
     # Not an known family - check if it in the additional settings list
     # Load configuration from the settings
-    with open(str(pathlib.Path(__file__).parent / 'additional_otfg_families.yml')) as handle:
+    with open(str(pathlib.Path(__file__).parent / 'additional_otfg_families.yml'), encoding='utf-8') as handle:
         additional = yaml.safe_load(handle)
 
     if family_name in additional:

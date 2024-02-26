@@ -21,7 +21,7 @@ def extract_forces_from_array(array):
 @calcfunction
 def extract_total_energy_from_parameters(parameters):
     """Return the total energy from the given parameters node."""
-    energy_cont = parameters.get_attribute('energy_contributions')
+    energy_cont = parameters.base.attributes.get('energy_contributions')
     total_energy = energy_cont['xc'] + energy_cont['local'] + energy_cont['kinetic']
     total_energy += energy_cont['external'] + energy_cont['potential'] + energy_cont['entropy (-st)']
     return orm.Float(total_energy)

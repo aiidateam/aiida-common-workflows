@@ -25,7 +25,7 @@ def get_ts_energy(common_relax_workchain):
     if common_relax_workchain.process_class != WorkflowFactory('common_workflows.relax.fleur'):
         return ValueError('The input workchain is not a `FleurCommonRelaxWorkChain`')
 
-    fleur_relax_wc = common_relax_workchain.get_outgoing(link_type=LinkType.CALL_WORK).one().node
+    fleur_relax_wc = common_relax_workchain.base.links.get_outgoing(link_type=LinkType.CALL_WORK).one().node
     fleur_calc_out = fleur_relax_wc.outputs.last_scf.last_calc
 
     output_parameters = fleur_calc_out.output_parameters

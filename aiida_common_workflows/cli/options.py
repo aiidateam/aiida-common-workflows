@@ -105,10 +105,15 @@ class StructureDataParamType(click.Choice):
                 f'file `{value}` could not be parsed into a `StructureData`: {exception}'
             ) from exception
 
-        duplicate = QueryBuilder().append(StructureData, filters={'extras._aiida_hash': structure._get_hash()}).first()  # pylint: disable=protected-access
+        duplicate = QueryBuilder().append(
+            StructureData,
+            filters={
+                'extras._aiida_hash': structure.base.caching._get_hash()  # pylint: disable=protected-access
+            }
+        ).first()
 
         if duplicate:
-            return duplicate[0]
+            return duplicate[0]  # pylint: disable=unsubscriptable-object
 
         return structure
 

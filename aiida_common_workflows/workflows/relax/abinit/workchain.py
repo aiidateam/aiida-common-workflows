@@ -18,7 +18,7 @@ GPA_TO_EV_A3 = 1 / 160.21766208
 def get_stress(parameters):
     """Return the stress array from the given parameters node."""
     stress = orm.ArrayData()
-    stress.set_array(name='stress', array=np.array(parameters.get_attribute('cart_stress_tensor')) * GPA_TO_EV_A3)
+    stress.set_array(name='stress', array=np.array(parameters.base.attributes.get('cart_stress_tensor')) * GPA_TO_EV_A3)
     return stress
 
 
@@ -26,14 +26,14 @@ def get_stress(parameters):
 def get_forces(parameters):
     """Return the forces array from the given parameters node."""
     forces = orm.ArrayData()
-    forces.set_array(name='forces', array=np.array(parameters.get_attribute('forces')))
+    forces.set_array(name='forces', array=np.array(parameters.base.attributes.get('forces')))
     return forces
 
 
 @calcfunction
 def get_total_energy(parameters):
     """Return the total energy from the given parameters node."""
-    return orm.Float(parameters.get_attribute('energy'))
+    return orm.Float(parameters.base.attributes.get('energy'))
 
 
 @calcfunction

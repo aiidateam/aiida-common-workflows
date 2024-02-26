@@ -33,7 +33,7 @@ def get_forces(parameters):
     """Return the forces array [eV/ang] from the output parameters node."""
     forces_au = np.array(parameters['final_energy']['forces'], dtype=float)
     forces_ev = orm.ArrayData()
-    forces_ev.set_array(name='forces', array=(forces_au * HA_BOHR_TO_EV_A))
+    forces_ev.set_array(name='forces', array=forces_au * HA_BOHR_TO_EV_A)
     return forces_ev
 
 

@@ -13,7 +13,7 @@ from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('VaspCommonRelaxInputGenerator',)
 
-StructureData = plugins.DataFactory('structure')
+StructureData = plugins.DataFactory('core.structure')
 
 
 class VaspCommonRelaxInputGenerator(CommonRelaxInputGenerator):
@@ -43,12 +43,12 @@ class VaspCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
     def _initialize_protocols(self):
         """Initialize the protocols class attribute by parsing them from the protocols configuration file."""
-        with open(str(pathlib.Path(__file__).parent / 'protocol.yml'), encoding='UTF-8') as handle:
+        with open(str(pathlib.Path(__file__).parent / 'protocol.yml'), encoding='utf-8') as handle:
             self._protocols = yaml.safe_load(handle)
 
     def _initialize_potential_mapping(self):
         """Initialize the potential mapping from the potential_mapping configuration file."""
-        with open(str(pathlib.Path(__file__).parent / 'potential_mapping.yml'), encoding='UTF-8') as handle:
+        with open(str(pathlib.Path(__file__).parent / 'potential_mapping.yml'), encoding='utf-8') as handle:
             self._potential_mapping = yaml.safe_load(handle)
 
     @classmethod
@@ -95,10 +95,10 @@ class VaspCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         builder.structure = structure
 
         # Set options
-        builder.options = plugins.DataFactory('dict')(dict=engines['relax']['options'])
+        builder.options = plugins.DataFactory('core.dict')(dict=engines['relax']['options'])
 
         # Set workchain related inputs, in this case, give more explicit output to report
-        builder.verbose = plugins.DataFactory('bool')(True)
+        builder.verbose = plugins.DataFactory('core.bool')(True)
 
         # Fetch initial parameters from the protocol file.
         # Here we set the protocols fast, moderate and precise. These currently have no formal meaning.
@@ -160,35 +160,49 @@ class VaspCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 'energy_type': ['energy_free', 'energy_no_entropy']
             }
         })
-        builder.settings = plugins.DataFactory('dict')(dict=settings)
+        builder.settings = plugins.DataFactory('core.dict')(dict=settings)
 
         # Configure the handlers
         handler_overrides = {
-            'handler_unfinished_calc_ionic_alt': True,
-            'handler_unfinished_calc_generic_alt': True,
-            'handler_electronic_conv_alt': True,
-            'handler_unfinished_calc_ionic': False,
-            'handler_unfinished_calc_generic': False,
-            'handler_electronic_conv': False
+            'handler_unfinished_calc_ionic_alt': {
+                'enabled': True
+            },
+            'handler_unfinished_calc_generic_alt': {
+                'enabled': True
+            },
+            'handler_electronic_conv_alt': {
+                'enabled': True
+            },
+            'handler_unfinished_calc_ionic': {
+                'enabled': False
+            },
+            'handler_unfinished_calc_generic': {
+                'enabled': False
+            },
+            'handler_electronic_conv': {
+                'enabled': False
+            }
         }
-        builder.handler_overrides = plugins.DataFactory('dict')(dict=handler_overrides)
+        builder.handler_overrides = plugins.DataFactory('core.dict')(dict=handler_overrides)
 
         # Set the parameters on the builder, put it in the code namespace to pass through
         # to the code inputs
-        builder.parameters = plugins.DataFactory('dict')(dict={'incar': parameters_dict})
+        builder.parameters = plugins.DataFactory('core.dict')(dict={'incar': parameters_dict})
 
         # Set potentials and their mapping
         builder.potential_family = plugins.DataFactory('str')(protocol['potential_family'])
-        builder.potential_mapping = plugins.DataFactory('dict')(
+        builder.potential_mapping = plugins.DataFactory('core.dict')(
             dict=self._potential_mapping[protocol['potential_mapping']]
         )
 
         # Set the kpoint grid from the density in the protocol
-        kpoints = plugins.DataFactory('array.kpoints')()
+        kpoints = plugins.DataFactory('core.array.kpoints')()
         kpoints.set_cell_from_structure(structure)
         if reference_workchain:
             previous_kpoints = reference_workchain.inputs.kpoints
-            kpoints.set_kpoints_mesh(previous_kpoints.get_attribute('mesh'), previous_kpoints.get_attribute('offset'))
+            kpoints.set_kpoints_mesh(
+                previous_kpoints.base.attributes.get('mesh'), previous_kpoints.base.attributes.get('offset')
+            )
         else:
             kpoints.set_kpoints_mesh_from_density(protocol['kpoint_distance'])
         builder.kpoints = kpoints
@@ -197,36 +211,36 @@ class VaspCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         relax = AttributeDict()
         if relax_type != RelaxType.NONE:
             # Perform relaxation of cell or positions
-            relax.perform = plugins.DataFactory('bool')(True)
+            relax.perform = plugins.DataFactory('core.bool')(True)
             relax.algo = plugins.DataFactory('str')(protocol['relax']['algo'])
             relax.steps = plugins.DataFactory('int')(protocol['relax']['steps'])
             if relax_type == RelaxType.POSITIONS:
-                relax.positions = plugins.DataFactory('bool')(True)
-                relax.shape = plugins.DataFactory('bool')(False)
-                relax.volume = plugins.DataFactory('bool')(False)
+                relax.positions = plugins.DataFactory('core.bool')(True)
+                relax.shape = plugins.DataFactory('core.bool')(False)
+                relax.volume = plugins.DataFactory('core.bool')(False)
             elif relax_type == RelaxType.CELL:
-                relax.positions = plugins.DataFactory('bool')(False)
-                relax.shape = plugins.DataFactory('bool')(True)
-                relax.volume = plugins.DataFactory('bool')(True)
+                relax.positions = plugins.DataFactory('core.bool')(False)
+                relax.shape = plugins.DataFactory('core.bool')(True)
+                relax.volume = plugins.DataFactory('core.bool')(True)
             elif relax_type == RelaxType.VOLUME:
-                relax.positions = plugins.DataFactory('bool')(False)
-                relax.shape = plugins.DataFactory('bool')(False)
-                relax.volume = plugins.DataFactory('bool')(True)
+                relax.positions = plugins.DataFactory('core.bool')(False)
+                relax.shape = plugins.DataFactory('core.bool')(False)
+                relax.volume = plugins.DataFactory('core.bool')(True)
             elif relax_type == RelaxType.SHAPE:
-                relax.positions = plugins.DataFactory('bool')(False)
-                relax.shape = plugins.DataFactory('bool')(True)
-                relax.volume = plugins.DataFactory('bool')(False)
+                relax.positions = plugins.DataFactory('core.bool')(False)
+                relax.shape = plugins.DataFactory('core.bool')(True)
+                relax.volume = plugins.DataFactory('core.bool')(False)
             elif relax_type == RelaxType.POSITIONS_CELL:
-                relax.positions = plugins.DataFactory('bool')(True)
-                relax.shape = plugins.DataFactory('bool')(True)
-                relax.volume = plugins.DataFactory('bool')(True)
+                relax.positions = plugins.DataFactory('core.bool')(True)
+                relax.shape = plugins.DataFactory('core.bool')(True)
+                relax.volume = plugins.DataFactory('core.bool')(True)
             elif relax_type == RelaxType.POSITIONS_SHAPE:
-                relax.positions = plugins.DataFactory('bool')(True)
-                relax.shape = plugins.DataFactory('bool')(True)
-                relax.volume = plugins.DataFactory('bool')(False)
+                relax.positions = plugins.DataFactory('core.bool')(True)
+                relax.shape = plugins.DataFactory('core.bool')(True)
+                relax.volume = plugins.DataFactory('core.bool')(False)
         else:
             # Do not perform any relaxation
-            relax.perform = plugins.DataFactory('bool')(False)
+            relax.perform = plugins.DataFactory('core.bool')(False)
 
         if threshold_forces is not None:
             threshold = threshold_forces

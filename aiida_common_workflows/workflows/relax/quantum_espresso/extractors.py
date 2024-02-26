@@ -27,5 +27,5 @@ def get_ts_energy(common_relax_workchain: QuantumEspressoCommonRelaxWorkChain) -
     if common_relax_workchain.process_class != QuantumEspressoCommonRelaxWorkChain:
         return ValueError('The input workchain is not a `QuantumEspressoCommonRelaxWorkChain`')
 
-    qe_relax_wc = common_relax_workchain.get_outgoing(link_type=LinkType.CALL_WORK).one().node
+    qe_relax_wc = common_relax_workchain.base.links.get_outgoing(link_type=LinkType.CALL_WORK).one().node
     return -qe_relax_wc.outputs.output_parameters['energy_smearing']

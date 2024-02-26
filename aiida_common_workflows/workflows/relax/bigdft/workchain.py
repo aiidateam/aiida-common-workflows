@@ -11,7 +11,7 @@ __all__ = ('BigDftCommonRelaxWorkChain',)
 class BigDftCommonRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for BigDFT."""
 
-    _process_class = WorkflowFactory('bigdft.relax')
+    _process_class = WorkflowFactory('bigdft')
     _generator_class = BigDftCommonRelaxInputGenerator
 
     @classmethod

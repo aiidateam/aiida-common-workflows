@@ -16,7 +16,7 @@ from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('OrcaCommonRelaxInputGenerator',)
 
-StructureData = DataFactory('structure')
+StructureData = DataFactory('core.structure')
 
 
 class OrcaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
@@ -43,7 +43,7 @@ class OrcaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         """Initialize the protocols class attribute by parsing them from the configuration file."""
         yamlpath = os.path.join(os.path.dirname(__file__), 'protocol.yml')
 
-        with open(yamlpath) as handler:
+        with open(yamlpath, encoding='utf-8') as handler:
             self._protocols = yaml.safe_load(handler)
 
     @classmethod
@@ -72,7 +72,7 @@ class OrcaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         magnetization_per_site = kwargs.get('magnetization_per_site', None)
 
         # Checks
-        if any(structure.get_attribute_many(['pbc1', 'pbc2', 'pbc2'])):
+        if any(structure.base.attributes.get_many(['pbc1', 'pbc2', 'pbc2'])):
             warnings.warn('PBC detected in the input structure. It is not supported and thus is ignored.')
 
         if protocol not in self.get_protocol_names():

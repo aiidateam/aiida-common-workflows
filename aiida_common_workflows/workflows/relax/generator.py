@@ -27,7 +27,7 @@ class CommonRelaxInputGenerator(InputGenerator, ProtocolRegistry, metaclass=abc.
         super().define(spec)
         spec.input(
             'structure',
-            valid_type=plugins.DataFactory('structure'),
+            valid_type=plugins.DataFactory('core.structure'),
             help='The structure whose geometry should be optimized.'
         )
         spec.input(

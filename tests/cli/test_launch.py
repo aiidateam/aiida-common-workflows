@@ -141,8 +141,7 @@ def test_eos_relax_types(run_cli_command, generate_structure, generate_code):
     # Test that a non-sensical relax type raises
     options = ['-S', str(structure.pk), '-r', 'cell', 'quantum_espresso']
     result = run_cli_command(launch.cmd_eos, options, raises=click.BadParameter)
-    assert "Error: Invalid value for '-r' / '--relax-type': invalid choice: cell. " \
-           '(choose from none, positions, shape, positions_shape)' in result.output_lines
+    assert "Error: Invalid value for '-r' / '--relax-type': 'cell' is not one of " in result.output
 
 
 def test_dissociation_curve_wallclock_seconds(run_cli_command, generate_structure, generate_code):
@@ -205,5 +204,4 @@ def test_relax_magn_per_type(run_cli_command, generate_structure, generate_code)
     # Test that only `float` are admissible
     options = ['-S', str(structure.pk), '--magnetization-per-site', 'str', '--', 'quantum_espresso']
     result = run_cli_command(launch.cmd_relax, options, raises=click.BadParameter)
-    assert "Error: Invalid value for '--magnetization-per-site': str is not a valid floating point " \
-           'value' in result.output
+    assert "Error: Invalid value for '--magnetization-per-site': 'str' is not a valid float." in result.output

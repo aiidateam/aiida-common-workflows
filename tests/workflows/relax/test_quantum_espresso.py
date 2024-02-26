@@ -101,11 +101,11 @@ def test_relax_type(generate_code, generate_structure):
 
     builder = generator.get_builder(structure=structure, engines=engines, relax_type=RelaxType.NONE)
     assert builder['base']['pw']['parameters']['CONTROL']['calculation'] == 'scf'
-    assert 'CELL' not in builder['base']['pw']['parameters'].attributes
+    assert 'CELL' not in builder['base']['pw']['parameters'].base.attributes.all
 
     builder = generator.get_builder(structure=structure, engines=engines, relax_type=RelaxType.POSITIONS)
     assert builder['base']['pw']['parameters']['CONTROL']['calculation'] == 'relax'
-    assert 'CELL' not in builder['base']['pw']['parameters'].attributes
+    assert 'CELL' not in builder['base']['pw']['parameters'].base.attributes.all
 
     builder = generator.get_builder(structure=structure, engines=engines, relax_type=RelaxType.CELL)
     assert builder['base']['pw']['parameters']['CONTROL']['calculation'] == 'vc-relax'

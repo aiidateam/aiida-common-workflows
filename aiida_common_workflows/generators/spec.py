@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """Class to define the specification of an input generator."""
+from __future__ import annotations
+
 import typing as t
 
 from aiida.engine import PortNamespace
@@ -24,8 +26,7 @@ class InputGeneratorSpec:
         return self.PORT_NAMESPACE_TYPE.NAMESPACE_SEPARATOR
 
     def _create_port(
-        self, port_namespace: PortNamespace, port_class: t.Union[InputGeneratorPort, PortNamespace], name: str,
-        **kwargs: t.Any
+        self, port_namespace: PortNamespace, port_class: InputGeneratorPort | PortNamespace, name: str, **kwargs: t.Any
     ) -> None:
         """Create a new port of a given class and name in a given namespace.
 

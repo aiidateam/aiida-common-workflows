@@ -25,7 +25,7 @@ class CommonBandsInputGenerator(InputGenerator, metaclass=abc.ABCMeta):
         super().define(spec)
         spec.input(
             'bands_kpoints',
-            valid_type=plugins.DataFactory('array.kpoints'),
+            valid_type=plugins.DataFactory('core.array.kpoints'),
             required=True,
             help='The full list of kpoints where to calculate bands, in (direct) coordinates of the reciprocal space.'
         )

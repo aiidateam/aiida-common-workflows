@@ -22,7 +22,7 @@ def test_spec(workchain):
 
     required_ports = {
         'bands_kpoints': {
-            'valid_type': plugins.DataFactory('array.kpoints')
+            'valid_type': plugins.DataFactory('core.array.kpoints')
         },
         'parent_folder': {
             'valid_type': orm.RemoteData

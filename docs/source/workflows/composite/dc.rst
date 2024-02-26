@@ -103,7 +103,7 @@ A template script to retrieve the results follows:
 
     node = load_node(<IDN>) # <IDN> is an identifier (PK, uuid, ..) of a completed DC workchain
 
-    outputs = node.get_outgoing(link_type=LinkType.RETURN).nested()
+    outputs = node.base.links.get_outgoing(link_type=LinkType.RETURN).nested()
 
     distances = []
     energies = []

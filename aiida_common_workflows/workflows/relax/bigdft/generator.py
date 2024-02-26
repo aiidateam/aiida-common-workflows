@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for BigDFT."""
-from aiida import engine, orm, plugins
+from aiida import engine, plugins
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
@@ -10,7 +10,7 @@ from ..generator import CommonRelaxInputGenerator
 __all__ = ('BigDftCommonRelaxInputGenerator',)
 
 BigDFTParameters = plugins.DataFactory('bigdft')
-StructureData = plugins.DataFactory('structure')
+StructureData = plugins.DataFactory('core.structure')
 
 
 class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
@@ -176,18 +176,10 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         builder = self.process_class.get_builder()
 
-        if relax_type == RelaxType.POSITIONS:
-            relaxation_schema = 'relax'
-        elif relax_type == RelaxType.NONE:
-            relaxation_schema = 'relax'
-            builder.relax.perform = orm.Bool(False)
-        else:
-            raise ValueError(f'relaxation type `{relax_type.value}` is not supported')
-
-        builder.structure = structure
+        builder.BigDFT.structure = structure
 
         # for now apply simple stupid heuristic : atoms < 200 -> cubic, else -> linear.
-        if len(builder.structure.sites) <= 200:
+        if len(builder.BigDFT.structure.sites) <= 200:
             inputdict = copy.deepcopy(self.get_protocol(protocol)['inputdict_cubic'])
         else:
             inputdict = copy.deepcopy(self.get_protocol(protocol)['inputdict_linear'])
@@ -200,7 +192,7 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             else:
                 hgrids = logfile.get('dft').get('hgrids')
             first_hgrid = hgrids[0] if isinstance(hgrids, list) else hgrids
-            inputdict['dft']['hgrids'] = first_hgrid * builder.structure.cell_lengths[0] / \
+            inputdict['dft']['hgrids'] = first_hgrid * builder.BigDFT.structure.cell_lengths[0] / \
                 reference_workchain.inputs.structure.cell_lengths[0]
 
         if electronic_type is ElectronicType.METAL:
@@ -227,12 +219,18 @@ class BigDftCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         if self.get_protocol(protocol).get('kpoints_distance'):
             inputdict['kpt'] = {'method': 'auto', 'kptrlen': self.get_protocol(protocol).get('kpoints_distance')}
 
-        builder.parameters = BigDFTParameters(dict=inputdict)
-        builder.code = engines[relaxation_schema]['code']
-        run_opts = {'options': engines[relaxation_schema]['options']}
-        builder.run_opts = orm.Dict(dict=run_opts)
+        if relax_type == RelaxType.POSITIONS:
+            inputdict['geopt'] = {
+                'method': 'FIRE',
+                'forcemax': threshold_forces or 0,
+            }
+        elif relax_type == RelaxType.NONE:
+            pass
+        else:
+            raise ValueError(f'relaxation type `{relax_type.value}` is not supported')
 
-        if threshold_forces is not None:
-            builder.relax.threshold_forces = orm.Float(threshold_forces)
+        builder.BigDFT.parameters = BigDFTParameters(dict=inputdict)
+        builder.BigDFT.code = engines['relax']['code']
+        builder.BigDFT.metadata = {'options': engines['relax']['options']}
 
         return builder
