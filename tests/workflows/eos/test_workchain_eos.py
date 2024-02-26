@@ -7,7 +7,6 @@ import pytest
 from aiida import orm
 from aiida.engine import WorkChain
 from aiida.plugins import WorkflowFactory
-
 from aiida_common_workflows.plugins import get_workflow_entry_point_names
 from aiida_common_workflows.workflows import eos
 from aiida_common_workflows.workflows.relax.generator import RelaxType

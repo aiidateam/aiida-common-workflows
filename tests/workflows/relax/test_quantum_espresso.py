@@ -3,9 +3,8 @@
 
 import pytest
 from aiida import engine, plugins
-from qe_tools import CONSTANTS
-
 from aiida_common_workflows.workflows.relax.generator import ElectronicType, RelaxType, SpinType
+from qe_tools import CONSTANTS
 
 WORKCHAIN = plugins.WorkflowFactory('common_workflows.relax.quantum_espresso')
 GENERATOR = WORKCHAIN.get_input_generator()

@@ -3,7 +3,6 @@
 """Tests for the :mod:`aiida_common_workflows.workflows.bands.workchain` module."""
 import pytest
 from aiida.plugins import WorkflowFactory
-
 from aiida_common_workflows.plugins import get_workflow_entry_point_names
 from aiida_common_workflows.workflows.bands import CommonBandsInputGenerator
 from aiida_common_workflows.workflows.bands.workchain import CommonBandsWorkChain

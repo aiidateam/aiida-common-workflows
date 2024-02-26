@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """Tests for the :mod:`aiida_common_workflows.cli.utils` module."""
 import pytest
-
 from aiida_common_workflows.cli.utils import get_code_from_list_or_database
 
 
