@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """Module with base protocol registry."""
 import copy
 import typing

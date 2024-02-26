@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for Orca."""
 import os
 import warnings

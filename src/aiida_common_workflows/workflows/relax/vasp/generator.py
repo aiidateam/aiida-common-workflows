@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for VASP."""
 import pathlib
 import typing as t

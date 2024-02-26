@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Base class for an input generator for a common workflow."""
 import abc
 import copy

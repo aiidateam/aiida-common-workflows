@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Define a Restructured Text directive to auto-document :class:`aiida_common_workflows.generators.InputGenerator`."""
 import inspect
 import typing as t

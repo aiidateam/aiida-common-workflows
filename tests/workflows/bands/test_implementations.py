@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tests for the :mod:`aiida_common_workflows.workflows.relax.quantum_espresso` module."""
 
 import pytest

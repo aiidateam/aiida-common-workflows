@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Workflow calculating the dissociation curve of diatomic molecules.
 It can use any code plugin implementing the common relax workflow.

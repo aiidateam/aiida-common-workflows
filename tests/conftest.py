@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """Configuration and fixtures for unit test suite."""
 import io
 import os

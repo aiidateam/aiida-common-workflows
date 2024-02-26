@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for Wien2k."""
 from aiida import orm
 from aiida.engine import calcfunction

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for Gaussian."""
 import numpy as np
 from aiida import orm

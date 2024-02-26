@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """Module for the command line interface."""
 import click_completion
 

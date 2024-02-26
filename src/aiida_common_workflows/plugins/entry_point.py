@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Module with utilities for working with the plugins provided by this plugin package."""
 import typing
 

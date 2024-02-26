@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Commands to plot results from a workflow."""
 import click
 from aiida.cmdline.params import arguments

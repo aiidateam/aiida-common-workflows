@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tests for the :mod:`aiida_common_workflows.generators.generator` module."""
 import pytest
 from aiida import orm

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Module with base wrapper workchain for bands workchains."""
 from abc import ABCMeta, abstractmethod
 

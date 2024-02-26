@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Collects some functions to postprocess a `CommonWorkflowAbinitWorkChain`.
 """

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Module with utitlies for the CLI."""
 import sys
 

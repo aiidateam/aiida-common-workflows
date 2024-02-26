@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.bands.generator.CommonBandsInputGenerator` for SIESTA."""
 from aiida import engine, orm
 

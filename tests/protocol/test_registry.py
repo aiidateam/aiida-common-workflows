@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tests for the :mod:`aiida_common_workflows.protocol.registry` module."""
 import typing as t
 

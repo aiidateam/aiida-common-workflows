@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """Module with the implementations of the common structure relaxation workchain for VASP."""
 from .generator import *
 from .workchain import *
