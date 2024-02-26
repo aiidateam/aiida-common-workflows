@@ -1,6 +1,6 @@
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.5.0
+    rev: v4.5.0
     hooks:
     -   id: double-quote-string-fixer
     -   id: end-of-file-fixer
@@ -9,7 +9,7 @@ repos:
     -   id: trailing-whitespace
 
 -   repo: https://github.com/ikamensh/flynt/
-    rev: '0.66'
+    rev: '1.0.1'
     hooks:
     -   id: flynt
 

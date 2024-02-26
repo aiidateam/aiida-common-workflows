@@ -61,7 +61,7 @@ docs = [
     'sphinx-copybutton~=0.3.0'
 ]
 pre-commit = [
-    'pre-commit~=2.2',
+    'pre-commit~=3.6',
 ]
 tests = [
     'pytest~=7.2',
