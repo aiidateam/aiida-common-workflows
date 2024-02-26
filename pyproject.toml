@@ -34,6 +34,7 @@ dependencies = [
   'aiida-vasp~=3.1',
   'aiida-wien2k~=0.2.0',
   'ase!=3.20.*',
+  'click~=8.0',
   'masci-tools~=0.9',
   'pint~=0.16',
   'pymatgen>=2022.1.20'
