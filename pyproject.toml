@@ -61,7 +61,7 @@ docs = [
 ]
 pre-commit = [
     'pre-commit~=2.2',
-    'pylint~=2.5.2',
+    'pylint~=2.7.0',
 ]
 tests = [
     'pytest~=7.2',
