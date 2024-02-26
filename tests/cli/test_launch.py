@@ -4,7 +4,6 @@ import re
 
 import click
 import pytest
-
 from aiida_common_workflows.cli import launch, utils
 
 

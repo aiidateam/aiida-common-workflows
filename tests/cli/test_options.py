@@ -7,7 +7,6 @@ import pathlib
 import click
 import pytest
 from aiida import orm
-
 from aiida_common_workflows.cli import options
 
 
@@ -15,7 +14,7 @@ from aiida_common_workflows.cli import options
 def filepath_cif():
     """Return a path to a valid CIF file."""
     basepath = pathlib.Path(__file__).parent.parent.parent
-    filepath = basepath.joinpath('aiida_common_workflows', 'common', 'data', 'Si.cif')
+    filepath = basepath.joinpath('src', 'aiida_common_workflows', 'common', 'data', 'Si.cif')
     return filepath
 
 

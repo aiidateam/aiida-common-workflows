@@ -8,8 +8,6 @@ from aiida import engine, plugins
 from aiida.orm import StructureData
 from aiida.plugins import WorkflowFactory
 from aiida_castep.data.otfg import OTFGGroup
-from ase.build.bulk import bulk
-
 from aiida_common_workflows.workflows.relax.castep.generator import (
     CastepCommonRelaxInputGenerator,
     ElectronicType,
@@ -22,6 +20,7 @@ from aiida_common_workflows.workflows.relax.castep.generator import (
     generate_inputs_relax,
 )
 from aiida_common_workflows.workflows.relax.castep.workchain import CastepCommonRelaxWorkChain
+from ase.build.bulk import bulk
 
 WORKCHAIN = plugins.WorkflowFactory('common_workflows.relax.castep')
 GENERATOR = WORKCHAIN.get_input_generator()

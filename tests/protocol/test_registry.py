@@ -3,7 +3,6 @@
 import typing as t
 
 import pytest
-
 from aiida_common_workflows.protocol import ProtocolRegistry
 
 

@@ -130,6 +130,9 @@ select = [
 [tool.ruff.format]
 quote-style = 'single'
 
+[tool.ruff.lint.isort]
+known-first-party = ['src']
+
 [tool.pytest.ini_options]
 testpaths = [
     'tests',

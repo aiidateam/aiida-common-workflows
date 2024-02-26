@@ -3,7 +3,6 @@
 
 import pytest
 from aiida import engine, orm, plugins
-
 from aiida_common_workflows.generators.ports import InputGeneratorPort
 from aiida_common_workflows.plugins import get_workflow_entry_point_names
 from aiida_common_workflows.workflows.bands.workchain import CommonBandsWorkChain

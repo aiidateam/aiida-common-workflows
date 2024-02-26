@@ -3,7 +3,6 @@
 """Tests for the :mod:`aiida_common_workflows.workflows.relax.workchain` module."""
 import pytest
 from aiida.plugins import WorkflowFactory
-
 from aiida_common_workflows.plugins import get_workflow_entry_point_names
 from aiida_common_workflows.workflows.relax import CommonRelaxInputGenerator
 from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChain

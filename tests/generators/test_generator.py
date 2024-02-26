@@ -3,7 +3,6 @@
 import pytest
 from aiida import orm
 from aiida.plugins import WorkflowFactory
-
 from aiida_common_workflows.generators import InputGenerator
 
 

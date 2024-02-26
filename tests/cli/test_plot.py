@@ -4,7 +4,6 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pytest
-
 from aiida_common_workflows.cli import plot
 
 
