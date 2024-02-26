@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for Quantum ESPRESSO."""
+import pint
 from aiida import orm
 from aiida.engine import calcfunction
 from aiida.plugins import WorkflowFactory
-import pint
 
 from ..workchain import CommonRelaxWorkChain
 from .generator import QuantumEspressoCommonRelaxInputGenerator
@@ -55,9 +55,9 @@ class QuantumEspressoCommonRelaxWorkChain(CommonRelaxWorkChain):
         forces, stress = extract_from_trajectory(outputs.output_trajectory).values()
 
         try:
-            total_energy, total_magnetization = result  # pylint: disable=unbalanced-dict-unpacking
+            total_energy, total_magnetization = result
         except ValueError:
-            total_energy, total_magnetization = list(result)[0], None
+            total_energy, total_magnetization = next(iter(result)), None
 
         if 'output_structure' in outputs:
             self.out('relaxed_structure', outputs.output_structure)

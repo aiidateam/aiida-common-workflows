@@ -10,7 +10,7 @@ from .workchain import QuantumEspressoCommonRelaxWorkChain
 
 
 def get_ts_energy(common_relax_workchain: QuantumEspressoCommonRelaxWorkChain) -> float:
-    """ Return the T * S value of a concluded ``QuantumEspressoCommonRelaxWorkChain``.
+    """Return the T * S value of a concluded ``QuantumEspressoCommonRelaxWorkChain``.
 
     Here, T is the fictitious temperature due to the use of smearing and S is the entropy. This "smearing contribution"
     to the free energy in Quantum ESPRESSO is expressed as -T * S:

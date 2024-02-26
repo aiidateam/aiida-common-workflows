@@ -3,9 +3,9 @@
 import pathlib
 import warnings
 
-from aiida import engine, orm, plugins
 import numpy as np
 import yaml
+from aiida import engine, orm, plugins
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
@@ -48,12 +48,12 @@ class NwchemCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         spec.inputs['electronic_type'].valid_type = ChoiceType((ElectronicType.METAL, ElectronicType.INSULATOR))
         spec.inputs['engines']['relax']['code'].valid_type = CodeType('nwchem.nwchem')
 
-    def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:
+    def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:  # noqa: PLR0912,PLR0915
         """Construct a process builder based on the provided keyword arguments.
 
         The keyword arguments will have been validated against the input generator specification.
         """
-        # pylint: disable=too-many-branches,too-many-statements,too-many-locals
+
         structure = kwargs['structure']
         engines = kwargs['engines']
         protocol = kwargs['protocol']
@@ -78,7 +78,7 @@ class NwchemCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         else:
             reciprocal_axes_lengths = np.linalg.norm(np.linalg.inv(structure.cell), axis=1)
             kpoints = np.ceil(reciprocal_axes_lengths / target_spacing).astype(int).tolist()
-            parameters['nwpw']['monkhorst-pack'] = '{} {} {}'.format(*kpoints)  # pylint: disable=consider-using-f-string
+            parameters['nwpw']['monkhorst-pack'] = '{} {} {}'.format(*kpoints)
 
         # Relaxation type
         if relax_type == RelaxType.POSITIONS:
@@ -95,7 +95,7 @@ class NwchemCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         else:
             raise ValueError(f'relax_type `{relax_type.value}` is not supported')
 
-        # Electronic type
+        # Electronic type
         if electronic_type == ElectronicType.INSULATOR:
             pass
         elif electronic_type == ElectronicType.METAL:

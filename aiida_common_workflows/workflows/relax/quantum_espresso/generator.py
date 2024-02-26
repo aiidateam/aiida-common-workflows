@@ -2,9 +2,9 @@
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for Quantum ESPRESSO."""
 from importlib import resources
 
+import yaml
 from aiida import engine, orm, plugins
 from aiida_quantumespresso.workflows.protocols.utils import recursive_merge
-import yaml
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
@@ -23,8 +23,9 @@ def create_magnetic_allotrope(structure, magnetization_per_site):
     :param magnetization_per_site: List of magnetizations (defined as magnetic moments) for each site in the provided
         `structure`.
     """
-    # pylint: disable=too-many-locals,too-many-branches,too-many-statements
+
     import string
+
     if structure.is_alloy:
         raise ValueError('Alloys are currently not supported.')
 
@@ -32,12 +33,13 @@ def create_magnetic_allotrope(structure, magnetization_per_site):
     allotrope_magnetic_moments = {}
 
     for element in structure.get_symbols_set():
-
         # Filter the sites and magnetic moments on the site element
         element_sites, element_magnetic_moments = zip(
-            *[(site, magnetic_moment)
-              for site, magnetic_moment in zip(structure.sites, magnetization_per_site)
-              if site.kind_name.rstrip(string.digits) == element]
+            *[
+                (site, magnetic_moment)
+                for site, magnetic_moment in zip(structure.sites, magnetization_per_site)
+                if site.kind_name.rstrip(string.digits) == element
+            ]
         )
         magnetic_moment_set = set(element_magnetic_moments)
         if len(magnetic_moment_set) > 10:
@@ -82,6 +84,7 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
     def _load_local_protocols():
         """Load the protocols defined in the ``aiida-common-workflows`` package."""
         from .. import quantum_espresso
+
         with resources.open_text(quantum_espresso, 'protocol.yml') as handle:
             protocol_dict = yaml.safe_load(handle)
         return protocol_dict
@@ -101,12 +104,12 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         spec.inputs['electronic_type'].valid_type = ChoiceType((ElectronicType.METAL, ElectronicType.INSULATOR))
         spec.inputs['engines']['relax']['code'].valid_type = CodeType('quantumespresso.pw')
 
-    def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:
+    def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:  # noqa: PLR0912,PLR0915
         """Construct a process builder based on the provided keyword arguments.
 
         The keyword arguments will have been validated against the input generator specification.
         """
-        # pylint: disable=too-many-branches,too-many-statements,too-many-locals,protected-access
+
         from aiida_quantumespresso.common import types
         from qe_tools import CONSTANTS
 
@@ -156,20 +159,8 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             overrides = {}
 
         options_overrides = {
-            'base': {
-                'pw': {
-                    'metadata': {
-                        'options': engines['relax']['options']
-                    }
-                }
-            },
-            'base_final_scf': {
-                'pw': {
-                    'metadata': {
-                        'options': engines['relax']['options']
-                    }
-                }
-            },
+            'base': {'pw': {'metadata': {'options': engines['relax']['options']}}},
+            'base_final_scf': {'pw': {'metadata': {'options': engines['relax']['options']}}},
         }
         overrides = recursive_merge(overrides, options_overrides)
 

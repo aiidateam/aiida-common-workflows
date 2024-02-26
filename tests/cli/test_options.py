@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=redefined-outer-name
+
 """Tests for the :mod:`aiida_common_workflows.cli.launch` module."""
 import json
 import pathlib
 
-from aiida import orm
 import click
 import pytest
+from aiida import orm
 
 from aiida_common_workflows.cli import options
 
@@ -69,14 +69,15 @@ class TestStructureDataParamType:
         assert result.uuid == structure.uuid
 
     @pytest.mark.parametrize(
-        'label, formula', (
+        'label, formula',
+        (
             ('Al', 'Al4'),
             ('Fe', 'Fe2'),
             ('GeTe', 'GeTe'),
             ('Si', 'Si2'),
             ('NH3-pyramidal', 'H3N'),
             ('NH3-planar', 'H3N'),
-        )
+        ),
     )
     def test_parse_predefined_defaults(self, structure_param_type, label, formula):
         """Test the shortcut labels.

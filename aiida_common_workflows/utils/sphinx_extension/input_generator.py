@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Define a Restructured Text directive to auto-document :class:`aiida_common_workflows.generators.InputGenerator`."""
 import inspect
+import typing as t
 
 from aiida.common.utils import get_object_from_string
 from aiida.engine import Process
@@ -22,6 +23,7 @@ def setup_extension(app):
 
 class CommonInputGeneratorDocumenter(ClassDocumenter):
     """Sphinx documenter class for AiiDA Processes."""
+
     directivetype = 'common-input-generator'
     objtype = 'common-input-generator'
     priority = 10
@@ -39,7 +41,7 @@ class CommonInputGeneratorDirective(SphinxDirective):
     final_argument_whitespace = True
 
     EXPAND_NAMESPACES_FLAG = 'expand-namespaces'
-    option_spec = {'module': directives.unchanged_required, EXPAND_NAMESPACES_FLAG: directives.flag}
+    option_spec: t.ClassVar = {'module': directives.unchanged_required, EXPAND_NAMESPACES_FLAG: directives.flag}
     signature = 'InputGenerator'
     annotation = 'common-input-generator'
 
@@ -55,7 +57,7 @@ class CommonInputGeneratorDirective(SphinxDirective):
 
         Includes importing the process class.
         """
-        # pylint: disable=attribute-defined-outside-init
+
         load_profile()
 
         self.class_name = self.arguments[0].split('(')[0]

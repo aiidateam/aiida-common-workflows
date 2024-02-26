@@ -13,24 +13,9 @@ repos:
     hooks:
     -   id: flynt
 
--   repo: https://github.com/pycqa/isort
-    rev: 5.12.0
-    hooks:
-    -   id: isort
-
--   repo: https://github.com/pre-commit/mirrors-yapf
-    rev: v0.31.0
-    hooks:
-    -   id: yapf
-        name: yapf
-        types: [python]
-        args: ['-i']
-        additional_dependencies: ['toml']
-
--   repo: local
-    hooks:
-    -   id: pylint
-        name: pylint
-        entry: pylint
-        types: [python]
-        language: system
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.1.9
+  hooks:
+  - id: ruff-format
+  - id: ruff
+    args: [--fix, --exit-non-zero-on-fix, --show-fixes]

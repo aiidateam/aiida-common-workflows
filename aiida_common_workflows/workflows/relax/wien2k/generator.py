@@ -2,8 +2,8 @@
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for Wien2k."""
 import os
 
-from aiida import engine, orm, plugins
 import yaml
+from aiida import engine, orm, plugins
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
@@ -60,6 +60,7 @@ class Wien2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         # Checks
         if protocol not in self.get_protocol_names():
             import warnings
+
             warnings.warn(f'no protocol implemented with name {protocol}, using default moderate')
             protocol = self.get_default_protocol_name()
         if not all(x in engines.keys() for x in ['relax']):
@@ -94,11 +95,13 @@ class Wien2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             # derive k mesh from the ref. workchain and pass as input
             if 'kmesh3' in ref_wrkchn_res_dict and ref_wrkchn_res_dict['kmesh3']:  # check if kmesh3 is in results dict
                 inpdict['-numk'] = '0' + ' ' + ref_wrkchn_res_dict['kmesh3']
-            if 'kmesh3k' in ref_wrkchn_res_dict and ref_wrkchn_res_dict['kmesh3k'
-                                                                        ]:  # check if kmesh3k is in results dict
+            if (
+                'kmesh3k' in ref_wrkchn_res_dict and ref_wrkchn_res_dict['kmesh3k']
+            ):  # check if kmesh3k is in results dict
                 inpdict['-numk2'] = '0' + ' ' + ref_wrkchn_res_dict['kmesh3k']
-            if 'fftmesh3k' in ref_wrkchn_res_dict and ref_wrkchn_res_dict['fftmesh3k'
-                                                                          ]:  # check if fftmesh3k is in results dict
+            if (
+                'fftmesh3k' in ref_wrkchn_res_dict and ref_wrkchn_res_dict['fftmesh3k']
+            ):  # check if fftmesh3k is in results dict
                 inpdict['-fft'] = ref_wrkchn_res_dict['fftmesh3k']
 
         # res = NodeNumberJobResource(num_machines=8, num_mpiprocs_per_machine=1, num_cores_per_mpiproc=1)

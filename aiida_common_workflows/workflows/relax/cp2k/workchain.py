@@ -2,17 +2,17 @@
 """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for CP2K."""
 import re
 
+import numpy as np
 from aiida import orm
 from aiida.engine import calcfunction
 from aiida.plugins import WorkflowFactory
-import numpy as np
 
 from ..workchain import CommonRelaxWorkChain
 from .generator import Cp2kCommonRelaxInputGenerator
 
 __all__ = ('Cp2kCommonRelaxWorkChain',)
 
-Cp2kBaseWorkChain = WorkflowFactory('cp2k.base')  # pylint: disable=invalid-name
+Cp2kBaseWorkChain = WorkflowFactory('cp2k.base')
 
 EV_A3_TO_BAR = 1602176.6208
 HA_BOHR_TO_EV_A = 51.42208619083232
@@ -37,8 +37,11 @@ def get_forces_output_folder(folder, structure):
     except FileNotFoundError:
         try:
             content = folder.get_object_content('aiida-requested-forces-1_0.xyz')
-            lines = re.search('Atom   Kind   Element(.*?)SUM OF ATOMIC FORCES', content,
-                              flags=re.S).group(1).splitlines()[1:-1]
+            lines = (
+                re.search('Atom   Kind   Element(.*?)SUM OF ATOMIC FORCES', content, flags=re.S)
+                .group(1)
+                .splitlines()[1:-1]
+            )
             forces_position = 3
         except FileNotFoundError:
             return None
@@ -46,7 +49,7 @@ def get_forces_output_folder(folder, structure):
     # Extract forces.
     forces_array = np.empty((natoms, 3))
     for i, line in enumerate(lines):
-        forces_array[i] = [float(s) for s in line.split()[forces_position:forces_position + 3]]
+        forces_array[i] = [float(s) for s in line.split()[forces_position : forces_position + 3]]
     forces = orm.ArrayData()
     forces.set_array(name='forces', array=forces_array * HA_BOHR_TO_EV_A)
     return forces

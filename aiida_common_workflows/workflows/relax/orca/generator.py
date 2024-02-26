@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for Orca."""
-from copy import deepcopy
 import os
 import warnings
+from copy import deepcopy
 
-from aiida import engine, orm
-from aiida.plugins import DataFactory
 import numpy as np
 import yaml
+from aiida import engine, orm
+from aiida.plugins import DataFactory
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
@@ -34,8 +34,7 @@ class OrcaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         def raise_invalid(message):
             raise RuntimeError(f'invalid protocol registry `{self.__class__.__name__}`: ' + message)
 
-        for k, v in self._protocols.items():  # pylint: disable=invalid-name
-
+        for k, v in self._protocols.items():
             if 'input_keywords' not in v:
                 raise_invalid(f'protocol `{k}` does not define the mandatory key `input_keywords`')
 
@@ -58,12 +57,12 @@ class OrcaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         spec.inputs['electronic_type'].valid_type = ChoiceType((ElectronicType.METAL, ElectronicType.INSULATOR))
         spec.inputs['engines']['relax']['code'].valid_type = CodeType('orca_main')
 
-    def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:
+    def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:  # noqa: PLR0912,PLR0915
         """Construct a process builder based on the provided keyword arguments.
 
         The keyword arguments will have been validated against the input generator specification.
         """
-        # pylint: disable=too-many-branches,too-many-statements,too-many-locals
+
         structure = kwargs['structure']
         engines = kwargs['engines']
         protocol = kwargs['protocol']

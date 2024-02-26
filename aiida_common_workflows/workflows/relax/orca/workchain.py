@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for Orca."""
+import numpy as np
 from aiida.engine import calcfunction
 from aiida.orm import ArrayData, Float
 from aiida.plugins import WorkflowFactory
-import numpy as np
 
 from ..workchain import CommonRelaxWorkChain
 from .generator import OrcaCommonRelaxInputGenerator
@@ -59,4 +59,4 @@ class OrcaCommonRelaxWorkChain(CommonRelaxWorkChain):
             self.out('total_magnetization', get_total_magnetization(self.ctx.workchain.outputs.output_parameters))
 
 
-#EOF
+# EOF

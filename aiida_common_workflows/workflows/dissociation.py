@@ -28,7 +28,7 @@ def validate_inputs(value, _):
 
     try:
         generator.get_builder(structure=value['molecule'], **value['generator_inputs'])
-    except Exception as exc:  # pylint: disable=broad-except
+    except Exception as exc:
         return f'`{generator.__class__.__name__}.get_builder()` fails for the provided `generator_inputs`: {exc}'
 
 
@@ -93,6 +93,7 @@ def set_distance(molecule: orm.StructureData, distance: orm.Float) -> orm.Struct
     sites and which are separated by the target distance.
     """
     import numpy as np
+
     vector_diff = np.array(molecule.sites[1].position) - np.array(molecule.sites[0].position)
     versor_diff = vector_diff / np.linalg.norm(vector_diff)
     new_molecule = molecule.clone()
@@ -160,7 +161,7 @@ class DissociationCurveWorkChain(WorkChain):
         count = self.inputs.distances_count.value
         maximum = self.inputs.distance_max.value
         minimum = self.inputs.distance_min.value
-        return [orm.Float(minimum + i * (maximum-minimum) / (count-1)) for i in range(count)]
+        return [orm.Float(minimum + i * (maximum - minimum) / (count - 1)) for i in range(count)]
 
     def get_sub_workchain_builder(self, distance, reference_workchain=None):
         """Return the builder for the relax workchain."""
@@ -168,11 +169,9 @@ class DissociationCurveWorkChain(WorkChain):
         process_class = WorkflowFactory(self.inputs.sub_process_class)
 
         builder = process_class.get_input_generator().get_builder(
-            structure=molecule,
-            reference_workchain=reference_workchain,
-            **self.inputs.generator_inputs
+            structure=molecule, reference_workchain=reference_workchain, **self.inputs.generator_inputs
         )
-        builder._update(**self.inputs.get('sub_process', {}))  # pylint: disable=protected-access
+        builder._update(**self.inputs.get('sub_process', {}))
 
         distance_node = molecule.creator.inputs.distance
 
@@ -191,7 +190,7 @@ class DissociationCurveWorkChain(WorkChain):
         """Check that the first workchain finished successfully or abort the workchain."""
         if not self.ctx.children[0].is_finished_ok:
             self.report('Initial sub process did not finish successful so aborting the workchain.')
-            return self.exit_codes.ERROR_SUB_PROCESS_FAILED.format(cls=self.inputs.sub_process_class)  # pylint: disable=no-member
+            return self.exit_codes.ERROR_SUB_PROCESS_FAILED.format(cls=self.inputs.sub_process_class)
 
     def run_dissociation(self):
         """Run the sub process at each distance to compute the total energy."""
@@ -208,10 +207,9 @@ class DissociationCurveWorkChain(WorkChain):
         Collect the total energies and return an array with the results.
         """
         if any(not child.is_finished_ok for child in self.ctx.children):
-            return self.exit_codes.ERROR_SUB_PROCESS_FAILED.format(cls=self.inputs.sub_process_class)  # pylint: disable=no-member
+            return self.exit_codes.ERROR_SUB_PROCESS_FAILED.format(cls=self.inputs.sub_process_class)
 
         for index, child in enumerate(self.ctx.children):
-
             energy = child.outputs.total_energy
             distance = self.ctx.distance_nodes[index]
 

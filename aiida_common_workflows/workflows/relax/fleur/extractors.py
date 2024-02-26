@@ -29,12 +29,12 @@ def get_ts_energy(common_relax_workchain):
     fleur_calc_out = fleur_relax_wc.outputs.last_scf.last_calc
 
     output_parameters = fleur_calc_out.output_parameters
-    ts = None  #pylint: disable=invalid-name
+    ts = None
     if 'ts_energy' in output_parameters.keys():
-        ts = output_parameters['ts_energy']  #pylint: disable=invalid-name
+        ts = output_parameters['ts_energy']
     elif fleur_relax_wc.is_finished_ok:
-        #This check makes sure that the parsing worked before so we don't get
-        #nasty surprises in load_outxml
+        # This check makes sure that the parsing worked before so we don't get
+        # nasty surprises in load_outxml
 
         with fleur_calc_out.retrieved.open('out.xml', 'rb') as file:
             xmltree, schema_dict = load_outxml(file)
@@ -46,6 +46,6 @@ def get_ts_energy(common_relax_workchain):
             pass
         else:
             if ts_all:
-                ts = ts_all[-1] * HTR_TO_EV  #pylint: disable=invalid-name
+                ts = ts_all[-1] * HTR_TO_EV
 
     return ts

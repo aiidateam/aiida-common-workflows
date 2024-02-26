@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for Gaussian."""
 import copy
+import typing as t
 
-from aiida import engine, orm, plugins
 import numpy as np
+from aiida import engine, orm, plugins
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
@@ -22,7 +23,7 @@ class GaussianCommonRelaxInputGenerator(CommonRelaxInputGenerator):
     """Input generator for the `GaussianCommonRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
-    _protocols = {
+    _protocols: t.ClassVar = {
         'fast': {
             'description': 'Optimal performance, minimal accuracy.',
             'functional': 'PBEPBE',
@@ -30,7 +31,7 @@ class GaussianCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             'route_parameters': {
                 'nosymm': None,
                 'opt': 'loose',
-            }
+            },
         },
         'moderate': {
             'description': 'Moderate performance, moderate accuracy.',
@@ -40,7 +41,7 @@ class GaussianCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 'int': 'ultrafine',
                 'nosymm': None,
                 'opt': None,
-            }
+            },
         },
         'precise': {
             'description': 'Low performance, high accuracy',
@@ -50,8 +51,8 @@ class GaussianCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 'int': 'superfine',
                 'nosymm': None,
                 'opt': 'tight',
-            }
-        }
+            },
+        },
     }
 
     @classmethod
@@ -66,12 +67,12 @@ class GaussianCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         spec.inputs['electronic_type'].valid_type = ChoiceType((ElectronicType.METAL, ElectronicType.INSULATOR))
         spec.inputs['engines']['relax']['code'].valid_type = CodeType('gaussian')
 
-    def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:
+    def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:  # noqa: PLR0912,PLR0915
         """Construct a process builder based on the provided keyword arguments.
 
         The keyword arguments will have been validated against the input generator specification.
         """
-        # pylint: disable=too-many-branches,too-many-statements,too-many-locals
+
         structure = kwargs['structure']
         engines = kwargs['engines']
         protocol = kwargs['protocol']
@@ -96,7 +97,7 @@ class GaussianCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             link0_parameters['%mem'] = '2048MB'
         else:
             # If memory is set, specify 80% of it to gaussian
-            link0_parameters['%mem'] = '%dMB' % ((0.8 * options['max_memory_kb']) // 1024)  # pylint: disable=consider-using-f-string)
+            link0_parameters['%mem'] = '%dMB' % ((0.8 * options['max_memory_kb']) // 1024)
 
         # Determine the number of processors that should be specified to Gaussian
         n_proc = None
@@ -180,7 +181,7 @@ class GaussianCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             'basis_set': sel_protocol['basis_set'],
             'charge': 0,
             'multiplicity': spin_multiplicity,
-            'route_parameters': route_params
+            'route_parameters': route_params,
         }
 
         builder = self.process_class.get_builder()

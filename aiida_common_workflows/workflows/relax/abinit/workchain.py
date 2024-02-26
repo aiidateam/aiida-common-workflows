@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for Abinit."""
+import numpy as np
 from aiida import orm
 from aiida.common import exceptions
 from aiida.engine import calcfunction
 from aiida_abinit.workflows.base import AbinitBaseWorkChain
-import numpy as np
 
 from ..workchain import CommonRelaxWorkChain
 from .generator import AbinitCommonRelaxInputGenerator

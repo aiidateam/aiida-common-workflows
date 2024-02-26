@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for VASP."""
 import pathlib
+import typing as t
 
+import yaml
 from aiida import engine, plugins
 from aiida.common.extendeddicts import AttributeDict
-import yaml
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
@@ -20,19 +21,11 @@ class VaspCommonRelaxInputGenerator(CommonRelaxInputGenerator):
     """Input generator for the `VaspCommonRelaxWorkChain`."""
 
     _default_protocol = 'moderate'
-    _protocols = {
-        'fast': {
-            'description': 'Fast and not so accurate.'
-        },
-        'moderate': {
-            'description': 'Possibly a good compromise for quick checks.'
-        },
-        'precise': {
-            'description': 'Decent level of accuracy with some exceptions.'
-        },
-        'verification-PBE-v1': {
-            'description': 'Used for the ACWF study on unaries and oxides.'
-        }
+    _protocols: t.ClassVar = {
+        'fast': {'description': 'Fast and not so accurate.'},
+        'moderate': {'description': 'Possibly a good compromise for quick checks.'},
+        'precise': {'description': 'Decent level of accuracy with some exceptions.'},
+        'verification-PBE-v1': {'description': 'Used for the ACWF study on unaries and oxides.'},
     }
 
     def __init__(self, *args, **kwargs):
@@ -64,12 +57,12 @@ class VaspCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         spec.inputs['engines']['relax']['code'].valid_type = CodeType('vasp.vasp')
         spec.inputs['protocol'].valid_type = ChoiceType(('fast', 'moderate', 'precise', 'verification-PBE-v1'))
 
-    def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:
+    def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:  # noqa: PLR0912,PLR0915
         """Construct a process builder based on the provided keyword arguments.
 
         The keyword arguments will have been validated against the input generator specification.
         """
-        # pylint: disable=too-many-branches,too-many-statements,too-many-locals
+
         structure = kwargs['structure']
         engines = kwargs['engines']
         protocol = kwargs['protocol']
@@ -120,68 +113,62 @@ class VaspCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         # Set settings
         # Make sure the VASP parser is configured for the problem
         settings = AttributeDict()
-        settings.update({
-            'parser_settings': {
-                'critical_notifications': {
-                    'add_brmix': True,
-                    'add_cnormn': False,
-                    'add_denmp': True,
-                    'add_dentet': True,
-                    'add_edddav_zhegv': True,
-                    'add_eddrmm_zhegv': True,
-                    'add_edwav': True,
-                    'add_fexcp': True,
-                    'add_fock_acc': True,
-                    'add_non_collinear': True,
-                    'add_not_hermitian': True,
-                    'add_pzstein': True,
-                    'add_real_optlay': True,
-                    'add_rhosyg': True,
-                    'add_rspher': True,
-                    'add_set_indpw_full': True,
-                    'add_sgrcon': True,
-                    'add_no_potimm': True,
-                    'add_magmom': True,
-                    'add_bandocc': True
-                },
-                'add_energies': True,
-                'add_forces': True,
-                'add_stress': True,
-                'add_misc': {
-                    'type':
-                    'dict',
-                    'quantities': [
-                        'total_energies', 'maximum_stress', 'maximum_force', 'magnetization', 'notifications',
-                        'run_status', 'run_stats', 'version'
-                    ],
-                    'link_name':
-                    'misc'
-                },
-                'energy_type': ['energy_free', 'energy_no_entropy']
+        settings.update(
+            {
+                'parser_settings': {
+                    'critical_notifications': {
+                        'add_brmix': True,
+                        'add_cnormn': False,
+                        'add_denmp': True,
+                        'add_dentet': True,
+                        'add_edddav_zhegv': True,
+                        'add_eddrmm_zhegv': True,
+                        'add_edwav': True,
+                        'add_fexcp': True,
+                        'add_fock_acc': True,
+                        'add_non_collinear': True,
+                        'add_not_hermitian': True,
+                        'add_pzstein': True,
+                        'add_real_optlay': True,
+                        'add_rhosyg': True,
+                        'add_rspher': True,
+                        'add_set_indpw_full': True,
+                        'add_sgrcon': True,
+                        'add_no_potimm': True,
+                        'add_magmom': True,
+                        'add_bandocc': True,
+                    },
+                    'add_energies': True,
+                    'add_forces': True,
+                    'add_stress': True,
+                    'add_misc': {
+                        'type': 'dict',
+                        'quantities': [
+                            'total_energies',
+                            'maximum_stress',
+                            'maximum_force',
+                            'magnetization',
+                            'notifications',
+                            'run_status',
+                            'run_stats',
+                            'version',
+                        ],
+                        'link_name': 'misc',
+                    },
+                    'energy_type': ['energy_free', 'energy_no_entropy'],
+                }
             }
-        })
+        )
         builder.settings = plugins.DataFactory('core.dict')(dict=settings)
 
         # Configure the handlers
         handler_overrides = {
-            'handler_unfinished_calc_ionic_alt': {
-                'enabled': True
-            },
-            'handler_unfinished_calc_generic_alt': {
-                'enabled': True
-            },
-            'handler_electronic_conv_alt': {
-                'enabled': True
-            },
-            'handler_unfinished_calc_ionic': {
-                'enabled': False
-            },
-            'handler_unfinished_calc_generic': {
-                'enabled': False
-            },
-            'handler_electronic_conv': {
-                'enabled': False
-            }
+            'handler_unfinished_calc_ionic_alt': {'enabled': True},
+            'handler_unfinished_calc_generic_alt': {'enabled': True},
+            'handler_electronic_conv_alt': {'enabled': True},
+            'handler_unfinished_calc_ionic': {'enabled': False},
+            'handler_unfinished_calc_generic': {'enabled': False},
+            'handler_electronic_conv': {'enabled': False},
         }
         builder.handler_overrides = plugins.DataFactory('core.dict')(dict=handler_overrides)
 

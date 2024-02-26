@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=redefined-outer-name
+
 """Configuration and fixtures for unit test suite."""
 import io
 import os
 import pathlib
 import tempfile
+import typing as t
 
+import click
+import pytest
 from aiida import engine
 from aiida.common import exceptions
 from aiida.common.constants import elements
-import click
-import pytest
 
-pytest_plugins = ['aiida.manage.tests.pytest_fixtures']  # pylint: disable=invalid-name
+pytest_plugins = ['aiida.manage.tests.pytest_fixtures']
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -36,7 +37,7 @@ def run_cli_command():
     """
     from click.testing import Result
 
-    def _run_cli_command(command: click.Command, options: list = None, raises: bool = False) -> Result:
+    def _run_cli_command(command: click.Command, options: t.Optional[list] = None, raises: bool = False) -> Result:
         """Run the command and check the result.
 
         .. note:: the `output_lines` attribute is added to return value containing list of stripped output lines.
@@ -79,7 +80,7 @@ def generate_input_generator_cls():
         class TestInputGenerator(InputGenerator):
             """Test subclass of ``InputGenerator``."""
 
-            _protocols = {'moderate': {'description': 'bla'}}
+            _protocols: t.ClassVar = {'moderate': {'description': 'bla'}}
             _default_protocol = 'moderate'
 
             @classmethod
@@ -116,7 +117,7 @@ def generate_structure():
                 if symbol not in valid_symbols:
                     raise ValueError(f'symbol `{symbol}` is not a valid element.')
 
-                structure.append_atom(position=(0. + index * 1, 0. + index * 1, 0. + index * 1), symbols=[symbol])
+                structure.append_atom(position=(0.0 + index * 1, 0.0 + index * 1, 0.0 + index * 1), symbols=[symbol])
 
         return structure
 
@@ -238,6 +239,7 @@ def generate_upf_data():
     def _generate_upf_data(element):
         """Return `UpfData` node."""
         from aiida_pseudo.data.pseudo import UpfData
+
         content = f'<UPF version="2.0.1"><PP_HEADER\nelement="{element}"\nz_valence="4.0"\n/></UPF>\n'
         stream = io.BytesIO(content.encode('utf-8'))
         return UpfData(stream, filename=f'{element}.upf')
@@ -311,7 +313,7 @@ def sssp(generate_upf_data):
     """Create an SSSP pseudo potential family from scratch."""
     from aiida.plugins import GroupFactory
 
-    SsspFamily = GroupFactory('pseudo.family.sssp')  # pylint: disable=invalid-name
+    SsspFamily = GroupFactory('pseudo.family.sssp')  # noqa: N806
     label = 'SSSP/1.3/PBEsol/efficiency'
 
     try:
@@ -325,7 +327,6 @@ def sssp(generate_upf_data):
 
     with tempfile.TemporaryDirectory() as dirpath:
         for values in elements.values():
-
             element = values['symbol']
             upf = generate_upf_data(element)
             filename = os.path.join(dirpath, f'{element}.upf')
@@ -335,7 +336,7 @@ def sssp(generate_upf_data):
                     handle.write(source.read())
                     handle.flush()
 
-            cutoffs_dict['normal'][element] = {'cutoff_wfc': 30., 'cutoff_rho': 240.}
+            cutoffs_dict['normal'][element] = {'cutoff_wfc': 30.0, 'cutoff_rho': 240.0}
 
         family = SsspFamily.create_from_folder(pathlib.Path(dirpath), label)
 
@@ -350,7 +351,7 @@ def pseudo_dojo_jthxml_family(generate_jthxml_data):
     """Create a PseudoDojo JTH-XML pseudo potential family from scratch."""
     from aiida import plugins
 
-    PseudoDojoFamily = plugins.GroupFactory('pseudo.family.pseudo_dojo')  # pylint: disable=invalid-name
+    PseudoDojoFamily = plugins.GroupFactory('pseudo.family.pseudo_dojo')  # noqa: N806
     label = 'PseudoDojo/1.0/PBE/SR/standard/jthxml'
 
     try:
@@ -364,7 +365,6 @@ def pseudo_dojo_jthxml_family(generate_jthxml_data):
 
     with tempfile.TemporaryDirectory() as dirpath:
         for values in elements.values():
-
             element = values['symbol']
             upf = generate_jthxml_data(element)
             filename = os.path.join(dirpath, f'{element}.jthxml')
@@ -374,7 +374,7 @@ def pseudo_dojo_jthxml_family(generate_jthxml_data):
                     handle.write(source.read())
                     handle.flush()
 
-            cutoffs_dict['normal'][element] = {'cutoff_wfc': 30., 'cutoff_rho': 240.}
+            cutoffs_dict['normal'][element] = {'cutoff_wfc': 30.0, 'cutoff_rho': 240.0}
 
         family = PseudoDojoFamily.create_from_folder(
             pathlib.Path(dirpath), label, pseudo_type=plugins.DataFactory('pseudo.jthxml')
@@ -387,11 +387,11 @@ def pseudo_dojo_jthxml_family(generate_jthxml_data):
 
 
 @pytest.fixture(scope='session')
-def pseudo_dojo_psp8_family(generate_psp8_data):  # pylint: disable=too-many-locals
+def pseudo_dojo_psp8_family(generate_psp8_data):
     """Create a PseudoDojo PSP8 pseudo potential family from scratch."""
     from aiida import plugins
 
-    PseudoDojoFamily = plugins.GroupFactory('pseudo.family.pseudo_dojo')  # pylint: disable=invalid-name
+    PseudoDojoFamily = plugins.GroupFactory('pseudo.family.pseudo_dojo')  # noqa: N806
     label = 'PseudoDojo/0.41/PBE/SR/standard/psp8'
 
     try:
@@ -404,8 +404,7 @@ def pseudo_dojo_psp8_family(generate_psp8_data):  # pylint: disable=too-many-loc
     cutoffs_dict = {'normal': {}}
 
     with tempfile.TemporaryDirectory() as dirpath:
-        for (element_number, element_info) in elements.items():
-
+        for element_number, element_info in elements.items():
             element = element_info['symbol']
             upf = generate_psp8_data(element, float(element_number))
             filename = os.path.join(dirpath, f'{element}.psp8')
@@ -415,7 +414,7 @@ def pseudo_dojo_psp8_family(generate_psp8_data):  # pylint: disable=too-many-loc
                     handle.write(source.read())
                     handle.flush()
 
-            cutoffs_dict['normal'][element] = {'cutoff_wfc': 30., 'cutoff_rho': 240.}
+            cutoffs_dict['normal'][element] = {'cutoff_wfc': 30.0, 'cutoff_rho': 240.0}
 
         family = PseudoDojoFamily.create_from_folder(
             pathlib.Path(dirpath), label, pseudo_type=plugins.DataFactory('pseudo.psp8')
@@ -432,8 +431,8 @@ def psml_family(generate_psml_data):
     """Create a pseudopotential family with PsmlData potentials from scratch."""
     from aiida import plugins
 
-    PsmlData = plugins.DataFactory('pseudo.psml')  # pylint: disable=invalid-name
-    PseudoPotentialFamily = plugins.GroupFactory('pseudo.family')  # pylint: disable=invalid-name
+    PsmlData = plugins.DataFactory('pseudo.psml')  # noqa: N806
+    PseudoPotentialFamily = plugins.GroupFactory('pseudo.family')  # noqa: N806
     label = 'PseudoDojo/0.4/PBE/FR/standard/psml'
 
     try:
@@ -445,7 +444,6 @@ def psml_family(generate_psml_data):
 
     with tempfile.TemporaryDirectory() as dirpath:
         for values in elements.values():
-
             element = values['symbol']
             upf = generate_psml_data(element)
             filename = os.path.join(dirpath, f'{element}.psml')

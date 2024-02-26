@@ -6,19 +6,19 @@ import matplotlib.pyplot as plt
 import numpy
 
 
-def birch_murnaghan(V, E0, V0, B0, B01):
+def birch_murnaghan(V, E0, V0, B0, B01):  # noqa: N803
     """Compute energy by Birch Murnaghan formula."""
-    # pylint: disable=invalid-name
-    r = (V0 / V)**(2. / 3.)
-    return E0 + 9. / 16. * B0 * V0 * (r - 1.)**2 * (2. + (B01 - 4.) * (r - 1.))
+
+    r = (V0 / V) ** (2.0 / 3.0)
+    return E0 + 9.0 / 16.0 * B0 * V0 * (r - 1.0) ** 2 * (2.0 + (B01 - 4.0) * (r - 1.0))
 
 
 def fit_birch_murnaghan_params(volumes, energies):
     """Fit Birch Murnaghan parameters."""
-    # pylint: disable=invalid-name
+
     from scipy.optimize import curve_fit
 
-    params, covariance = curve_fit(  # pylint: disable=unbalanced-tuple-unpacking
+    params, covariance = curve_fit(
         birch_murnaghan,
         xdata=volumes,
         ydata=energies,
@@ -26,18 +26,15 @@ def fit_birch_murnaghan_params(volumes, energies):
             energies.min(),  # E0
             volumes.mean(),  # V0
             0.1,  # B0
-            3.,  # B01
+            3.0,  # B01
         ),
-        sigma=None
+        sigma=None,
     )
     return params, covariance
 
 
 def get_eos_plot(
-    volumes: typing.List[float],
-    energies: typing.List[float],
-    unit_volume: str = 'Å^3',
-    unit_energy: str = 'eV'
+    volumes: typing.List[float], energies: typing.List[float], unit_volume: str = 'Å^3', unit_energy: str = 'eV'
 ) -> plt:
     """Plot the Equation of State for a given set of volumes and energies
 

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """Commands to plot results from a workflow."""
+import click
 from aiida.cmdline.params import arguments
 from aiida.cmdline.utils import echo
 from aiida.plugins import WorkflowFactory
-import click
 
 from . import options
 from .root import cmd_root
@@ -24,7 +24,7 @@ def cmd_plot():
 @options.OUTPUT_FILE()
 def cmd_plot_eos(workflow, precisions, print_table, output_file):
     """Plot the results from an `EquationOfStateWorkChain`."""
-    # pylint: disable=too-many-locals
+
     from aiida.common import LinkType
     from tabulate import tabulate
 
@@ -65,7 +65,7 @@ def cmd_plot_eos(workflow, precisions, print_table, output_file):
     if print_table:
         tabulate_inputs = {
             'tabular_data': list(zip(volumes, energies, magnetizations)),
-            'headers': ['Volume (Å^3)', 'Energy (eV)', 'Total magnetization (μB)']
+            'headers': ['Volume (Å^3)', 'Energy (eV)', 'Total magnetization (μB)'],
         }
 
         if precisions is not None:
@@ -97,7 +97,7 @@ def cmd_plot_eos(workflow, precisions, print_table, output_file):
 @options.OUTPUT_FILE()
 def cmd_plot_dissociation_curve(workflow, precisions, print_table, output_file):
     """Plot the results from a `DissociationCurveWorkChain`."""
-    # pylint: disable=too-many-locals
+
     from aiida.common import LinkType
     from tabulate import tabulate
 
@@ -138,7 +138,7 @@ def cmd_plot_dissociation_curve(workflow, precisions, print_table, output_file):
     if print_table:
         tabulate_inputs = {
             'tabular_data': list(zip(distances, energies, magnetizations)),
-            'headers': ['Distance (Å)', 'Energy (eV)', 'Total magnetization (μB)']
+            'headers': ['Distance (Å)', 'Energy (eV)', 'Total magnetization (μB)'],
         }
 
         if precisions is not None:
