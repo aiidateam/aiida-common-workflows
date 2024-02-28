@@ -31,3 +31,11 @@ repos:
     args: [--autofix]
   - id: pretty-format-yaml
     args: [--autofix]
+
+- repo: local
+  hooks:
+  - id: optional-dependencies
+    name: validate optional dependencies
+    entry: python ./dev/validate_optional_dependencies.py
+    language: system
+    files: pyproject.toml|
