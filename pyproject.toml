@@ -162,6 +162,9 @@ filterwarnings = [
   'ignore:Creating AiiDA configuration folder.*:UserWarning',
   'ignore:Object of type .* not in session, .* operation along .* will not proceed:sqlalchemy.exc.SAWarning'
 ]
+markers = [
+  'minimal_install: mark test as relevant for minimal install.'
+]
 testpaths = [
   'tests'
 ]

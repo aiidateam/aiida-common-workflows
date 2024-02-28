@@ -32,6 +32,7 @@ def recurse_commands(command: click.Command, parents: list[str] | None = None):
 
 @pytest.mark.parametrize('command', recurse_commands(cmd_root))
 @pytest.mark.parametrize('help_option', ('--help', '-h'))
+@pytest.mark.minimal_install
 def test_commands_help_option(command, help_option):
     """Test the help options for all subcommands of the CLI.
 
