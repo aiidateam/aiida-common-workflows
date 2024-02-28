@@ -202,7 +202,7 @@ class CastepCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             inputs['calc']['kpoints'] = previous_kpoints
             inputs['base'].pop('kpoints_spacing', None)
 
-        builder._update(inputs)
+        builder._merge(inputs)
 
         return builder
 

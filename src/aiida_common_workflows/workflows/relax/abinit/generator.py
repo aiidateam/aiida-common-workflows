@@ -154,7 +154,7 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         else:
             inputs = generate_inputs(self.process_class._process_class, protocol, code, structure, override)
 
-        builder._update(inputs)
+        builder._merge(inputs)
 
         # RelaxType
         if relax_type == RelaxType.NONE:

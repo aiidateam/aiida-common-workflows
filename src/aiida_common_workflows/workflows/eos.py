@@ -144,7 +144,7 @@ class EquationOfStateWorkChain(WorkChain):
             base_inputs['reference_workchain'] = reference_workchain
 
         builder = process_class.get_input_generator().get_builder(**base_inputs, **self.inputs.generator_inputs)
-        builder._update(**self.inputs.get('sub_process', {}))
+        builder._merge(**self.inputs.get('sub_process', {}))
 
         return builder, structure
 
