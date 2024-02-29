@@ -137,7 +137,7 @@ If more flexibility is required, it is advised to write a custom launch script, 
 .. code:: python
 
     from aiida.engine import submit
-    from aiida.plugins import WorkflowFactory
+    from aiida_common_workflows.plugins import WorkflowFactory
 
     RelaxWorkChain = WorkflowFactory('common_workflows.relax.quantum_espresso')  # Load the relax workflow implementation of choice.
 

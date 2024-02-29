@@ -3,6 +3,8 @@ import typing
 
 from aiida.plugins import entry_point
 
+from .factories import WorkflowFactory
+
 PACKAGE_PREFIX = 'common_workflows'
 
 __all__ = ('get_workflow_entry_point_names', 'get_entry_point_name_from_class', 'load_workflow_entry_point')
@@ -38,5 +40,5 @@ def load_workflow_entry_point(workflow: str, plugin_name: str):
     :param plugin_name: name of the plugin implementation.
     :return: the workchain class of the plugin implementation of the common workflow.
     """
-    prefix = f'{PACKAGE_PREFIX}.{workflow}.{plugin_name}'
-    return entry_point.load_entry_point('aiida.workflows', prefix)
+    entry_point_name = f'{PACKAGE_PREFIX}.{workflow}.{plugin_name}'
+    return WorkflowFactory(entry_point_name)
