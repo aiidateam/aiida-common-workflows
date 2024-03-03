@@ -53,16 +53,16 @@ moderate:
             NHOMO: 1  # all eigenvalues are dumped anyway
             NLUMO: 1  # specified neigenvalues are dupmed
           MULLIKEN:
-            _: ON
+            _: 'ON'
             ADD_LAST: SYMBOLIC
             EACH:
               CELL_OPT: 0
               GEO_OPT: 0
               MD: 0
           LOWDIN:
-            _: OFF
+            _: 'OFF'
           HIRSHFELD:
-            _: OFF
+            _: 'OFF'
     MOTION:
       PRINT:
         TRAJECTORY:
@@ -78,15 +78,15 @@ moderate:
             GEO_OPT: 1
             MD: 1
         RESTART_HISTORY:
-          _: OFF
+          _: 'OFF'
         CELL:
-          _: OFF
+          _: 'OFF'
         VELOCITIES:
-          _: OFF
+          _: 'OFF'
         FORCES:
-          _: ON
+          _: 'ON'
         STRESS:
-          _: ON
+          _: 'ON'
       GEO_OPT:
         TYPE: MINIMIZATION                     #default: MINIMIZATION
         OPTIMIZER: BFGS                        #default: BFGS
@@ -159,10 +159,10 @@ precise:
               PARAMETRIZATION: ORIG
         PRINT:
           MO:
-            _: OFF
+            _: 'OFF'
             ADD_LAST: SYMBOLIC
-            EIGENVALUES: ON
-            OCCUPATION_NUMBERS: ON
+            EIGENVALUES: 'ON'
+            OCCUPATION_NUMBERS: 'ON'
             NDIGITS: 12
             EACH:
               CELL_OPT: 0
@@ -170,16 +170,16 @@ precise:
               MD: 0
               QS_SCF: 0
           MULLIKEN:
-            _: ON
+            _: 'ON'
             ADD_LAST: SYMBOLIC
             EACH:
               CELL_OPT: 0
               GEO_OPT: 0
               MD: 0
           LOWDIN:
-            _: OFF
+            _: 'OFF'
           HIRSHFELD:
-            _: OFF
+            _: 'OFF'
     MOTION:
       PRINT:
         TRAJECTORY:
@@ -195,15 +195,15 @@ precise:
             GEO_OPT: 1
             MD: 1
         RESTART_HISTORY:
-          _: OFF
+          _: 'OFF'
         CELL:
-          _: OFF
+          _: 'OFF'
         VELOCITIES:
-          _: OFF
+          _: 'OFF'
         FORCES:
-          _: ON
+          _: 'ON'
         STRESS:
-          _: ON
+          _: 'ON'
       GEO_OPT:
         TYPE: MINIMIZATION                     #default: MINIMIZATION
         OPTIMIZER: BFGS                        #default: BFGS
@@ -284,16 +284,16 @@ fast:
             NHOMO: 1  # all eigenvalues are dumped anyway
             NLUMO: 1  # specified neigenvalues are dupmed
           MULLIKEN:
-            _: ON
+            _: 'ON'
             ADD_LAST: SYMBOLIC
             EACH:
               CELL_OPT: 0
               GEO_OPT: 0
               MD: 0
           LOWDIN:
-            _: OFF
+            _: 'OFF'
           HIRSHFELD:
-            _: OFF
+            _: 'OFF'
     MOTION:
       PRINT:
         TRAJECTORY:
@@ -309,15 +309,15 @@ fast:
             GEO_OPT: 1
             MD: 1
         RESTART_HISTORY:
-          _: OFF
+          _: 'OFF'
         CELL:
-          _: OFF
+          _: 'OFF'
         VELOCITIES:
-          _: OFF
+          _: 'OFF'
         FORCES:
-          _: ON
+          _: 'ON'
         STRESS:
-          _: ON
+          _: 'ON'
       GEO_OPT:
         TYPE: MINIMIZATION                     #default: MINIMIZATION
         OPTIMIZER: BFGS                        #default: BFGS
@@ -398,10 +398,10 @@ verification-PBE-v1:
               PARAMETRIZATION: ORIG
         PRINT:
           MO:
-            _: OFF
+            _: 'OFF'
             ADD_LAST: SYMBOLIC
-            EIGENVALUES: ON
-            OCCUPATION_NUMBERS: ON
+            EIGENVALUES: 'ON'
+            OCCUPATION_NUMBERS: 'ON'
             NDIGITS: 12
             EACH:
               CELL_OPT: 0
@@ -409,16 +409,16 @@ verification-PBE-v1:
               MD: 0
               QS_SCF: 0
           MULLIKEN:
-            _: ON
+            _: 'ON'
             ADD_LAST: SYMBOLIC
             EACH:
               CELL_OPT: 0
               GEO_OPT: 0
               MD: 0
           LOWDIN:
-            _: OFF
+            _: 'OFF'
           HIRSHFELD:
-            _: OFF
+            _: 'OFF'
     MOTION:
       PRINT:
         TRAJECTORY:
@@ -434,15 +434,15 @@ verification-PBE-v1:
             GEO_OPT: 1
             MD: 1
         RESTART_HISTORY:
-          _: OFF
+          _: 'OFF'
         CELL:
-          _: OFF
+          _: 'OFF'
         VELOCITIES:
-          _: OFF
+          _: 'OFF'
         FORCES:
-          _: ON
+          _: 'ON'
         STRESS:
-          _: ON
+          _: 'ON'
       GEO_OPT:
         TYPE: MINIMIZATION                     #default: MINIMIZATION
         OPTIMIZER: BFGS                        #default: BFGS
@@ -509,10 +509,10 @@ verification-PBE-v1-sirius:
               _: ''
         PRINT:
           MO:
-            _: OFF
+            _: 'OFF'
             ADD_LAST: SYMBOLIC
-            EIGENVALUES: ON
-            OCCUPATION_NUMBERS: ON
+            EIGENVALUES: 'ON'
+            OCCUPATION_NUMBERS: 'ON'
             NDIGITS: 12
             EACH:
               CELL_OPT: 0
@@ -520,16 +520,16 @@ verification-PBE-v1-sirius:
               MD: 0
               QS_SCF: 0
           MULLIKEN:
-            _: ON
+            _: 'ON'
             ADD_LAST: SYMBOLIC
             EACH:
               CELL_OPT: 0
               GEO_OPT: 0
               MD: 0
           LOWDIN:
-            _: OFF
+            _: 'OFF'
           HIRSHFELD:
-            _: OFF
+            _: 'OFF'
       SUBSYS:
     MOTION:
       PRINT:
@@ -546,15 +546,15 @@ verification-PBE-v1-sirius:
             GEO_OPT: 1
             MD: 1
         RESTART_HISTORY:
-          _: OFF
+          _: 'OFF'
         CELL:
-          _: OFF
+          _: 'OFF'
         VELOCITIES:
-          _: OFF
+          _: 'OFF'
         FORCES:
-          _: ON
+          _: 'ON'
         STRESS:
-          _: ON
+          _: 'ON'
       GEO_OPT:
         TYPE: MINIMIZATION                     #default: MINIMIZATION
         OPTIMIZER: BFGS                        #default: BFGS
