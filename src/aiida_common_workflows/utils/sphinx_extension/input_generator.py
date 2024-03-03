@@ -4,7 +4,6 @@ import typing as t
 
 from aiida.common.utils import get_object_from_string
 from aiida.engine import Process
-from aiida.manage.configuration import load_profile
 from docutils import nodes
 from docutils.parsers.rst import directives
 from plumpy.ports import PortNamespace
@@ -56,9 +55,6 @@ class CommonInputGeneratorDirective(SphinxDirective):
 
         Includes importing the process class.
         """
-
-        load_profile()
-
         self.class_name = self.arguments[0].split('(')[0]
         self.module_name = self.options['module']
         self.process_name = f'{self.module_name}.{self.class_name}'

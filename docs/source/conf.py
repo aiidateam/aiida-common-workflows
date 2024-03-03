@@ -16,7 +16,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'AiiDA common workflows (ACWF)'
+project = 'ACWF'
 copyright = 'The AiiDA team.'
 author = 'The AiiDA team'
 
@@ -28,7 +28,7 @@ release = '0.1.0'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx_copybutton', 'sphinx_panels', 'aiida.sphinxext', 'aiida_common_workflows.utils.sphinx_extension']
+extensions = ['sphinx_copybutton', 'sphinx_design', 'aiida.sphinxext', 'aiida_common_workflows.utils.sphinx_extension']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
