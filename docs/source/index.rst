@@ -23,35 +23,43 @@ In addition to the common interface, the workflows provide input generators that
 
 The common workflows can be subdivided into two categories:
 
+.. grid:: 1 2 2 2
+   :gutter: 2
 
-.. panels::
-   :body: bg-light text-center
-   :footer: bg-light border-0
+   .. grid-item-card:: :fa:`cogs;mr-1` **Base common workflows**
+      :text-align: center
+      :shadow: md
 
+      Workflows for basic material properties that define a common interface and are implemented for various quantum engines.
 
-   :fa:`cogs,mr-1` **Base common workflows**
+      +++++++++++++++++++++++++++++++++++++++++++++
 
-   Workflows for basic material properties that define a common interface and are implemented for various quantum engines.
+      .. button-ref:: workflows/base/index
+         :ref-type: doc
+         :click-parent:
+         :expand:
+         :color: primary
+         :outline:
 
-   +++++++++++++++++++++++++++++++++++++++++++++
+         To the base workflows
 
-   .. link-button:: workflows/base/index
-      :type: ref
-      :text: To the base workflows
-      :classes: btn-outline-primary btn-block stretched-link
+   .. grid-item-card:: :fa:`sitemap;mr-1` **Composite common workflows**
+      :text-align: center
+      :shadow: md
 
-   ----------------------------------------------
+      Higher-level workflows that reuse base common workflows in order to maintain the common interface.
 
-   :fa:`sitemap,mr-1` **Composite common workflows**
+      +++++++++++++++++++++++++++++++++++++++++++++
 
-   Higher-level workflows that reuse base common workflows in order to maintain the common interface.
+      .. button-ref:: workflows/composite/index
+         :ref-type: doc
+         :click-parent:
+         :expand:
+         :color: primary
+         :outline:
 
-   +++++++++++++++++++++++++++++++++++++++++++++
+         To the composite workflows
 
-   .. link-button:: workflows/composite/index
-      :type: ref
-      :text: To the composite workflows
-      :classes: btn-outline-primary btn-block stretched-link
 
 
 .. _how-to-submit:
