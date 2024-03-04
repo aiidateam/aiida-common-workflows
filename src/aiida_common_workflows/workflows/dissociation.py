@@ -170,7 +170,7 @@ class DissociationCurveWorkChain(WorkChain):
         builder = process_class.get_input_generator().get_builder(
             structure=molecule, reference_workchain=reference_workchain, **self.inputs.generator_inputs
         )
-        builder._update(**self.inputs.get('sub_process', {}))
+        builder._merge(**self.inputs.get('sub_process', {}))
 
         distance_node = molecule.creator.inputs.distance
 

@@ -201,7 +201,7 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             'wf_parameters': wf_para,
         }
 
-        builder._update(inputs)
+        builder._merge(inputs)
 
         return builder
 
