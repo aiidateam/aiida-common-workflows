@@ -31,6 +31,7 @@ repos:
     args: [--autofix]
   - id: pretty-format-yaml
     args: [--autofix]
+    exclude: src/aiida_common_workflows/workflows/relax/cp2k/protocol.yml
 
 - repo: local
   hooks:
