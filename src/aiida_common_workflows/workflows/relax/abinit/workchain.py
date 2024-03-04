@@ -3,7 +3,7 @@ import numpy as np
 from aiida import orm
 from aiida.common import exceptions
 from aiida.engine import calcfunction
-from aiida_abinit.workflows.base import AbinitBaseWorkChain
+from aiida.plugins import WorkflowFactory
 
 from ..workchain import CommonRelaxWorkChain
 from .generator import AbinitCommonRelaxInputGenerator
@@ -44,7 +44,7 @@ def get_total_magnetization(parameters):
 class AbinitCommonRelaxWorkChain(CommonRelaxWorkChain):
     """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for Abinit."""
 
-    _process_class = AbinitBaseWorkChain
+    _process_class = WorkflowFactory('abinit.base')
     _generator_class = AbinitCommonRelaxInputGenerator
 
     def convert_outputs(self):

@@ -1,10 +1,11 @@
 """Tests for the :mod:`aiida_common_workflows.workflows.relax.orca` module."""
-
 import pytest
 from aiida import engine, plugins
 
-WORKCHAIN = plugins.WorkflowFactory('common_workflows.relax.orca')
-GENERATOR = WORKCHAIN.get_input_generator()
+
+@pytest.fixture
+def generator():
+    return plugins.WorkflowFactory('common_workflows.relax.orca').get_input_generator()
 
 
 @pytest.fixture
@@ -22,51 +23,51 @@ def default_builder_inputs(generate_code, generate_structure):
 
 
 @pytest.mark.filterwarnings('ignore: PBC detected ')
-def test_get_builder(default_builder_inputs):
+def test_get_builder(generator, default_builder_inputs):
     """Test the ``get_builder`` with default arguments."""
-    builder = GENERATOR.get_builder(**default_builder_inputs)
+    builder = generator.get_builder(**default_builder_inputs)
     assert isinstance(builder, engine.ProcessBuilder)
 
 
 @pytest.mark.filterwarnings('ignore: PBC detected ')
 @pytest.mark.skip('Running this test will fail with an `UnroutableError` in `kiwipy`.')
-def test_submit(default_builder_inputs):
+def test_submit(generator, default_builder_inputs):
     """Test submitting the builder returned by ``get_builder`` called with default arguments.
 
     This will actually create the ``WorkChain`` instance, so if it doesn't raise, that means the input spec was valid.
     """
-    builder = GENERATOR.get_builder(**default_builder_inputs)
+    builder = generator.get_builder(**default_builder_inputs)
     engine.submit(builder)
 
 
 @pytest.mark.filterwarnings('ignore: PBC detected ')
-def test_supported_electronic_types(default_builder_inputs):
+def test_supported_electronic_types(generator, default_builder_inputs):
     """Test calling ``get_builder`` for the supported ``electronic_types``."""
     inputs = default_builder_inputs
 
-    for electronic_type in GENERATOR.spec().inputs['electronic_type'].choices:
+    for electronic_type in generator.spec().inputs['electronic_type'].choices:
         inputs['electronic_type'] = electronic_type
-        builder = GENERATOR.get_builder(**inputs)
+        builder = generator.get_builder(**inputs)
         assert isinstance(builder, engine.ProcessBuilder)
 
 
 @pytest.mark.filterwarnings('ignore: PBC detected ')
-def test_supported_relax_types(default_builder_inputs):
+def test_supported_relax_types(generator, default_builder_inputs):
     """Test calling ``get_builder`` for the supported ``relax_types``."""
     inputs = default_builder_inputs
 
-    for relax_type in GENERATOR.spec().inputs['relax_type'].choices:
+    for relax_type in generator.spec().inputs['relax_type'].choices:
         inputs['relax_type'] = relax_type
-        builder = GENERATOR.get_builder(**inputs)
+        builder = generator.get_builder(**inputs)
         assert isinstance(builder, engine.ProcessBuilder)
 
 
 @pytest.mark.filterwarnings('ignore: PBC detected ')
-def test_supported_spin_types(default_builder_inputs):
+def test_supported_spin_types(generator, default_builder_inputs):
     """Test calling ``get_builder`` for the supported ``spin_types``."""
     inputs = default_builder_inputs
 
-    for spin_type in GENERATOR.spec().inputs['spin_type'].choices:
+    for spin_type in generator.spec().inputs['spin_type'].choices:
         inputs['spin_type'] = spin_type
-        builder = GENERATOR.get_builder(**inputs)
+        builder = generator.get_builder(**inputs)
         assert isinstance(builder, engine.ProcessBuilder)

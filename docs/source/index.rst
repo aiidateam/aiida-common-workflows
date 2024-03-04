@@ -62,6 +62,49 @@ The common workflows can be subdivided into two categories:
 
 
 
+.. _installation:
+
+************
+Installation
+************
+
+The Python package can be installed from the Python Package index (PyPI) or directly from the source:
+The recommended method of installation is to use the Python package manager ``pip``:
+
+.. code-block:: console
+
+    $ pip install aiida-common-workflows
+
+This will install the latest stable version that was released to PyPI.
+Note that this will not install any of the plugin packages that are required to run any of the common workflow implementations.
+To install all plugin packages that implement a common workflow, run the install with the ``all_plugins`` extra:
+
+.. code-block:: console
+
+    $ pip install aiida-common-workflows[all_plugins]
+
+Alternatively, you can choose a specific plugin to prevent having to install all plugin packages, for example:
+
+.. code-block:: console
+
+    $ pip install aiida-common-workflows[quantum_espresso]
+
+will install the package plus the dependencies that are required to run the implementation for Quantum ESPRESSO.
+The available extras are ``abinit``, ``bigdft``, ``castep``, ``cp2k``, ``fleur``, ``gaussian``, ``gpaw``, ``nwchem``, ``orca``, ``quantum_espresso``, ``siesta``, ``vasp`` and ``wien2k``.
+
+To install the package from source, first clone the repository and then install using ``pip``:
+
+.. code-block:: console
+
+    $ git clone https://github.com/aiidateam/aiida-common-workflows
+    $ pip install -e aiida-common-workflows
+
+The ``-e`` flag will install the package in editable mode, meaning that changes to the source code will be automatically picked up.
+
+To work with ``aiida-common-workflows``, a configured AiiDA profile is required.
+Please refer to `AiiDA's documentation <https://aiida.readthedocs.io/projects/aiida-core/en/latest/intro/get_started.html>`_ for detailed instructions.
+
+
 .. _how-to-submit:
 
 *******************************
@@ -94,7 +137,7 @@ If more flexibility is required, it is advised to write a custom launch script, 
 .. code:: python
 
     from aiida.engine import submit
-    from aiida.plugins import WorkflowFactory
+    from aiida_common_workflows.plugins import WorkflowFactory
 
     RelaxWorkChain = WorkflowFactory('common_workflows.relax.quantum_espresso')  # Load the relax workflow implementation of choice.
 

@@ -1,28 +1,17 @@
 """Tests for the :mod:`aiida_common_workflows.workflows.relax.castep` module."""
-
 import copy
 
 import pytest
 from aiida import engine, plugins
 from aiida.orm import StructureData
 from aiida.plugins import WorkflowFactory
-from aiida_castep.data.otfg import OTFGGroup
-from aiida_common_workflows.workflows.relax.castep.generator import (
-    CastepCommonRelaxInputGenerator,
-    ElectronicType,
-    RelaxType,
-    SpinType,
-    ensure_otfg_family,
-    generate_inputs,
-    generate_inputs_base,
-    generate_inputs_calculation,
-    generate_inputs_relax,
-)
-from aiida_common_workflows.workflows.relax.castep.workchain import CastepCommonRelaxWorkChain
+from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from ase.build.bulk import bulk
 
-WORKCHAIN = plugins.WorkflowFactory('common_workflows.relax.castep')
-GENERATOR = WORKCHAIN.get_input_generator()
+
+@pytest.fixture
+def generator():
+    return plugins.WorkflowFactory('common_workflows.relax.castep').get_input_generator()
 
 
 @pytest.fixture
@@ -50,6 +39,8 @@ def castep_code(generate_code):
 @pytest.fixture
 def with_otfg(with_database):
     """Ensure has OTFG"""
+    from aiida_common_workflows.workflows.relax.castep.generator import ensure_otfg_family
+
     ensure_otfg_family('C19')
 
 
@@ -64,54 +55,57 @@ def default_builder_inputs(generate_code, generate_structure, castep_code):
     }
 
 
-def test_get_builder(default_builder_inputs):
+def test_get_builder(generator, default_builder_inputs):
     """Test the ``get_builder`` with default arguments."""
-    builder = GENERATOR.get_builder(**default_builder_inputs)
+    builder = generator.get_builder(**default_builder_inputs)
     assert isinstance(builder, engine.ProcessBuilder)
 
 
 @pytest.mark.skip('Running this test will fail with an `UnroutableError` in `kiwipy`.')
-def test_submit(default_builder_inputs):
+def test_submit(generator, default_builder_inputs):
     """Test submitting the builder returned by ``get_builder`` called with default arguments.
 
     This will actually create the ``WorkChain`` instance, so if it doesn't raise, that means the input spec was valid.
     """
-    builder = GENERATOR.get_builder(**default_builder_inputs)
+    builder = generator.get_builder(**default_builder_inputs)
     engine.submit(builder)
 
 
-def test_supported_electronic_types(default_builder_inputs):
+def test_supported_electronic_types(generator, default_builder_inputs):
     """Test calling ``get_builder`` for the supported ``electronic_types``."""
     inputs = default_builder_inputs
 
-    for electronic_type in GENERATOR.spec().inputs['electronic_type'].choices:
+    for electronic_type in generator.spec().inputs['electronic_type'].choices:
         inputs['electronic_type'] = electronic_type
-        builder = GENERATOR.get_builder(**inputs)
+        builder = generator.get_builder(**inputs)
         assert isinstance(builder, engine.ProcessBuilder)
 
 
-def test_supported_relax_types(default_builder_inputs):
+def test_supported_relax_types(generator, default_builder_inputs):
     """Test calling ``get_builder`` for the supported ``relax_types``."""
     inputs = default_builder_inputs
 
-    for relax_type in GENERATOR.spec().inputs['relax_type'].choices:
+    for relax_type in generator.spec().inputs['relax_type'].choices:
         inputs['relax_type'] = relax_type
-        builder = GENERATOR.get_builder(**inputs)
+        builder = generator.get_builder(**inputs)
         assert isinstance(builder, engine.ProcessBuilder)
 
 
-def test_supported_spin_types(default_builder_inputs):
+def test_supported_spin_types(generator, default_builder_inputs):
     """Test calling ``get_builder`` for the supported ``spin_types``."""
     inputs = default_builder_inputs
 
-    for spin_type in GENERATOR.spec().inputs['spin_type'].choices:
+    for spin_type in generator.spec().inputs['spin_type'].choices:
         inputs['spin_type'] = spin_type
-        builder = GENERATOR.get_builder(**inputs)
+        builder = generator.get_builder(**inputs)
         assert isinstance(builder, engine.ProcessBuilder)
 
 
 def test_calc_generator(nacl, castep_code, with_otfg):
     """Test the functionality of the calculation generator"""
+    from aiida_castep.data.otfg import OTFGGroup
+    from aiida_common_workflows.workflows.relax.castep.generator import generate_inputs_calculation
+
     protcol = {
         'kpoints_spacing': 0.05,
         'calc': {'parameters': {'task': 'geometryoptimisation', 'basis_precision': 'medium'}},
@@ -128,6 +122,9 @@ def test_calc_generator(nacl, castep_code, with_otfg):
 
 def test_base_generator(castep_code, nacl, with_otfg):
     """Test for generating the Base namespace"""
+    from aiida_castep.data.otfg import OTFGGroup
+    from aiida_common_workflows.workflows.relax.castep.generator import generate_inputs_base
+
     protcol = {
         'kpoints_spacing': 0.05,
         'max_iterations': 5,
@@ -145,12 +142,12 @@ def test_base_generator(castep_code, nacl, with_otfg):
     assert generated['calc']['metadata']['label'] == 'test'
 
 
-def test_relax_generator(castep_code, nacl, with_otfg):
+def test_relax_generator(generator, castep_code, nacl, with_otfg):
     """Test for generating the relax namespace"""
-    CastepCommonRelaxWorkChain = WorkflowFactory('castep.relax')  # noqa: N806
-    protocol = CastepCommonRelaxInputGenerator(process_class=CastepCommonRelaxWorkChain).get_protocol('moderate')[
-        'relax'
-    ]
+    from aiida_castep.data.otfg import OTFGGroup
+    from aiida_common_workflows.workflows.relax.castep.generator import generate_inputs_relax
+
+    protocol = generator.get_protocol('moderate')['relax']
     override = {
         'base': {
             'metadata': {'label': 'test'},
@@ -170,11 +167,13 @@ def test_relax_generator(castep_code, nacl, with_otfg):
     assert generated['base']['metadata']['label'] == 'test'
 
 
-def test_generate_inputs(castep_code, nacl, si):
+def test_generate_inputs(generator, castep_code, nacl, si):
     """
     Test for the generator
     """
-    protocol = CastepCommonRelaxInputGenerator(process_class=CastepCommonRelaxWorkChain).get_protocol('moderate')
+    from aiida_common_workflows.workflows.relax.castep.generator import generate_inputs
+
+    protocol = generator.get_protocol('moderate')
     override = {'base': {'metadata': {'label': 'test'}, 'calc': {}}}
 
     output = generate_inputs(WorkflowFactory('castep.relax'), copy.deepcopy(protocol), castep_code, si, override)
@@ -186,28 +185,31 @@ def test_generate_inputs(castep_code, nacl, si):
     assert 'structure' in output['calc']
 
 
-def test_input_generator(castep_code, nacl, si):
+def test_input_generator(generator, castep_code, nacl, si):
     """Test for the input generator"""
-    gen = CastepCommonRelaxInputGenerator(process_class=CastepCommonRelaxWorkChain)
     engines = {'relax': {'code': castep_code, 'options': {}}}
-    builder = gen.get_builder(structure=si, engines=engines, protocol='moderate')
+    builder = generator.get_builder(structure=si, engines=engines, protocol='moderate')
     param = builder.calc.parameters.get_dict()
     assert param['cut_off_energy'] == 326
     assert builder.base.kpoints_spacing == pytest.approx(0.023873, abs=1e-6)
 
-    builder = gen.get_builder(structure=si, engines=engines, protocol='moderate', relax_type=RelaxType.POSITIONS)
+    builder = generator.get_builder(structure=si, engines=engines, protocol='moderate', relax_type=RelaxType.POSITIONS)
     assert 'fix_all_cell' in builder.calc.parameters.get_dict()
 
-    builder = gen.get_builder(structure=si, engines=engines, protocol='moderate', relax_type=RelaxType.POSITIONS_SHAPE)
+    builder = generator.get_builder(
+        structure=si, engines=engines, protocol='moderate', relax_type=RelaxType.POSITIONS_SHAPE
+    )
     assert 'fix_vol' in builder.calc.parameters.get_dict()
 
-    builder = gen.get_builder(structure=si, engines=engines, protocol='moderate', spin_type=SpinType.COLLINEAR)
+    builder = generator.get_builder(structure=si, engines=engines, protocol='moderate', spin_type=SpinType.COLLINEAR)
     assert 'SPINS' in builder.calc.settings.get_dict()
 
-    builder = gen.get_builder(structure=si, engines=engines, protocol='moderate', spin_type=SpinType.NON_COLLINEAR)
+    builder = generator.get_builder(
+        structure=si, engines=engines, protocol='moderate', spin_type=SpinType.NON_COLLINEAR
+    )
     assert builder.calc.settings['SPINS'][0] == [1.0, 1.0, 1.0]
 
-    builder = gen.get_builder(
+    builder = generator.get_builder(
         structure=si, engines=engines, protocol='moderate', electronic_type=ElectronicType.INSULATOR
     )
     assert builder.calc.settings is None
@@ -218,6 +220,8 @@ def test_otfg_upload(with_otfg):
     """
     Test uploading customized OTFG family
     """
+    from aiida_castep.data.otfg import OTFGGroup
+    from aiida_common_workflows.workflows.relax.castep.generator import ensure_otfg_family
 
     # Initial upload
     ensure_otfg_family('C19V2')

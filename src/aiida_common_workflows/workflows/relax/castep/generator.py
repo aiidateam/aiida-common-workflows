@@ -8,13 +8,14 @@ from math import pi
 import yaml
 from aiida import engine, orm, plugins
 from aiida.common import exceptions
-from aiida_castep.data import get_pseudos_from_structure
-from aiida_castep.data.otfg import OTFGGroup
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
 
 from ..generator import CommonRelaxInputGenerator
+
+if t.TYPE_CHECKING:
+    from aiida_castep.data.otfg import OTFGGroup
 
 KNOWN_BUILTIN_FAMILIES = ('C19', 'NCP19', 'QC5', 'C17', 'C9')
 
@@ -247,8 +248,8 @@ def generate_inputs(
     :param override: a dictionary to override specific inputs
     :return: input dictionary
     """
-
     from aiida.common.lang import type_check
+    from aiida_castep.data.otfg import OTFGGroup
 
     family_name = protocol['relax']['base']['pseudos_family']
     if isinstance(family_name, orm.Str):
@@ -285,7 +286,7 @@ def generate_inputs_relax(
     protocol: t.Dict,
     code: orm.Code,
     structure: orm.StructureData,
-    otfg_family: OTFGGroup,
+    otfg_family: 'OTFGGroup',
     override: t.Optional[t.Dict[str, t.Any]] = None,
 ) -> t.Dict[str, t.Any]:
     """Generate the inputs for the `CastepCommonRelaxWorkChain` for a given code, structure and pseudo potential family.
@@ -321,7 +322,7 @@ def generate_inputs_base(
     protocol: t.Dict,
     code: orm.Code,
     structure: orm.StructureData,
-    otfg_family: OTFGGroup,
+    otfg_family: 'OTFGGroup',
     override: t.Optional[t.Dict[str, t.Any]] = None,
 ) -> t.Dict[str, t.Any]:
     """Generate the inputs for the `CastepBaseWorkChain` for a given code, structure and pseudo potential family.
@@ -359,7 +360,7 @@ def generate_inputs_calculation(
     protocol: t.Dict,
     code: orm.Code,
     structure: orm.StructureData,
-    otfg_family: OTFGGroup,
+    otfg_family: 'OTFGGroup',
     override: t.Optional[t.Dict[str, t.Any]] = None,
 ) -> t.Dict[str, t.Any]:
     """Generate the inputs for the `CastepCalculation` for a given code, structure and pseudo potential family.
@@ -372,6 +373,7 @@ def generate_inputs_calculation(
     :return: the fully defined input dictionary.
     """
     from aiida_castep.calculations.helper import CastepHelper
+    from aiida_castep.data import get_pseudos_from_structure
 
     override = {} if not override else override.get('calc', {})
     # This merge perserves the merged `parameters` in the override
@@ -415,9 +417,8 @@ def ensure_otfg_family(family_name, force_update=False):
     NOTE: CASTEP also supports UPF families, but it is not enabled here, since no UPS based protocol
     has been implemented.
     """
-
     from aiida.common import NotExistent
-    from aiida_castep.data.otfg import upload_otfg_family
+    from aiida_castep.data.otfg import OTFGGroup, upload_otfg_family
 
     # Ensure family name is a str
     if isinstance(family_name, orm.Str):
