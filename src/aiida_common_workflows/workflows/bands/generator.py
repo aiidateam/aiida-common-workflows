@@ -52,6 +52,7 @@ class CommonBandsInputGenerator(InputGenerator, metaclass=abc.ABCMeta):
         spec.input(
             'engines.bands.options',
             valid_type=dict,
+            non_db=True,
             required=False,
             help='Options for the bands calculation jobs.',
         )

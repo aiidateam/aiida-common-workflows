@@ -57,7 +57,7 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             ('fast', 'moderate', 'precise', 'oxides_validation', 'verification-PBE-v1')
         )
         spec.input('engines.inpgen.code', valid_type=orm.Code, serializer=orm.load_code)
-        spec.input('engines.inpgen.options', valid_type=dict, required=False)
+        spec.input('engines.inpgen.options', non_db=True, valid_type=dict, required=False)
         spec.inputs['engines']['relax']['code'].valid_type = CodeType('fleur.fleur')
         spec.inputs['engines']['inpgen']['code'].valid_type = CodeType('fleur.inpgen')
 
