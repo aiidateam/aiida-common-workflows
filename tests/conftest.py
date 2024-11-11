@@ -87,7 +87,7 @@ def generate_input_generator_cls():
 
                 if inputs_dict is not None:
                     for k, val in inputs_dict.items():
-                        spec.input(k, valid_type=val)
+                        spec.input(k, valid_type=val, non_db=True)
 
             def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:
                 builder = self.process_class.get_builder()

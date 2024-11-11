@@ -107,7 +107,7 @@ class StructureDataParamType(click.Choice):
 
         duplicate = (
             QueryBuilder()
-            .append(StructureData, filters={'extras._aiida_hash': structure.base.caching._get_hash()})
+            .append(StructureData, filters={'extras._aiida_hash': structure.base.caching._compute_hash()})
             .first()
         )
 
