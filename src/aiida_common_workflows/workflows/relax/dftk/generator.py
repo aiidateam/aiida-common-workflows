@@ -77,8 +77,7 @@ class DftkCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         pseudo_family_label = protocol.pop('pseudo_family')
         try:
-            # TODO: Fix deprecation warning "AiidaDeprecationWarning: `objects` property is deprecated, use `collection` instead. (this will be removed in v3)"
-            pseudo_family = orm.Group.objects.get(label=pseudo_family_label)
+            pseudo_family = orm.Group.collection.get(label=pseudo_family_label)
         except exceptions.NotExistent as exception:
             raise ValueError(
                 f'required pseudo family `{pseudo_family_label}` is not installed. '
