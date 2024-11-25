@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
-# pylint: disable=undefined-variable
-"""Module with the implementations of the common structure relaxation workchain for Abinit."""
+"""Module with the implementations of the common structure relaxation workchain for DFTK."""
 from .generator import *
 from .workchain import *
 
-__all__ = (generator.__all__ + workchain.__all__)
+__all__ = generator.__all__ + workchain.__all__

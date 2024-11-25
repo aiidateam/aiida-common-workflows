@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for Dftk."""
 import collections
 import copy
@@ -19,14 +18,13 @@ from ..generator import CommonRelaxInputGenerator
 
 __all__ = ('DftkCommonRelaxInputGenerator',)
 
-StructureData = plugins.DataFactory('structure')
+StructureData = plugins.DataFactory('core.structure')
 
 
 class DftkCommonRelaxInputGenerator(CommonRelaxInputGenerator):
     """Input generator for the `DftkCommonRelaxWorkChain`."""
 
-    _default_protocol = 'fast'
-    _default_smearing_temperature = 0.1 * units.eV_to_Ha  # 0.1eV -> Ha
+    _default_protocol = 'moderate'
 
     def __init__(self, *args, **kwargs):
         """Construct an instance of the input generator, validating the class attributes."""
@@ -45,6 +43,7 @@ class DftkCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         The ports defined on the specification are the inputs that will be accepted by the ``get_builder`` method.
         """
         super().define(spec)
+        # TODO: why is this being redefined? the super call should be enough, unless something is explicitly being overridden.
         # TODO: spin and relax after spin and relax implementation in aiida and DFTK
         # spec.inputs['spin_type'].valid_type = ChoiceType(tuple(SpinType))
         # spec.inputs['relax_type'].valid_type = ChoiceType([
@@ -54,7 +53,7 @@ class DftkCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             (ElectronicType.METAL, ElectronicType.INSULATOR, ElectronicType.UNKNOWN, ElectronicType.AUTOMATIC)
         )
         spec.inputs['engines']['relax']['code'].valid_type = CodeType('dftk')
-        spec.inputs['protocol'].valid_type = ChoiceType(('fast', 'moderate', 'precise', 'verification-pbe-v1', 'fastest'))
+        spec.inputs['protocol'].valid_type = ChoiceType(('fastest', 'fast', 'moderate', 'precise'))
 
     def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:
         """Construct a process builder based on the provided keyword arguments.
@@ -78,6 +77,7 @@ class DftkCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         pseudo_family_label = protocol.pop('pseudo_family')
         try:
+            # TODO: Fix deprecation warning "AiidaDeprecationWarning: `objects` property is deprecated, use `collection` instead. (this will be removed in v3)"
             pseudo_family = orm.Group.objects.get(label=pseudo_family_label)
         except exceptions.NotExistent as exception:
             raise ValueError(
@@ -86,12 +86,9 @@ class DftkCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             ) from exception
 
         cutoff_stringency = protocol['cutoff_stringency']
-        pseudo_type = pseudo_family.pseudo_type
         recommended_ecut_wfc, recommended_ecut_rho = pseudo_family.get_recommended_cutoffs(
             structure=structure, stringency=cutoff_stringency, unit='Eh'
         )
-
-        pseudo_rcut = orm.Float(protocol['base']['dftk']['pseudo_rcut'])
 
         #TODO: pawecutdg after PAW implementation in DFTK
         # All are NC; no need for `pawecutdg`
@@ -103,7 +100,6 @@ class DftkCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                     'options': engines['relax']['options']
                 },
                 'pseudos': pseudo_family.get_pseudos(structure=structure),
-                'pseudo_rcut': pseudo_rcut,
                 'parameters': {
                     "basis_kwargs": {
                         "Ecut": recommended_ecut_wfc
@@ -175,34 +171,17 @@ class DftkCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         # ElectronicType
         # Default: ElectronicType.METAL
-        if electronic_type == ElectronicType.AUTOMATIC:
-            # Check if smearing & temperature are specified in the protocol
-            if ('smearing' not in builder.dftk['parameters']['model_kwargs'] or 
-                'temperature' not in builder.dftk['parameters']['model_kwargs']):
-                electronic_type = ElectronicType.UNKNOWN
-            else:
-                pass
-
-        if electronic_type == ElectronicType.AUTOMATIC: 
-            # follow the protocol. redundant, but explicit
-            pass
-        else:
-            # override the protocol's smearing and temperature
-            builder.dftk['parameters']['model_kwargs'].pop('smearing', None)
+        if electronic_type == ElectronicType.METAL:
+            # Mazari-Vanderbilt (cold) smearing for metals
+            builder.dftk['parameters']['model_kwargs']['smearing'] = {'$symbol': 'Smearing.MarzariVanderbilt'}
+        elif electronic_type == ElectronicType.UNKNOWN:
+            # Gaussian smearing for unknowns
+            builder.dftk['parameters']['model_kwargs']['smearing'] = {'$symbol': 'Smearing.Gaussian'}
+        elif electronic_type == ElectronicType.INSULATOR:
+            # fixed occupations for insulators: remove temperature specified in protocol
             builder.dftk['parameters']['model_kwargs'].pop('temperature', None)
-            if electronic_type == ElectronicType.METAL:
-                # Mazari-Vanderbilt (cold) smearing for metals
-                builder.dftk['parameters']['model_kwargs']['smearing'] = {'$symbol': 'Smearing.MarzariVanderbilt'}
-                builder.dftk['parameters']['model_kwargs']['temperature'] = self._default_smearing_temperature
-            elif electronic_type == ElectronicType.UNKNOWN:
-                # Gaussian smearing for unknowns
-                builder.dftk['parameters']['model_kwargs']['smearing'] = {'$symbol': 'Smearing.Gaussian'}
-                builder.dftk['parameters']['model_kwargs']['temperature'] = self._default_smearing_temperature
-            elif electronic_type == ElectronicType.INSULATOR:
-                # fixed occupations for insulators
-                pass
-            else:
-                raise ValueError(f'electronic type `{electronic_type.value}` is not supported')
+        else:
+            raise ValueError(f'electronic type `{electronic_type.value}` is not supported')
             
 
         # previous workchain
@@ -246,7 +225,7 @@ def generate_inputs(
     process_class: engine.Process,
     protocol: t.Dict,
     code: orm.Code,
-    structure: StructureData,
+    structure: orm.StructureData,
     override: t.Dict[str, t.Any] = None
 ) -> t.Dict[str, t.Any]:
     """Generate the input parameters for the given workchain type for a given code and structure.
@@ -307,7 +286,7 @@ def recursive_merge(left: t.Dict[str, t.Any], right: t.Dict[str, t.Any]) -> t.Di
 def generate_inputs_base(
     protocol: t.Dict,
     code: orm.Code,
-    structure: StructureData,
+    structure: orm.StructureData,
     override: t.Dict[str, t.Any] = None
 ) -> t.Dict[str, t.Any]:
     """Generate the inputs for the `DftkBaseWorkChain` for a given code, structure and pseudo potential family.
@@ -339,7 +318,7 @@ def generate_inputs_base(
 def generate_inputs_calculation(
     protocol: t.Dict,
     code: orm.Code,
-    structure: StructureData,
+    structure: orm.StructureData,
     override: t.Dict[str, t.Any] = None
 ) -> t.Dict[str, t.Any]:
     """Generate the inputs for the `DftkCalculation` for a given code, structure and pseudo potential family.

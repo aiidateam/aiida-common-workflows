@@ -1,17 +1,36 @@
+fastest:
+    name: "fastest"
+    description: Protocol to relax a structure with very low precision at minimal computational cost for testing purposes.
+    pseudo_family: "PseudoDojo/0.5/PBE/SR/standard/upf"
+    cutoff_stringency: "low"
+    base:
+        kpoints_distance: 2 # [1/AA]
+        dftk:
+            parameters:
+                model_kwargs:
+                    functionals: [":gga_x_pbe", ":gga_c_pbe"]
+                    temperature: 0.00225 # Ha
+                scf:
+                    $kwargs:
+                        maxiter: 100
+                        is_converged:
+                            $args: 1.0e-1
+                            $symbol: "ScfConvergenceDensity"
+                    $function: "self_consistent_field"
+                    checkpointfile: "scfres.jld2"
+                postscf: []
+
 fast:
     name: "fast"
-    description: "fast protocol for testing purposes"
+    description: Protocol to relax a structure with low precision at low computational cost for testing purposes.
     pseudo_family: "PseudoDojo/0.5/PBE/SR/standard/upf"
     cutoff_stringency: "low"
     base:
         kpoints_distance: 1 # [1/AA]
         dftk:
-            pseudo_rcut: 10.0
             parameters:
                 model_kwargs:
-                    xc: [":gga_x_pbe", ":gga_c_pbe"]
-                    smearing: 
-                        $symbol: "Smearing.FermiDirac"
+                    functionals: [":gga_x_pbe", ":gga_c_pbe"]
                     temperature: 0.00225 # Ha
                 scf:
                     $kwargs:
@@ -25,50 +44,50 @@ fast:
                   - $function: "compute_forces_cart"
                   - $function: "compute_stresses_cart"
 
-fastest:
-    name: "fastest"
-    description: "fastest protocol for testing purposes"
+moderate:
+    name: "moderate"
+    description: Protocol to relax a structure with normal precision at moderate computational cost.
     pseudo_family: "PseudoDojo/0.5/PBE/SR/standard/upf"
-    cutoff_stringency: "low"
+    cutoff_stringency: "normal"
     base:
-        kpoints_distance: 2 # [1/AA]
+        kpoints_distance: 0.2 # [1/AA]
         dftk:
-            pseudo_rcut: 10.0
             parameters:
                 model_kwargs:
-                    xc: [":gga_x_pbe", ":gga_c_pbe"]
-                scf:
-                    $kwargs:
-                        maxiter: 100
-                        is_converged:
-                            $args: 1.0e-1
-                            $symbol: "ScfConvergenceDensity"
-                    $function: "self_consistent_field"
-                    checkpointfile: "scfres.jld2"
-                postscf: []
-
-
-verification-pbe-v1:
-    name: "verification-pbe-v1"
-    description: "Main protocol for the ACWF verification study - PseudoDojo v0.5"
-    pseudo_family: "PseudoDojo/0.5/PBE/SR/standard/upf"
-    cutoff_stringency: "high+20"
-    base:
-        kpoints_distance: 0.06 # [1/AA]
-        dftk:
-            pseudo_rcut: 10.0
-            parameters:
-                model_kwargs:
-                    xc: [":gga_x_pbe", ":gga_c_pbe"]
-                    smearing: 
-                        $symbol: "Smearing.FermiDirac"
+                    functionals: [":gga_x_pbe", ":gga_c_pbe"]
                     temperature: 0.00225 # Ha
                 scf:
                     $kwargs:
-                        maxiter: 500
+                        maxiter: 200
                         is_converged:
-                            $args: 1.0e-10
+                            $args: 1.0e-9
                             $symbol: "ScfConvergenceDensity"
                     $function: "self_consistent_field"
                     checkpointfile: "scfres.jld2"
-                postscf: []
+                postscf:
+                  - $function: "compute_forces_cart"
+                  - $function: "compute_stresses_cart"
+
+precise:
+    name: "precise"
+    description: Protocol to relax a structure with high precision at higher computational cost.
+    pseudo_family: "PseudoDojo/0.5/PBE/SR/standard/upf"
+    cutoff_stringency: "high"
+    base:
+        kpoints_distance: 0.04 # [1/AA]
+        dftk:
+            parameters:
+                model_kwargs:
+                    functionals: [":gga_x_pbe", ":gga_c_pbe"]
+                    temperature: 0.00225 # Ha
+                scf:
+                    $kwargs:
+                        maxiter: 300
+                        is_converged:
+                            $args: 1.0e-10  
+                            $symbol: "ScfConvergenceDensity"
+                    $function: "self_consistent_field"
+                    checkpointfile: "scfres.jld2"
+                postscf:
+                  - $function: "compute_forces_cart"
+                  - $function: "compute_stresses_cart"
