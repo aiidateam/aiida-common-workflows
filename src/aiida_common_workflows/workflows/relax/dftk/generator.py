@@ -106,6 +106,9 @@ class DftkCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 }
             }
         }
+        # For PseudoDojo potentials, add an rcut of 10 to match results of QE
+        if pseudo_family_label.startswith('PseudoDojo'):
+           override['dftk']['pseudo_rcut'] = orm.Float(10)
 
         builder = self.process_class.get_builder()
 
