@@ -14,6 +14,7 @@ The links in the table below provide detailed information on the input generator
    implementations/bigdft
    implementations/castep
    implementations/cp2k
+   implementations/dftk
    implementations/fleur
    implementations/gaussian
    implementations/nwchem
@@ -225,7 +226,7 @@ The available ``<ENGINE>`` are:
 
 .. code:: console
 
-    [abinit|bigdft|castep|cp2k|fleur|gaussian|orca|quantum_espresso|siesta|vasp]
+    [abinit|bigdft|castep|cp2k|dftk|fleur|gaussian|orca|quantum_espresso|siesta|vasp]
 
 
 A list of options follows:
