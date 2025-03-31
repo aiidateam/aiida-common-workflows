@@ -1,7 +1,7 @@
 verification-PBE-v1:
   description: Main protocol for the ACWF verification study
   base:
-    pseudo_family: &pseudo_family SSSP/1.2/PBE/precision
+    pseudo_family: &pseudo_family PseudoDojo/0.4/PBE/SR/standard/upf
     kpoints_distance: &kpoints_distance 0.06
     meta_parameters:
       conv_thr_per_atom: &conv_thr_per_atom 0.1e-9
@@ -12,6 +12,7 @@ verification-PBE-v1:
           force_thr: 0.5e-4
           smearing_method: &smearing_method fd
           smearing_sigma: &smearing_sigma 0.0045
+          kpar: 4
   base_final_scf:
     pseudo_family: *pseudo_family
     kpoints_distance: *kpoints_distance
@@ -22,3 +23,4 @@ verification-PBE-v1:
         input:
           smearing_method: *smearing_method
           smearing_sigma: *smearing_sigma
+          kpar: 4

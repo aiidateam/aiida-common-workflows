@@ -22,7 +22,7 @@ def extract_from_misc(misc):
     # Get the forces and stress, abacus report these values in eV/A and KBar
     forces = np.array(misc['final_forces'])
     forces = orm.ArrayData({'forces': forces})
-    stress = np.array(misc['final_pressure']) / 10  # Convert to GPa
+    stress = np.array(misc['final_stress']) / 10  # Convert to GPa
     stress = orm.ArrayData({'stress': stress})
 
     if total_magnetization is not None:
