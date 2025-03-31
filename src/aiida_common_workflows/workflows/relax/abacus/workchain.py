@@ -14,6 +14,8 @@ __all__ = ('AbacusCommonRelaxInputGenerator',)
 def extract_from_misc(misc):
     """Return the total energy and optionally the total magnetization from the given parameters node."""
 
+    # Default to use the free energy (E_KohnSham - TS) since it is consistent with the
+    # forces and is also used by the ACWF verification project
     total_energy = misc.base.attributes.get('total_energy')
     total_magnetization = misc.base.attributes.get('total_magnetization', None)
 
