@@ -1,4 +1,5 @@
 """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for Quantum ESPRESSO."""
+
 import pint
 from aiida import orm
 from aiida.engine import calcfunction
@@ -67,3 +68,4 @@ class QuantumEspressoCommonRelaxWorkChain(CommonRelaxWorkChain):
         self.out('total_energy', total_energy)
         self.out('forces', forces)
         self.out('stress', stress)
+        self.out('remote_folder', outputs.remote_folder)
