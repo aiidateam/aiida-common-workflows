@@ -67,7 +67,7 @@ def create_magnetic_allotrope(structure, magnetization_per_site):
 class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
     """Input generator for the common relax workflow implementation of Quantum ESPRESSO."""
 
-    _supported_features = frozenset([OptionalRelaxFeatures.FIXED_MAGNETIZATION])
+    _supported_optional_features = frozenset([OptionalRelaxFeatures.FIXED_MAGNETIZATION])
 
     def __init__(self, *args, **kwargs):
         """Construct an instance of the input generator, validating the class attributes."""

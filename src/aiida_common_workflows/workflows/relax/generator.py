@@ -22,7 +22,7 @@ class CommonRelaxInputGenerator(InputGenerator, ProtocolRegistry, metaclass=abc.
     modify the ports defined here in the base class as well as add additional custom ports.
     """
 
-    _supported_features = frozenset(OptionalRelaxFeatures)
+    _optional_features = frozenset(OptionalRelaxFeatures)
 
     @classmethod
     def define(cls, spec):

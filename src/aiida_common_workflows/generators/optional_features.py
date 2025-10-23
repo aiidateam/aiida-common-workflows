@@ -9,17 +9,23 @@ class OptionalFeature(str, Enum):
 class OptionalFeatureMixin:
     """Mixin class for input generators that support optional features."""
 
-    _supported_features: FrozenSet[OptionalFeature] = frozenset()
+    _optional_features: FrozenSet[OptionalFeature] = frozenset()
+    _supported_optional_features: FrozenSet[OptionalFeature] = frozenset()
+
+    @classmethod
+    def get_optional_features(cls) -> set[OptionalFeature]:
+        """Return the set of optional features for this common workflow."""
+        return set(cls._optional_features)
 
     @classmethod
     def get_supported_optional_features(cls) -> set[OptionalFeature]:
-        """Return the set of features supported by this implementation."""
-        return set(cls._supported_features)
+        """Return the set of optional features supported by this implementation."""
+        return set(cls._supported_optional_features)
 
     @classmethod
     def supports_feature(cls, feature: OptionalFeature) -> bool:
         """Return whether the given feature is supported by this implementation."""
-        return feature in cls._supported_features
+        return feature in cls._supported_optional_features
 
     @classmethod
     def validate_optional_features(
