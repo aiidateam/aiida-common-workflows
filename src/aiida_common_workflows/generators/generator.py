@@ -4,6 +4,7 @@ import copy
 
 from aiida import engine, orm
 
+from .optional_features import OptionalFeatureMixin
 from .spec import InputGeneratorSpec
 
 __all__ = ('InputGenerator',)
@@ -22,7 +23,7 @@ def recursively_check_stored_nodes(obj):
     return copy.deepcopy(obj)
 
 
-class InputGenerator(metaclass=abc.ABCMeta):
+class InputGenerator(OptionalFeatureMixin, metaclass=abc.ABCMeta):
     """Base class for an input generator for a common workflow."""
 
     _spec_cls: InputGeneratorSpec = InputGeneratorSpec
@@ -79,8 +80,14 @@ class InputGenerator(metaclass=abc.ABCMeta):
 
         processed_kwargs = self.spec().inputs.pre_process(copied_kwargs)
         serialized_kwargs = self.spec().inputs.serialize(processed_kwargs)
+
+        optional_features = {k for k, v in self.spec().inputs.ports.items() if getattr(v, 'optional', None)}
+        optional_features_requested = {k for k, v in processed_kwargs.items() if k in optional_features}
+
+        validate_optional_features_error = self.validate_optional_features(optional_features_requested)
         validation_error = self.spec().inputs.validate(serialized_kwargs)
 
+        validation_error = validate_optional_features_error or validation_error
         if validation_error is not None:
             raise ValueError(validation_error)
 

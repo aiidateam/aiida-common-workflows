@@ -7,7 +7,7 @@ from aiida import engine, orm, plugins
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
 
-from ..generator import CommonRelaxInputGenerator
+from ..generator import CommonRelaxInputGenerator, OptionalRelaxFeatures
 
 __all__ = ('QuantumEspressoCommonRelaxInputGenerator',)
 
@@ -67,6 +67,8 @@ def create_magnetic_allotrope(structure, magnetization_per_site):
 class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
     """Input generator for the common relax workflow implementation of Quantum ESPRESSO."""
 
+    _supported_features = frozenset([OptionalRelaxFeatures.FIXED_MAGNETIZATION])
+
     def __init__(self, *args, **kwargs):
         """Construct an instance of the input generator, validating the class attributes."""
         process_class = kwargs.get('process_class', None)
@@ -118,6 +120,7 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         relax_type = kwargs['relax_type']
         electronic_type = kwargs['electronic_type']
         magnetization_per_site = kwargs.get('magnetization_per_site', None)
+        fixed_total_cell_magnetization = kwargs.get('fixed_total_cell_magnetization', None)
         threshold_forces = kwargs.get('threshold_forces', None)
         threshold_stress = kwargs.get('threshold_stress', None)
         reference_workchain = kwargs.get('reference_workchain', None)
@@ -155,6 +158,37 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             protocol = self._default_protocol
         else:
             overrides = {}
+
+        if fixed_total_cell_magnetization is not None:
+            base_parameters_overrides = (
+                overrides.setdefault('base', {})
+                .setdefault('pw', {})
+                .setdefault('parameters', {})
+                .setdefault('SYSTEM', {})
+            )
+            final_scf_parameters_overrides = (
+                overrides.setdefault('base_final_scf', {})
+                .setdefault('pw', {})
+                .setdefault('parameters', {})
+                .setdefault('SYSTEM', {})
+            )
+
+            if spin_type != types.SpinType.COLLINEAR:
+                raise ValueError(
+                    'The `fixed_total_cell_magnetization` input can only be used when `spin_type` is set to '
+                    '`SpinType.COLLINEAR`.'
+                )
+            elif (base_parameters_overrides.get('tot_magnetization') is not None) or (
+                final_scf_parameters_overrides.get('tot_magnetization') is not None
+            ):
+                raise ValueError(
+                    'The `tot_magnetization` parameter for fixed spin moment calculations has been specified both via '
+                    '`fixed_total_cell_magnetization` and in the protocol overrides. '
+                    'Please only specify it in one place.'
+                )
+
+            base_parameters_overrides['tot_magnetization'] = fixed_total_cell_magnetization
+            final_scf_parameters_overrides['tot_magnetization'] = fixed_total_cell_magnetization
 
         options_overrides = {
             'base': {'pw': {'metadata': {'options': engines['relax']['options']}}},

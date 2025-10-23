@@ -4,10 +4,15 @@ import abc
 from aiida import orm, plugins
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
-from aiida_common_workflows.generators import ChoiceType, InputGenerator
+from aiida_common_workflows.generators import ChoiceType, InputGenerator, OptionalFeatureType
+from aiida_common_workflows.generators.optional_features import OptionalFeature
 from aiida_common_workflows.protocol import ProtocolRegistry
 
 __all__ = ('CommonRelaxInputGenerator',)
+
+
+class OptionalRelaxFeatures(OptionalFeature):
+    FIXED_MAGNETIZATION = 'fixed_total_cell_magnetization'
 
 
 class CommonRelaxInputGenerator(InputGenerator, ProtocolRegistry, metaclass=abc.ABCMeta):
@@ -16,6 +21,8 @@ class CommonRelaxInputGenerator(InputGenerator, ProtocolRegistry, metaclass=abc.
     This class should be subclassed by implementations for specific quantum engines. After calling the super, they can
     modify the ports defined here in the base class as well as add additional custom ports.
     """
+
+    _supported_features = frozenset(OptionalRelaxFeatures)
 
     @classmethod
     def define(cls, spec):
@@ -67,6 +74,14 @@ class CommonRelaxInputGenerator(InputGenerator, ProtocolRegistry, metaclass=abc.
             'spin polarization in units of electrons, meaning the difference between spin up and spin down '
             'electrons, for the site. This also corresponds to the magnetization of the site in Bohr magnetons '
             '(μB).',
+        )
+        spec.input(
+            'fixed_total_cell_magnetization',
+            valid_type=OptionalFeatureType(float),
+            required=False,
+            non_db=True,
+            help='The total magnetization of the system for fixed spin moment calculations. Should be '
+            'a float representing the total magnetization in Bohr magnetons (μB).',
         )
         spec.input(
             'threshold_forces',
