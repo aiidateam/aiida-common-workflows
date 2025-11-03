@@ -9,6 +9,8 @@ from .generator import QuantumEspressoCommonRelaxInputGenerator
 
 __all__ = ('QuantumEspressoCommonRelaxWorkChain',)
 
+OPTIONAL_OUTPUT_PORTS = ['total_magnetization', 'fermi_energy', 'fermi_energy_up', 'fermi_energy_down']
+
 
 @calcfunction
 def extract_from_trajectory(trajectory):
@@ -30,12 +32,12 @@ def extract_from_trajectory(trajectory):
 def extract_from_parameters(parameters):
     """Return the total energy and optionally the total magnetization from the given parameters node."""
     total_energy = parameters.base.attributes.get('energy')
-    total_magnetization = parameters.base.attributes.get('total_magnetization', None)
 
     results = {'total_energy': orm.Float(total_energy)}
 
-    if total_magnetization is not None:
-        results['total_magnetization'] = orm.Float(total_magnetization)
+    for output_name in OPTIONAL_OUTPUT_PORTS:
+        if output_name in parameters.base.attributes:
+            results[output_name] = orm.Float(parameters.base.attributes.get(output_name))
 
     return results
 
@@ -50,20 +52,18 @@ class QuantumEspressoCommonRelaxWorkChain(CommonRelaxWorkChain):
         """Convert the outputs of the sub workchain to the common output specification."""
         outputs = self.ctx.workchain.outputs
 
-        result = extract_from_parameters(outputs.output_parameters).values()
+        results = extract_from_parameters(outputs.output_parameters)
         forces, stress = extract_from_trajectory(outputs.output_trajectory).values()
 
-        try:
-            total_energy, total_magnetization = result
-        except ValueError:
-            total_energy, total_magnetization = next(iter(result)), None
+        total_energy = results.get('total_energy')
 
         if 'output_structure' in outputs:
             self.out('relaxed_structure', outputs.output_structure)
 
-        if total_magnetization is not None:
-            self.out('total_magnetization', total_magnetization)
-
         self.out('total_energy', total_energy)
         self.out('forces', forces)
         self.out('stress', stress)
+
+        for output_name in OPTIONAL_OUTPUT_PORTS:
+            if output_name in results:
+                self.out(output_name, results[output_name])

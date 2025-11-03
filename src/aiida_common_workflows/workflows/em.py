@@ -1,4 +1,5 @@
-"""Equation of state workflow that can use any code plugin implementing the common relax workflow."""
+"""Workflow to calculate the energy as a function of fixed total magnetization that can use any code
+plugin implementing the common relax workflow and supports fixed spin-moment calulations."""
 import inspect
 
 from aiida import orm
@@ -96,7 +97,21 @@ class EnergyMagnetizationWorkChain(WorkChain):
         spec.output_namespace('total_energies', valid_type=orm.Float,
             help='The computed total energy of the relaxed structures at each scaling factor.')
         spec.output_namespace('total_magnetizations', valid_type=orm.Float,
-            help='The fixed total magnetizations that were evaluated.')
+            help='The fixed total magnetizations that were evaluated in mu_B.')
+        spec.output_namespace('fermi_energies_up', valid_type=orm.Float,
+            help=(
+                'The fermi energies of the spin-up channel (at each fixed total magnetization). '
+                'Can be used to compute an effective magnetic field. Otherwise, only meaningful '
+                'in combination with the BandsData that will be added in the future.'
+                )
+        )
+        spec.output_namespace('fermi_energies_down', valid_type=orm.Float,
+            help=(
+                'The fermi energies of the spin-down channel (at each fixed total magnetization). '
+                'Can be used to compute an effective magnetic field. Otherwise, only meaningful '
+                'in combination with the BandsData that will be added in the future.'
+            )
+        )
         spec.exit_code(400, 'ERROR_SUB_PROCESS_FAILED',
             message='At least one of the `{cls}` sub processes did not finish successfully.')
 
@@ -130,7 +145,12 @@ class EnergyMagnetizationWorkChain(WorkChain):
             energy = child.outputs.total_energy
             total_magnetization = child.outputs.total_magnetization
 
+            fermi_energy_up = child.outputs.fermi_energy_up
+            fermi_energy_down = child.outputs.fermi_energy_down
+
             self.report(f'Image {index}: total_magnetization={total_magnetization}, total energy={energy.value}')
 
             self.out(f'total_energies.{index}', energy)
             self.out(f'total_magnetizations.{index}', total_magnetization)
+            self.out(f'fermi_energies_up.{index}', fermi_energy_up)
+            self.out(f'fermi_energies_down.{index}', fermi_energy_down)
