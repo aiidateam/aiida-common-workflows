@@ -16,18 +16,6 @@ def validate_inputs(value, _):
         if 'scale_count' not in value or 'scale_increment' not in value:
             return 'neither `scale_factors` nor the pair of `scale_count` and `scale_increment` were defined.'
 
-    # Validate mutual exclusivity of magnetization inputs.
-    if 'generator_inputs' in value:
-        gen_inputs = value['generator_inputs']
-        if (
-            gen_inputs.get('magnetization_per_site') is not None
-            and gen_inputs.get('fixed_total_cell_magnetization') is not None
-        ):
-            return (
-                'the inputs `generator_inputs.magnetization_per_site` and '
-                '`generator_inputs.fixed_total_cell_magnetization` are mutually exclusive.'
-            )
-
     # Validate that the provided ``generator_inputs`` are valid for the associated input generator.
     process_class = WorkflowFactory(value['sub_process_class'])
     generator = process_class.get_input_generator()

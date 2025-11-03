@@ -6,7 +6,7 @@ from aiida.common import exceptions
 from aiida.engine import WorkChain, append_
 from aiida.plugins import WorkflowFactory
 
-from aiida_common_workflows.workflows.relax.generator import ElectronicType, RelaxType, SpinType
+from aiida_common_workflows.workflows.relax.generator import ElectronicType, OptionalRelaxFeatures, RelaxType, SpinType
 from aiida_common_workflows.workflows.relax.workchain import CommonRelaxWorkChain
 
 
@@ -16,6 +16,12 @@ def validate_inputs(value, _):
     # Validate that the provided ``generator_inputs`` are valid for the associated input generator.
     process_class = WorkflowFactory(value['sub_process_class'])
     generator = process_class.get_input_generator()
+
+    if not generator.supports_feature(OptionalRelaxFeatures.FIXED_MAGNETIZATION):
+        return (
+            f'The `{value["sub_process_class"]}` plugin does not support the '
+            f'`{OptionalRelaxFeatures.FIXED_MAGNETIZATION}` optional feature required for this workflow.'
+        )
 
     try:
         generator.get_builder(structure=value['structure'], **value['generator_inputs'])
@@ -74,11 +80,6 @@ class EnergyMagnetizationWorkChain(WorkChain):
             help='The type of spin for the calculation.')
         spec.input('generator_inputs.electronic_type', valid_type=(ElectronicType, str), required=False, non_db=True,
             help='The type of electronics (insulator/metal) for the calculation.')
-        spec.input(
-            'generator_inputs.fixed_total_cell_magnetization', valid_type=(list, tuple),
-            required=False, non_db=True,
-            help='List containing the total magnetizations per cell to be calculated.'
-            )
         spec.input('generator_inputs.threshold_forces', valid_type=float, required=False, non_db=True,
             help='Target threshold for the forces in eV/Å.')
         spec.input('generator_inputs.threshold_stress', valid_type=float, required=False, non_db=True,
@@ -86,6 +87,7 @@ class EnergyMagnetizationWorkChain(WorkChain):
         spec.input_namespace('sub_process', dynamic=True, populate_defaults=False)
         spec.input('sub_process_class', non_db=True, validator=validate_sub_process_class)
         spec.inputs.validator = validate_inputs
+
         spec.outline(
             cls.run_em,
             cls.inspect_em,

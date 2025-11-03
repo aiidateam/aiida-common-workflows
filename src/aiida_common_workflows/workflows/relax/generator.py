@@ -11,6 +11,13 @@ from aiida_common_workflows.protocol import ProtocolRegistry
 __all__ = ('CommonRelaxInputGenerator',)
 
 
+def validate_inputs(value, _):
+    """Validate the entire input namespace."""
+    # Validate mutual exclusivity of magnetization inputs.
+    if value.get('magnetization_per_site') is not None and value.get('fixed_total_cell_magnetization') is not None:
+        return 'the inputs `magnetization_per_site` and ' '`fixed_total_cell_magnetization` are mutually exclusive.'
+
+
 class OptionalRelaxFeatures(OptionalFeature):
     FIXED_MAGNETIZATION = 'fixed_total_cell_magnetization'
 
@@ -129,3 +136,5 @@ class CommonRelaxInputGenerator(InputGenerator, ProtocolRegistry, metaclass=abc.
             non_db=True,
             help='Options for the geometry optimization calculation jobs.',
         )
+
+        spec.inputs.validator = validate_inputs
