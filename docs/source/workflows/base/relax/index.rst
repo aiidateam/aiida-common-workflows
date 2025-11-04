@@ -171,6 +171,11 @@ Only ``structure`` and ``engines`` can be specified as a positional argument, al
   The default for this input is the Python value None and, in case of calculations with spin, the None value signals that the implementation should automatically decide an appropriate default initial magnetization.
   The implementation of such choice is code-dependent and described in the supplementary material of the `S. P. Huber et al., npj Comput. Mater. 7, 136 (2021)`_.
 
+
+* ``fixed_total_cell_magnetization``. (Type: Python None or a Python float).
+  The total magnetization of the system for fixed spin moment calculations.
+  Should be a float representing the total magnetization in Bohr magnetons (μB).
+
 .. _relax-ref-wc:
 
 * ``reference_workchain.`` (Type: a previously completed ``RelaxWorkChain``, performed with the same code as the ``RelaxWorkChain`` created by ``get_builder``).

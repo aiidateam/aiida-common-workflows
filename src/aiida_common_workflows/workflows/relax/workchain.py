@@ -48,6 +48,26 @@ class CommonRelaxWorkChain(WorkChain, metaclass=ABCMeta):
             help='All cell dimensions and atomic positions are in Ångstrom.')
         spec.output('total_energy', valid_type=Float, required=False,
             help='Total energy in eV.')
+        spec.output('fermi_energy', valid_type=Float, required=False,
+            help=(
+                'Fermi energy in eV. The value is only present for non-magnetic '
+                'or non-collinear magnetic calculations. In case of collinear '
+                'magnetic calculations, the fermi energies for spin up and down '
+                'are.'
+            )
+        )
+        spec.output('fermi_energy_down', valid_type=Float, required=False,
+            help=(
+                'Fermi energy for spin down channel in eV. Only returned for '
+                'collinear magnetic calculations.'
+                )
+        )
+        spec.output('fermi_energy_up', valid_type=Float, required=False,
+            help=(
+                'Fermi energy for spin up channel in eV. Only returned for '
+                'collinear magnetic calculations.'
+            )
+        )
         spec.output('total_magnetization', valid_type=Float, required=False,
             help='Total magnetization in Bohr magnetons.')
         spec.output('remote_folder', valid_type=RemoteData, required=False,
