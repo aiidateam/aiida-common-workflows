@@ -97,7 +97,7 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         """
         super().define(spec)
         spec.inputs['protocol'].valid_type = ChoiceType(
-            ('fast', 'balanced', 'stringent', 'moderate', 'precise', 'verification-PBE-v1')
+            ('fast', 'balanced', 'stringent', 'moderate', 'precise', 'verification-PBE-v1', 'custom')
         )
         spec.inputs['spin_type'].valid_type = ChoiceType((SpinType.NONE, SpinType.COLLINEAR))
         spec.inputs['relax_type'].valid_type = ChoiceType(
@@ -155,7 +155,15 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         # Currently, the `aiida-quantumespresso` workflows will expect one of the basic protocols to be passed to the
         # `get_builder_from_protocol()` method. Here, we switch to using the default protocol for the
         # `aiida-quantumespresso` plugin and pass the local protocols as `overrides`.
-        if (
+        if protocol == 'custom':
+            custom_protocol = kwargs.get('custom_protocol', None)
+            if custom_protocol is None:
+                raise ValueError(
+                    'The `custom_protocol` input must be provided when the `protocol` input is set to `custom`.'
+                )
+            overrides = custom_protocol
+            protocol = self._default_protocol
+        elif (
             protocol not in self.process_class._process_class.get_available_protocols()
             and self.process_class._process_class._check_if_alias(protocol)
             not in self.process_class._process_class.get_available_protocols()

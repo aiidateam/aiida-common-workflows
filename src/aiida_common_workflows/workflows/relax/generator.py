@@ -17,6 +17,13 @@ def validate_inputs(value, _):
     if value.get('magnetization_per_site') is not None and value.get('fixed_total_cell_magnetization') is not None:
         return 'the inputs `magnetization_per_site` and ' '`fixed_total_cell_magnetization` are mutually exclusive.'
 
+    if value.get('protocol') == 'custom' and value.get('custom_protocol') is None:
+            return 'the `custom_protocol` input must be provided when the `protocol` input is set to `custom`.'
+
+    if value.get('protocol') != 'custom' and value.get('custom_protocol') is not None:
+            return 'the `custom_protocol` input can only be provided when the `protocol` input is set to `custom`.'
+
+    # TODO: ensure all plugins actually honor this new custom_protocol input! (only QE implemented for now)
 
 class OptionalRelaxFeatures(OptionalFeature):
     FIXED_MAGNETIZATION = 'fixed_total_cell_magnetization'
@@ -45,7 +52,7 @@ class CommonRelaxInputGenerator(InputGenerator, ProtocolRegistry, metaclass=abc.
         )
         spec.input(
             'protocol',
-            valid_type=ChoiceType(('fast', 'moderate', 'precise')),
+            valid_type=ChoiceType(('fast', 'moderate', 'precise', 'custom')),
             default='moderate',
             non_db=True,
             help='The protocol to use for the automated input generation. This value indicates the level of precision '
@@ -81,6 +88,15 @@ class CommonRelaxInputGenerator(InputGenerator, ProtocolRegistry, metaclass=abc.
             'spin polarization in units of electrons, meaning the difference between spin up and spin down '
             'electrons, for the site. This also corresponds to the magnetization of the site in Bohr magnetons '
             '(μB).',
+        )
+        spec.input(
+            'custom_protocol',
+            valid_type=dict,
+            non_db=True,
+            required=False,
+            default=None,
+            help='A custom protocol dictionary that can be provided when the `protocol` input is set to `custom`. '
+            'In that case, this dictionary will be used to override the default protocol settings.',
         )
         spec.input(
             'fixed_total_cell_magnetization',

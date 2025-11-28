@@ -51,7 +51,7 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             (ElectronicType.METAL, ElectronicType.INSULATOR, ElectronicType.UNKNOWN)
         )
         spec.inputs['engines']['relax']['code'].valid_type = CodeType('abinit')
-        spec.inputs['protocol'].valid_type = ChoiceType(('fast', 'moderate', 'precise', 'verification-PBE-v1'))
+        spec.inputs['protocol'].valid_type = ChoiceType(('fast', 'moderate', 'precise', 'verification-PBE-v1', 'custom'))
 
     def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:  # noqa: PLR0912,PLR0915
         """Construct a process builder based on the provided keyword arguments.
@@ -62,6 +62,7 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         structure = kwargs['structure']
         engines = kwargs['engines']
         protocol = kwargs['protocol']
+        custom_protocol = kwargs.get('custom_protocol', None)
         spin_type = kwargs['spin_type']
         relax_type = kwargs['relax_type']
         electronic_type = kwargs['electronic_type']
@@ -70,7 +71,12 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         threshold_stress = kwargs.get('threshold_stress', None)
         reference_workchain = kwargs.get('reference_workchain', None)
 
-        protocol = copy.deepcopy(self.get_protocol(protocol))
+        if protocol == 'custom':
+            if custom_protocol is None:
+                raise ValueError('the `custom_protocol` input must be provided when the `protocol` input is set to `custom`.')
+            protocol = copy.deepcopy(custom_protocol)
+        else:
+            protocol = copy.deepcopy(self.get_protocol(protocol))
         code = engines['relax']['code']
 
         pseudo_family_label = protocol.pop('pseudo_family')
@@ -187,31 +193,9 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 warnings.warn(f'input magnetization per site was None, setting it to {magnetization_per_site}')
             magnetization_per_site = np.array(magnetization_per_site)
 
-            sum_is_zero = np.isclose(sum(magnetization_per_site), 0.0)
-            all_are_zero = np.all(np.isclose(magnetization_per_site, 0.0))
-            non_zero_mags = magnetization_per_site[~np.isclose(magnetization_per_site, 0.0)]
-            all_non_zero_pos = np.all(non_zero_mags > 0.0)
-            all_non_zero_neg = np.all(non_zero_mags < 0.0)
-
-            if all_are_zero:  # non-magnetic
-                warnings.warn(
-                    'all of the initial magnetizations per site are close to zero; doing a non-spin-polarized '
-                    'calculation'
-                )
-            elif (sum_is_zero and not all_are_zero) or (
-                not all_non_zero_pos and not all_non_zero_neg
-            ):  # antiferromagnetic
-                print('Detected antiferromagnetic!')
-                builder.abinit['parameters']['nsppol'] = 1  # antiferromagnetic system
-                builder.abinit['parameters']['nspden'] = 2  # scalar spin-magnetization in the z-axis
-                builder.abinit['parameters']['spinat'] = [[0.0, 0.0, mag] for mag in magnetization_per_site]
-            elif not all_are_zero and (all_non_zero_pos or all_non_zero_neg):  # ferromagnetic
-                print('Detected ferromagnetic!')
-                builder.abinit['parameters']['nsppol'] = 2  # collinear spin-polarization
-                builder.abinit['parameters']['nspden'] = 2  # scalar spin-magnetization in the z-axis
-                builder.abinit['parameters']['spinat'] = [[0.0, 0.0, mag] for mag in magnetization_per_site]
-            else:
-                raise ValueError(f'Initial magnetization {magnetization_per_site} is ambiguous')
+            builder.abinit['parameters']['nsppol'] = 2  # collinear spin-polarization
+            builder.abinit['parameters']['nspden'] = 2  # scalar spin-magnetization in the z-axis
+            builder.abinit['parameters']['spinat'] = [[0.0, 0.0, mag] for mag in magnetization_per_site]
         elif spin_type == SpinType.NON_COLLINEAR:
             if magnetization_per_site is None:
                 magnetization_per_site = get_initial_magnetization(structure)
