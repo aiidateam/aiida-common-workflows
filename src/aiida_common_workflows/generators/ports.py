@@ -7,7 +7,7 @@ from aiida.engine import InputPort
 from aiida.orm import Code
 from plumpy.ports import UNSPECIFIED, Port, PortValidationError, breadcrumbs_to_port
 
-__all__ = ('ChoiceType', 'CodeType', 'InputGeneratorPort')
+__all__ = ('ChoiceType', 'CodeType', 'OptionalFeatureType', 'InputGeneratorPort')
 
 
 class CodeType:
@@ -34,11 +34,23 @@ class ChoiceType:
         self.valid_type: tuple[t.Any] = valid_types if len(valid_types) > 1 else valid_types[0]
 
 
+class OptionalFeatureType:
+    """Class that can be used for the ``valid_type`` of a ``InputPort`` that can define optional features."""
+
+    def __init__(self, valid_type: t.Any):
+        """Construct a new instance.
+
+        :param valid_type: the valid type for the port.
+        """
+        self.valid_type = valid_type
+
+
 class InputGeneratorPort(InputPort):
     """Subclass of :class:`aiida.engine.InputPort` with support for choice types and value serializers."""
 
     code_entry_point = None
     choices = None
+    optional = None
 
     def __init__(self, *args, valid_type=None, **kwargs) -> None:
         """Construct a new instance and process the ``valid_type`` keyword if it is an instance of ``ChoiceType``."""
@@ -57,6 +69,10 @@ class InputGeneratorPort(InputPort):
 
         if isinstance(valid_type, CodeType):
             self.code_entry_point = valid_type.entry_point
+            valid_type = valid_type.valid_type
+
+        if isinstance(valid_type, OptionalFeatureType):
+            self.optional = True
             valid_type = valid_type.valid_type
 
         self._valid_type = valid_type

@@ -103,6 +103,8 @@ class EquationOfStateWorkChain(WorkChain):
             help='The type of electronics (insulator/metal) for the calculation.')
         spec.input('generator_inputs.magnetization_per_site', valid_type=(list, tuple), required=False, non_db=True,
             help='List containing the initial magnetization per atomic site.')
+        spec.input('generator_inputs.fixed_total_cell_magnetization', valid_type=float, required=False, non_db=True,
+            help='The fixed total magnetization of the cell in Bohr magnetons (μB).')
         spec.input('generator_inputs.threshold_forces', valid_type=float, required=False, non_db=True,
             help='Target threshold for the forces in eV/Å.')
         spec.input('generator_inputs.threshold_stress', valid_type=float, required=False, non_db=True,

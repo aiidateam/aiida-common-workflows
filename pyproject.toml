@@ -33,6 +33,7 @@ requires-python = '>=3.9'
 [project.entry-points.'aiida.workflows']
 'common_workflows.bands.siesta' = 'aiida_common_workflows.workflows.bands.siesta.workchain:SiestaCommonBandsWorkChain'
 'common_workflows.dissociation_curve' = 'aiida_common_workflows.workflows.dissociation:DissociationCurveWorkChain'
+'common_workflows.em' = 'aiida_common_workflows.workflows.em:EnergyMagnetizationWorkChain'
 'common_workflows.eos' = 'aiida_common_workflows.workflows.eos:EquationOfStateWorkChain'
 'common_workflows.relax.abacus' = 'aiida_common_workflows.workflows.relax.abacus.workchain:AbacusCommonRelaxWorkChain'
 'common_workflows.relax.abinit' = 'aiida_common_workflows.workflows.relax.abinit.workchain:AbinitCommonRelaxWorkChain'
