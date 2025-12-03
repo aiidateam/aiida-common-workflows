@@ -18,12 +18,13 @@ def validate_inputs(value, _):
         return 'the inputs `magnetization_per_site` and ' '`fixed_total_cell_magnetization` are mutually exclusive.'
 
     if value.get('protocol') == 'custom' and value.get('custom_protocol') is None:
-            return 'the `custom_protocol` input must be provided when the `protocol` input is set to `custom`.'
+        return 'the `custom_protocol` input must be provided when the `protocol` input is set to `custom`.'
 
     if value.get('protocol') != 'custom' and value.get('custom_protocol') is not None:
-            return 'the `custom_protocol` input can only be provided when the `protocol` input is set to `custom`.'
+        return 'the `custom_protocol` input can only be provided when the `protocol` input is set to `custom`.'
 
     # TODO: ensure all plugins actually honor this new custom_protocol input! (only QE implemented for now)
+
 
 class OptionalRelaxFeatures(OptionalFeature):
     FIXED_MAGNETIZATION = 'fixed_total_cell_magnetization'

@@ -51,7 +51,9 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             (ElectronicType.METAL, ElectronicType.INSULATOR, ElectronicType.UNKNOWN)
         )
         spec.inputs['engines']['relax']['code'].valid_type = CodeType('abinit')
-        spec.inputs['protocol'].valid_type = ChoiceType(('fast', 'moderate', 'precise', 'verification-PBE-v1', 'custom'))
+        spec.inputs['protocol'].valid_type = ChoiceType(
+            ('fast', 'moderate', 'precise', 'verification-PBE-v1', 'custom')
+        )
 
     def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:  # noqa: PLR0912,PLR0915
         """Construct a process builder based on the provided keyword arguments.
@@ -73,7 +75,9 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         if protocol == 'custom':
             if custom_protocol is None:
-                raise ValueError('the `custom_protocol` input must be provided when the `protocol` input is set to `custom`.')
+                raise ValueError(
+                    'the `custom_protocol` input must be provided when the `protocol` input is set to `custom`.'
+                )
             protocol = copy.deepcopy(custom_protocol)
         else:
             protocol = copy.deepcopy(self.get_protocol(protocol))
