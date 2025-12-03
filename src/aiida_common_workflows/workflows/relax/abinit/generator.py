@@ -93,15 +93,31 @@ class AbinitCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         recommended_ecut_wfc, recommended_ecut_rho = pseudo_family.get_recommended_cutoffs(
             structure=structure, stringency=cutoff_stringency, unit='Eh'
         )
+
+        # In both cases, if the protocol "hardcodes" the cutoff(s),
+        # I use that instead of the one from the pseudopotential family
+        # since it probably means the user really wanted that cutoff.
+        # I use try/except since I need to go deep into a dictionary and
+        # it is easier than using dict.get() a lot of times.
+        try:
+            protocol_ecut = protocol['base']['abinit']['parameters']['ecut']
+        except KeyError:
+            protocol_ecut = None
+
+        try:
+            protocol_pawecutdg = protocol['base']['abinit']['parameters']['pawecutdg']
+        except KeyError:
+            protocol_pawecutdg = None
+
         if pseudo_type == 'pseudo.jthxml':
             # JTH XML are PAW; we need `pawecutdg`
             cutoff_parameters = {
-                'ecut': np.ceil(recommended_ecut_wfc),
-                'pawecutdg': np.ceil(recommended_ecut_rho),
+                'ecut': protocol_ecut if protocol_ecut is not None else np.ceil(recommended_ecut_wfc),
+                'pawecutdg': protocol_pawecutdg if protocol_pawecutdg is not None else np.ceil(recommended_ecut_rho),
             }
         else:
             # All others are NC; no need for `pawecutdg`
-            cutoff_parameters = {'ecut': recommended_ecut_wfc}
+            cutoff_parameters = {'ecut': protocol_ecut if protocol_ecut is not None else np.ceil(recommended_ecut_wfc)}
 
         override = {
             'abinit': {
