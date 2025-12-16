@@ -92,7 +92,7 @@ class CommonRelaxInputGenerator(InputGenerator, ProtocolRegistry, metaclass=abc.
         )
         spec.input(
             'custom_protocol',
-            valid_type=OptionalFeatureType(dict),
+            valid_type=(dict, type(None)),
             non_db=True,
             required=False,
             default=None,
