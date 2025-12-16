@@ -88,10 +88,10 @@ class VaspCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         builder.structure = structure
 
         # Set options
-        builder.vasp.calc.options = plugins.DataFactory('core.dict')(dict=engines['relax']['options'])
+        builder.vasp.calc.options = engines['relax']['options']
 
         # Set workchain related inputs, in this case, give more explicit output to report
-        builder.verbose = plugins.DataFactory('core.bool')(True)
+        builder.verbose = True
 
         # Fetch initial parameters from the protocol file.
         # Here we set the protocols fast, moderate and precise. These currently have no formal meaning.
@@ -139,7 +139,7 @@ class VaspCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 }
             }
         )
-        builder.vasp.settings = plugins.DataFactory('core.dict')(dict=settings)
+        builder.vasp.settings = settings
 
         # Configure the handlers
         handler_overrides = {
@@ -150,17 +150,15 @@ class VaspCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             'handler_unfinished_calc_generic': {'enabled': False},
             'handler_electronic_conv': {'enabled': False},
         }
-        builder.vasp.handler_overrides = plugins.DataFactory('core.dict')(dict=handler_overrides)
+        builder.vasp.handler_overrides = handler_overrides
 
         # Set the parameters on the builder, put it in the code namespace to pass through
         # to the code inputs
-        builder.vasp.parameters = plugins.DataFactory('core.dict')(dict={'incar': parameters_dict})
+        builder.vasp.parameters = parameters_dict
 
         # Set potentials and their mapping
-        builder.vasp.potential_family = plugins.DataFactory('str')(protocol['potential_family'])
-        builder.vasp.potential_mapping = plugins.DataFactory('core.dict')(
-            dict=self._potential_mapping[protocol['potential_mapping']]
-        )
+        builder.vasp.potential_family = protocol['potential_family']
+        builder.vasp.potential_mapping = self._potential_mapping[protocol['potential_mapping']]
 
         # Set the kpoint grid from the density in the protocol
         kpoints = plugins.DataFactory('core.array.kpoints')()
@@ -212,7 +210,7 @@ class VaspCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             threshold = threshold_forces
         else:
             threshold = protocol['relax']['threshold_forces']
-        relax_settings.force_cutoff = plugins.DataFactory('float')(threshold)
+        relax_settings.force_cutoff = threshold
 
         if threshold_stress is not None:
             raise ValueError('Using a stress threshold is not directly available in VASP during relaxation.')
