@@ -88,7 +88,7 @@ class VaspCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         builder.structure = structure
 
         # Set options
-        builder.vasp.calc.options = engines['relax']['options']
+        builder.vasp.calc.metadata.options = engines['relax']['options']
 
         # Set workchain related inputs, in this case, give more explicit output to report
         builder.verbose = True
@@ -154,7 +154,7 @@ class VaspCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         # Set the parameters on the builder, put it in the code namespace to pass through
         # to the code inputs
-        builder.vasp.parameters = parameters_dict
+        builder.vasp.parameters = {'incar': parameters_dict}
 
         # Set potentials and their mapping
         builder.vasp.potential_family = protocol['potential_family']

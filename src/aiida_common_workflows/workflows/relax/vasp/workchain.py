@@ -1,4 +1,5 @@
 """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for VASP."""
+import numpy as np
 from aiida import orm
 from aiida.common.exceptions import NotExistentAttributeError
 from aiida.engine import calcfunction
@@ -14,7 +15,7 @@ __all__ = ('VaspCommonRelaxWorkChain',)
 def get_stress(misc):
     """Return the final stress array."""
     stress_data = orm.ArrayData()
-    stress_kbar = misc['stress']
+    stress_kbar = np.array(misc['stress'])
     stress_ev_per_angstr3 = stress_kbar / 1602.1766208
     stress_data.set_array(name='stress', array=stress_ev_per_angstr3)
 
@@ -25,7 +26,7 @@ def get_stress(misc):
 def get_forces(misc):
     """Return the final forces array.."""
     forces_data = orm.ArrayData()
-    forces_data.set_array(name='forces', array=misc['forces'])
+    forces_data.set_array(name='forces', array=np.array(misc['forces']))
 
     return forces_data
 
@@ -42,7 +43,7 @@ def get_total_free_energy(misc):
 @calcfunction
 def get_total_cell_magnetic_moment(misc):
     """Return the total cell magnetic moment."""
-    magnetization = misc.get_dict()['magnetization']
+    magnetization = misc.get('magnetization')
 
     if not magnetization:
         # If list is empty, we have no magnetization
@@ -63,7 +64,7 @@ class VaspCommonRelaxWorkChain(CommonRelaxWorkChain):
     def convert_outputs(self):
         """Convert the outputs of the sub workchain to the common output specification."""
         try:
-            self.out('relaxed_structure', self.ctx.workchain.outputs.relax__structure)
+            self.out('relaxed_structure', self.ctx.workchain.outputs.relax.structure)
         except NotExistentAttributeError:
             # We have no control of when we want to perform relaxations here,
             # this is up to the calling workchains, so do not set the relaxed structure if a
