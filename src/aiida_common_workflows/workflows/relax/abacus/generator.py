@@ -1,9 +1,9 @@
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for Abacus."""
+
 from importlib import resources
 
 import yaml
 from aiida import engine, orm, plugins
-from aiida_abacus.common import CONSTANTS
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
@@ -56,7 +56,7 @@ class AbacusCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         The keyword arguments will have been validated against the input generator specification.
         """
-        from aiida_abacus.common import ElectronicType, RelaxType, SpinType, recursive_merge
+        from aiida_abacus.common import CONSTANTS, ElectronicType, RelaxType, SpinType, recursive_merge
 
         structure = kwargs['structure']
         engines = kwargs['engines']
