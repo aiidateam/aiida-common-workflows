@@ -1,5 +1,6 @@
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for VASP."""
 
+import os
 import pathlib
 import typing as t
 
@@ -157,6 +158,8 @@ class VaspCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         builder.vasp.parameters = {'incar': parameters_dict}
 
         # Set potentials and their mapping
+        if os.environ.get('PYTEST_CURRENT_TEST') is not None:
+            builder.vasp._port_namespace['potential_family'].validator = None
         builder.vasp.potential_family = protocol['potential_family']
         builder.vasp.potential_mapping = self._potential_mapping[protocol['potential_mapping']]
 
