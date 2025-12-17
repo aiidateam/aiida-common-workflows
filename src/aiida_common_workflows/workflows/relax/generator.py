@@ -4,10 +4,22 @@ import abc
 from aiida import orm, plugins
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
-from aiida_common_workflows.generators import ChoiceType, InputGenerator
+from aiida_common_workflows.generators import ChoiceType, InputGenerator, OptionalFeatureType
+from aiida_common_workflows.generators.optional_features import OptionalFeature
 from aiida_common_workflows.protocol import ProtocolRegistry
 
 __all__ = ('CommonRelaxInputGenerator',)
+
+
+def validate_inputs(value, _):
+    """Validate the entire input namespace."""
+    # Validate mutual exclusivity of magnetization inputs.
+    if value.get('magnetization_per_site') is not None and value.get('fixed_total_cell_magnetization') is not None:
+        return 'the inputs `magnetization_per_site` and ' '`fixed_total_cell_magnetization` are mutually exclusive.'
+
+
+class OptionalRelaxFeatures(OptionalFeature):
+    FIXED_MAGNETIZATION = 'fixed_total_cell_magnetization'
 
 
 class CommonRelaxInputGenerator(InputGenerator, ProtocolRegistry, metaclass=abc.ABCMeta):
@@ -16,6 +28,8 @@ class CommonRelaxInputGenerator(InputGenerator, ProtocolRegistry, metaclass=abc.
     This class should be subclassed by implementations for specific quantum engines. After calling the super, they can
     modify the ports defined here in the base class as well as add additional custom ports.
     """
+
+    _optional_features = frozenset(OptionalRelaxFeatures)
 
     @classmethod
     def define(cls, spec):
@@ -69,6 +83,14 @@ class CommonRelaxInputGenerator(InputGenerator, ProtocolRegistry, metaclass=abc.
             '(μB).',
         )
         spec.input(
+            'fixed_total_cell_magnetization',
+            valid_type=OptionalFeatureType(float),
+            required=False,
+            non_db=True,
+            help='The total magnetization of the system for fixed spin moment calculations. Should be '
+            'a float representing the total magnetization in Bohr magnetons (μB).',
+        )
+        spec.input(
             'threshold_forces',
             valid_type=float,
             required=False,
@@ -114,3 +136,5 @@ class CommonRelaxInputGenerator(InputGenerator, ProtocolRegistry, metaclass=abc.
             non_db=True,
             help='Options for the geometry optimization calculation jobs.',
         )
+
+        spec.inputs.validator = validate_inputs
