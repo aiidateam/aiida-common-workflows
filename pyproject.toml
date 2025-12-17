@@ -50,12 +50,16 @@ requires-python = '>=3.9'
 'common_workflows.relax.wien2k' = 'aiida_common_workflows.workflows.relax.wien2k.workchain:Wien2kCommonRelaxWorkChain'
 
 [project.optional-dependencies]
+abacus = [
+  'aiida-abacus~=0.3.1'
+]
 abinit = [
   'abipy==0.9.6',
   'aiida-abinit~=0.5.0'
 ]
 all_plugins = [
   'abipy==0.9.6',
+  'aiida-abacus~=0.3.1',
   'aiida-abinit~=0.5.0',
   'aiida-ase~=3.0',
   'aiida-bigdft~=0.3.0',
