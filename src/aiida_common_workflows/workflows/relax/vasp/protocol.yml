@@ -23,10 +23,36 @@ verification-PBE-v1:
     ncore: 2
     kpar: 4
 
+verification-PBE-v1-mp-like:
+  name: verification-PBE-v1-mp-like
+  description: Protocol similar to verification-PBE-v1 but use Materials Project recommended cut off energy and pseudopotentials.
+  # The "PBE" paw dataset
+  potential_family: PBE
+  potential_mapping: RECOMMENDED_MP_PBE
+  kpoint_distance: 0.06
+  relax:
+    algo: rd
+    threshold_forces: 0.001
+    steps: 200
+  parameters:
+    prec: Accurate
+    encut: 520
+    ediff: 0.0000001
+    ismear: -1
+    sigma: 0.0612256413
+    algo: Normal
+    nelmin: 6
+    nelm: 300
+    lmaxmix: 6
+    lasph: true
+    ncore: 2
+    kpar: 4
+
 precise:
   name: precise
   description: Protocol to relax a structure with high precision at higher computational cost.
-  potential_family: PBE5.4
+  # The "PBE_54" paw dataset
+  potential_family: PBE.54
   potential_mapping: RECOMMENDED_PBE
   kpoint_distance: 0.1
   relax:
@@ -46,7 +72,8 @@ precise:
 moderate:
   name: moderate
   description: Protocol to relax a structure with normal precision at moderate computational cost.
-  potential_family: PBE5.4
+  # The "PBE_54" paw dataset
+  potential_family: PBE.54
   potential_mapping: RECOMMENDED_PBE
   kpoint_distance: 0.15
   relax:
@@ -65,7 +92,8 @@ moderate:
 fast:
   name: fast
   description: Protocol to relax a structure with low precision at minimal computational cost for testing purposes.
-  potential_family: PBE5.4
+  # PBE_54 paw dataset
+  potential_family: PBE.54
   potential_mapping: RECOMMENDED_PBE
   kpoint_distance: 0.25
   relax:

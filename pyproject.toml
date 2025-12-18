@@ -67,7 +67,7 @@ all_plugins = [
   'aiida-orca~=0.6.0',
   'aiida-quantumespresso~=4.4',
   'aiida-siesta~=2.0',
-  'aiida-vasp~=3.1',
+  'aiida-vasp~=5.0',
   'aiida-wien2k~=0.2.0',
   'masci-tools~=0.9'
 ]
@@ -118,7 +118,7 @@ tests = [
   'pytest-regressions~=1.0'
 ]
 vasp = [
-  'aiida-vasp~=3.1'
+  'aiida-vasp~=5.0'
 ]
 wien2k = [
   'aiida-wien2k~=0.2.0'
