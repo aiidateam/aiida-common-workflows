@@ -177,7 +177,7 @@ verification-PBE-v1-lcao-tzdp-sg15:
 verification-PBE-v1-lcao-apns-efficiency:
   description: Main protocol for the ACWF verification study using lcao mode
   base:
-    pseudo_family: apns-efficiency-v1 
+    pseudo_family: apns-efficiency-v1
     kpoints_distance: 0.06
     meta_parameters:
       conv_thr_per_atom: 0.1e-9
