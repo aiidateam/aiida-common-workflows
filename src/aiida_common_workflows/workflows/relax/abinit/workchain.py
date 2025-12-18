@@ -25,7 +25,7 @@ def get_stress(parameters):
 def get_forces(parameters):
     """Return the forces array from the given parameters node."""
     forces = orm.ArrayData()
-    forces.set_array(name='forces', array=np.array(parameters.base.attributes.get('forces')))
+    forces.set_array(name='forces', array=np.array(parameters.base.attributes.get('cart_forces')))
     return forces
 
 
