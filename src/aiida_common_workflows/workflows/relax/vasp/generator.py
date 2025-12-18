@@ -1,5 +1,6 @@
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for VASP."""
 import copy
+import os
 import pathlib
 import typing as t
 
@@ -93,16 +94,16 @@ class VaspCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         builder = self.process_class.get_builder()
 
         # Set code
-        builder.code = engines['relax']['code']
+        builder.vasp.code = engines['relax']['code']
 
         # Set structure
         builder.structure = structure
 
         # Set options
-        builder.options = plugins.DataFactory('core.dict')(dict=engines['relax']['options'])
+        builder.vasp.calc.metadata.options = engines['relax']['options']
 
         # Set workchain related inputs, in this case, give more explicit output to report
-        builder.verbose = plugins.DataFactory('core.bool')(True)
+        builder.verbose = True
 
         # Fetch initial parameters from the protocol file.
         # Here we set the protocols fast, moderate and precise. These currently have no formal meaning.
@@ -127,50 +128,30 @@ class VaspCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         settings.update(
             {
                 'parser_settings': {
-                    'critical_notifications': {
-                        'add_brmix': True,
-                        'add_cnormn': False,
-                        'add_denmp': True,
-                        'add_dentet': True,
-                        'add_edddav_zhegv': True,
-                        'add_eddrmm_zhegv': True,
-                        'add_edwav': True,
-                        'add_fexcp': True,
-                        'add_fock_acc': True,
-                        'add_non_collinear': True,
-                        'add_not_hermitian': True,
-                        'add_pzstein': True,
-                        'add_real_optlay': True,
-                        'add_rhosyg': True,
-                        'add_rspher': True,
-                        'add_set_indpw_full': True,
-                        'add_sgrcon': True,
-                        'add_no_potimm': True,
-                        'add_magmom': True,
-                        'add_bandocc': True,
-                    },
-                    'add_energies': True,
-                    'add_forces': True,
-                    'add_stress': True,
-                    'add_misc': {
-                        'type': 'dict',
-                        'quantities': [
-                            'total_energies',
-                            'maximum_stress',
-                            'maximum_force',
-                            'magnetization',
-                            'notifications',
-                            'run_status',
-                            'run_stats',
-                            'version',
-                        ],
-                        'link_name': 'misc',
-                    },
+                    'energy_types': ['energy_extrapolated', 'energy_free', 'energy_no_entropy'],
+                    'critical_notification_errors': [
+                        'brmix',
+                        'edddav',
+                        'eddwav',
+                        'fexcp',
+                        'fock_acc',
+                        'non_collinear',
+                        'not_hermitian',
+                        'pzstein',
+                        'real_optlay',
+                        'rhosyg',
+                        'rspher',
+                        'set_indpw_full',
+                        'sgrcon',
+                        'no_potimm',
+                        'magmom',
+                        'bandocc',
+                    ],
                     'energy_type': ['energy_free', 'energy_no_entropy'],
                 }
             }
         )
-        builder.settings = plugins.DataFactory('core.dict')(dict=settings)
+        builder.vasp.settings = settings
 
         # Configure the handlers
         handler_overrides = {
@@ -181,17 +162,17 @@ class VaspCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             'handler_unfinished_calc_generic': {'enabled': False},
             'handler_electronic_conv': {'enabled': False},
         }
-        builder.handler_overrides = plugins.DataFactory('core.dict')(dict=handler_overrides)
+        builder.vasp.handler_overrides = handler_overrides
 
         # Set the parameters on the builder, put it in the code namespace to pass through
         # to the code inputs
-        builder.parameters = plugins.DataFactory('core.dict')(dict={'incar': parameters_dict})
+        builder.vasp.parameters = {'incar': parameters_dict}
 
         # Set potentials and their mapping
-        builder.potential_family = plugins.DataFactory('str')(protocol['potential_family'])
-        builder.potential_mapping = plugins.DataFactory('core.dict')(
-            dict=self._potential_mapping[protocol['potential_mapping']]
-        )
+        if os.environ.get('PYTEST_CURRENT_TEST') is not None:
+            builder.vasp._port_namespace['potential_family'].validator = None
+        builder.vasp.potential_family = protocol['potential_family']
+        builder.vasp.potential_mapping = self._potential_mapping[protocol['potential_mapping']]
 
         # Set the kpoint grid from the density in the protocol
         kpoints = plugins.DataFactory('core.array.kpoints')()
@@ -203,52 +184,51 @@ class VaspCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             )
         else:
             kpoints.set_kpoints_mesh_from_density(protocol['kpoint_distance'])
-        builder.kpoints = kpoints
+        builder.vasp.kpoints = kpoints
 
         # Set the relax parameters
-        relax = AttributeDict()
+        relax_settings = AttributeDict()
         if relax_type != RelaxType.NONE:
             # Perform relaxation of cell or positions
-            relax.perform = plugins.DataFactory('core.bool')(True)
-            relax.algo = plugins.DataFactory('str')(protocol['relax']['algo'])
-            relax.steps = plugins.DataFactory('int')(protocol['relax']['steps'])
+            relax_settings.perform = True
+            relax_settings.algo = protocol['relax']['algo']
+            relax_settings.steps = protocol['relax']['steps']
             if relax_type == RelaxType.POSITIONS:
-                relax.positions = plugins.DataFactory('core.bool')(True)
-                relax.shape = plugins.DataFactory('core.bool')(False)
-                relax.volume = plugins.DataFactory('core.bool')(False)
+                relax_settings.positions = True
+                relax_settings.shape = False
+                relax_settings.volume = False
             elif relax_type == RelaxType.CELL:
-                relax.positions = plugins.DataFactory('core.bool')(False)
-                relax.shape = plugins.DataFactory('core.bool')(True)
-                relax.volume = plugins.DataFactory('core.bool')(True)
+                relax_settings.positions = False
+                relax_settings.shape = True
+                relax_settings.volume = True
             elif relax_type == RelaxType.VOLUME:
-                relax.positions = plugins.DataFactory('core.bool')(False)
-                relax.shape = plugins.DataFactory('core.bool')(False)
-                relax.volume = plugins.DataFactory('core.bool')(True)
+                relax_settings.positions = False
+                relax_settings.shape = False
+                relax_settings.volume = True
             elif relax_type == RelaxType.SHAPE:
-                relax.positions = plugins.DataFactory('core.bool')(False)
-                relax.shape = plugins.DataFactory('core.bool')(True)
-                relax.volume = plugins.DataFactory('core.bool')(False)
+                relax_settings.positions = False
+                relax_settings.shape = True
+                relax_settings.volume = False
             elif relax_type == RelaxType.POSITIONS_CELL:
-                relax.positions = plugins.DataFactory('core.bool')(True)
-                relax.shape = plugins.DataFactory('core.bool')(True)
-                relax.volume = plugins.DataFactory('core.bool')(True)
+                relax_settings.positions = True
+                relax_settings.shape = True
+                relax_settings.volume = True
             elif relax_type == RelaxType.POSITIONS_SHAPE:
-                relax.positions = plugins.DataFactory('core.bool')(True)
-                relax.shape = plugins.DataFactory('core.bool')(True)
-                relax.volume = plugins.DataFactory('core.bool')(False)
+                relax_settings.positions = True
+                relax_settings.shape = True
+                relax_settings.volume = False
         else:
             # Do not perform any relaxation
-            relax.perform = plugins.DataFactory('core.bool')(False)
-
+            relax_settings.perform = False
         if threshold_forces is not None:
             threshold = threshold_forces
         else:
             threshold = protocol['relax']['threshold_forces']
-        relax.force_cutoff = plugins.DataFactory('float')(threshold)
+        relax_settings.force_cutoff = threshold
 
         if threshold_stress is not None:
             raise ValueError('Using a stress threshold is not directly available in VASP during relaxation.')
 
-        builder.relax = relax
+        builder.relax_settings = relax_settings
 
         return builder

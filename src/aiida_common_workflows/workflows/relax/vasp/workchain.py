@@ -1,4 +1,5 @@
 """Implementation of `aiida_common_workflows.common.relax.workchain.CommonRelaxWorkChain` for VASP."""
+import numpy as np
 from aiida import orm
 from aiida.common.exceptions import NotExistentAttributeError
 from aiida.engine import calcfunction
@@ -11,10 +12,10 @@ __all__ = ('VaspCommonRelaxWorkChain',)
 
 
 @calcfunction
-def get_stress(stress):
+def get_stress(misc):
     """Return the final stress array."""
     stress_data = orm.ArrayData()
-    stress_kbar = stress.get_array('final')
+    stress_kbar = np.array(misc['stress'])
     stress_ev_per_angstr3 = stress_kbar / 1602.1766208
     stress_data.set_array(name='stress', array=stress_ev_per_angstr3)
 
@@ -22,18 +23,18 @@ def get_stress(stress):
 
 
 @calcfunction
-def get_forces(forces):
+def get_forces(misc):
     """Return the final forces array.."""
     forces_data = orm.ArrayData()
-    forces_data.set_array(name='forces', array=forces.get_array('final'))
+    forces_data.set_array(name='forces', array=np.array(misc['forces']))
 
     return forces_data
 
 
 @calcfunction
-def get_total_free_energy(energies):
+def get_total_free_energy(misc):
     """Return the total free energy from the energies array."""
-    total_free_energy = energies.get_array('energy_free_electronic')[0]
+    total_free_energy = misc['total_energies']['energy_free']
     total_energy = orm.Float(total_free_energy)
 
     return total_energy
@@ -42,7 +43,7 @@ def get_total_free_energy(energies):
 @calcfunction
 def get_total_cell_magnetic_moment(misc):
     """Return the total cell magnetic moment."""
-    magnetization = misc.get_dict()['magnetization']
+    magnetization = misc.get('magnetization')
 
     if not magnetization:
         # If list is empty, we have no magnetization
@@ -63,13 +64,13 @@ class VaspCommonRelaxWorkChain(CommonRelaxWorkChain):
     def convert_outputs(self):
         """Convert the outputs of the sub workchain to the common output specification."""
         try:
-            self.out('relaxed_structure', self.ctx.workchain.outputs.relax__structure)
+            self.out('relaxed_structure', self.ctx.workchain.outputs.relax.structure)
         except NotExistentAttributeError:
             # We have no control of when we want to perform relaxations here,
             # this is up to the calling workchains, so do not set the relaxed structure if a
             # relaxation was not requested.
             pass
         self.out('total_magnetization', get_total_cell_magnetic_moment(self.ctx.workchain.outputs.misc))
-        self.out('total_energy', get_total_free_energy(self.ctx.workchain.outputs.energies))
-        self.out('forces', get_forces(self.ctx.workchain.outputs.forces))
-        self.out('stress', get_stress(self.ctx.workchain.outputs.stress))
+        self.out('total_energy', get_total_free_energy(self.ctx.workchain.outputs.misc))
+        self.out('forces', get_forces(self.ctx.workchain.outputs.misc))
+        self.out('stress', get_stress(self.ctx.workchain.outputs.misc))
