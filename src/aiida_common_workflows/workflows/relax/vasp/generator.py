@@ -183,7 +183,14 @@ class VaspCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 previous_kpoints.base.attributes.get('mesh'), previous_kpoints.base.attributes.get('offset')
             )
         else:
-            kpoints.set_kpoints_mesh_from_density(protocol['kpoint_distance'])
+            if 'kpoints' in protocol and 'kpoint_distance' in protocol:
+                raise ValueError('Protocol cannot define both `kpoints` and `kpoint_distance` in protocol.')
+            if 'kpoints' not in protocol and 'kpoint_distance' not in protocol:
+                raise ValueError('Protocol must define either `kpoints` or `kpoint_distance` in protocol.')
+            if 'kpoints' in protocol:
+                kpoints.set_kpoints_mesh(protocol['kpoints'])
+            else:
+                kpoints.set_kpoints_mesh_from_density(protocol['kpoint_distance'])
         builder.vasp.kpoints = kpoints
 
         # Set the relax parameters
