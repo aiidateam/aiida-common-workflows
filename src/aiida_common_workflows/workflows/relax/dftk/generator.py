@@ -53,7 +53,7 @@ class DftkCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             (ElectronicType.METAL, ElectronicType.INSULATOR, ElectronicType.UNKNOWN, ElectronicType.AUTOMATIC)
         )
         spec.inputs['engines']['relax']['code'].valid_type = CodeType('dftk')
-        spec.inputs['protocol'].valid_type = ChoiceType(('fastest', 'fast', 'moderate', 'precise'))
+        spec.inputs['protocol'].valid_type = ChoiceType(('fastest', 'fast', 'moderate', 'precise', 'verification-PBE-v1'))
 
     def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:
         """Construct a process builder based on the provided keyword arguments.
@@ -182,7 +182,7 @@ class DftkCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         elif electronic_type == ElectronicType.INSULATOR:
             # fixed occupations for insulators: remove temperature specified in protocol
             builder.dftk['parameters']['model_kwargs'].pop('temperature', None)
-        else:
+        elif electronic_type != ElectronicType.AUTOMATIC:
             raise ValueError(f'electronic type `{electronic_type.value}` is not supported')
             
 

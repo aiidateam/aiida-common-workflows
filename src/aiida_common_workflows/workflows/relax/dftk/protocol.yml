@@ -91,3 +91,28 @@ precise:
                 postscf:
                   - $function: "compute_forces_cart"
                   - $function: "compute_stresses_cart"
+
+verification-PBE-v1:
+    name: "verification-PBE-v1"
+    description: Protocol for the ACWF verification study
+    pseudo_family: "PseudoDojo/0.5/PBE/SR/standard/upf"
+    cutoff_stringency: "high"
+    base:
+        kpoints_distance: 0.06 # [1/AA]
+        dftk:
+            parameters:
+                model_kwargs:
+                    functionals: [":gga_x_pbe", ":gga_c_pbe"]
+                    smearing:
+                        $symbol: "Smearing.FermiDirac"
+                    temperature: 0.00225 # Ha
+                scf:
+                    $kwargs:
+                        maxiter: 300
+                        is_converged:
+                            $args: 1.0e-10
+                            $symbol: "ScfConvergenceDensity"
+                    $function: "self_consistent_field"
+                    checkpointfile: "scfres.jld2"
+                postscf: []
+
