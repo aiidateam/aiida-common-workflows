@@ -47,3 +47,8 @@ This AiiDA common workflows package was used as the core engine to run all simul
 >  [E. Bosoni et al., *How to verify the precision of density-functional-theory implementations via reproducible and universal workflows*, **Nat. Rev. Phys. 6**, 45 (2024)](https://doi.org/10.1038/s42254-023-00655-3)
 
 The corresponding scripts to run simulations and analyze the data can be found on the [`acwf-verification-scripts` GitHub repository](https://github.com/aiidateam/acwf-verification-scripts).
+
+
+## Acknowledgements
+
+We acknowledge support from the NCCR MARVEL, a National Centre of Competence in Research, funded by the Swiss National Science Foundation (grant number 205602), and from the EU Centre of Excellence "MaX – Materials Design at the Exascale" (Horizon 2020 EINFRA-5, Grant No. 676598; H2020-INFRAEDI-2018-1, Grant No. 824143).	
