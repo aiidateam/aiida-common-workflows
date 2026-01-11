@@ -26,6 +26,7 @@ In addition, if you run the common workflows, please also cite:
 
 Engine           | DOIs or URLs to be cited
 ---------------- | ----------------------------
+ABACUS           | [10.1063/5.0297563](https://doi.org/10.1063/5.0297563)
 ABINIT           | [10.1016/j.cpc.2016.04.003](https://doi.org/10.1016/j.cpc.2016.04.003) [10.1016/j.cpc.2019.107042](https://doi.org/10.1016/j.cpc.2019.107042) [10.1063/1.5144261](https://doi.org/10.1063/1.5144261)
 BigDFT           | [10.1063/5.0004792](https://doi.org/10.1063/5.0004792)
 CASTEP           | [10.1524/zkri.220.5.567.65075](https://doi.org/10.1524/zkri.220.5.567.65075)

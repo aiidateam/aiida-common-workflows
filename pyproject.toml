@@ -11,7 +11,6 @@ classifiers = [
   'Operating System :: POSIX :: Linux',
   'Operating System :: MacOS :: MacOS X',
   'Programming Language :: Python',
-  'Programming Language :: Python :: 3.9',
   'Programming Language :: Python :: 3.10',
   'Programming Language :: Python :: 3.11',
   'Programming Language :: Python :: 3.12'
@@ -35,6 +34,7 @@ requires-python = '>=3.9'
 'common_workflows.dissociation_curve' = 'aiida_common_workflows.workflows.dissociation:DissociationCurveWorkChain'
 'common_workflows.em' = 'aiida_common_workflows.workflows.em:EnergyMagnetizationWorkChain'
 'common_workflows.eos' = 'aiida_common_workflows.workflows.eos:EquationOfStateWorkChain'
+'common_workflows.relax.abacus' = 'aiida_common_workflows.workflows.relax.abacus.workchain:AbacusCommonRelaxWorkChain'
 'common_workflows.relax.abinit' = 'aiida_common_workflows.workflows.relax.abinit.workchain:AbinitCommonRelaxWorkChain'
 'common_workflows.relax.bigdft' = 'aiida_common_workflows.workflows.relax.bigdft.workchain:BigDftCommonRelaxWorkChain'
 'common_workflows.relax.castep' = 'aiida_common_workflows.workflows.relax.castep.workchain:CastepCommonRelaxWorkChain'
@@ -50,12 +50,16 @@ requires-python = '>=3.9'
 'common_workflows.relax.wien2k' = 'aiida_common_workflows.workflows.relax.wien2k.workchain:Wien2kCommonRelaxWorkChain'
 
 [project.optional-dependencies]
+abacus = [
+  'aiida-abacus~=0.3.1'
+]
 abinit = [
   'abipy==0.9.6',
   'aiida-abinit~=0.5.0'
 ]
 all_plugins = [
   'abipy==0.9.6',
+  'aiida-abacus~=0.3.1',
   'aiida-abinit~=0.5.0',
   'aiida-ase~=3.0',
   'aiida-bigdft~=0.3.0',
