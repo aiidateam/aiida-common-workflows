@@ -31,6 +31,7 @@ readme = 'README.md'
 requires-python = '>=3.9'
 
 [project.entry-points.'aiida.workflows']
+'common_workflows.afm' = 'aiida_common_workflows.workflows.afm:AfmWorkflow'
 'common_workflows.bands.siesta' = 'aiida_common_workflows.workflows.bands.siesta.workchain:SiestaCommonBandsWorkChain'
 'common_workflows.dissociation_curve' = 'aiida_common_workflows.workflows.dissociation:DissociationCurveWorkChain'
 'common_workflows.eos' = 'aiida_common_workflows.workflows.eos:EquationOfStateWorkChain'
@@ -54,6 +55,10 @@ abinit = [
   'abipy==0.9.6',
   'aiida-abinit~=0.5.0'
 ]
+afm = [
+  'ppafm==0.4.0',
+  'aiida-workgraph~=0.7.6'
+]
 all_plugins = [
   'abipy==0.9.6',
   'aiida-abinit~=0.5.0',
@@ -69,7 +74,9 @@ all_plugins = [
   'aiida-siesta~=2.0',
   'aiida-vasp~=3.1',
   'aiida-wien2k~=0.2.0',
-  'masci-tools~=0.9'
+  'masci-tools~=0.9',
+  'ppafm==0.4.0',
+  'aiida-workgraph~=0.7.6'
 ]
 bigdft = [
   'aiida-bigdft~=0.3.0'
@@ -96,6 +103,9 @@ gaussian = [
 ]
 gpaw = [
   'aiida-ase~=3.0'
+]
+gui = [
+  'ipywidgets~=7.7.4'
 ]
 nwchem = [
   'aiida-nwchem~=3.0'
