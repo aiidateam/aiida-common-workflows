@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import typing as t
 from enum import Enum
 from pathlib import Path
@@ -25,15 +26,33 @@ class AfmCase(Enum):
     HARTREE_RHO = 'hartree_rho'
 
 
+def _scan_output_label(afm_params: dict[str, t.Any]) -> str:
+    """Return ppafm scan output directory label derived from Q and K values."""
+    charge = float(afm_params.get('charge', 0.0))
+    klat = float(afm_params.get('klat', 0.35))
+    return f'Q{charge:.2f}K{klat:.2f}'
+
+
+def _output_label_to_attr(label: str) -> str:
+    """Translate shelljob output label to the generated attribute name."""
+    return re.sub(r'\W', '_', label)
+
+
+def _plain(value: t.Any) -> t.Any:
+    return value.value if hasattr(value, 'value') else value
+
+
 @task
 def write_afm_params(params: dict) -> orm.SinglefileData:
     with TemporaryDirectory() as tmpdir:
         afm_filepath = Path(tmpdir) / 'params.ini'
         with open(afm_filepath, 'w') as config_file:
-            for key, value in params.items():
-                if isinstance(value, (list, tuple)):
-                    value = ' '.join(map(str, value))
-                config_file.write(f'{key} {value}\n')
+            for key, param_value in params.items():
+                if isinstance(param_value, (list, tuple)):
+                    rendered_value = ' '.join(map(str, param_value))
+                else:
+                    rendered_value = param_value
+                config_file.write(f'{key} {rendered_value}\n')
         return orm.SinglefileData(file=afm_filepath.as_posix())
 
 
@@ -45,13 +64,11 @@ def write_structure_file(structure: Atoms, filename: str) -> orm.SinglefileData:
         return orm.SinglefileData(file=geom_filepath.as_posix())
 
 
-@task.graph
-def DftJob(
-    engine: str,
-    structure: orm.StructureData,
-    parameters: t.Annotated[
-        dict,
-        namespace(
+@task.graph(
+    inputs=namespace(
+        engine=str,
+        structure=orm.StructureData,
+        parameters=namespace(
             engines=namespace(
                 relax=namespace(
                     code=orm.Code,
@@ -61,27 +78,36 @@ def DftJob(
             protocol=str,
             relax_type=str,
         ),
-    ],
-) -> t.Annotated[
-    dict,
-    task(CommonRelaxWorkChain).outputs,
-]:
-    workflow = WorkflowFactory(f'common_workflows.relax.{engine.value}')
+    ),
+    outputs=namespace(
+        relaxed_structure=orm.StructureData,
+        forces=orm.ArrayData,
+        stress=orm.ArrayData,
+        trajectory=orm.TrajectoryData,
+        total_energy=orm.Float,
+        total_magnetization=orm.Float,
+        remote_folder=orm.RemoteData,
+    ),
+)
+def DftJob(
+    engine: str,
+    structure: orm.StructureData,
+    parameters: dict,
+) -> t.Any:
+    workflow = WorkflowFactory(f'common_workflows.relax.{engine}')
     input_generator = workflow.get_input_generator()
-    parameters['protocol'] = parameters['protocol'].value
-    parameters['relax_type'] = parameters['relax_type'].value
-    parameters['engines']['relax']['options'] = parameters['engines']['relax']['options'].value
+    parameters['protocol'] = _plain(parameters['protocol'])
+    parameters['relax_type'] = _plain(parameters['relax_type'])
+    parameters['engines']['relax']['options'] = _plain(parameters['engines']['relax']['options'])
     builder = input_generator.get_builder(structure=structure, **parameters)
     return task(builder._process_class)(**get_dict_from_builder(builder))
 
 
-@task.graph
-def PpJob(
-    engine: str,
-    parent_folder: orm.RemoteData,
-    parameters: t.Annotated[
-        dict,
-        namespace(
+@task.graph(
+    inputs=namespace(
+        engine=str,
+        parent_folder=orm.RemoteData,
+        parameters=namespace(
             engines=namespace(
                 pp=namespace(
                     code=orm.Code,
@@ -90,54 +116,83 @@ def PpJob(
             ),
             quantity=str,
         ),
-    ],
-) -> t.Annotated[
-    dict,
-    task(CommonPostProcessWorkChain).outputs,
-]:
-    workflow = WorkflowFactory(f'common_workflows.pp.{engine.value}')
+    ),
+    outputs=namespace(
+        remote_folder=orm.RemoteData,
+    ),
+)
+def PpJob(engine: str, parent_folder: orm.RemoteData, parameters: dict) -> orm.RemoteData:
+    workflow = WorkflowFactory(f'common_workflows.pp.{engine}')
     input_generator = workflow.get_input_generator()
-    parameters['quantity'] = parameters['quantity'].value
-    parameters['engines']['pp']['options'] = parameters['engines']['pp']['options'].value
+    parameters['quantity'] = _plain(parameters['quantity'])
+    parameters['engines']['pp']['options'] = _plain(parameters['engines']['pp']['options'])
     builder = input_generator.get_builder(parent_folder=parent_folder, **parameters)
     return task(builder._process_class)(**get_dict_from_builder(builder))
 
 
-@task.graph
+@task.graph(
+    inputs=namespace(
+        engine=str,
+        case=AfmCase,
+        structure=orm.StructureData,
+        afm_params=dict,
+        relax=bool,
+        dft_params=namespace(
+            geom=namespace(
+                engines=namespace(
+                    relax=namespace(
+                        code=orm.Code,
+                        options=dict,
+                    ),
+                ),
+                protocol=str,
+                relax_type=str,
+            ),
+            tip=namespace(
+                engines=namespace(
+                    relax=namespace(
+                        code=orm.Code,
+                        options=dict,
+                    ),
+                ),
+                protocol=str,
+                relax_type=str,
+            ),
+        ),
+        pp_params=namespace(
+            hartree_potential=namespace(
+                engines=namespace(
+                    pp=namespace(
+                        code=orm.Code,
+                        options=dict,
+                    ),
+                ),
+                quantity=str,
+            ),
+            charge_density=namespace(
+                engines=namespace(
+                    pp=namespace(
+                        code=orm.Code,
+                        options=dict,
+                    ),
+                ),
+                quantity=str,
+            ),
+        ),
+        tip=orm.StructureData,
+    ),
+    outputs=dynamic(t.Any),
+)
 def AfmWorkflow(
     engine: str,
     case: AfmCase,
     structure: orm.StructureData,
     afm_params: dict,
     relax: bool = False,
-    dft_params: t.Annotated[
-        dict[str, dict] | None,
-        namespace(
-            geom=t.Annotated[
-                dict,
-                DftJob.inputs.parameters,
-            ],
-            tip=t.Annotated[
-                dict,
-                DftJob.inputs.parameters,
-            ],
-        ),
-    ] = None,
-    pp_params: t.Annotated[
-        dict[str, dict] | None,
-        namespace(
-            hartree_potential=t.Annotated[
-                dict,
-                PpJob.inputs.parameters,
-            ],
-            charge_density=t.Annotated[
-                dict,
-                PpJob.inputs.parameters,
-            ],
-        ),
-    ] = None,
+    dft_params: dict | None = None,
+    pp_params: dict | None = None,
     tip: orm.StructureData = None,
-) -> t.Annotated[dict, dynamic(t.Any)]:
+) -> t.Any:
     """AFM simulation workflow."""
     if relax:
         assert dft_params, 'Missing DFT parameters'
@@ -298,21 +353,22 @@ def AfmWorkflow(
                 outputs=['FFel.npz'],
             )
 
-            dftd3 = shelljob(
-                command='ppafm-generate-dftd3',
-                nodes={
-                    'hartree_data': hartree_task.remote_folder,
-                },
-                filenames={
-                    'hartree_data': 'hartree',
-                },
-                arguments=[
-                    '-i',
-                    'hartree/aiida.fileout',
-                    '--df_name',
-                    'PBE',
-                ],
-            )
+            # TODO add support for DFT-D3 dispersion correction
+            # dftd3 = shelljob(
+            #     command='ppafm-generate-dftd3',
+            #     nodes={
+            #         'hartree_data': hartree_task.remote_folder,
+            #     },
+            #     filenames={
+            #         'hartree_data': 'hartree',
+            #     },
+            #     arguments=[
+            #         '-i',
+            #         'hartree/aiida.fileout',
+            #         '--df_name',
+            #         'PBE',
+            #     ],
+            # )
 
             elff = shelljob(
                 command='ppafm-generate-elff',
@@ -335,6 +391,8 @@ def AfmWorkflow(
         else:
             raise ValueError(f'Unsupported case: {case}')
 
+    scan_output = _scan_output_label(afm_params)
+
     scan = shelljob(
         command='ppafm-relaxed-scan',
         metadata=metadata,
@@ -343,7 +401,7 @@ def AfmWorkflow(
             '-f',
             'npy',
         ],
-        outputs=['Q0.00K0.35'],
+        outputs=[scan_output],
     )
 
     results = shelljob(
@@ -351,10 +409,10 @@ def AfmWorkflow(
         metadata=metadata,
         nodes={
             'parameters': afm_params_file,
-            'scan_dir': scan.Q0_00K0_35,
+            'scan_dir': getattr(scan, _output_label_to_attr(scan_output)),
         },
         filenames={
-            'scan_dir': 'Q0.00K0.35',
+            'scan_dir': scan_output,
         },
         arguments=[
             '--df',
@@ -363,7 +421,7 @@ def AfmWorkflow(
             '-f',
             'npy',
         ],
-        outputs=['Q0.00K0.35'],
+        outputs=[scan_output],
     )
 
     return results
