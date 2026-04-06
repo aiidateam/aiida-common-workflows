@@ -68,16 +68,14 @@ def write_structure_file(structure: Atoms, filename: str) -> orm.SinglefileData:
     inputs=namespace(
         engine=str,
         structure=orm.StructureData,
-        parameters=namespace(
-            engines=namespace(
-                relax=namespace(
-                    code=orm.Code,
-                    options=dict,
-                ),
+        engines=namespace(
+            relax=namespace(
+                code=orm.Code,
+                options=dict,
             ),
-            protocol=str,
-            relax_type=str,
         ),
+        protocol=str,
+        relax_type=str,
     ),
     outputs=namespace(
         relaxed_structure=orm.StructureData,
@@ -89,17 +87,22 @@ def write_structure_file(structure: Atoms, filename: str) -> orm.SinglefileData:
         remote_folder=orm.RemoteData,
     ),
 )
-def DftJob(
+def ScfJob(
     engine: str,
     structure: orm.StructureData,
-    parameters: dict,
+    engines: dict,
+    protocol: str,
+    relax_type: str,
 ) -> t.Any:
-    workflow = WorkflowFactory(f'common_workflows.relax.{engine}')
+    workflow = WorkflowFactory(f'common_workflows.relax.{_plain(engine)}')
     input_generator = workflow.get_input_generator()
-    parameters['protocol'] = _plain(parameters['protocol'])
-    parameters['relax_type'] = _plain(parameters['relax_type'])
-    parameters['engines']['relax']['options'] = _plain(parameters['engines']['relax']['options'])
-    builder = input_generator.get_builder(structure=structure, **parameters)
+    engines['relax']['options'] = _plain(engines['relax']['options'])
+    builder = input_generator.get_builder(
+        structure=structure,
+        engines=engines,
+        protocol=_plain(protocol),
+        relax_type=_plain(relax_type),
+    )
     return task(builder._process_class)(**get_dict_from_builder(builder))
 
 
@@ -107,26 +110,33 @@ def DftJob(
     inputs=namespace(
         engine=str,
         parent_folder=orm.RemoteData,
-        parameters=namespace(
-            engines=namespace(
-                pp=namespace(
-                    code=orm.Code,
-                    options=dict,
-                ),
+        engines=namespace(
+            pp=namespace(
+                code=orm.Code,
+                options=dict,
             ),
-            quantity=str,
         ),
+        quantity=str,
     ),
     outputs=namespace(
         remote_folder=orm.RemoteData,
+        quantity=orm.ArrayData,
     ),
 )
-def PpJob(engine: str, parent_folder: orm.RemoteData, parameters: dict) -> orm.RemoteData:
-    workflow = WorkflowFactory(f'common_workflows.pp.{engine}')
+def PpJob(
+    engine: str,
+    parent_folder: orm.RemoteData,
+    engines: dict,
+    quantity: str,
+) -> orm.RemoteData:
+    workflow = WorkflowFactory(f'common_workflows.pp.{_plain(engine)}')
     input_generator = workflow.get_input_generator()
-    parameters['quantity'] = _plain(parameters['quantity'])
-    parameters['engines']['pp']['options'] = _plain(parameters['engines']['pp']['options'])
-    builder = input_generator.get_builder(parent_folder=parent_folder, **parameters)
+    engines['pp']['options'] = _plain(engines['pp']['options'])
+    builder = input_generator.get_builder(
+        parent_folder=parent_folder,
+        engines=engines,
+        quantity=_plain(quantity),
+    )
     return task(builder._process_class)(**get_dict_from_builder(builder))
 
 
@@ -136,47 +146,27 @@ def PpJob(engine: str, parent_folder: orm.RemoteData, parameters: dict) -> orm.R
         case=AfmCase,
         structure=orm.StructureData,
         afm_params=dict,
-        relax=bool,
-        dft_params=namespace(
-            geom=namespace(
-                engines=namespace(
-                    relax=namespace(
-                        code=orm.Code,
-                        options=dict,
-                    ),
+        scf_params=namespace(
+            engines=namespace(
+                relax=namespace(
+                    code=orm.Code,
+                    options=dict,
                 ),
-                protocol=str,
+            ),
+            protocol=str,
+            structure=namespace(
                 relax_type=str,
             ),
             tip=namespace(
-                engines=namespace(
-                    relax=namespace(
-                        code=orm.Code,
-                        options=dict,
-                    ),
-                ),
-                protocol=str,
                 relax_type=str,
             ),
         ),
         pp_params=namespace(
-            hartree_potential=namespace(
-                engines=namespace(
-                    pp=namespace(
-                        code=orm.Code,
-                        options=dict,
-                    ),
+            engines=namespace(
+                pp=namespace(
+                    code=orm.Code,
+                    options=dict,
                 ),
-                quantity=str,
-            ),
-            charge_density=namespace(
-                engines=namespace(
-                    pp=namespace(
-                        code=orm.Code,
-                        options=dict,
-                    ),
-                ),
-                quantity=str,
             ),
         ),
         tip=orm.StructureData,
@@ -188,21 +178,23 @@ def AfmWorkflow(
     case: AfmCase,
     structure: orm.StructureData,
     afm_params: dict,
-    relax: bool = False,
-    dft_params: dict | None = None,
+    scf_params: dict | None = None,
     pp_params: dict | None = None,
     tip: orm.StructureData = None,
 ) -> t.Any:
     """AFM simulation workflow."""
-    if relax:
-        assert dft_params, 'Missing DFT parameters'
-        geom_dft_params = dft_params.get('geom', {})
-        dft_job = DftJob(
+    should_relax_structure = scf_params and scf_params['structure']['relax_type'] != 'none'
+
+    if should_relax_structure:
+        assert scf_params, 'Missing SCF parameters'
+        scf_job = ScfJob(
             engine=engine,
             structure=structure,
-            parameters=geom_dft_params,
+            engines=scf_params['engines'],
+            protocol=scf_params['protocol'],
+            relax_type=scf_params['structure']['relax_type'],
         )
-        structure = dft_job.relaxed_structure
+        structure = scf_job.relaxed_structure
     else:
         assert structure, 'Missing structure'
 
@@ -213,6 +205,7 @@ def AfmWorkflow(
 
     ljff = shelljob(
         command='ppafm-generate-ljff',
+        name='ljff',
         nodes={
             'geometry': geometry_file,
             'parameters': afm_params_file,
@@ -238,27 +231,27 @@ def AfmWorkflow(
     }
 
     if case != AfmCase.EMPIRICAL.name:
-        if not relax:
-            assert dft_params, 'Missing DFT parameters'
-            geom_dft_params = dft_params.get('geom', {})
-            geom_dft_params['relax_type'] = orm.Str('none')
-            dft_job = DftJob(
+        if not should_relax_structure:
+            assert scf_params, 'Missing SCF parameters'
+            scf_job = ScfJob(
                 engine=engine,
                 structure=structure,
-                parameters=geom_dft_params,
+                engines=scf_params['engines'],
+                protocol=scf_params['protocol'],
+                relax_type=scf_params['structure']['relax_type'],
             )
 
         assert pp_params, 'Missing post-processing parameters'
-        hartree_params = pp_params.get('hartree_potential', {})
-        assert hartree_params, 'Missing Hartree potential post-processing parameters'
         hartree_task = PpJob(
             engine=engine,
-            parent_folder=dft_job.remote_folder,
-            parameters=hartree_params,
+            parent_folder=scf_job.remote_folder,
+            engines=pp_params['engines'],
+            quantity='potential',
         )
 
         if case == AfmCase.HARTREE.name:
             elff = shelljob(
+                name='elff',
                 command='ppafm-generate-elff',
                 metadata=metadata,
                 nodes={
@@ -284,37 +277,38 @@ def AfmWorkflow(
 
         # Experimental feature, not fully tested
         elif case == AfmCase.HARTREE_RHO.name:
-            charge_params = pp_params.get('charge_density', {})
-            assert charge_params, 'Missing charge density post-processing parameters'
             rho_job = PpJob(
                 engine=engine,
-                parent_folder=dft_job.remote_folder,
-                parameters=charge_params,
+                parent_folder=scf_job.remote_folder,
+                engines=pp_params['engines'],
+                quantity='charge_density',
             )
 
             assert tip, 'Missing tip structure'
-            tip_dft_params = dft_params.get('tip', {})
-            assert tip_dft_params, 'Missing tip DFT parameters'
-            tip_dft_job = DftJob(
+            tip_dft_job = ScfJob(
                 engine=engine,
                 structure=tip,
-                parameters=tip_dft_params,
+                engines=scf_params['engines'],
+                protocol=scf_params['protocol'],
+                relax_type=scf_params['tip']['relax_type'],
             )
 
             tip_rho_job = PpJob(
                 engine=engine,
                 parent_folder=tip_dft_job.remote_folder,
-                parameters=charge_params,
+                engines=pp_params['engines'],
+                quantity='charge_density',
             )
 
             conv_rho = shelljob(
+                name='conv_rho',
                 command='ppafm-conv-rho',
                 nodes={
-                    'geom_density': rho_job.remote_folder,
+                    'structure_density': rho_job.remote_folder,
                     'tip_density': tip_rho_job.remote_folder,
                 },
                 filenames={
-                    'geom_density': 'structure',
+                    'structure_density': 'structure',
                     'tip_density': 'tip',
                 },
                 arguments=[
@@ -371,6 +365,7 @@ def AfmWorkflow(
             # )
 
             elff = shelljob(
+                name='elff',
                 command='ppafm-generate-elff',
                 nodes={
                     'hartree_data': hartree_task.remote_folder,
@@ -395,6 +390,7 @@ def AfmWorkflow(
 
     scan = shelljob(
         command='ppafm-relaxed-scan',
+        name='scan',
         metadata=metadata,
         nodes=scan_nodes,
         arguments=[
@@ -406,6 +402,7 @@ def AfmWorkflow(
 
     results = shelljob(
         command='ppafm-plot-results',
+        name='plot',
         metadata=metadata,
         nodes={
             'parameters': afm_params_file,
