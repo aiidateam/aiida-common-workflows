@@ -171,7 +171,9 @@ def PpJob(
         ),
         tip=orm.StructureData,
     ),
-    outputs=dynamic(t.Any),
+    outputs=namespace(
+        afm_scan=orm.FolderData,
+    ),
 )
 def AfmWorkflow(
     engine: str,
@@ -421,4 +423,6 @@ def AfmWorkflow(
         outputs=[scan_output],
     )
 
-    return results
+    return {
+        'afm_scan': getattr(results, _output_label_to_attr(scan_output)),
+    }
