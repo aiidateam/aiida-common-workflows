@@ -7,7 +7,6 @@ def setup(app):
 
     from . import input_generator
 
-    app.setup_extension('sphinxcontrib.details.directive')
     input_generator.setup_extension(app)
 
     return {'version': aiida_common_workflows.__version__, 'parallel_read_safe': True}
