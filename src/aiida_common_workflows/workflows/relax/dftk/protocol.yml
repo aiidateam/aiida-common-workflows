@@ -95,8 +95,15 @@ precise:
 verification-PBE-v1:
     name: "verification-PBE-v1"
     description: Protocol for the ACWF verification study
-    pseudo_family: "PseudoDojo/0.5/PBE/SR/standard/upf"
+    # Use the fixed 0.5.1 family as in PseudoPotentialData.jl.
+    # The script to generate it can be found in the DFTK version
+    # of the acwf-verification-scripts repo.
+    pseudo_family: "PseudoDojo/0.5.1-fix/PBE/SR/standard/upf"
     cutoff_stringency: "high"
+    # Use a 5.99 bohr cutoff to match ABINIT and PseudoPotentialData.jl.
+    # Using 10 like QE causes notable differences wrt. AE
+    # on some elements (e.g. Cu and Xe at least).
+    pseudo_rcut: 5.99 # bohr
     base:
         kpoints_distance: 0.06 # [1/AA]
         dftk:

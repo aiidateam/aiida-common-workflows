@@ -85,13 +85,12 @@ class DftkCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             ) from exception
 
         cutoff_stringency = protocol['cutoff_stringency']
-        recommended_ecut_wfc, recommended_ecut_rho = pseudo_family.get_recommended_cutoffs(
+        recommended_ecut_wfc, _ = pseudo_family.get_recommended_cutoffs(
             structure=structure, stringency=cutoff_stringency, unit='Eh'
         )
 
         #TODO: pawecutdg after PAW implementation in DFTK
         # All are NC; no need for `pawecutdg`
-        # cutoff_parameters = {'ecut': recommended_ecut_wfc}
 
         override = {
             'dftk': {
@@ -106,9 +105,8 @@ class DftkCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 }
             }
         }
-        # For PseudoDojo potentials, add an rcut of 10 to match results of QE
-        if pseudo_family_label.startswith('PseudoDojo'):
-           override['dftk']['pseudo_rcut'] = orm.Float(10)
+        if 'pseudo_rcut' in protocol:
+           override['dftk']['pseudo_rcut'] = orm.Float(protocol['pseudo_rcut'])
 
         builder = self.process_class.get_builder()
 
