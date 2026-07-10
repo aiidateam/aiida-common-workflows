@@ -1,0 +1,210 @@
+verification-PBE-v1:
+  description: Main protocol for the ACWF verification study
+  base:
+    pseudo_family: &pseudo_family PseudoDojo/0.4/PBE/SR/standard/upf
+    kpoints_distance: &kpoints_distance 0.06
+    meta_parameters:
+      conv_thr_per_atom: &conv_thr_per_atom 0.1e-9
+      etot_conv_thr_per_atom: 0.5e-5
+    abacus:
+      parameters:
+        input:
+          force_thr: 0.5e-4
+          smearing_method: &smearing_method fd
+          smearing_sigma: &smearing_sigma 0.0045
+          kpar: 4
+          pseudo_rcut: &pseudo_rcut 6.0
+          pseudo_mesh: &pseudo_mesh 1
+  base_final_scf:
+    pseudo_family: *pseudo_family
+    kpoints_distance: *kpoints_distance
+    meta_parameters:
+      conv_thr_per_atom: *conv_thr_per_atom
+    input:
+      parameters:
+        input:
+          smearing_method: *smearing_method
+          smearing_sigma: *smearing_sigma
+          pseudo_rcut: *pseudo_rcut
+          pseudo_mesh: *pseudo_mesh
+          kpar: 4
+
+
+verification-PBE-v1-lcao-dzp:
+  description: Main protocol for the ACWF verification study using lcao mode
+  base:
+    pseudo_family: Dojo-NC-SR/dzp  # DZP orbital with default rcut
+    kpoints_distance: 0.06
+    meta_parameters:
+      conv_thr_per_atom: 0.1e-9
+      etot_conv_thr_per_atom: 0.5e-5
+    abacus:
+      parameters:
+        input:
+          force_thr: 0.5e-4
+          smearing_method: *smearing_method
+          smearing_sigma: *smearing_sigma
+          kpar: 4
+          basis_type: lcao
+          pseudo_rcut: *pseudo_rcut
+          pseudo_mesh: *pseudo_mesh
+          ks_solver: genelpa
+  base_final_scf:
+    pseudo_family: Dojo-NC-SR/dzp
+    kpoints_distance: *kpoints_distance
+    meta_parameters:
+      conv_thr_per_atom: *conv_thr_per_atom
+    input:
+      parameters:
+        input:
+          smearing_method: *smearing_method
+          smearing_sigma: *smearing_sigma
+          kpar: 4
+          basis_type: lcao
+          pseudo_rcut: *pseudo_rcut
+          pseudo_mesh: *pseudo_mesh
+          ks_solver: genelpa
+
+verification-PBE-v1-lcao-dzp-sg15:
+  description: Main protocol for the ACWF verification study using lcao mode
+  base:
+    pseudo_family: SG15_V1.0/dzp  # DZP orbital with default rcut
+    kpoints_distance: 0.06
+    meta_parameters:
+      conv_thr_per_atom: 0.1e-9
+      etot_conv_thr_per_atom: 0.5e-5
+    abacus:
+      parameters:
+        input:
+          force_thr: 0.5e-4
+          smearing_method: *smearing_method
+          smearing_sigma: *smearing_sigma
+          kpar: 4
+          basis_type: lcao
+          pseudo_rcut: *pseudo_rcut
+          pseudo_mesh: *pseudo_mesh
+          ks_solver: genelpa
+  base_final_scf:
+    pseudo_family: SG15_V1.0/dzp
+    kpoints_distance: *kpoints_distance
+    meta_parameters:
+      conv_thr_per_atom: *conv_thr_per_atom
+    input:
+      parameters:
+        input:
+          smearing_method: *smearing_method
+          smearing_sigma: *smearing_sigma
+          kpar: 4
+          basis_type: lcao
+          pseudo_rcut: *pseudo_rcut
+          pseudo_mesh: *pseudo_mesh
+          ks_solver: genelpa
+
+
+
+
+verification-PBE-v1-lcao-tzdp:
+  description: Main protocol for the ACWF verification study using lcao mode
+  base:
+    pseudo_family: Dojo-NC-SR/tzdp  # tzdp orbital with default rcut
+    kpoints_distance: 0.06
+    meta_parameters:
+      conv_thr_per_atom: 0.1e-9
+      etot_conv_thr_per_atom: 0.5e-5
+    abacus:
+      parameters:
+        input:
+          force_thr: 0.5e-4
+          smearing_method: *smearing_method
+          smearing_sigma: *smearing_sigma
+          kpar: 4
+          basis_type: lcao
+          pseudo_rcut: *pseudo_rcut
+          pseudo_mesh: *pseudo_mesh
+          ks_solver: genelpa
+  base_final_scf:
+    pseudo_family: Dojo-NC-SR/tzdp
+    kpoints_distance: *kpoints_distance
+    meta_parameters:
+      conv_thr_per_atom: *conv_thr_per_atom
+    input:
+      parameters:
+        input:
+          smearing_method: *smearing_method
+          smearing_sigma: *smearing_sigma
+          kpar: 4
+          basis_type: lcao
+          pseudo_rcut: *pseudo_rcut
+          pseudo_mesh: *pseudo_mesh
+          ks_solver: genelpa
+
+
+verification-PBE-v1-lcao-tzdp-sg15:
+  description: Main protocol for the ACWF verification study using lcao mode
+  base:
+    pseudo_family: SG15_V1.0/tzdp
+    kpoints_distance: 0.06
+    meta_parameters:
+      conv_thr_per_atom: 0.1e-9
+      etot_conv_thr_per_atom: 0.5e-5
+    abacus:
+      parameters:
+        input:
+          force_thr: 0.5e-4
+          smearing_method: *smearing_method
+          smearing_sigma: *smearing_sigma
+          kpar: 4
+          basis_type: lcao
+          pseudo_mesh: *pseudo_mesh
+          pseudo_rcut: *pseudo_rcut
+          ks_solver: genelpa
+  base_final_scf:
+    pseudo_family: SG15_V1.0/tzdp
+    kpoints_distance: *kpoints_distance
+    meta_parameters:
+      conv_thr_per_atom: *conv_thr_per_atom
+    input:
+      parameters:
+        input:
+          smearing_method: *smearing_method
+          smearing_sigma: *smearing_sigma
+          kpar: 4
+          basis_type: lcao
+          pseudo_rcut: *pseudo_rcut
+          pseudo_mesh: *pseudo_mesh
+          ks_solver: genelpa
+
+verification-PBE-v1-lcao-apns-efficiency:
+  description: Main protocol for the ACWF verification study using lcao mode
+  base:
+    pseudo_family: apns-efficiency-v1
+    kpoints_distance: 0.06
+    meta_parameters:
+      conv_thr_per_atom: 0.1e-9
+      etot_conv_thr_per_atom: 0.5e-5
+    abacus:
+      parameters:
+        input:
+          force_thr: 0.5e-4
+          smearing_method: *smearing_method
+          smearing_sigma: *smearing_sigma
+          kpar: 4
+          basis_type: lcao
+          pseudo_rcut: *pseudo_rcut
+          pseudo_mesh: *pseudo_mesh
+          ks_solver: genelpa
+  base_final_scf:
+    pseudo_family: apns-efficiency-v1
+    kpoints_distance: *kpoints_distance
+    meta_parameters:
+      conv_thr_per_atom: *conv_thr_per_atom
+    input:
+      parameters:
+        input:
+          smearing_method: *smearing_method
+          smearing_sigma: *smearing_sigma
+          kpar: 4
+          basis_type: lcao
+          pseudo_rcut: *pseudo_rcut
+          pseudo_mesh: *pseudo_mesh
+          ks_solver: genelpa
