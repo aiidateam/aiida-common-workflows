@@ -32,7 +32,7 @@ def WorkflowFactory(entry_point_name: str, load: bool = True) -> t.Union['EntryP
     :raises aiida.common.LoadingEntryPointError: entry point could not be loaded
     :raises aiida.common.InvalidEntryPointTypeError: if the type of the loaded entry point is invalid.
     """
-    common_workflow_prefixes = ('common_workflows.relax.', 'common_workflows.bands.')
+    common_workflow_prefixes = ('common_workflows.relax.', 'common_workflows.bands.', 'common_workflows.pp.')
     try:
         return plugins.WorkflowFactory(entry_point_name, load)
     except exceptions.MissingEntryPointError as exception:

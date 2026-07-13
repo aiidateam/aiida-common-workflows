@@ -1,7 +1,8 @@
 """Module with basic type definitions."""
+
 from enum import Enum
 
-__all__ = ('ElectronicType', 'SpinType', 'RelaxType')
+__all__ = ('ElectronicType', 'PostProcessQuantity', 'RelaxType', 'SpinType')
 
 
 class RelaxType(Enum):
@@ -33,3 +34,10 @@ class ElectronicType(Enum):
     METAL = 'metal'
     INSULATOR = 'insulator'
     UNKNOWN = 'unknown'
+
+
+class PostProcessQuantity(Enum):
+    """Enumeration of known post-processing quantities."""
+
+    POTENTIAL = 'potential'
+    CHARGE_DENSITY = 'charge_density'
