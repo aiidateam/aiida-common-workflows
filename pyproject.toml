@@ -28,7 +28,7 @@ keywords = ['aiida', 'workflows']
 license = {file = 'LICENSE.txt'}
 name = 'aiida-common-workflows'
 readme = 'README.md'
-requires-python = '>=3.9'
+requires-python = '>=3.10'
 
 [project.entry-points.'aiida.workflows']
 'common_workflows.bands.siesta' = 'aiida_common_workflows.workflows.bands.siesta.workchain:SiestaCommonBandsWorkChain'
@@ -84,8 +84,7 @@ docs = [
   'pydata-sphinx-theme~=0.14.3',
   'sphinx~=7.2',
   'sphinx-copybutton~=0.5.0',
-  'sphinx-design~=0.5.0',
-  'sphinxcontrib-details-directive~=0.1.0'
+  'sphinx-design~=0.5.0'
 ]
 fleur = [
   'aiida-fleur~=2.0',

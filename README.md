@@ -51,4 +51,4 @@ The corresponding scripts to run simulations and analyze the data can be found o
 
 ## Acknowledgements
 
-We acknowledge support from the NCCR MARVEL, a National Centre of Competence in Research, funded by the Swiss National Science Foundation (grant number 205602), and from the EU Centre of Excellence "MaX – Materials Design at the Exascale" (Horizon 2020 EINFRA-5, Grant No. 676598; H2020-INFRAEDI-2018-1, Grant No. 824143).	
+We acknowledge support from the NCCR MARVEL, a National Centre of Competence in Research, funded by the Swiss National Science Foundation (grant number 205602), and from the EU Centre of Excellence "MaX – Materials Design at the Exascale" (Horizon 2020 EINFRA-5, Grant No. 676598; H2020-INFRAEDI-2018-1, Grant No. 824143).
