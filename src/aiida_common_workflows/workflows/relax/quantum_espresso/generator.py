@@ -1,4 +1,5 @@
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for Quantum ESPRESSO."""
+from collections.abc import Sequence
 from importlib import resources
 
 import yaml
@@ -6,6 +7,7 @@ from aiida import engine, orm, plugins
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
+from aiida_common_workflows.utils import to_spherical
 
 from ..generator import CommonRelaxInputGenerator, OptionalRelaxFeatures
 
@@ -99,7 +101,9 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         spec.inputs['protocol'].valid_type = ChoiceType(
             ('fast', 'balanced', 'stringent', 'moderate', 'precise', 'verification-PBE-v1', 'custom')
         )
-        spec.inputs['spin_type'].valid_type = ChoiceType((SpinType.NONE, SpinType.COLLINEAR))
+        spec.inputs['spin_type'].valid_type = ChoiceType(
+            (SpinType.NONE, SpinType.COLLINEAR, SpinType.NON_COLLINEAR, SpinType.SPIN_ORBIT)
+        )
         spec.inputs['relax_type'].valid_type = ChoiceType(
             tuple(t for t in RelaxType if t not in (RelaxType.VOLUME, RelaxType.POSITIONS_VOLUME))
         )
@@ -143,6 +147,9 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             spin_type = types.SpinType(spin_type.value)
 
         if magnetization_per_site:
+            for i, magn in enumerate(magnetization_per_site):
+                if isinstance(magn, Sequence):
+                    magnetization_per_site[i] = to_spherical(magn)
             kind_to_magnetization = set(zip([site.kind_name for site in structure.sites], magnetization_per_site))
 
             if len(structure.kinds) != len(kind_to_magnetization):

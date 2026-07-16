@@ -1,4 +1,5 @@
 """Tests for the :mod:`aiida_common_workflows.workflows.relax.quantum_espresso` module."""
+import numpy as np
 import pytest
 from aiida import engine, plugins
 from aiida_common_workflows.workflows.relax.generator import ElectronicType, RelaxType, SpinType
@@ -73,7 +74,7 @@ def test_supported_relax_types(generator, default_builder_inputs):
         assert isinstance(builder, engine.ProcessBuilder)
 
 
-@pytest.mark.usefixtures('sssp')
+@pytest.mark.usefixtures('sssp', 'pseudo_dojo_upf_family')
 def test_supported_spin_types(generator, default_builder_inputs):
     """Test calling ``get_builder`` for the supported ``spin_types``."""
     inputs = default_builder_inputs
@@ -205,3 +206,60 @@ def test_magnetization_per_site(generator, generate_code, generate_structure):
         spin_type=SpinType.COLLINEAR,
     )
     assert builder['base']['pw']['parameters']['SYSTEM']['starting_magnetization'] == {'Si': 0.0, 'Ge': 0.025}
+
+    # Test: Vector magnetization with COLLINEAR should raise error
+    z_values = {
+        'Si': 4,
+        'Ge': 4,
+    }
+    magnetization_per_site = [(1.0, 0.0, 0.0), (1.0, 0.0, 0.0)]
+    magnetization_per_site = [
+        tuple(np.array(magnetization_per_site[i]) * z_values[site.kind_name]) for i, site in enumerate(structure.sites)
+    ]
+    with pytest.raises(ValueError, match='vector valued magnetization'):
+        builder = generator.get_builder(
+            structure=structure,
+            engines=engines,
+            magnetization_per_site=magnetization_per_site,
+            spin_type=SpinType.COLLINEAR,
+        )
+
+    # Test: Non-collinear with vector magnetization
+    magnetization_per_site = [(0.0, 0.0, 3.0), (0.0, 0.0, 3.0)]
+    magnetization_per_site = [
+        tuple(np.array(magnetization_per_site[i]) * z_values[site.kind_name]) for i, site in enumerate(structure.sites)
+    ]
+    builder = generator.get_builder(
+        structure=structure,
+        engines=engines,
+        magnetization_per_site=magnetization_per_site,
+        spin_type=SpinType.NON_COLLINEAR,
+    )
+
+    qe_params = builder['base']['pw']['parameters']['SYSTEM']
+
+    # Check spherical coordinates for Si
+    assert np.isclose(qe_params['starting_magnetization']['Si'], 3.0)  # r
+    assert np.isclose(qe_params['angle1']['Si'], 0.0)  # theta (degrees)
+    assert np.isclose(qe_params['angle2']['Si'], 0.0)  # phi (degrees)
+    assert np.isclose(qe_params['starting_magnetization']['Ge'], 3.0)  # r
+    assert np.isclose(qe_params['angle1']['Ge'], 0.0)  # theta (degrees)
+    assert np.isclose(qe_params['angle2']['Ge'], 0.0)  # phi (degrees)
+
+    # Test: Different magnetization directions
+    magnetization_per_site = [(1.0, 0.0, 0.0), (1.0, 0.0, 0.0)]
+    magnetization_per_site = [
+        tuple(np.array(magnetization_per_site[i]) * z_values[site.kind_name]) for i, site in enumerate(structure.sites)
+    ]
+    print(f'DEBUG: magnetization_per_site after scaling: {magnetization_per_site}')
+    print(f'DEBUG: structure.sites: {[(site.kind_name, site.position) for site in structure.sites]}')
+    builder = generator.get_builder(
+        structure=structure,
+        engines=engines,
+        magnetization_per_site=magnetization_per_site,
+        spin_type=SpinType.NON_COLLINEAR,
+    )
+
+    qe_params = builder['base']['pw']['parameters']['SYSTEM']
+    assert np.isclose(qe_params['starting_magnetization']['Si'], 1.0)  # r for Si
+    assert np.isclose(qe_params['starting_magnetization']['Ge'], 1.0)  # r for Ge
