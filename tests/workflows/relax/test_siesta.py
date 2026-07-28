@@ -1,6 +1,8 @@
 """Tests for the :mod:`aiida_common_workflows.workflows.relax.siesta` module."""
+import numpy as np
 import pytest
 from aiida import engine, plugins
+from aiida_common_workflows.common import SpinType
 
 
 @pytest.fixture
@@ -71,3 +73,34 @@ def test_supported_spin_types(generator, default_builder_inputs):
         inputs['spin_type'] = spin_type
         builder = generator.get_builder(**inputs)
         assert isinstance(builder, engine.ProcessBuilder)
+
+
+@pytest.mark.usefixtures('psml_family')
+def test_magnetization_per_site(generator, default_builder_inputs):
+    """Test the ``magnetization_per_site`` keyword argument."""
+    inputs = default_builder_inputs
+
+    magnetization_per_site = [1.0]
+    for spin_type in [SpinType.COLLINEAR, SpinType.NON_COLLINEAR]:
+        builder = generator.get_builder(magnetization_per_site=magnetization_per_site, spin_type=spin_type, **inputs)
+        magn_string = builder['parameters']['%block dm-init-spin'].splitlines()[1].split()
+        assert len(magn_string) == 2
+        magn = float(magn_string[1])
+        assert np.isclose(magn, 1.0)
+
+    magnetization_per_site = [(1.0, 0.0, 0.0)]
+    with pytest.raises(ValueError):
+        builder = generator.get_builder(
+            magnetization_per_site=magnetization_per_site, spin_type=SpinType.COLLINEAR, **inputs
+        )
+
+    magnetization_per_site = [(1.0, 0.0, 0.0)]
+    builder = generator.get_builder(
+        magnetization_per_site=magnetization_per_site, spin_type=SpinType.NON_COLLINEAR, **inputs
+    )
+    magn_string = builder['parameters']['%block dm-init-spin'].splitlines()[1].split()
+    assert len(magn_string) == 4
+    r, theta, phi = float(magn_string[1]), float(magn_string[2]), float(magn_string[3])
+    assert np.isclose(r, 1.0)
+    assert np.isclose(theta, 90.0)
+    assert np.isclose(phi, 0.0)

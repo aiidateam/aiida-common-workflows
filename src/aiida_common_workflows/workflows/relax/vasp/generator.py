@@ -1,5 +1,5 @@
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for VASP."""
-
+import copy
 import os
 import pathlib
 import typing as t
@@ -56,7 +56,9 @@ class VaspCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         spec.inputs['relax_type'].valid_type = ChoiceType(tuple(RelaxType))
         spec.inputs['electronic_type'].valid_type = ChoiceType((ElectronicType.METAL, ElectronicType.INSULATOR))
         spec.inputs['engines']['relax']['code'].valid_type = CodeType('vasp.vasp')
-        spec.inputs['protocol'].valid_type = ChoiceType(('fast', 'moderate', 'precise', 'verification-PBE-v1'))
+        spec.inputs['protocol'].valid_type = ChoiceType(
+            ('fast', 'moderate', 'precise', 'verification-PBE-v1', 'custom')
+        )
 
     def _construct_builder(self, **kwargs) -> engine.ProcessBuilder:  # noqa: PLR0912,PLR0915
         """Construct a process builder based on the provided keyword arguments.
@@ -67,6 +69,7 @@ class VaspCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         structure = kwargs['structure']
         engines = kwargs['engines']
         protocol = kwargs['protocol']
+        custom_protocol = kwargs.get('custom_protocol', None)
         spin_type = kwargs['spin_type']
         relax_type = kwargs['relax_type']
         magnetization_per_site = kwargs.get('magnetization_per_site', None)
@@ -77,7 +80,15 @@ class VaspCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         # Get the protocol that we want to use
         if protocol is None:
             protocol = self._default_protocol
-        protocol = self.get_protocol(protocol)
+
+        if protocol == 'custom':
+            if custom_protocol is None:
+                raise ValueError(
+                    'the `custom_protocol` input must be provided when the `protocol` input is set to `custom`.'
+                )
+            protocol = copy.deepcopy(custom_protocol)
+        else:
+            protocol = copy.deepcopy(self.get_protocol(protocol))
 
         # Set the builder
         builder = self.process_class.get_builder()
@@ -172,7 +183,14 @@ class VaspCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 previous_kpoints.base.attributes.get('mesh'), previous_kpoints.base.attributes.get('offset')
             )
         else:
-            kpoints.set_kpoints_mesh_from_density(protocol['kpoint_distance'])
+            if 'kpoints' in protocol and 'kpoint_distance' in protocol:
+                raise ValueError('Protocol cannot define both `kpoints` and `kpoint_distance` in protocol.')
+            if 'kpoints' not in protocol and 'kpoint_distance' not in protocol:
+                raise ValueError('Protocol must define either `kpoints` or `kpoint_distance` in protocol.')
+            if 'kpoints' in protocol:
+                kpoints.set_kpoints_mesh(protocol['kpoints'])
+            else:
+                kpoints.set_kpoints_mesh_from_density(protocol['kpoint_distance'])
         builder.vasp.kpoints = kpoints
 
         # Set the relax parameters

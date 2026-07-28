@@ -1,5 +1,6 @@
 """Module with base input generator for the common structure relax workchains."""
 import abc
+from collections.abc import Sequence
 
 from aiida import orm, plugins
 
@@ -16,6 +17,25 @@ def validate_inputs(value, _):
     # Validate mutual exclusivity of magnetization inputs.
     if value.get('magnetization_per_site') is not None and value.get('fixed_total_cell_magnetization') is not None:
         return 'the inputs `magnetization_per_site` and ' '`fixed_total_cell_magnetization` are mutually exclusive.'
+
+    if value.get('protocol') == 'custom' and value.get('custom_protocol') is None:
+        return 'the `custom_protocol` input must be provided when the `protocol` input is set to `custom`.'
+
+    if value.get('protocol') != 'custom' and value.get('custom_protocol') is not None:
+        return 'the `custom_protocol` input can only be provided when the `protocol` input is set to `custom`.'
+
+    # TODO: ensure all plugins actually honor this new custom_protocol input! (only QE implemented for now)
+
+    # Validate non-collinear spin type if magnetization per site is vector-valued
+    if value.get('magnetization_per_site') is not None and value.get('spin_type') not in [
+        SpinType.NON_COLLINEAR,
+        SpinType.SPIN_ORBIT,
+    ]:
+        for mag in value.get('magnetization_per_site'):
+            if isinstance(mag, Sequence):
+                return (
+                    'a vector valued magnetization is only allowed if `spin_type` is `NON_COLLINEAR` or `SPIN_ORBIT`.'
+                )
 
 
 class OptionalRelaxFeatures(OptionalFeature):
@@ -45,7 +65,7 @@ class CommonRelaxInputGenerator(InputGenerator, ProtocolRegistry, metaclass=abc.
         )
         spec.input(
             'protocol',
-            valid_type=ChoiceType(('fast', 'moderate', 'precise')),
+            valid_type=ChoiceType(('fast', 'moderate', 'precise', 'custom')),
             default='moderate',
             non_db=True,
             help='The protocol to use for the automated input generation. This value indicates the level of precision '
@@ -77,10 +97,21 @@ class CommonRelaxInputGenerator(InputGenerator, ProtocolRegistry, metaclass=abc.
             valid_type=list,
             required=False,
             non_db=True,
-            help='The initial magnetization of the system. Should be a list of floats, where each float represents the '
-            'spin polarization in units of electrons, meaning the difference between spin up and spin down '
-            'electrons, for the site. This also corresponds to the magnetization of the site in Bohr magnetons '
-            '(μB).',
+            help='The initial magnetization of the system. Should be a list of floats/vectors, where each '
+            'float/vector represents the spin polarization in units of electrons, meaning the difference '
+            'between spin up and spin down electrons, for the site. This also corresponds to the '
+            'magnetization of the site in Bohr magnetons (μB). '
+            'If a single float is given for a site with non-collinear spins, '
+            'this is interpreted as a (0, 0, value) vector.',
+        )
+        spec.input(
+            'custom_protocol',
+            valid_type=(dict, type(None)),
+            non_db=True,
+            required=False,
+            default=None,
+            help='A custom protocol dictionary that can be provided when the `protocol` input is set to `custom`. '
+            'In that case, this dictionary will be used to override the default protocol settings.',
         )
         spec.input(
             'fixed_total_cell_magnetization',

@@ -425,6 +425,49 @@ def pseudo_dojo_psp8_family(generate_psp8_data):
 
 
 @pytest.fixture(scope='session')
+def pseudo_dojo_upf_family(generate_upf_data):
+    """Create a PseudoDojo UPF pseudo potential family from scratch.
+
+    This is required for SOC calculations with QE.
+    """
+    from aiida.plugins import DataFactory, GroupFactory
+
+    PseudoDojoFamily = GroupFactory('pseudo.family.pseudo_dojo')  # noqa: N806
+    label = 'PseudoDojo/0.4/PBEsol/FR/standard/upf'
+
+    try:
+        family = PseudoDojoFamily.collection.get(label=label)
+    except exceptions.NotExistent:
+        pass
+    else:
+        return family
+
+    cutoffs_dict = {'normal': {}}
+
+    with tempfile.TemporaryDirectory() as dirpath:
+        for values in elements.values():
+            element = values['symbol']
+            upf = generate_upf_data(element)
+            filename = os.path.join(dirpath, f'{element}.upf')
+
+            with open(filename, 'w+b') as handle:
+                with upf.open(mode='rb') as source:
+                    handle.write(source.read())
+                    handle.flush()
+
+            cutoffs_dict['normal'][element] = {'cutoff_wfc': 30.0, 'cutoff_rho': 240.0}
+
+        family = PseudoDojoFamily.create_from_folder(
+            pathlib.Path(dirpath), label, pseudo_type=DataFactory('pseudo.upf')
+        )
+
+    for stringency, cutoffs in cutoffs_dict.items():
+        family.set_cutoffs(cutoffs, stringency, unit='Ry')
+
+    return family
+
+
+@pytest.fixture(scope='session')
 def psml_family(generate_psml_data):
     """Create a pseudopotential family with PsmlData potentials from scratch."""
     from aiida import plugins

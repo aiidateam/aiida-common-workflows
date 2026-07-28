@@ -1,4 +1,5 @@
 """Implementation of `aiida_common_workflows.common.relax.generator.CommonRelaxInputGenerator` for Quantum ESPRESSO."""
+from collections.abc import Sequence
 from importlib import resources
 
 import yaml
@@ -6,6 +7,7 @@ from aiida import engine, orm, plugins
 
 from aiida_common_workflows.common import ElectronicType, RelaxType, SpinType
 from aiida_common_workflows.generators import ChoiceType, CodeType
+from aiida_common_workflows.utils import to_spherical
 
 from ..generator import CommonRelaxInputGenerator, OptionalRelaxFeatures
 
@@ -97,9 +99,11 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         """
         super().define(spec)
         spec.inputs['protocol'].valid_type = ChoiceType(
-            ('fast', 'balanced', 'stringent', 'moderate', 'precise', 'verification-PBE-v1')
+            ('fast', 'balanced', 'stringent', 'moderate', 'precise', 'verification-PBE-v1', 'custom')
         )
-        spec.inputs['spin_type'].valid_type = ChoiceType((SpinType.NONE, SpinType.COLLINEAR))
+        spec.inputs['spin_type'].valid_type = ChoiceType(
+            (SpinType.NONE, SpinType.COLLINEAR, SpinType.NON_COLLINEAR, SpinType.SPIN_ORBIT)
+        )
         spec.inputs['relax_type'].valid_type = ChoiceType(
             tuple(t for t in RelaxType if t not in (RelaxType.VOLUME, RelaxType.POSITIONS_VOLUME))
         )
@@ -143,6 +147,9 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             spin_type = types.SpinType(spin_type.value)
 
         if magnetization_per_site:
+            for i, magn in enumerate(magnetization_per_site):
+                if isinstance(magn, Sequence):
+                    magnetization_per_site[i] = to_spherical(magn)
             kind_to_magnetization = set(zip([site.kind_name for site in structure.sites], magnetization_per_site))
 
             if len(structure.kinds) != len(kind_to_magnetization):
@@ -155,7 +162,15 @@ class QuantumEspressoCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         # Currently, the `aiida-quantumespresso` workflows will expect one of the basic protocols to be passed to the
         # `get_builder_from_protocol()` method. Here, we switch to using the default protocol for the
         # `aiida-quantumespresso` plugin and pass the local protocols as `overrides`.
-        if (
+        if protocol == 'custom':
+            custom_protocol = kwargs.get('custom_protocol', None)
+            if custom_protocol is None:
+                raise ValueError(
+                    'The `custom_protocol` input must be provided when the `protocol` input is set to `custom`.'
+                )
+            overrides = custom_protocol
+            protocol = self._default_protocol
+        elif (
             protocol not in self.process_class._process_class.get_available_protocols()
             and self.process_class._process_class._check_if_alias(protocol)
             not in self.process_class._process_class.get_available_protocols()
