@@ -29,6 +29,16 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         super().__init__(*args, **kwargs)
 
+        self._validate_protocols()
+
+    def _initialize_protocols(self):
+        """Initialize the protocols class attribute by parsing them from the configuration file."""
+        _filepath = os.path.join(os.path.dirname(__file__), 'protocol.yml')
+
+        with open(_filepath, encoding='utf-8') as _thefile:
+            self._protocols = yaml.full_load(_thefile)
+
+    def _validate_protocols(self):
         def raise_invalid(message):
             raise RuntimeError(f'invalid protocol registry `{self.__class__.__name__}`: ' + message)
 
@@ -50,13 +60,6 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             if 'pseudo_family' not in v:
                 raise_invalid(f'protocol `{k}` does not define the mandatory key `pseudo_family`')
 
-    def _initialize_protocols(self):
-        """Initialize the protocols class attribute by parsing them from the configuration file."""
-        _filepath = os.path.join(os.path.dirname(__file__), 'protocol.yml')
-
-        with open(_filepath, encoding='utf-8') as _thefile:
-            self._protocols = yaml.full_load(_thefile)
-
     @classmethod
     def define(cls, spec):
         """Define the specification of the input generator.
@@ -64,7 +67,9 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         The ports defined on the specification are the inputs that will be accepted by the ``get_builder`` method.
         """
         super().define(spec)
-        spec.inputs['protocol'].valid_type = ChoiceType(('fast', 'moderate', 'precise', 'verification-PBE-v1'))
+        spec.inputs['protocol'].valid_type = ChoiceType(
+            ('fast', 'moderate', 'precise', 'verification-PBE-v1', 'custom')
+        )
         spec.inputs['spin_type'].valid_type = ChoiceType(
             (SpinType.NONE, SpinType.COLLINEAR, SpinType.NON_COLLINEAR, SpinType.SPIN_ORBIT)
         )
@@ -83,6 +88,7 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         structure = kwargs['structure']
         engines = kwargs['engines']
         protocol = kwargs['protocol']
+        custom_protocol = kwargs.get('custom_protocol', None)
         spin_type = kwargs['spin_type']
         relax_type = kwargs['relax_type']
         magnetization_per_site = kwargs.get('magnetization_per_site', None)
@@ -91,7 +97,18 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         reference_workchain = kwargs.get('reference_workchain', None)
 
         # Checks
-        if protocol not in self.get_protocol_names():
+        lua = None
+        if protocol == 'custom':
+            # Override self._protocols
+            if custom_protocol is None:
+                raise ValueError(
+                    'the `custom_protocol` input must be provided when the `protocol` input is set to `custom`.'
+                )
+            self._protocols = {'custom': _copy_nested_dict(custom_protocol)}
+            self._validate_protocols()
+            if 'lua' in self._protocols[protocol]:
+                lua = self._protocols[protocol]['lua']
+        elif protocol not in self.get_protocol_names():
             import warnings
 
             warnings.warn(f'no protocol implemented with name {protocol}, using default moderate')
@@ -166,6 +183,9 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         builder.pseudo_family = pseudo_family
         builder.options = orm.Dict(dict=engines['relax']['options'])
         builder.code = engines['relax']['code']
+
+        if lua is not None:
+            builder.lua = lua
 
         return builder
 
@@ -304,6 +324,8 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
             return kpoints_mesh
 
         if 'kpoints' in self._protocols[key]:
+            if isinstance(self._protocols[key]['kpoints'], KpointsData):
+                return self._protocols[key]['kpoints']
             kpoints_mesh = KpointsData()
             kpoints_mesh.set_cell_from_structure(structure)
             kp_dict = self._protocols[key]['kpoints']
@@ -319,3 +341,15 @@ class SiestaCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         from aiida.orm import Str
 
         return Str(self._protocols[key]['pseudo_family'])
+
+
+def _copy_nested_dict(value):
+    """
+    Copy nested dictionaries. `Dict` is converted into
+    a (mutable) plain Python `dict`.
+
+    This is needed for custom protocols that contain AiiDA Dicts
+    """
+    if isinstance(value, (dict, orm.Dict)):
+        return {k: _copy_nested_dict(v) for k, v in value.items()}
+    return value
