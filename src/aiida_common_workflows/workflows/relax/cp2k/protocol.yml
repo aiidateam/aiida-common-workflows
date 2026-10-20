@@ -66,7 +66,8 @@ moderate:
     MOTION:
       PRINT:
         TRAJECTORY:
-          FORMAT: DCD_ALIGNED_CELL
+          FORMAT: XYZ
+          ADD_LAST: NUMERIC
           EACH:
             CELL_OPT: 1
             GEO_OPT: 1
@@ -80,7 +81,12 @@ moderate:
         RESTART_HISTORY:
           _: 'OFF'
         CELL:
-          _: 'OFF'
+          _: 'ON'
+          ADD_LAST: NUMERIC
+          EACH:
+            CELL_OPT: 1
+            GEO_OPT: 1
+            MD: 1
         VELOCITIES:
           _: 'OFF'
         FORCES:
@@ -99,7 +105,6 @@ moderate:
           TRUST_RADIUS: '[angstrom] 0.25'        #default: [angstrom] 0.25
 
       CELL_OPT:
-        TYPE: DIRECT_CELL_OPT                   #default: DIRECT_CELL_OPT
         EXTERNAL_PRESSURE: '[bar] 0.0'
         PRESSURE_TOLERANCE: '[bar] 100'         #default: 100
         KEEP_ANGLES: false
@@ -183,7 +188,8 @@ precise:
     MOTION:
       PRINT:
         TRAJECTORY:
-          FORMAT: DCD_ALIGNED_CELL
+          FORMAT: XYZ
+          ADD_LAST: NUMERIC
           EACH:
             CELL_OPT: 1
             GEO_OPT: 1
@@ -197,7 +203,12 @@ precise:
         RESTART_HISTORY:
           _: 'OFF'
         CELL:
-          _: 'OFF'
+          _: 'ON'
+          ADD_LAST: NUMERIC
+          EACH:
+            CELL_OPT: 1
+            GEO_OPT: 1
+            MD: 1
         VELOCITIES:
           _: 'OFF'
         FORCES:
@@ -215,7 +226,6 @@ precise:
         BFGS:
           TRUST_RADIUS: '[angstrom] 0.25'        #default: [angstrom] 0.25
       CELL_OPT:
-        TYPE: DIRECT_CELL_OPT                   #default: DIRECT_CELL_OPT
         EXTERNAL_PRESSURE: '[bar] 0.0'
         PRESSURE_TOLERANCE: '[bar] 100'         #default: 100
         KEEP_ANGLES: false
@@ -297,7 +307,8 @@ fast:
     MOTION:
       PRINT:
         TRAJECTORY:
-          FORMAT: DCD_ALIGNED_CELL
+          FORMAT: XYZ
+          ADD_LAST: NUMERIC
           EACH:
             CELL_OPT: 1
             GEO_OPT: 1
@@ -311,7 +322,12 @@ fast:
         RESTART_HISTORY:
           _: 'OFF'
         CELL:
-          _: 'OFF'
+          _: 'ON'
+          ADD_LAST: NUMERIC
+          EACH:
+            CELL_OPT: 1
+            GEO_OPT: 1
+            MD: 1
         VELOCITIES:
           _: 'OFF'
         FORCES:
@@ -330,7 +346,6 @@ fast:
           TRUST_RADIUS: '[angstrom] 0.25'        #default: [angstrom] 0.25
 
       CELL_OPT:
-        TYPE: DIRECT_CELL_OPT                   #default: DIRECT_CELL_OPT
         EXTERNAL_PRESSURE: '[bar] 0.0'
         PRESSURE_TOLERANCE: '[bar] 100'         #default: 100
         KEEP_ANGLES: false
@@ -422,7 +437,8 @@ verification-PBE-v1:
     MOTION:
       PRINT:
         TRAJECTORY:
-          FORMAT: DCD_ALIGNED_CELL
+          FORMAT: XYZ
+          ADD_LAST: NUMERIC
           EACH:
             CELL_OPT: 1
             GEO_OPT: 1
@@ -436,7 +452,12 @@ verification-PBE-v1:
         RESTART_HISTORY:
           _: 'OFF'
         CELL:
-          _: 'OFF'
+          _: 'ON'
+          ADD_LAST: NUMERIC
+          EACH:
+            CELL_OPT: 1
+            GEO_OPT: 1
+            MD: 1
         VELOCITIES:
           _: 'OFF'
         FORCES:
@@ -454,7 +475,6 @@ verification-PBE-v1:
         BFGS:
           TRUST_RADIUS: '[angstrom] 0.25'        #default: [angstrom] 0.25
       CELL_OPT:
-        TYPE: DIRECT_CELL_OPT                   #default: DIRECT_CELL_OPT
         EXTERNAL_PRESSURE: '[bar] 0.0'
         PRESSURE_TOLERANCE: '[bar] 100'         #default: 100
         KEEP_ANGLES: false
@@ -534,7 +554,8 @@ verification-PBE-v1-sirius:
     MOTION:
       PRINT:
         TRAJECTORY:
-          FORMAT: DCD_ALIGNED_CELL
+          FORMAT: XYZ
+          ADD_LAST: NUMERIC
           EACH:
             CELL_OPT: 1
             GEO_OPT: 1
@@ -548,7 +569,12 @@ verification-PBE-v1-sirius:
         RESTART_HISTORY:
           _: 'OFF'
         CELL:
-          _: 'OFF'
+          _: 'ON'
+          ADD_LAST: NUMERIC
+          EACH:
+            CELL_OPT: 1
+            GEO_OPT: 1
+            MD: 1
         VELOCITIES:
           _: 'OFF'
         FORCES:
@@ -566,7 +592,6 @@ verification-PBE-v1-sirius:
         BFGS:
           TRUST_RADIUS: '[angstrom] 0.25'        #default: [angstrom] 0.25
       CELL_OPT:
-        TYPE: DIRECT_CELL_OPT                   #default: DIRECT_CELL_OPT
         EXTERNAL_PRESSURE: '[bar] 0.0'
         PRESSURE_TOLERANCE: '[bar] 100'         #default: 100
         KEEP_ANGLES: false

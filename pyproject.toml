@@ -3,7 +3,7 @@ build-backend = 'flit_core.buildapi'
 requires = ['flit_core >=3.4,<4']
 
 [project]
-authors = [{name = 'The AiiDA team', email = 'developers@aiida.net'}]
+authors = [{ name = 'The AiiDA team', email = 'developers@aiida.net' }]
 classifiers = [
   'Development Status :: 4 - Beta',
   'Framework :: AiiDA',
@@ -25,7 +25,7 @@ dependencies = [
 ]
 dynamic = ['description', 'version']
 keywords = ['aiida', 'workflows']
-license = {file = 'LICENSE.txt'}
+license = { file = 'LICENSE.txt' }
 name = 'aiida-common-workflows'
 readme = 'README.md'
 requires-python = '>=3.10'

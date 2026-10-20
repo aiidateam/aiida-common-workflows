@@ -28,6 +28,22 @@ def test_get_builder(generator, default_builder_inputs):
     assert isinstance(builder, engine.ProcessBuilder)
 
 
+@pytest.mark.parametrize(
+    'protocol', ['fast', 'moderate', 'precise', 'verification-PBE-v1', 'verification-PBE-v1-sirius']
+)
+def test_protocol_output_matches_advanced_parser(generator, protocol):
+    """Every protocol should write matching Cartesian position and cell frames."""
+    motion = generator.get_protocol(protocol)['input']['MOTION']
+    assert 'TYPE' not in motion['CELL_OPT']
+    assert motion['GEO_OPT']['TYPE'] == 'MINIMIZATION'
+    trajectory = motion['PRINT']['TRAJECTORY']
+    cell = motion['PRINT']['CELL']
+    assert trajectory['FORMAT'] == 'XYZ'
+    assert cell['_'] == 'ON'
+    assert trajectory['ADD_LAST'] == cell['ADD_LAST'] == 'NUMERIC'
+    assert trajectory['EACH'] == cell['EACH'] == {'CELL_OPT': 1, 'GEO_OPT': 1, 'MD': 1}
+
+
 @pytest.mark.skip('Running this test will fail with an `UnroutableError` in `kiwipy`.')
 def test_submit(generator, default_builder_inputs):
     """Test submitting the builder returned by ``get_builder`` called with default arguments.
