@@ -54,7 +54,7 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         spec.inputs['relax_type'].valid_type = ChoiceType((RelaxType.NONE, RelaxType.POSITIONS))
         spec.inputs['electronic_type'].valid_type = ChoiceType((ElectronicType.METAL, ElectronicType.INSULATOR))
         spec.inputs['protocol'].valid_type = ChoiceType(
-            ('fast', 'moderate', 'precise', 'oxides_validation', 'verification-PBE-v1')
+            ('fast', 'moderate', 'precise', 'oxides_validation', 'verification-PBE-v1', 'verification-LDA-v1', 'verification-PBEsol-v1', 'verification-PBE-loose-k-v1', 'verification-LDA-loose-k-v1', 'verification-PBEsol-loose-k-v1', 'verification-r2SCAN01-v1')
         )
         spec.input('engines.inpgen.code', valid_type=orm.Code, serializer=orm.load_code)
         spec.input('engines.inpgen.options', non_db=True, valid_type=dict, required=False)
@@ -73,6 +73,7 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         spin_type = kwargs['spin_type']
         relax_type = kwargs['relax_type']
         magnetization_per_site = kwargs.get('magnetization_per_site', None)
+        xc_type = None
         threshold_forces = kwargs.get('threshold_forces', None)
         threshold_stress = kwargs.get('threshold_stress', None)
         reference_workchain = kwargs.get('reference_workchain', None)
@@ -163,6 +164,9 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         }
         protocol_scf_para = protocol.get('scf', {})
         kmax = protocol_scf_para.pop('k_max_cutoff', None)  # for now always None, later consider clean up
+        xc_type = protocol_scf_para.pop('xc_type', None)
+        protocol_calc_para = protocol.get('calc_parameters',{})
+        xc_type = protocol_calc_para.pop('xc_type', None)
 
         if molecule:  # We want to use only one kpoint, can be overwritten by user input
             protocol_scf_para['kpoints_distance'] = 100000000
@@ -181,11 +185,11 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
 
         wf_para_scf = orm.Dict(dict=wf_para_scf_dict)
 
-        # User specification overrides previous workchain!
+        # User specification adds to previous workchain!
         if 'calc_parameters' in kwargs:
             parameters = kwargs.pop('calc_parameters')
 
-        parameters, structure = prepare_calc_parameters(parameters, spin_type, magnetization_per_site, structure, kmax)
+        parameters, structure = prepare_calc_parameters(parameters, xc_type, spin_type, magnetization_per_site, structure, kmax)
 
         inputs = {
             'scf': {
@@ -206,12 +210,13 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         return builder
 
 
-def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, structure, kmax):
+def prepare_calc_parameters(parameters, xc_type, spin_type, magnetization_per_site, structure, kmax):
     """Prepare a calc_parameter node for a inpgen jobcalc
 
     Depending on the imports merge information
 
     :param parameters: given calc_parameter orm.Dict node to merge with
+    :param xc_type: The name of the XC functional
     :param spin_type: type of magnetic calculation
     :param magnetization_per_site: list
     :param kmax: int, basis cutoff for the simulations
@@ -226,6 +231,9 @@ def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, struc
     else:
         jspins = 2
     add_parameter_dict = {'comp': {'jspins': jspins}}
+
+    if xc_type is not None:
+       add_parameter_dict = recursive_merge(add_parameter_dict, {'exco': {'xctyp': xc_type}})
 
     # electronic Structure options
     # None. Gff we want to increase the smearing and kpoint density in case of metal
@@ -267,9 +275,9 @@ def prepare_calc_parameters(parameters, spin_type, magnetization_per_site, struc
                     except ValueError:
                         kind_namet = 0
                     kind_id = f'{atomic_number}.{kind_namet}'
+                    mag_dict[f'atom{i}'] = {'z': atomic_number, 'id': kind_id, 'bmu': val}
                 else:
-                    kind_id = f'{atomic_number}'
-                mag_dict[f'atom{i}'] = {'z': atomic_number, 'id': kind_id, 'bmu': val}
+                    mag_dict[f'atom{i}'] = {'z': atomic_number, 'bmu': val}
             # Better would be a valid parameter data merge from aiida-fleur, to merge atom lists
             # right
             add_parameter_dict = recursive_merge(add_parameter_dict, mag_dict)

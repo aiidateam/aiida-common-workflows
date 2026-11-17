@@ -8,6 +8,7 @@ moderate:
     run_final_scf: true
   scf:
     kpoints_distance: 0.2
+    kpoints_force_gamma: true
     fleur_runmax: 2
     itmax_per_run: 120
     force_dict:
@@ -25,6 +26,7 @@ precise:
     run_final_scf: true
   scf:
     kpoints_distance: 0.1
+    kpoints_force_gamma: true
     fleur_runmax: 3
     itmax_per_run: 120
     force_dict:
@@ -44,6 +46,7 @@ fast:
     fleur_runmax: 2
     itmax_per_run: 120
     kpoints_distance: 0.4
+    kpoints_force_gamma: true
     force_dict:
       qfix: 2
       forcealpha: 1.0
@@ -76,6 +79,129 @@ verification-PBE-v1:
     change_mixing_criterion: 0.025
     run_final_scf: true
   scf:
+    kpoints_distance: 0.06
+    kpoints_force_gamma: true
+    fleur_runmax: 3
+    itmax_per_run: 120
+    force_dict:
+      qfix: 2
+      forcealpha: 0.50
+      forcemix: straight
+
+verification-LDA-v1:
+  name: verification-LDA-v1
+  inpgen-protocol: oxides_validation
+  description: Protocol to relax a structure with high precision at higher computational cost. This relies on the "oxides_validation" protocol of the fleur code.
+  relax:
+    relax_iter: 10
+    change_mixing_criterion: 0.025
+    run_final_scf: true
+  calc_parameters:
+    xc_type: 'LibXC: Exch: LDA_X, Cor: LDA_C_PW'
+  scf:
+    xc_type: 'LibXC: Exch: LDA_X, Cor: LDA_C_PW'
+    kpoints_distance: 0.06
+    kpoints_force_gamma: true
+    fleur_runmax: 3
+    itmax_per_run: 120
+    force_dict:
+      qfix: 2
+      forcealpha: 0.50
+      forcemix: straight
+
+verification-PBEsol-v1:
+  name: verification-PBEsol-v1
+  inpgen-protocol: oxides_validation
+  description: Protocol to relax a structure with high precision at higher computational cost. This relies on the "oxides_validation" protocol of the fleur code.
+  relax:
+    relax_iter: 10
+    change_mixing_criterion: 0.025
+    run_final_scf: true
+  calc_parameters:
+    xc_type: 'PBEs'
+  scf:
+    xc_type: 'PBEs'
+    kpoints_distance: 0.06
+    kpoints_force_gamma: true
+    fleur_runmax: 3
+    itmax_per_run: 120
+    force_dict:
+      qfix: 2
+      forcealpha: 0.50
+      forcemix: straight
+
+verification-PBE-loose-k-v1:
+  name: verification-PBE-loose-k-v1
+  inpgen-protocol: oxides_validation_loose_k
+  description: Protocol to relax a structure with high precision at higher computational cost. This relies on the "oxides_validation_loose_k" protocol of the fleur code.
+  relax:
+    relax_iter: 10
+    change_mixing_criterion: 0.025
+    run_final_scf: true
+  scf:
+    kpoints_distance: 0.3
+    kpoints_force_gamma: true
+    fleur_runmax: 3
+    itmax_per_run: 120
+    force_dict:
+      qfix: 2
+      forcealpha: 0.50
+      forcemix: straight
+
+verification-LDA-loose-k-v1:
+  name: verification-LDA-v1
+  inpgen-protocol: oxides_validation_loose_k
+  description: Protocol to relax a structure with high precision at higher computational cost. This relies on the "oxides_validation_loose_k" protocol of the fleur code.
+  relax:
+    relax_iter: 10
+    change_mixing_criterion: 0.025
+    run_final_scf: true
+  calc_parameters:
+    xc_type: 'LibXC: Exch: LDA_X, Cor: LDA_C_PW'
+  scf:
+    xc_type: 'LibXC: Exch: LDA_X, Cor: LDA_C_PW'
+    kpoints_distance: 0.3
+    kpoints_force_gamma: true
+    fleur_runmax: 3
+    itmax_per_run: 120
+    force_dict:
+      qfix: 2
+      forcealpha: 0.50
+      forcemix: straight
+
+verification-PBEsol-loose-k-v1:
+  name: verification-PBEsol-loose-k-v1
+  inpgen-protocol: oxides_validation_loose_k
+  description: Protocol to relax a structure with high precision at higher computational cost. This relies on the "oxides_validation_loose_k" protocol of the fleur code.
+  relax:
+    relax_iter: 10
+    change_mixing_criterion: 0.025
+    run_final_scf: true
+  calc_parameters:
+    xc_type: 'PBEs'
+  scf:
+    xc_type: 'PBEs'
+    kpoints_distance: 0.3
+    kpoints_force_gamma: true
+    fleur_runmax: 3
+    itmax_per_run: 120
+    force_dict:
+      qfix: 2
+      forcealpha: 0.50
+      forcemix: straight
+
+verification-r2SCAN01-v1:
+  name: verification-r2SCAN01-v1
+  inpgen-protocol: oxides_validation
+  description: Protocol to relax a structure with high precision at higher computational cost. This relies on the "oxides_validation" protocol of the fleur code.
+  relax:
+    relax_iter: 10
+    change_mixing_criterion: 0.025
+    run_final_scf: true
+  calc_parameters:
+    xc_type: 'LibXC: ExchID: 645, CorID: 642, AuxExchID: 117, AuxCorID: 130'
+  scf:
+    xc_type: 'LibXC: ExchID: 645, CorID: 642, AuxExchID: 117, AuxCorID: 130'
     kpoints_distance: 0.06
     kpoints_force_gamma: true
     fleur_runmax: 3

@@ -61,7 +61,7 @@ all_plugins = [
   'aiida-bigdft~=0.3.0',
   'aiida-castep~=2.0',
   'aiida-cp2k~=2.0',
-  'aiida-fleur~=2.0',
+  'aiida-fleur>=2.0',
   'aiida-gaussian~=2.0',
   'aiida-nwchem~=3.0',
   'aiida-orca~=0.6.0',
@@ -69,7 +69,7 @@ all_plugins = [
   'aiida-siesta~=2.0',
   'aiida-vasp~=5.0',
   'aiida-wien2k~=0.2.0',
-  'masci-tools~=0.9'
+  'masci-tools>=0.9'
 ]
 bigdft = [
   'aiida-bigdft~=0.3.0'
@@ -87,8 +87,8 @@ docs = [
   'sphinx-design~=0.5.0'
 ]
 fleur = [
-  'aiida-fleur~=2.0',
-  'masci-tools~=0.9'
+  'aiida-fleur>=2.0',
+  'masci-tools>=0.9'
 ]
 gaussian = [
   'aiida-gaussian~=2.0'
