@@ -23,7 +23,7 @@ def get_forces_from_trajectory(trajectory):
 @calcfunction
 def get_total_energy(parameters):
     """Calcfunction to get total energy from relax output"""
-    return orm.Float(parameters.base.attributes.get('energy'))
+    return orm.Float(parameters.base.attributes.get('last_energy'))
 
 
 @calcfunction

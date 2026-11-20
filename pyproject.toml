@@ -3,7 +3,7 @@ build-backend = 'flit_core.buildapi'
 requires = ['flit_core >=3.4,<4']
 
 [project]
-authors = [{name = 'The AiiDA team', email = 'developers@aiida.net'}]
+authors = [{ name = 'The AiiDA team', email = 'developers@aiida.net' }]
 classifiers = [
   'Development Status :: 4 - Beta',
   'Framework :: AiiDA',
@@ -25,7 +25,7 @@ dependencies = [
 ]
 dynamic = ['description', 'version']
 keywords = ['aiida', 'workflows']
-license = {file = 'LICENSE.txt'}
+license = { file = 'LICENSE.txt' }
 name = 'aiida-common-workflows'
 readme = 'README.md'
 requires-python = '>=3.10'
@@ -61,7 +61,7 @@ all_plugins = [
   'aiida-bigdft~=0.3.0',
   'aiida-castep~=2.0',
   'aiida-cp2k~=2.0',
-  'aiida-fleur~=2.0',
+  'aiida-fleur @ git+https://github.com/JuDFTteam/aiida-fleur.git@eb65bebbb29c68df64c66c023f9037bd1c0284c6',
   'aiida-gaussian~=2.0',
   'aiida-nwchem~=3.0',
   'aiida-orca~=0.6.0',
@@ -69,7 +69,7 @@ all_plugins = [
   'aiida-siesta~=2.0',
   'aiida-vasp~=5.0',
   'aiida-wien2k~=0.2.0',
-  'masci-tools~=0.9'
+  'masci-tools @ git+https://github.com/JuDFTteam/masci-tools.git@fbd6f4e5a70a2257db706909498fbb79a2d12188'
 ]
 bigdft = [
   'aiida-bigdft~=0.3.0'
@@ -87,8 +87,8 @@ docs = [
   'sphinx-design~=0.5.0'
 ]
 fleur = [
-  'aiida-fleur~=2.0',
-  'masci-tools~=0.9'
+  'aiida-fleur @ git+https://github.com/JuDFTteam/aiida-fleur.git@eb65bebbb29c68df64c66c023f9037bd1c0284c6',
+  'masci-tools @ git+https://github.com/JuDFTteam/masci-tools.git@fbd6f4e5a70a2257db706909498fbb79a2d12188'
 ]
 gaussian = [
   'aiida-gaussian~=2.0'
