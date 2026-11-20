@@ -54,7 +54,19 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         spec.inputs['relax_type'].valid_type = ChoiceType((RelaxType.NONE, RelaxType.POSITIONS))
         spec.inputs['electronic_type'].valid_type = ChoiceType((ElectronicType.METAL, ElectronicType.INSULATOR))
         spec.inputs['protocol'].valid_type = ChoiceType(
-            ('fast', 'moderate', 'precise', 'oxides_validation', 'verification-PBE-v1', 'verification-LDA-v1', 'verification-PBEsol-v1', 'verification-PBE-loose-k-v1', 'verification-LDA-loose-k-v1', 'verification-PBEsol-loose-k-v1', 'verification-r2SCAN01-v1')
+            (
+                'fast',
+                'moderate',
+                'precise',
+                'oxides_validation',
+                'verification-PBE-v1',
+                'verification-LDA-v1',
+                'verification-PBEsol-v1',
+                'verification-PBE-loose-k-v1',
+                'verification-LDA-loose-k-v1',
+                'verification-PBEsol-loose-k-v1',
+                'verification-r2SCAN01-v1',
+            )
         )
         spec.input('engines.inpgen.code', valid_type=orm.Code, serializer=orm.load_code)
         spec.input('engines.inpgen.options', non_db=True, valid_type=dict, required=False)
@@ -165,7 +177,7 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         protocol_scf_para = protocol.get('scf', {})
         kmax = protocol_scf_para.pop('k_max_cutoff', None)  # for now always None, later consider clean up
         xc_type = protocol_scf_para.pop('xc_type', None)
-        protocol_calc_para = protocol.get('calc_parameters',{})
+        protocol_calc_para = protocol.get('calc_parameters', {})
         xc_type = protocol_calc_para.pop('xc_type', None)
 
         if molecule:  # We want to use only one kpoint, can be overwritten by user input
@@ -189,7 +201,9 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         if 'calc_parameters' in kwargs:
             parameters = kwargs.pop('calc_parameters')
 
-        parameters, structure = prepare_calc_parameters(parameters, xc_type, spin_type, magnetization_per_site, structure, kmax)
+        parameters, structure = prepare_calc_parameters(
+            parameters, xc_type, spin_type, magnetization_per_site, structure, kmax
+        )
 
         inputs = {
             'scf': {
@@ -210,7 +224,7 @@ class FleurCommonRelaxInputGenerator(CommonRelaxInputGenerator):
         return builder
 
 
-def prepare_calc_parameters(parameters, xc_type, spin_type, magnetization_per_site, structure, kmax):
+def prepare_calc_parameters(parameters, xc_type, spin_type, magnetization_per_site, structure, kmax):  # noqa: PLR0912, PLR0913
     """Prepare a calc_parameter node for a inpgen jobcalc
 
     Depending on the imports merge information
@@ -233,7 +247,7 @@ def prepare_calc_parameters(parameters, xc_type, spin_type, magnetization_per_si
     add_parameter_dict = {'comp': {'jspins': jspins}}
 
     if xc_type is not None:
-       add_parameter_dict = recursive_merge(add_parameter_dict, {'exco': {'xctyp': xc_type}})
+        add_parameter_dict = recursive_merge(add_parameter_dict, {'exco': {'xctyp': xc_type}})
 
     # electronic Structure options
     # None. Gff we want to increase the smearing and kpoint density in case of metal

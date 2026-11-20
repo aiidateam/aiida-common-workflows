@@ -118,9 +118,9 @@ verification-PBEsol-v1:
     change_mixing_criterion: 0.025
     run_final_scf: true
   calc_parameters:
-    xc_type: 'PBEs'
+    xc_type: PBEs
   scf:
-    xc_type: 'PBEs'
+    xc_type: PBEs
     kpoints_distance: 0.06
     kpoints_force_gamma: true
     fleur_runmax: 3
@@ -178,9 +178,9 @@ verification-PBEsol-loose-k-v1:
     change_mixing_criterion: 0.025
     run_final_scf: true
   calc_parameters:
-    xc_type: 'PBEs'
+    xc_type: PBEs
   scf:
-    xc_type: 'PBEs'
+    xc_type: PBEs
     kpoints_distance: 0.3
     kpoints_force_gamma: true
     fleur_runmax: 3
