@@ -257,10 +257,11 @@ class Cp2kCommonRelaxInputGenerator(CommonRelaxInputGenerator):
                 ),
             )
 
-        # Relaxation type.
         if relax_type == RelaxType.POSITIONS:
             run_type = 'GEO_OPT'
         elif relax_type == RelaxType.POSITIONS_CELL:
+            # Since cp2k/cp2k#5257, CELL_OPT always uses direct cell optimization.
+            # GLOBAL/RUN_TYPE selects it without a separate MOTION/CELL_OPT/TYPE.
             run_type = 'CELL_OPT'
         elif relax_type == RelaxType.NONE:
             run_type = 'ENERGY_FORCE'

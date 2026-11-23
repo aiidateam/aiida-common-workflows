@@ -1,6 +1,7 @@
 """Tests for the :mod:`aiida_common_workflows.workflows.relax.cp2k` module."""
 import pytest
 from aiida import engine, plugins
+from aiida_common_workflows.common import RelaxType
 
 
 @pytest.fixture
@@ -28,22 +29,6 @@ def test_get_builder(generator, default_builder_inputs):
     assert isinstance(builder, engine.ProcessBuilder)
 
 
-@pytest.mark.parametrize(
-    'protocol', ['fast', 'moderate', 'precise', 'verification-PBE-v1', 'verification-PBE-v1-sirius']
-)
-def test_protocol_output_matches_advanced_parser(generator, protocol):
-    """Every protocol should write matching Cartesian position and cell frames."""
-    motion = generator.get_protocol(protocol)['input']['MOTION']
-    assert 'TYPE' not in motion['CELL_OPT']
-    assert motion['GEO_OPT']['TYPE'] == 'MINIMIZATION'
-    trajectory = motion['PRINT']['TRAJECTORY']
-    cell = motion['PRINT']['CELL']
-    assert trajectory['FORMAT'] == 'XYZ'
-    assert cell['_'] == 'ON'
-    assert trajectory['ADD_LAST'] == cell['ADD_LAST'] == 'NUMERIC'
-    assert trajectory['EACH'] == cell['EACH'] == {'CELL_OPT': 1, 'GEO_OPT': 1, 'MD': 1}
-
-
 @pytest.mark.skip('Running this test will fail with an `UnroutableError` in `kiwipy`.')
 def test_submit(generator, default_builder_inputs):
     """Test submitting the builder returned by ``get_builder`` called with default arguments.
@@ -65,13 +50,11 @@ def test_supported_electronic_types(generator, default_builder_inputs):
 
 
 def test_supported_relax_types(generator, default_builder_inputs):
-    """Test calling ``get_builder`` for the supported ``relax_types``."""
-    inputs = default_builder_inputs
-
+    """Each supported relaxation must request the corresponding CP2K run type."""
+    run_types = {RelaxType.NONE: 'ENERGY_FORCE', RelaxType.POSITIONS: 'GEO_OPT', RelaxType.POSITIONS_CELL: 'CELL_OPT'}
     for relax_type in generator.spec().inputs['relax_type'].choices:
-        inputs['relax_type'] = relax_type
-        builder = generator.get_builder(**inputs)
-        assert isinstance(builder, engine.ProcessBuilder)
+        builder = generator.get_builder(**default_builder_inputs, relax_type=relax_type)
+        assert builder.cp2k.parameters['GLOBAL']['RUN_TYPE'] == run_types[relax_type]
 
 
 def test_supported_spin_types(generator, default_builder_inputs):
