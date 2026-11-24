@@ -1,6 +1,7 @@
 """Tests for the :mod:`aiida_common_workflows.workflows.relax.cp2k` module."""
 import pytest
 from aiida import engine, plugins
+from aiida_common_workflows.common import RelaxType
 
 
 @pytest.fixture
@@ -49,13 +50,11 @@ def test_supported_electronic_types(generator, default_builder_inputs):
 
 
 def test_supported_relax_types(generator, default_builder_inputs):
-    """Test calling ``get_builder`` for the supported ``relax_types``."""
-    inputs = default_builder_inputs
-
+    """Each supported relaxation must request the corresponding CP2K run type."""
+    run_types = {RelaxType.NONE: 'ENERGY_FORCE', RelaxType.POSITIONS: 'GEO_OPT', RelaxType.POSITIONS_CELL: 'CELL_OPT'}
     for relax_type in generator.spec().inputs['relax_type'].choices:
-        inputs['relax_type'] = relax_type
-        builder = generator.get_builder(**inputs)
-        assert isinstance(builder, engine.ProcessBuilder)
+        builder = generator.get_builder(**default_builder_inputs, relax_type=relax_type)
+        assert builder.cp2k.parameters['GLOBAL']['RUN_TYPE'] == run_types[relax_type]
 
 
 def test_supported_spin_types(generator, default_builder_inputs):
